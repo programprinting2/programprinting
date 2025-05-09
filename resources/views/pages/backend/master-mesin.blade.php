@@ -21,7 +21,7 @@
       <div class="card-body">
         
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <h6 class="card-title">Data Master Mesin</h6>
+            <h6 class="card-title">Data Master Mesin ku</h6>
             <div class="d-flex align-items-center gap-3">
                 <div class="btn-group" role="group" aria-label="View toggle">
                     <button type="button" class="btn btn-primary active" onclick="showTab('table')" id="tableViewButton">
