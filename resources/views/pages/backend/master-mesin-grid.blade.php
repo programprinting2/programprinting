@@ -22,7 +22,7 @@
         <p class="text-muted mb-3">Kelola inventaris mesin dan jadwal pemeliharaan</p>
         <div class="d-flex flex-wrap gap-3">
           @foreach ($data_mesin as $mesin)
-          <div class="card border" style="width: 300px;">
+          <div class="card border" style="width: 400px;">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-center mb-2">
                 <h5 class="card-title mb-0">{{ $mesin->nama_mesin }}</h5>

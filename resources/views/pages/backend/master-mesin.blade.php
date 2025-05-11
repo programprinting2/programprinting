@@ -1,7 +1,7 @@
 @extends('layout.master')
 
 @push('plugin-styles')
-  <link href="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.css') }}" rel="stylesheet" />
+  <!-- <link href="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.css') }}" rel="stylesheet" /> -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" /> <!-- Add this line -->
 @endpush
 
@@ -66,15 +66,6 @@
               <option value="lokasi1">Lokasi 1</option>
               <option value="lokasi2">Lokasi 2</option>
             </select>
-          </div>
-          <div class="pagination-controls d-flex align-items-center gap-2">
-            <button class="btn btn-outline-dark btn-sm" id="prevPageButton">
-                <i class="fas fa-chevron-left"></i>
-            </button>
-            <span class="text-primary" id="currentPage">1/1</span>
-            <button class="btn btn-outline-dark btn-sm" id="nextPageButton">
-                <i class="fas fa-chevron-right"></i>
-            </button>
           </div>
         </div>
         <br>
@@ -153,7 +144,7 @@
             </form>
         </div>
 
-        <script>
+        <!-- <script>
             let currentPage = 1;
             const itemsPerPage = 6;
 
@@ -346,7 +337,7 @@
               searchForm.value = '';
               filterContent(); // Trigger filtering with an empty input
             }
-        </script>
+        </script> -->
 
       </div>
     </div>
@@ -711,6 +702,8 @@
   </div>
   @endforeach
 
+  {{ $data_mesin->links('pagination::bootstrap-5') }}
+
 @endsection
 
 @push('plugin-scripts')
@@ -719,79 +712,47 @@
 @endpush
 
 @push('custom-scripts')
-
 <script>
-    let dataTableInstance;
+function showTab(view) {
+    const tableButton = document.getElementById('tableViewButton');
+    const gridButton = document.getElementById('gridViewButton');
+    const tableView = document.getElementById('data-source-1').parentElement;
+    const gridView = document.getElementById('grid-view');
 
-    document.addEventListener('DOMContentLoaded', function () {
-        try {
-            dataTableInstance = $('#data-source-1').DataTable({
-                paging: true,
-                searching: true,
-                ordering: true,
-                info: true,
-                autoWidth: false,
-                responsive: true,
-                language: {
-                    url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json' // Optional: Indonesian language support
-                },
-                dom: 'lrtip' // Remove the default search box
-            });
-
-            updatePaginationControls();
-
-            document.getElementById('prevPageButton').addEventListener('click', function () {
-                if (dataTableInstance.page() > 0) {
-                    dataTableInstance.page('previous').draw('page');
-                    updatePaginationControls();
+    if (view === 'table') {
+        tableButton.classList.add('btn-primary');
+        tableButton.classList.remove('btn-light');
+        gridButton.classList.add('btn-light');
+        gridButton.classList.remove('btn-primary');
+        tableView.style.display = 'block';
+        gridView.style.display = 'none';
+    } else if (view === 'grid') {
+        gridButton.classList.add('btn-primary');
+        gridButton.classList.remove('btn-light');
+        tableButton.classList.add('btn-light');
+        tableButton.classList.remove('btn-primary');
+        tableView.style.display = 'none';
+        gridView.style.display = 'block';
+        // AJAX load grid
+        gridView.innerHTML = '<div class="text-center w-100 py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        fetch("{{ route('backend.master-mesin.grid') }}")
+            .then(response => response.text())
+            .then(html => {
+                // Ambil hanya isi <div class="d-flex flex-wrap gap-3">...</div> dari partial
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const gridContent = doc.querySelector('.d-flex.flex-wrap.gap-3');
+                if (gridContent) {
+                    gridView.innerHTML = '';
+                    gridView.appendChild(gridContent);
+                } else {
+                    gridView.innerHTML = '<div class="alert alert-danger">Gagal memuat grid.</div>';
                 }
+            })
+            .catch(() => {
+                gridView.innerHTML = '<div class="alert alert-danger">Gagal memuat grid.</div>';
             });
-
-            document.getElementById('nextPageButton').addEventListener('click', function () {
-                if (dataTableInstance.page() < dataTableInstance.page.info().pages - 1) {
-                    dataTableInstance.page('next').draw('page');
-                    updatePaginationControls();
-                }
-            });
-        } catch (error) {
-            console.error('Error initializing DataTables:', error);
-        }
-    });
-
-    function filterTable() {
-        const searchInput = document.getElementById('searchForm').value;
-        if (dataTableInstance) {
-            dataTableInstance.search(searchInput).draw(); // Apply search to DataTable
-        }
     }
-
-    function updatePaginationControls() {
-        const pageInfo = dataTableInstance.page.info();
-        document.getElementById('currentPage').textContent = `${pageInfo.page + 1}/${pageInfo.pages}`;
-    }
-
-    function showTab(view) {
-        const tableButton = document.getElementById('tableViewButton');
-        const gridButton = document.getElementById('gridViewButton');
-        const tableView = document.getElementById('data-source-1').parentElement; // Ensure the parent container is hidden
-        const gridView = document.getElementById('grid-view');
-
-        if (view === 'table') {
-            tableButton.classList.add('btn-primary');
-            tableButton.classList.remove('btn-light');
-            gridButton.classList.add('btn-light');
-            gridButton.classList.remove('btn-primary');
-            tableView.style.display = 'block'; // Show table view
-            gridView.style.display = 'none'; // Hide grid view
-        } else if (view === 'grid') {
-            gridButton.classList.add('btn-primary');
-            gridButton.classList.remove('btn-light');
-            tableButton.classList.add('btn-light');
-            tableButton.classList.remove('btn-primary');
-            tableView.style.display = 'none'; // Hide table view
-            gridView.style.display = 'flex'; // Show grid view
-            renderGridView(filteredGridData); // Ensure grid view is rendered on first switch
-        }
-    }
+}
 </script>
 @endpush

@@ -10,7 +10,7 @@ class MasterMesinController extends Controller
 {
     public function index()
     {
-        $data_mesin = MasterMesin::all();
+        $data_mesin = MasterMesin::paginate(10);
         return view("pages.backend.master-mesin", ['data_mesin' => $data_mesin]);
     }
 
@@ -130,5 +130,11 @@ class MasterMesinController extends Controller
             ->get();
 
         return response()->json($data_mesin);
+    }
+
+    public function grid()
+    {
+        $data_mesin = MasterMesin::all();
+        return view('pages.backend.master-mesin-grid', ['data_mesin' => $data_mesin]);
     }
 }

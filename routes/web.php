@@ -34,6 +34,7 @@ Route::group(['prefix' => 'backend'], function () {
     Route::put('master-mesin/{id}/clear-image', [MasterMesinController::class, 'clearImage'])->name('backend.master-mesin.clear-image');
     Route::delete('master-mesin/{id}', [MasterMesinController::class, 'delete'])->name('backend.master-mesin.delete');
     Route::get('/master-mesin/filter', [App\Http\Controllers\MasterMesinController::class, 'filter'])->name('backend.master-mesin.filter');
+    Route::get('/backend/master-mesin/grid', [App\Http\Controllers\MasterMesinController::class, 'grid'])->name('backend.master-mesin.grid');
 
     Route::get('master-kontak', [MasterKontakController::class, 'index'])->name('backend.master-kontak');
     Route::post('master-kontak/create', [MasterKontakController::class, 'store'])->name('backend.master-kontak.create');
@@ -57,6 +58,10 @@ Route::group(['prefix' => 'pembelian'], function(){
     Route::get('/', [PembelianController::class, 'index'])->name('pembelian.index');
     Route::post('/create', [PembelianController::class, 'store'])->name('pembelian.create');
 });
+
+// Route::group(['prefix' => 'spk'], function(){
+    
+// });
 
 
 

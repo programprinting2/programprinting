@@ -67,7 +67,7 @@
               <option value="lokasi2">Lokasi 2</option>
             </select>
           </div>
-          <div class="pagination-controls d-flex align-items-center gap-2">
+          <!-- <div class="pagination-controls d-flex align-items-center gap-2">
             <button class="btn btn-outline-dark btn-sm" id="prevPageButton">
                 <i class="fas fa-chevron-left"></i>
             </button>
@@ -75,7 +75,7 @@
             <button class="btn btn-outline-dark btn-sm" id="nextPageButton">
                 <i class="fas fa-chevron-right"></i>
             </button>
-          </div>
+          </div> -->
         </div>
         <br>
         <div class="table-responsive">
@@ -573,7 +573,7 @@
 
 @push('custom-scripts')
 
-<script>
+<!-- <script>
     let dataTableInstance;
 
     document.addEventListener('DOMContentLoaded', function () {
@@ -646,5 +646,5 @@
             renderGridView(filteredGridData); // Ensure grid view is rendered on first switch
         }
     }
-</script>
+</script> -->
 @endpush

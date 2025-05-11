@@ -10,7 +10,7 @@ class MasterKontakController extends Controller
 {
     public function index()
     {
-        $data_kontak = MasterKontak::all();
+        $data_kontak = MasterKontak::paginate(10);
         return view("pages.backend.master-kontak", ['data_kontak' => $data_kontak]);
     }
 
