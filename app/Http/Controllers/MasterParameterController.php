@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\MasterParameter;
 use Illuminate\Support\Facades\Storage;
+use App\Models\DetailParameter;
 
 class MasterParameterController extends Controller
 {
@@ -14,51 +15,89 @@ class MasterParameterController extends Controller
         return view("pages.backend.master-parameter", ['data_parameter' => $data_parameter]);
     }
 
-    // public function store(Request $request)
-    // {
-                
-    //     $validated = $request->validate([
-    //         'tipe' => 'required|string|in:staff,customer,supplier',
-    //         'nama' => 'required|string|max:100',
-    //         'HP' => 'nullable|string|max:20',
-    //         'alamat' => 'nullable|string',
-    //         'catatan' => 'nullable|string',
-    //     ]);
+    // CRUD Kategori Parameter
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_parameter' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
+            'icon' => 'nullable|string',
+            'aktif' => 'boolean',
+        ]);
+        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
+        $param = MasterParameter::create($validated);
+        if ($request->ajax()) return response()->json($param);
+        return redirect()->route('backend.master-parameter')->with('success', 'Kategori berhasil ditambahkan.');
+    }
 
-    //     MasterKontak::create($validated);
+    public function update(Request $request, $id)
+    {
+        $param = MasterParameter::findOrFail($id);
+        $validated = $request->validate([
+            'nama_parameter' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
+            'icon' => 'nullable|string',
+            'aktif' => 'boolean',
+        ]);
+        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
+        $param->update($validated);
+        if ($request->ajax()) return response()->json($param);
+        return redirect()->route('backend.master-parameter')->with('success', 'Kategori berhasil diupdate.');
+    }
 
-    //     return redirect()->route('backend.master-kontak')->with('success', 'Data kontak berhasil ditambahkan.');
-    // }
+    public function destroy($id)
+    {
+        $param = MasterParameter::findOrFail($id);
+        $param->delete();
+        if (request()->ajax()) return response()->json(['success'=>true]);
+        return redirect()->route('backend.master-parameter')->with('success', 'Kategori berhasil dihapus.');
+    }
 
-    // public function update(Request $request, $id)
-    // {
-    //     $data_kontak = MasterKontak::findOrFail($id);
-        
+    // CRUD Detail Parameter
+    public function detail($id)
+    {
+        $details = DetailParameter::where('master_parameter_id', $id)->get();
+        return response()->json($details);
+    }
 
-    //     $validated = $request->validate([
-    //         'tipe' => 'required|string|in:staff,customer,supplier',
-    //         'nama' => 'required|string|max:100',
-    //         'HP' => 'nullable|string|max:20',
-    //         'alamat' => 'nullable|string',
-    //         'catatan' => 'nullable|string',
-    //     ]);
+    public function storeDetail(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'nama_detail_parameter' => 'required|string|max:255',
+            'isi_parameter' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+            'icon' => 'nullable|string',
+            'warna' => 'nullable|string',
+            'aktif' => 'boolean',
+        ]);
+        $validated['master_parameter_id'] = $id;
+        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
+        $detail = DetailParameter::create($validated);
+        return response()->json($detail);
+    }
 
-    //     $data_kontak->update($validated);
+    public function updateDetail(Request $request, $id, $detailId)
+    {
+        $detail = DetailParameter::findOrFail($detailId);
+        $validated = $request->validate([
+            'nama_detail_parameter' => 'required|string|max:255',
+            'isi_parameter' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+            'icon' => 'nullable|string',
+            'warna' => 'nullable|string',
+            'aktif' => 'boolean',
+        ]);
+        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
+        $detail->update($validated);
+        return response()->json($detail);
+    }
 
-    //     return redirect()->route('backend.master-kontak')->with('success', 'Data kontak berhasil diperbarui.');
-    // }
-
-    // public function delete($id)
-    // {
-    //     $data_kontak = MasterKontak::find($id);
-
-    //     if ($data_kontak) {
-    //         $data_kontak->delete();
-    //         return redirect()->route('backend.master-kontak')->with('success', 'Data kontak berhasil dihapus.');
-    //     } else {
-    //         return redirect()->route('backend.master-kontak')->with('error', 'Data kontak tidak ditemukan.');
-    //     }
-    // }
+    public function destroyDetail($id, $detailId)
+    {
+        $detail = DetailParameter::findOrFail($detailId);
+        $detail->delete();
+        return response()->json(['success'=>true]);
+    }
 
     // public function filter(Request $request)
     // {

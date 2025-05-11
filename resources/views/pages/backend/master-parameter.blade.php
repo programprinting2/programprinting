@@ -46,445 +46,162 @@
     display: flex; /* Align buttons horizontally */
     justify-content: flex-end; /* Align buttons to the right */
   }
+  
+  /* Tambahan style untuk list kategori */
+  #kategoriList .list-group-item {
+    border: none;
+    border-bottom: 1px solid #eee;
+    padding: 12px 15px;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  
+  #kategoriList .list-group-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  #kategoriList .list-group-item.active {
+    background-color: #e9ecef;
+    border-left: 4px solid #0d6efd;
+    color: #0d6efd;
+    font-weight: 500;
+  }
+  
+  #kategoriList .list-group-item .btn-group {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  
+  #kategoriList .list-group-item:hover .btn-group {
+    opacity: 1;
+  }
+  
+  #kategoriList .btn-xs {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.75rem;
+  }
 </style>
 
 <nav class="page-breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="#">Tables</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Master Parameter</li>
+    <li class="breadcrumb-item"><a href="#">Master</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Parameter</li>
   </ol>
 </nav>
 
-<div class="row">
-  <!-- Left Column: Category List -->
-  <div class="col-md-4">
-    <div class="card">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="card-title">Kategori Parameter</h6>
-          <button class="btn btn-dark btn-sm d-flex align-items-center" type="button" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
-            <i class="fa fa-plus"></i>
-          </button>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- Search and Filter Section -->
-          <div class="d-flex align-items-center">
-            <div class="input-group" style="width: 250px; margin-right: 10px;">
-              <span class="input-group-text">
-                <i class="fas fa-search"></i>
-              </span>
-              <input type="text" class="form-control form-control-sm" id="searchCategoryForm" placeholder="Cari..." onkeyup="filterCategoryContent()">
-              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearCategorySearchForm()" title="Clear">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            <div class="input-group" style="width: 200px;">
-              <span class="input-group-text">
-                <i class="fas fa-filter"></i>
-              </span>
-              <select class="form-select form-select-sm" aria-label="Filter Status">
-                <option selected>Semua Data</option>
-                <option value="aktif">Aktif</option>
-                <option value="tidak_aktif">Tidak Aktif</option>
-              </select>
-            </div>
+<div class="container-fluid">
+  <div class="row">
+    <!-- Kategori Parameter -->
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="card-title">Kategori Parameter</h6>
+            <button class="btn btn-dark btn-sm" id="btnAddKategori"><i class="fa fa-plus"></i></button>
           </div>
+          <input type="text" class="form-control mb-2" id="searchKategori" placeholder="Cari kategori...">
+          <ul class="list-group" id="kategoriList">
+            <!-- Kategori akan diisi via JS -->
+          </ul>
         </div>
-        <hr>
-        <div class="table-responsive">
-          <table id="category-table" class="table">
-            <thead>
-              <tr>
-                <th style="width: 70%;">Kategori</th>
-                <th style="width: 30%;">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td>Satuan Ukuran</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>Kategori Bahan</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>print_type</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>finishing_option</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>paper_dimension</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>customer_category</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>Jenis Kertas</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>Jenis Finishing</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>work_status</td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                  <button class="btn btn-outline-success btn-xs" title="Tambah">
-                    <i class="fa fa-plus"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ul class="pagination pagination-rounded d-flex align-items-center justify-content-end mb-0">
-          <li class="page-item">
-            <button class="page-link btn-sm text-secondary" id="prevCategoryPageButton" aria-label="Previous">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-          </li>
-          <li class="page-item">
-            <span class="page-link text-secondary btn-sm" id="currentCategoryPage">1/1</span>
-          </li>
-          <li class="page-item">
-            <button class="page-link btn-sm text-secondary" id="nextCategoryPageButton" aria-label="Next">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
       </div>
     </div>
-  </div>
-
-  <!-- Right Column: Details -->
-  <div class="col-md-8">
-    <div class="card">
-      <div class="card-body">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h6 class="card-title">Detail Parameter</h6>
-          <button class="btn btn-dark btn-sm d-flex align-items-center" type="button" data-bs-toggle="modal" data-bs-target="#addDetailModal">
-            <i class="fa fa-plus"></i>
-          </button>
-        </div>
-        <div class="d-flex justify-content-between align-items-center mb-2">
-          <!-- Search and Filter Section -->
-          <div class="d-flex align-items-center">
-            <div class="input-group" style="width: 250px; margin-right: 10px;">
-              <span class="input-group-text">
-                <i class="fas fa-search"></i>
-              </span>
-              <input type="text" class="form-control form-control-sm" id="searchDetailForm" placeholder="Cari..." onkeyup="filterDetailContent()">
-              <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearDetailSearchForm()" title="Clear">
-                <i class="fas fa-times"></i>
-              </button>
-            </div>
-            <div class="input-group" style="width: 200px;">
-              <span class="input-group-text">
-                <i class="fas fa-filter"></i>
-              </span>
-              <select class="form-select form-select-sm" aria-label="Filter Status">
-                <option selected>Semua Data</option>
-                <option value="aktif">Aktif</option>
-                <option value="tidak_aktif">Tidak Aktif</option>
-              </select>
-            </div>
+    <!-- Detail Parameter -->
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h6 class="card-title" id="detailTitle">Detail Parameter</h6>
+            <button class="btn btn-dark btn-sm" id="btnAddDetail" disabled><i class="fa fa-plus"></i></button>
+          </div>
+          <input type="text" class="form-control mb-2" id="searchDetail" placeholder="Cari detail...">
+          <div class="table-responsive">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Simbol</th>
+                  <th>Nama</th>
+                  <th>Deskripsi</th>
+                  <th>Status</th>
+                  <th>Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="detailList">
+                <tr><td colspan="5" class="text-center text-muted">Pilih kategori parameter</td></tr>
+              </tbody>
+            </table>
           </div>
         </div>
-        <hr>
-        <div class="table-responsive">
-          <table id="data-source-1" class="table">
-            <thead>
-              <tr>
-                <th style="width: 10%;">Simbol</th>
-                <th style="width: 20%;">Nama</th>
-                <th style="width: 40%;">Deskripsi</th>
-                <th style="width: 10%;">Status</th>
-                <th style="width: 20%;">Aksi</th>
-              </tr>
-            </thead>
-            <tbody>
-              {{-- Dynamic rows based on selected category --}}
-              <tr>
-                <td>kg</td>
-                <td>Kilogram</td>
-                <td>Satuan berat dalam kilogram</td>
-                <td><span class="badge bg-primary">Aktif</span></td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>m2</td>
-                <td>Meter Persegi</td>
-                <td>Satuan luas dalam meter persegi</td>
-                <td><span class="badge bg-primary">Aktif</span></td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>m3</td>
-                <td>Meter Kubik</td>
-                <td>Satuan volume dalam meter kubik</td>
-                <td><span class="badge bg-primary">Aktif</span></td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>liter</td>
-                <td>Liter</td>
-                <td>Satuan volume dalam liter</td>
-                <td><span class="badge bg-primary">Aktif</span></td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>box</td>
-                <td>Box</td>
-                <td>Satuan dalam kotak</td>
-                <td><span class="badge bg-primary">Aktif</span></td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-              <tr>
-                <td>pcs</td>
-                <td>Pieces</td>
-                <td>Satuan dalam buah/pcs</td>
-                <td><span class="badge bg-primary">Aktif</span></td>
-                <td>
-                  <button class="btn btn-outline-primary btn-xs" title="Edit">
-                    <i class="fa fa-edit"></i>
-                  </button>
-                  <button class="btn btn-outline-danger btn-xs" title="Delete">
-                    <i class="fa fa-trash"></i>
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <ul class="pagination pagination-rounded d-flex align-items-center justify-content-end mb-0">
-          <li class="page-item">
-            <button class="page-link btn-sm text-secondary" id="prevDetailPageButton" aria-label="Previous">
-              <i class="fas fa-chevron-left"></i>
-            </button>
-          </li>
-          <li class="page-item">
-            <span class="page-link text-secondary btn-sm" id="currentDetailPage">1/1</span>
-          </li>
-          <li class="page-item">
-            <button class="page-link btn-sm text-secondary" id="nextDetailPageButton" aria-label="Next">
-              <i class="fas fa-chevron-right"></i>
-            </button>
-          </li>
-        </ul>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modals -->
-<div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- Modal Kategori -->
+<div class="modal fade" id="modalKategori" tabindex="-1">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addCategoryModalLabel">Tambah Kategori Parameter Baru</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="modalKategoriTitle">Tambah Kategori</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <form>
-          <div class="row mb-3">
-            <label for="categoryName" class="col-sm-4 col-form-label text-end">Nama Kategori</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" id="categoryName" placeholder="Nama kategori parameter" required>
-            </div>
+        <form id="formKategori">
+          <input type="hidden" id="kategoriId">
+          <div class="mb-3">
+            <label>Nama Kategori</label>
+            <input type="text" class="form-control" id="kategoriNama" required>
           </div>
-          <div class="row mb-3">
-            <label for="categoryDescription" class="col-sm-4 col-form-label text-end">Deskripsi</label>
-            <div class="col-sm-8">
-              <textarea class="form-control" id="categoryDescription" placeholder="Deskripsi kategori parameter (opsional)" rows="3"></textarea>
-            </div>
+          <div class="mb-3">
+            <label>Deskripsi</label>
+            <input type="text" class="form-control" id="kategoriKeterangan">
           </div>
-          <div class="row mb-3">
-            <label for="categoryStatus" class="col-sm-4 col-form-label text-end">Status Aktif</label>
-            <div class="col-sm-8 d-flex align-items-center">
-              <input class="form-check-input" type="checkbox" id="categoryStatus" checked>
-            </div>
-          </div>
-          <div class="d-flex justify-content-end">
-            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" class="btn btn-primary">Simpan</button>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="kategoriAktif" checked>
+            <label class="form-check-label" for="kategoriAktif">Aktif</label>
           </div>
         </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnSaveKategori">Simpan</button>
       </div>
     </div>
   </div>
 </div>
 
-<div class="modal fade" id="addDetailModal" tabindex="-1" aria-labelledby="addDetailModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- Modal Detail -->
+<div class="modal fade" id="modalDetail" tabindex="-1">
+  <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
-        <h5 class="modal-title" id="addDetailModalLabel">Tambah Parameter Baru</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <h5 class="modal-title" id="modalDetailTitle">Tambah Detail Parameter</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <form>
-          <div class="row mb-3">
-            <label for="categoryParameter" class="col-sm-4 col-form-label text-end">Kategori Parameter</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" id="categoryParameter" value="Satuan Ukuran" readonly>
-            </div>
+        <form id="formDetail">
+          <input type="hidden" id="detailId">
+          <div class="mb-3">
+            <label>Nama</label>
+            <input type="text" class="form-control" id="detailNama" required>
           </div>
-          <div class="row mb-3">
-            <label for="parameterName" class="col-sm-4 col-form-label text-end">Nama</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" id="parameterName" placeholder="Nama parameter" required>
-            </div>
+          <div class="mb-3">
+            <label>Simbol</label>
+            <input type="text" class="form-control" id="detailIsi">
           </div>
-          <div class="row mb-3">
-            <label for="parameterSymbol" class="col-sm-4 col-form-label text-end">Simbol</label>
-            <div class="col-sm-8">
-              <input type="text" class="form-control" id="parameterSymbol" placeholder="Masukkan simbol satuan (misal: kg, m, cm)" required>
-            </div>
+          <div class="mb-3">
+            <label>Deskripsi</label>
+            <input type="text" class="form-control" id="detailKeterangan">
           </div>
-          <div class="row mb-3">
-            <label for="parameterDescription" class="col-sm-4 col-form-label text-end">Deskripsi</label>
-            <div class="col-sm-8">
-              <textarea class="form-control" id="parameterDescription" placeholder="Deskripsi parameter (opsional)" rows="3"></textarea>
-            </div>
-          </div>
-          <div class="row mb-3">
-            <label for="parameterStatus" class="col-sm-4 col-form-label text-end">Status Aktif</label>
-            <div class="col-sm-8 d-flex align-items-center">
-              <input class="form-check-input" type="checkbox" id="parameterStatus" checked>
-            </div>
-          </div>
-          <div class="d-flex justify-content-end">
-            <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal">Batal</button>
-            <button type="submit" class="btn btn-primary">Simpan</button>
+          <div class="form-check form-switch mb-3">
+            <input class="form-check-input" type="checkbox" id="detailAktif" checked>
+            <label class="form-check-label" for="detailAktif">Aktif</label>
           </div>
         </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <button type="button" class="btn btn-primary" id="btnSaveDetail">Simpan</button>
       </div>
     </div>
   </div>
@@ -517,4 +234,145 @@
       // Add logic to filter the right table based on the selected category
     }
   </script>
+@endpush
+
+@push('custom-scripts')
+<script>
+let kategoriAktif = null;
+
+function loadKategori() {
+  fetch('/backend/master-parameter')
+    .then(res => res.text())
+    .then(html => {
+      let data = @json($data_parameter);
+      let list = '';
+      data.forEach(kat => {
+        list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif==kat.id?'active':''}" data-id="${kat.id}">
+          <span>${kat.nama_parameter}</span>
+          <div class="btn-group">
+            <button class="btn btn-xs btn-outline-primary btn-edit-kat"><i class="fa fa-edit"></i></button>
+            <button class="btn btn-xs btn-outline-danger btn-del-kat"><i class="fa fa-trash"></i></button>
+          </div>
+        </li>`;
+      });
+      document.getElementById('kategoriList').innerHTML = list;
+    });
+}
+
+function loadDetail(id) {
+  fetch(`/backend/master-parameter/${id}/detail`)
+    .then(res => res.json())
+    .then(data => {
+      let list = '';
+      if(data.length==0) list = `<tr><td colspan="5" class="text-center text-muted">Belum ada detail</td></tr>`;
+      data.forEach(det => {
+        list += `<tr data-id="${det.id}">
+          <td>${det.isi_parameter||''}</td>
+          <td>${det.nama_detail_parameter}</td>
+          <td>${det.keterangan||''}</td>
+          <td><span class="badge bg-${det.aktif?'primary':'secondary'}">${det.aktif?'Aktif':'Nonaktif'}</span></td>
+          <td>
+            <button class="btn btn-xs btn-outline-primary btn-edit-detail"><i class="fa fa-edit"></i></button>
+            <button class="btn btn-xs btn-outline-danger btn-del-detail"><i class="fa fa-trash"></i></button>
+          </td>
+        </tr>`;
+      });
+      document.getElementById('detailList').innerHTML = list;
+    });
+}
+
+// Kategori event
+$(document).on('click', '#btnAddKategori', function() {
+  $('#modalKategoriTitle').text('Tambah Kategori');
+  $('#formKategori')[0].reset();
+  $('#kategoriId').val('');
+  $('#modalKategori').modal('show');
+});
+$(document).on('click', '.btn-edit-kat', function(e) {
+  e.stopPropagation();
+  let id = $(this).closest('li').data('id');
+  let kat = @json($data_parameter).find(k=>k.id==id);
+  $('#modalKategoriTitle').text('Edit Kategori');
+  $('#kategoriId').val(kat.id);
+  $('#kategoriNama').val(kat.nama_parameter);
+  $('#kategoriKeterangan').val(kat.keterangan);
+  $('#kategoriAktif').prop('checked', kat.aktif);
+  $('#modalKategori').modal('show');
+});
+$(document).on('click', '.btn-del-kat', function(e) {
+  e.stopPropagation();
+  if(!confirm('Hapus kategori ini?')) return;
+  let id = $(this).closest('li').data('id');
+  $.ajax({url:`/backend/master-parameter/${id}`,type:'DELETE',data:{_token:'{{csrf_token()}}'},success:()=>{loadKategori();if(kategoriAktif==id){kategoriAktif=null;$('#detailList').html('<tr><td colspan="5" class="text-center text-muted">Pilih kategori parameter</td></tr>');}}});
+});
+$(document).on('click', '#btnSaveKategori', function() {
+  let id = $('#kategoriId').val();
+  let data = {
+    nama_parameter: $('#kategoriNama').val(),
+    keterangan: $('#kategoriKeterangan').val(),
+    aktif: $('#kategoriAktif').is(':checked')?1:0,
+    _token: '{{csrf_token()}}'
+  };
+  if(!data.nama_parameter) return alert('Nama kategori wajib diisi!');
+  if(id) {
+    $.ajax({url:`/backend/master-parameter/${id}`,type:'PUT',data,success:()=>{loadKategori();$('#modalKategori').modal('hide');}});
+  } else {
+    $.post('/backend/master-parameter',data,()=>{loadKategori();$('#modalKategori').modal('hide');});
+  }
+});
+$(document).on('click', '#kategoriList li', function() {
+  $('#kategoriList li').removeClass('active');
+  $(this).addClass('active');
+  kategoriAktif = $(this).data('id');
+  $('#btnAddDetail').prop('disabled',false);
+  loadDetail(kategoriAktif);
+});
+
+// Detail event
+$(document).on('click', '#btnAddDetail', function() {
+  $('#modalDetailTitle').text('Tambah Detail Parameter');
+  $('#formDetail')[0].reset();
+  $('#detailId').val('');
+  $('#modalDetail').modal('show');
+});
+$(document).on('click', '.btn-edit-detail', function() {
+  let id = $(this).closest('tr').data('id');
+  $.get(`/backend/master-parameter/${kategoriAktif}/detail`, function(data) {
+    let det = data.find(d=>d.id==id);
+    $('#modalDetailTitle').text('Edit Detail Parameter');
+    $('#detailId').val(det.id);
+    $('#detailNama').val(det.nama_detail_parameter);
+    $('#detailIsi').val(det.isi_parameter);
+    $('#detailKeterangan').val(det.keterangan);
+    $('#detailAktif').prop('checked', det.aktif);
+    $('#modalDetail').modal('show');
+  });
+});
+$(document).on('click', '.btn-del-detail', function() {
+  if(!confirm('Hapus detail ini?')) return;
+  let id = $(this).closest('tr').data('id');
+  $.ajax({url:`/backend/master-parameter/${kategoriAktif}/detail/${id}`,type:'DELETE',data:{_token:'{{csrf_token()}}'},success:()=>loadDetail(kategoriAktif)});
+});
+$(document).on('click', '#btnSaveDetail', function() {
+  let id = $('#detailId').val();
+  let data = {
+    nama_detail_parameter: $('#detailNama').val(),
+    isi_parameter: $('#detailIsi').val(),
+    keterangan: $('#detailKeterangan').val(),
+    aktif: $('#detailAktif').is(':checked')?1:0,
+    _token: '{{csrf_token()}}'
+  };
+  if(!data.nama_detail_parameter) return alert('Nama detail wajib diisi!');
+  if(id) {
+    $.ajax({url:`/backend/master-parameter/${kategoriAktif}/detail/${id}`,type:'PUT',data,success:()=>{loadDetail(kategoriAktif);$('#modalDetail').modal('hide');}});
+  } else {
+    $.post(`/backend/master-parameter/${kategoriAktif}/detail`,data,()=>{loadDetail(kategoriAktif);$('#modalDetail').modal('hide');});
+  }
+});
+
+// Initial load
+$(function(){
+  loadKategori();
+});
+</script>
 @endpush

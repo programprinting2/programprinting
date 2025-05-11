@@ -42,7 +42,14 @@ Route::group(['prefix' => 'backend'], function () {
     Route::get('/master-kontak/filter', [App\Http\Controllers\MasterKontakController::class, 'filter'])->name('backend.master-kontak.filter');
 
     Route::get('master-parameter', [MasterParameterController::class, 'index'])->name('backend.master-parameter');
-    
+    Route::post('master-parameter', [MasterParameterController::class, 'store'])->name('backend.master-parameter.store');
+    Route::put('master-parameter/{id}', [MasterParameterController::class, 'update'])->name('backend.master-parameter.update');
+    Route::delete('master-parameter/{id}', [MasterParameterController::class, 'destroy'])->name('backend.master-parameter.destroy');
+    Route::get('master-parameter/{id}/detail', [MasterParameterController::class, 'detail'])->name('backend.master-parameter.detail');
+    Route::post('master-parameter/{id}/detail', [MasterParameterController::class, 'storeDetail'])->name('backend.master-parameter.detail.store');
+    Route::put('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'updateDetail'])->name('backend.master-parameter.detail.update');
+    Route::delete('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'destroyDetail'])->name('backend.master-parameter.detail.destroy');
+
     Route::get('master-bahanbaku', [MasterBahanbakuController::class, 'index'])->name('backend.master-bahanbaku');
 });
 

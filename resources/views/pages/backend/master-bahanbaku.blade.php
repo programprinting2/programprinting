@@ -50,8 +50,8 @@
 
 <nav class="page-breadcrumb">
   <ol class="breadcrumb">
-    <li class="breadcrumb-item"><a href="#">Tables</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Master Bahan Baku</li>
+    <li class="breadcrumb-item"><a href="#">Master</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Bahan Baku</li>
   </ol>
 </nav>
 
