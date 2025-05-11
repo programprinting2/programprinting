@@ -88,7 +88,11 @@
                     <th style="width: 15%;">Jenis Mesin</th>  
                     <th style="width: 20%;">Keterangan</th>                                        
                     <th style="width: 10%;">Jenis produksi</th>
-                    <th style="width: 10%;">Tgl Beli</th>                                                                                
+                    <th style="width: 10%;">Tgl Beli</th>
+                    <th style="width: 10%;">Nomor Seri</th>
+                    <th style="width: 10%;">Pabrikan</th>
+                    <th style="width: 10%;">Lokasi Pemeliharaan</th>
+                    <th style="width: 10%;">Tgl Pemeliharaan</th>
                     <th style="width: 10%;">Action</th>
                 </tr>
             </thead>
@@ -110,7 +114,17 @@
                     <td style="width: 15%;">{{ $mesin->jenis_mesin }}</td>  
                     <td style="width: 20%;">{{ $mesin->keterangan }}</td>
                     <td style="width: 10%;">{{ $mesin->non_produksi ? 'Produksi' : 'Non Produksi' }}</td>
-                    <td style="width: 10%;">{{ $mesin->tanggal_beli}}</td>
+                    <td style="width: 10%;">{{ \Carbon\Carbon::parse($mesin->tanggal_beli)->format('d-m-Y') }}</td>
+                    <td style="width: 10%;">{{ $mesin->nomor_seri }}</td>
+                    <td style="width: 10%;">{{ $mesin->pabrikan }}</td>
+                    <td style="width: 10%;">{{ $mesin->lokasi_pemeliharaan }}</td>
+                    <td style="width: 10%;">
+                        @if($mesin->tanggal_pemeliharaan_terakhir)
+                            {{ \Carbon\Carbon::parse($mesin->tanggal_pemeliharaan_terakhir)->format('d-m-Y') }}
+                        @else
+                            -
+                        @endif
+                    </td>
                     <td style="width: 10%;" class="text-center">
                         <button class="btn btn-outline-primary btn-sm btn-icon" data-bs-toggle="modal" data-bs-target="#editDataModal{{ $mesin->id }}" title="Edit">
                             <i class="fa fa-edit"></i>
@@ -174,6 +188,19 @@
                 }
             }
 
+            // Format date function for grid view
+            function formatDate(dateString) {
+                if (!dateString) return '-';
+                const date = new Date(dateString);
+                if (isNaN(date)) return '-';
+                
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des'][date.getMonth()];
+                const year = date.getFullYear();
+                
+                return `${day} ${month} ${year}`;
+            }
+
             function renderGridView(data) {
                 const gridView = document.getElementById('grid-view');
                 gridView.innerHTML = ''; // Clear existing content
@@ -210,7 +237,31 @@
                                             </p>
                                             <p class="mb-1 d-flex">
                                                 <strong class="text-end me-1" style="width: 35%;">Tanggal Beli:</strong>
-                                                <span class="text-start" style="width: 65%;">${mesin.tanggal_beli}</span>
+                                                <span class="text-start" style="width: 65%;">${formatDate(mesin.tanggal_beli)}</span>
+                                            </p>
+                                            <p class="mb-1 d-flex">
+                                                <strong class="text-end me-1" style="width: 35%;">Nomor Seri:</strong>
+                                                <span class="text-start" style="width: 65%;">${mesin.nomor_seri || '-'}</span>
+                                            </p>
+                                            <p class="mb-1 d-flex">
+                                                <strong class="text-end me-1" style="width: 35%;">Pabrikan:</strong>
+                                                <span class="text-start" style="width: 65%;">${mesin.pabrikan || '-'}</span>
+                                            </p>
+                                            <p class="mb-1 d-flex">
+                                                <strong class="text-end me-1" style="width: 35%;">Lokasi:</strong>
+                                                <span class="text-start" style="width: 65%;">${mesin.lokasi_pemeliharaan || '-'}</span>
+                                            </p>
+                                            <p class="mb-1 d-flex">
+                                                <strong class="text-end me-1" style="width: 35%;">Pemeliharaan:</strong>
+                                                <span class="text-start" style="width: 65%;">
+                                                    ${mesin.tanggal_pemeliharaan_terakhir ? 'Terakhir: ' + formatDate(mesin.tanggal_pemeliharaan_terakhir) : '-'}
+                                                </span>
+                                            </p>
+                                            <p class="mb-1 d-flex">
+                                                <strong class="text-end me-1" style="width: 35%;">Pemeliharaan:</strong>
+                                                <span class="text-start" style="width: 65%;">
+                                                    ${mesin.tanggal_pemeliharaan_selanjutnya ? 'Selanjutnya: ' + formatDate(mesin.tanggal_pemeliharaan_selanjutnya) : '-'}
+                                                </span>
                                             </p>
                                             <p class="mb-3 d-flex">
                                                 <strong class="text-end me-1" style="width: 35%;">Keterangan:</strong>
@@ -324,8 +375,8 @@
                                   <label for="addAktif" class="col-sm-2 col-form-label text-end">Aktif</label>
                                   <div class="col-sm-2">
                                       <div class="form-check">
-                                          <input type="hidden" name="aktif" value="0"> <!-- Hidden input ensures unchecked value sends 0 -->
-                                          <input type="checkbox" id="addAktif" name="aktif" value="1" class="form-check-input">
+                                          <input type="hidden" name="aktif" value="0"> <!-- Hidden input ensures unchecked checkbox sends value -->
+                                          <input type="checkbox" id="addAktif" name="aktif" value="1" class="form-check-input" checked>
                                       </div>
                                   </div>
                               </div>
@@ -333,6 +384,12 @@
                                   <label for="addNama" class="col-sm-4 col-form-label text-end">Nama Mesin</label>
                                   <div class="col-sm-8">
                                       <input type="text" class="form-control" id="addNama" name="nama_mesin" required>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addModel" class="col-sm-4 col-form-label text-end">Model</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" id="addModel" name="model_mesin" required>
                                   </div>
                               </div>
                               <div class="row mb-3">
@@ -360,6 +417,42 @@
                                   <label for="addTglBeli" class="col-sm-4 col-form-label text-end">Tanggal Beli</label>
                                   <div class="col-sm-8">
                                       <input type="date" class="form-control" id="addTglBeli" name="tanggal_beli">
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addNomorSeri" class="col-sm-4 col-form-label text-end">Nomor Seri</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" id="addNomorSeri" name="nomor_seri">
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addPabrikan" class="col-sm-4 col-form-label text-end">Pabrikan</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" id="addPabrikan" name="pabrikan">
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addLokasiPemeliharaan" class="col-sm-4 col-form-label text-end">Lokasi Pemeliharaan</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" id="addLokasiPemeliharaan" name="lokasi_pemeliharaan">
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addTglPemeliharaanTerakhir" class="col-sm-4 col-form-label text-end">Tanggal Pemeliharaan Terakhir</label>
+                                  <div class="col-sm-8">
+                                      <input type="date" class="form-control" id="addTglPemeliharaanTerakhir" name="tanggal_pemeliharaan_terakhir">
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addTglPemeliharaanSelanjutnya" class="col-sm-4 col-form-label text-end">Tanggal Pemeliharaan Selanjutnya</label>
+                                  <div class="col-sm-8">
+                                      <input type="date" class="form-control" id="addTglPemeliharaanSelanjutnya" name="tanggal_pemeliharaan_selanjutnya">
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label for="addCatatan" class="col-sm-4 col-form-label text-end">Catatan</label>
+                                  <div class="col-sm-8">
+                                      <textarea class="form-control" id="addCatatan" name="catatan" rows="3"></textarea>
                                   </div>
                               </div>
                           </div>
@@ -450,6 +543,42 @@
                               <input type="date" class="form-control" id="editTanggalBeli_{{ $mesin->id }}" name="tanggal_beli" value="{{ \Carbon\Carbon::parse($mesin->tanggal_beli)->format('Y-m-d') }}">
                           </div>
                       </div>
+                      <div class="row mb-3">
+                          <label for="editNomorSeri_{{ $mesin->id }}" class="col-sm-4 col-form-label text-end">Nomor Seri</label>
+                          <div class="col-sm-8">
+                              <input type="text" class="form-control" id="editNomorSeri_{{ $mesin->id }}" name="nomor_seri" value="{{ $mesin->nomor_seri }}">
+                          </div>
+                      </div>
+                      <div class="row mb-3">
+                          <label for="editPabrikan_{{ $mesin->id }}" class="col-sm-4 col-form-label text-end">Pabrikan</label>
+                          <div class="col-sm-8">
+                              <input type="text" class="form-control" id="editPabrikan_{{ $mesin->id }}" name="pabrikan" value="{{ $mesin->pabrikan }}">
+                          </div>
+                      </div>
+                      <div class="row mb-3">
+                          <label for="editLokasiPemeliharaan_{{ $mesin->id }}" class="col-sm-4 col-form-label text-end">Lokasi Pemeliharaan</label>
+                          <div class="col-sm-8">
+                              <input type="text" class="form-control" id="editLokasiPemeliharaan_{{ $mesin->id }}" name="lokasi_pemeliharaan" value="{{ $mesin->lokasi_pemeliharaan }}">
+                          </div>
+                      </div>
+                      <div class="row mb-3">
+                          <label for="editTglPemeliharaanTerakhir_{{ $mesin->id }}" class="col-sm-4 col-form-label text-end">Tanggal Pemeliharaan Terakhir</label>
+                          <div class="col-sm-8">
+                              <input type="date" class="form-control" id="editTglPemeliharaanTerakhir_{{ $mesin->id }}" name="tanggal_pemeliharaan_terakhir" value="{{ $mesin->tanggal_pemeliharaan_terakhir ? \Carbon\Carbon::parse($mesin->tanggal_pemeliharaan_terakhir)->format('Y-m-d') : '' }}">
+                          </div>
+                      </div>
+                      <div class="row mb-3">
+                          <label for="editTglPemeliharaanSelanjutnya_{{ $mesin->id }}" class="col-sm-4 col-form-label text-end">Tanggal Pemeliharaan Selanjutnya</label>
+                          <div class="col-sm-8">
+                              <input type="date" class="form-control" id="editTglPemeliharaanSelanjutnya_{{ $mesin->id }}" name="tanggal_pemeliharaan_selanjutnya" value="{{ $mesin->tanggal_pemeliharaan_selanjutnya ? \Carbon\Carbon::parse($mesin->tanggal_pemeliharaan_selanjutnya)->format('Y-m-d') : '' }}">
+                          </div>
+                      </div>
+                      <div class="row mb-3">
+                          <label for="editCatatan_{{ $mesin->id }}" class="col-sm-4 col-form-label text-end">Catatan</label>
+                          <div class="col-sm-8">
+                              <textarea class="form-control" id="editCatatan_{{ $mesin->id }}" name="catatan" rows="3">{{ $mesin->catatan }}</textarea>
+                          </div>
+                      </div>
                       </div>
                       <div class="col-md-4">
                           <label for="">Gambar</label>
@@ -531,6 +660,24 @@
                                   <label class="col-sm-4 col-form-label text-end">Tanggal Beli</label>
                                   <div class="col-sm-8">
                                       <input type="text" class="form-control" value="{{ \Carbon\Carbon::parse($mesin->tanggal_beli)->format('d-m-Y') }}" disabled>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label class="col-sm-4 col-form-label text-end">Nomor Seri</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" value="{{ $mesin->nomor_seri ?: '-' }}" disabled>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label class="col-sm-4 col-form-label text-end">Pabrikan</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" value="{{ $mesin->pabrikan ?: '-' }}" disabled>
+                                  </div>
+                              </div>
+                              <div class="row mb-3">
+                                  <label class="col-sm-4 col-form-label text-end">Lokasi Pemeliharaan</label>
+                                  <div class="col-sm-8">
+                                      <input type="text" class="form-control" value="{{ $mesin->lokasi_pemeliharaan ?: '-' }}" disabled>
                                   </div>
                               </div>
                           </form>

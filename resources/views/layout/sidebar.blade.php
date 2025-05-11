@@ -18,7 +18,8 @@
           <span class="link-title">Dashboard</span>
         </a>
       </li>
-      
+
+      <!-- Master -->
       <li class="nav-item nav-category">Master</li>
       <li class="nav-item {{ active_class(['backend/*']) }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#backend" role="button" aria-expanded="{{ is_active_route(['backend/*']) }}" aria-controls="backend">
@@ -40,9 +41,16 @@
             <li class="nav-item">
               <a href="{{ url('/backend/master-bahanbaku') }}" class="nav-link {{ active_class(['backend/master-bahanbaku']) }}">Bahan Baku</a>            
             </li>     
-            
           </ul>
         </div>
+      </li>
+
+      <!-- Pembelian -->
+      <li class="nav-item {{ active_class(['pembelian/*', 'pembelian']) }}">
+        <a class="nav-link" href="{{ url('/pembelian') }}" role="button">
+          <i class="link-icon" data-feather="package"></i>
+          <span class="link-title">Pembelian</span>
+        </a>
       </li>
 
       <li class="nav-item nav-category">Email</li>

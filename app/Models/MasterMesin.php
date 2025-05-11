@@ -13,15 +13,19 @@ class MasterMesin extends Model
         'id',
         'kode_mesin',
         'aktif',
-        'alias',
+        'nama_mesin',
+        'model_mesin',
         'jenis_mesin',
         'keterangan',
-        'created_at',
-        'nama_mesin',
         'non_produksi', 
-        'tanggal_beli', // Add the status column        
-        'update_at',
-        'gambar'
+        'tanggal_beli',
+        'gambar',
+        'nomor_seri',
+        'pabrikan',
+        'lokasi_pemeliharaan',
+        'tanggal_pemeliharaan_terakhir',
+        'tanggal_pemeliharaan_selanjutnya',
+        'catatan'
     ];
 
     

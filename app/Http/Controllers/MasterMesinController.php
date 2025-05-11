@@ -26,16 +26,26 @@ class MasterMesinController extends Controller
     {
         $validated = $request->validate([
             'nama_mesin' => 'required|string|max:255',
+            'model_mesin' => 'required|string|max:255',
             'jenis_mesin' => 'required|string|max:255',
-            'keterangan' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string',
             'non_produksi' => 'required|boolean',
             'tanggal_beli' => 'nullable|date',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'nomor_seri' => 'nullable|string|max:255',
+            'pabrikan' => 'nullable|string|max:255',
+            'lokasi_pemeliharaan' => 'nullable|string|max:255',
+            'tanggal_pemeliharaan_terakhir' => 'nullable|date',
+            'tanggal_pemeliharaan_selanjutnya' => 'nullable|date',
+            'catatan' => 'nullable|string',
         ]);
 
         // Ensure kode_mesin is generated and added to the validated data
         $validated['kode_mesin'] = $this->generateKodeMesin();
-        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
+        
+        // Handle checkbox with name="aktif" - last value will be used if multiple values present
+        // This works because when checkbox is checked, input name="aktif" with value="1" will override the hidden input
+        $validated['aktif'] = $request->input('aktif', 0);
 
         if ($request->hasFile('gambar')) {
             $file = $request->file('gambar');
@@ -71,17 +81,24 @@ class MasterMesinController extends Controller
         $validatedData = $request->validate([
             'kode_mesin' => 'required|string|max:255',
             'nama_mesin' => 'required|string|max:255',
+            'model_mesin' => 'nullable|string|max:255',
             'jenis_mesin' => 'required|string|max:255',
             'keterangan' => 'nullable|string',
             'non_produksi' => 'required|boolean',
             'tanggal_beli' => 'nullable|date',
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'nomor_seri' => 'nullable|string|max:255',
+            'pabrikan' => 'nullable|string|max:255',
+            'lokasi_pemeliharaan' => 'nullable|string|max:255',
+            'tanggal_pemeliharaan_terakhir' => 'nullable|date',
+            'tanggal_pemeliharaan_selanjutnya' => 'nullable|date',
+            'catatan' => 'nullable|string',
         ]);
 
         $mesin->fill($validatedData);
 
         // Correctly handle the "aktif" field
-        $mesin->aktif = $request->input('aktif', 0); // Default to 0 if not provided
+        $mesin->aktif = $request->input('aktif', 0); // Default to 0 if not provided, last value will be used if multiple values are present
 
         if ($request->hasFile('gambar')) {
             if ($mesin->gambar && Storage::disk('public')->exists('images/' . $mesin->gambar)) {

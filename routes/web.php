@@ -16,6 +16,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MasterKontakController;
 use App\Http\Controllers\MasterParameterController;
 use App\Http\Controllers\MasterBahanbakuController;
+use App\Http\Controllers\PembelianController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -45,14 +46,17 @@ Route::group(['prefix' => 'backend'], function () {
     Route::get('master-bahanbaku', [MasterBahanbakuController::class, 'index'])->name('backend.master-bahanbaku');
 });
 
+Route::group(['prefix' => 'pembelian'], function(){
+    Route::get('/', [PembelianController::class, 'index'])->name('pembelian.index');
+    Route::post('/create', [PembelianController::class, 'store'])->name('pembelian.create');
+});
+
 
 
 Route::group(['prefix' => 'email'], function(){
     Route::get('inbox', function () { return view('pages.email.inbox'); });
     Route::get('read', function () { return view('pages.email.read'); });
     Route::get('compose', function () { return view('pages.email.compose'); });
-    
-
 });
 
 Route::group(['prefix' => 'apps'], function(){

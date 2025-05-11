@@ -32,8 +32,14 @@
               </div>
               <p class="mb-1"><strong>Jenis Mesin:</strong> {{ $mesin->jenis_mesin }}</p>
               <p class="mb-1"><strong>Jenis Produksi:</strong> {{ $mesin->non_produksi ? 'Produksi' : 'Non Produksi' }}</p>
-              <p class="mb-1"><strong>Tanggal Beli:</strong> {{ \Carbon\Carbon::parse($mesin->tanggal_beli)->format('d M Y') }}</p>
-              <p class="mb-3"><strong>Keterangan:</strong> {{ $mesin->keterangan ?? 'Tidak ada keterangan' }}</p>
+              <p class="mb-1"><strong>Tanggal Beli:</strong> {{ $mesin->tanggal_beli ? \Carbon\Carbon::parse($mesin->tanggal_beli)->format('d M Y') : '-' }}</p>
+              <p class="mb-1"><strong>Nomor Seri:</strong> {{ $mesin->nomor_seri ?? '-' }}</p>
+              <p class="mb-1"><strong>Pabrikan:</strong> {{ $mesin->pabrikan ?? '-' }}</p>
+              <p class="mb-1"><strong>Lokasi Pemeliharaan:</strong> {{ $mesin->lokasi_pemeliharaan ?? '-' }}</p>
+              <p class="mb-1"><strong>Pemeliharaan Terakhir:</strong> {{ $mesin->tanggal_pemeliharaan_terakhir ? \Carbon\Carbon::parse($mesin->tanggal_pemeliharaan_terakhir)->format('d M Y') : '-' }}</p>
+              <p class="mb-1"><strong>Pemeliharaan Selanjutnya:</strong> {{ $mesin->tanggal_pemeliharaan_selanjutnya ? \Carbon\Carbon::parse($mesin->tanggal_pemeliharaan_selanjutnya)->format('d M Y') : '-' }}</p>
+              <p class="mb-1"><strong>Keterangan:</strong> {{ $mesin->keterangan ?? 'Tidak ada keterangan' }}</p>
+              <p class="mb-3"><strong>Catatan:</strong> {{ $mesin->catatan ?? '-' }}</p>
               <div class="d-flex justify-content-between">
                 <button class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editDataModal{{ $mesin->id }}">
                   <i class="fa fa-edit"></i> Edit
