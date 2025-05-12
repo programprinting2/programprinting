@@ -52,6 +52,9 @@
           </div>
           @endforeach
         </div>
+
+        {{ $data_mesin->links('pagination::bootstrap-5') }}
+
       </div>
     </div>
   </div>

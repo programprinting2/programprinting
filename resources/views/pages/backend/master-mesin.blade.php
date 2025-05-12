@@ -96,7 +96,7 @@
                     </td>
                     <td style="width: 5%;" class="text-center">
                         @if ($mesin->gambar)
-                            <img src="{{ asset('storage/images/' . $mesin->gambar) }}" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; object-fit: contain;">
+                            <img src="{{ asset('storage/images/' . $mesin->gambar) }}" alt="Preview" style="width: 50px; height: 50px; object-fit: cover; border-radius: 0;">
                         @else
                             <span>-</span>
                         @endif
@@ -347,7 +347,7 @@
 
     <!-- Modal Tambah Data -->
     <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered modal-lg">
+      <div class="modal-dialog modal-dialog-centered modal-xl">
           <div class="modal-content">
               <div class="modal-header">
                   <h5 class="modal-title" id="addModalLabel">Tambah Data Mesin</h5>
@@ -355,116 +355,123 @@
               </div>
               <div class="modal-body">
                   <form id="addForm" action="{{ route('backend.master-mesin.create') }}" method="POST" enctype="multipart/form-data">
-                      <div class="row">
-                          <div class="col-md-8" style="border-right: 1px solid #dee2e6;">
-                              @csrf
-                              <div class="row mb-3 align-items-center">
-                                  <label for="addKode" class="col-sm-4 col-form-label text-end">Kode Mesin</label>
-                                  <div class="col-sm-4">
-                                      <input type="text" class="form-control" id="addKode" name="kode_mesin" value="auto" readonly>
-                                  </div>
-                                  <label for="addAktif" class="col-sm-2 col-form-label text-end">Aktif</label>
-                                  <div class="col-sm-2">
-                                      <div class="form-check">
-                                          <input type="hidden" name="aktif" value="0"> <!-- Hidden input ensures unchecked checkbox sends value -->
-                                          <input type="checkbox" id="addAktif" name="aktif" value="1" class="form-check-input" checked>
-                                      </div>
-                                  </div>
-                              </div>
-                              <div class="row mb-3">
-                                  <label for="addNama" class="col-sm-4 col-form-label text-end">Nama Mesin</label>
-                                  <div class="col-sm-8">
+                      @csrf
+                      <ul class="nav nav-tabs mb-4" id="mesinTab" role="tablist">
+                          <li class="nav-item" role="presentation">
+                              <button class="nav-link active" id="umum-tab" data-bs-toggle="tab" data-bs-target="#umum" type="button" role="tab" aria-controls="umum" aria-selected="true">Umum</button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="spesifikasi-tab" data-bs-toggle="tab" data-bs-target="#spesifikasi" type="button" role="tab" aria-controls="spesifikasi" aria-selected="false">Spesifikasi</button>
+                          </li>
+                          <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="maintenance-tab" data-bs-toggle="tab" data-bs-target="#maintenance" type="button" role="tab" aria-controls="maintenance" aria-selected="false">Maintenance</button>
+                          </li>
+                      </ul>
+                      <div class="tab-content" id="mesinTabContent">
+                          <div class="tab-pane fade show active" id="umum" role="tabpanel" aria-labelledby="umum-tab">
+                              <div class="mb-3 row">
+                                  <label for="addNama" class="col-sm-3 col-form-label text-end">Nama Mesin</label>
+                                  <div class="col-sm-9">
                                       <input type="text" class="form-control" id="addNama" name="nama_mesin" required>
                                   </div>
                               </div>
-                              <div class="row mb-3">
-                                  <label for="addModel" class="col-sm-4 col-form-label text-end">Model</label>
-                                  <div class="col-sm-8">
-                                      <input type="text" class="form-control" id="addModel" name="model_mesin" required>
-                                  </div>
-                              </div>
-                              <div class="row mb-3">
-                                  <label for="addJenis" class="col-sm-4 col-form-label text-end">Jenis Mesin</label>
-                                  <div class="col-sm-8">
+                              <div class="mb-3 row">
+                                  <label for="addJenis" class="col-sm-3 col-form-label text-end">Tipe</label>
+                                  <div class="col-sm-9">
                                       <input type="text" class="form-control" id="addJenis" name="jenis_mesin" required>
                                   </div>
                               </div>
-                              <div class="row mb-3">
-                                  <label for="addKeterangan" class="col-sm-4 col-form-label text-end">Keterangan</label>
-                                  <div class="col-sm-8">
-                                      <input type="text" class="form-control" id="addKeterangan" name="keterangan">
+                              <div class="mb-3 row">
+                                  <label for="addMerk" class="col-sm-3 col-form-label text-end">Merk</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addMerk" name="pabrikan">
                                   </div>
                               </div>
-                              <div class="row mb-3">
-                                  <label for="addNonProduksi" class="col-sm-4 col-form-label text-end">Jenis Produksi</label>
-                                  <div class="col-sm-8">
-                                      <select class="form-select" id="addNonProduksi" name="non_produksi">
-                                          <option value="1">Produksi</option>
-                                          <option value="0">Non Produksi</option>
-                                      </select>
+                              <div class="mb-3 row">
+                                  <label for="addModel" class="col-sm-3 col-form-label text-end">Model</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addModel" name="model_mesin">
                                   </div>
                               </div>
-                              <div class="row mb-3">
-                                  <label for="addTglBeli" class="col-sm-4 col-form-label text-end">Tanggal Beli</label>
-                                  <div class="col-sm-8">
-                                      <input type="date" class="form-control" id="addTglBeli" name="tanggal_beli">
-                                  </div>
-                              </div>
-                              <div class="row mb-3">
-                                  <label for="addNomorSeri" class="col-sm-4 col-form-label text-end">Nomor Seri</label>
-                                  <div class="col-sm-8">
+                              <div class="mb-3 row">
+                                  <label for="addNomorSeri" class="col-sm-3 col-form-label text-end">Serial Number</label>
+                                  <div class="col-sm-9">
                                       <input type="text" class="form-control" id="addNomorSeri" name="nomor_seri">
                                   </div>
                               </div>
-                              <div class="row mb-3">
-                                  <label for="addPabrikan" class="col-sm-4 col-form-label text-end">Pabrikan</label>
-                                  <div class="col-sm-8">
-                                      <input type="text" class="form-control" id="addPabrikan" name="pabrikan">
+                              <div class="mb-3 row">
+                                  <label for="addTahunBeli" class="col-sm-3 col-form-label text-end">Tahun Pembelian</label>
+                                  <div class="col-sm-9">
+                                      <input type="number" class="form-control" id="addTahunBeli" name="tahun_pembelian" min="1900" max="2100" value="{{ date('Y') }}">
                                   </div>
                               </div>
-                              <div class="row mb-3">
-                                  <label for="addLokasiPemeliharaan" class="col-sm-4 col-form-label text-end">Lokasi Pemeliharaan</label>
-                                  <div class="col-sm-8">
-                                      <input type="text" class="form-control" id="addLokasiPemeliharaan" name="lokasi_pemeliharaan">
-                                  </div>
-                              </div>
-                              <div class="row mb-3">
-                                  <label for="addTglPemeliharaanTerakhir" class="col-sm-4 col-form-label text-end">Tanggal Pemeliharaan Terakhir</label>
-                                  <div class="col-sm-8">
-                                      <input type="date" class="form-control" id="addTglPemeliharaanTerakhir" name="tanggal_pemeliharaan_terakhir">
-                                  </div>
-                              </div>
-                              <div class="row mb-3">
-                                  <label for="addTglPemeliharaanSelanjutnya" class="col-sm-4 col-form-label text-end">Tanggal Pemeliharaan Selanjutnya</label>
-                                  <div class="col-sm-8">
-                                      <input type="date" class="form-control" id="addTglPemeliharaanSelanjutnya" name="tanggal_pemeliharaan_selanjutnya">
-                                  </div>
-                              </div>
-                              <div class="row mb-3">
-                                  <label for="addCatatan" class="col-sm-4 col-form-label text-end">Catatan</label>
-                                  <div class="col-sm-8">
-                                      <textarea class="form-control" id="addCatatan" name="catatan" rows="3"></textarea>
+                              <div class="mb-3 row">
+                                  <label for="addGambar" class="col-sm-3 col-form-label text-end">Gambar</label>
+                                  <div class="col-sm-9">
+                                      <input type="file" class="form-control" id="addGambar" name="gambar" accept="image/*" onchange="previewSelectedImage(event)">
+                                      <div class="mt-2">
+                                          <img id="previewImage" src="#" alt="Preview" style="max-width: 200px; max-height: 200px; display: none; border: 1px solid #ccc; object-fit: contain;">
+                                      </div>
                                   </div>
                               </div>
                           </div>
-                          <div class="col-md-4">
-                              <label for="">Gambar</label>
-                              <div class="d-flex flex-column align-items-center">
-                                  <div style="width: 100%; height: 200px; border: 1px solid #ccc; display: flex; justify-content: center; align-items: center; overflow: hidden; margin-bottom: 15px;">
-                                      <img id="previewImage" src="#" alt="Preview" style="max-height: 100%; max-width: 100%; object-fit: contain; display: none;">
+                          <div class="tab-pane fade" id="spesifikasi" role="tabpanel" aria-labelledby="spesifikasi-tab">
+                              <div class="mb-3 row">
+                                  <label for="addKapasitas" class="col-sm-3 col-form-label text-end">Kapasitas</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addKapasitas" name="kapasitas" placeholder="contoh: A3, 1.8m, dll">
                                   </div>
-                                  <div class="d-flex flex-column w-100 gap-2">
-                                      <button type="button" class="btn btn-secondary w-100" onclick="document.getElementById('addGambar').click();">Pilih Gambar</button>
-                                      <button type="button" class="btn btn-danger w-100" onclick="clearAddImagePreview();">Bersihkan</button>
+                              </div>
+                              <div class="mb-3 row">
+                                  <label for="addKecepatan" class="col-sm-3 col-form-label text-end">Kecepatan</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addKecepatan" name="kecepatan" placeholder="contoh: 30 ppm, 115 m²/jam">
                                   </div>
-                                  <input type="file" class="form-control d-none" id="addGambar" name="gambar" accept="image/*" onchange="previewSelectedImage(event)">
-                                  <input type="hidden" id="clearAddGambar" name="clear_gambar" value="0">
+                              </div>
+                              <div class="mb-3 row">
+                                  <label for="addDaya" class="col-sm-3 col-form-label text-end">Daya</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addDaya" name="daya" placeholder="contoh: 1200W">
+                                  </div>
+                              </div>
+                              <div class="mb-3 row">
+                                  <label for="addLokasi" class="col-sm-3 col-form-label text-end">Lokasi</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addLokasi" name="lokasi_pemeliharaan">
+                                  </div>
+                              </div>
+                          </div>
+                          <div class="tab-pane fade" id="maintenance" role="tabpanel" aria-labelledby="maintenance-tab">
+                              <div class="mb-3 row">
+                                  <label for="addStatus" class="col-sm-3 col-form-label text-end">Status</label>
+                                  <div class="col-sm-9">
+                                      <select class="form-select" id="addStatus" name="aktif">
+                                          <option value="1" selected>Aktif</option>
+                                          <option value="0">Nonaktif</option>
+                                      </select>
+                                  </div>
+                              </div>
+                              <div class="mb-3 row">
+                                  <label for="addTeknisi" class="col-sm-3 col-form-label text-end">Teknisi</label>
+                                  <div class="col-sm-9">
+                                      <input type="text" class="form-control" id="addTeknisi" name="teknisi">
+                                  </div>
+                              </div>
+                              <div class="mb-3 row">
+                                  <label for="addJadwal" class="col-sm-3 col-form-label text-end">Jadwal Maintenance</label>
+                                  <div class="col-sm-9">
+                                      <select class="form-select" id="addJadwal" name="jadwal_maintenance">
+                                          <option value="Bulanan">Bulanan</option>
+                                          <option value="Tahunan">Tahunan</option>
+                                          <option value="Mingguan">Mingguan</option>
+                                      </select>
+                                  </div>
                               </div>
                           </div>
                       </div>
                       <div class="modal-footer">
-                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          <button type="submit" class="btn btn-primary">Simpan</button>
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                          <button type="submit" class="btn btn-primary">Tambah Mesin</button>
                       </div>
                   </form>
               </div>
@@ -752,6 +759,22 @@ function showTab(view) {
             .catch(() => {
                 gridView.innerHTML = '<div class="alert alert-danger">Gagal memuat grid.</div>';
             });
+    }
+}
+
+function previewSelectedImage(event) {
+    const input = event.target;
+    const preview = document.getElementById('previewImage');
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        preview.src = '#';
+        preview.style.display = 'none';
     }
 }
 </script>

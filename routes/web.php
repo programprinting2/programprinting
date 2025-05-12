@@ -50,7 +50,7 @@ Route::group(['prefix' => 'backend'], function () {
     Route::post('master-parameter/{id}/detail', [MasterParameterController::class, 'storeDetail'])->name('backend.master-parameter.detail.store');
     Route::put('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'updateDetail'])->name('backend.master-parameter.detail.update');
     Route::delete('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'destroyDetail'])->name('backend.master-parameter.detail.destroy');
-
+    
     Route::get('master-bahanbaku', [MasterBahanbakuController::class, 'index'])->name('backend.master-bahanbaku');
 });
 
