@@ -66,6 +66,13 @@
             </button>
         </div>
         <p class="text-muted mb-3">Kelola data kontak seperti staff, customer, atau supplier.</p>
+        <form class="mb-3">
+            <div class="input-group">
+                <span class="input-group-text"><i class="fa fa-search"></i></span>
+                <input type="text" class="form-control" id="searchKontak" placeholder="Cari kontak..." onkeyup="filterKontakTable()">
+                <button type="button" class="btn btn-outline-secondary" onclick="document.getElementById('searchKontak').value='';filterKontakTable();"><i class="fas fa-times"></i></button>
+            </div>
+        </form>
         
         <div class="table-responsive">
           <table id="dataTable" class="table">
@@ -231,23 +238,22 @@
 
 @push('custom-scripts')
 <script>
-// $(document).ready(function() {
-//     $('#dataTable').DataTable({
-//         "language": {
-//             "search": "Cari:",
-//             "lengthMenu": "Tampilkan _MENU_ data per halaman",
-//             "zeroRecords": "Data tidak ditemukan",
-//             "info": "Menampilkan halaman _PAGE_ dari _PAGES_",
-//             "infoEmpty": "Tidak ada data yang tersedia",
-//             "infoFiltered": "(difilter dari _MAX_ total data)",
-//             "paginate": {
-//                 "first": "Pertama",
-//                 "last": "Terakhir",
-//                 "next": "Selanjutnya",
-//                 "previous": "Sebelumnya"
-//             }
-//         }
-//     });
-// });
+function filterKontakTable() {
+    var input = document.getElementById('searchKontak');
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById('dataTable');
+    var trs = table.getElementsByTagName('tr');
+    for (var i = 1; i < trs.length; i++) { // Mulai dari 1 agar skip thead
+        var tds = trs[i].getElementsByTagName('td');
+        var found = false;
+        for (var j = 0; j < tds.length; j++) {
+            if (tds[j] && tds[j].textContent.toLowerCase().indexOf(filter) > -1) {
+                found = true;
+                break;
+            }
+        }
+        trs[i].style.display = found ? '' : 'none';
+    }
+}
 </script>
 @endpush
