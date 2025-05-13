@@ -185,7 +185,7 @@
 
 <!-- Modal Tambah -->
 <div class="modal fade" id="addModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Tambah Kontak</h5>
@@ -194,30 +194,40 @@
             <form action="{{ route('backend.master-kontak.create') }}" method="POST">
                 @csrf
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Tipe</label>
-                        <select class="form-select" name="tipe" required>
-                            <option value="">Pilih Tipe</option>
-                            <option value="staff">Staff</option>
-                            <option value="customer">Customer</option>
-                            <option value="supplier">Supplier</option>
-                        </select>
+                    <div class="mb-3 row">
+                        <label class="col-sm-2 col-form-label text-start">Tipe</label>
+                        <div class="col-sm-10">
+                            <select class="form-select" name="tipe" required>
+                                <option value="">Pilih Tipe</option>
+                                <option value="staff">Staff</option>
+                                <option value="customer">Customer</option>
+                                <option value="supplier">Supplier</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Nama</label>
-                        <input type="text" class="form-control" name="nama" required>
+                    <div class="mb-3 row">
+                        <label class="col-sm-2 col-form-label text-start">Nama</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="nama" required>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">HP</label>
-                        <input type="text" class="form-control" name="HP">
+                    <div class="mb-3 row">
+                        <label class="col-sm-2 col-form-label text-start">HP</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" name="HP">
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Alamat</label>
-                        <textarea class="form-control" name="alamat" rows="3"></textarea>
+                    <div class="mb-3 row">
+                        <label class="col-sm-2 col-form-label text-start">Alamat</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" name="alamat" rows="3"></textarea>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Catatan</label>
-                        <textarea class="form-control" name="catatan" rows="3"></textarea>
+                    <div class="mb-3 row">
+                        <label class="col-sm-2 col-form-label text-start">Catatan</label>
+                        <div class="col-sm-10">
+                            <textarea class="form-control" name="catatan" rows="3"></textarea>
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
