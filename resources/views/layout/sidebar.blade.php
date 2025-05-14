@@ -61,6 +61,14 @@
         </a>
       </li>
 
+      <!-- Product -->
+      <li class="nav-item {{ active_class(['produk/*', 'produk']) }}">
+        <a class="nav-link" href="{{ url('/produk') }}" role="button">
+          <i class="link-icon" data-feather="grid"></i>
+          <span class="link-title">Produk</span>
+        </a>
+      </li>
+
       <li class="nav-item nav-category">Email</li>
       <li class="nav-item {{ active_class(['email/*']) }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#email" role="button" aria-expanded="{{ is_active_route(['email/*']) }}" aria-controls="email">

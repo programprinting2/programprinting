@@ -17,6 +17,7 @@ use App\Http\Controllers\MasterKontakController;
 use App\Http\Controllers\MasterParameterController;
 use App\Http\Controllers\MasterBahanbakuController;
 use App\Http\Controllers\PembelianController;
+use App\Http\Controllers\ProdukController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -62,6 +63,10 @@ Route::group(['prefix' => 'pembelian'], function(){
 // Route::group(['prefix' => 'spk'], function(){
     
 // });
+
+Route::group(['prefix' => 'produk'], function(){
+    Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
+});
 
 
 
