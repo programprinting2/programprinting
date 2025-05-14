@@ -18,6 +18,8 @@ use App\Http\Controllers\MasterParameterController;
 use App\Http\Controllers\MasterBahanbakuController;
 use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\ProdukController;
+use App\Http\Controllers\SPKController;
+use App\Http\Controllers\KasirController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -60,12 +62,16 @@ Route::group(['prefix' => 'pembelian'], function(){
     Route::post('/create', [PembelianController::class, 'store'])->name('pembelian.create');
 });
 
-// Route::group(['prefix' => 'spk'], function(){
-    
-// });
+Route::group(['prefix' => 'spk'], function(){
+    Route::get('/', [SPKController::class, 'index'])->name('spk.index');
+});
 
 Route::group(['prefix' => 'produk'], function(){
     Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
+});
+
+Route::group(['prefix' => 'kasir'], function(){
+    Route::get('/', [KasirController::class, 'index'])->name('kasir.index');
 });
 
 
