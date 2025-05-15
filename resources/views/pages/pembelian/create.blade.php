@@ -1,152 +1,216 @@
 @extends('layout.master')
 
-@push('plugin-styles')
-  <link href="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.css') }}" rel="stylesheet" />
-  <!-- <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" /> -->
-@endpush
-
 @section('content')
-
   <nav class="page-breadcrumb">
     <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="#">Transaksi</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Pembelian</li>
+    <li class="breadcrumb-item"><a href="{{ route('pembelian.index') }}">Pembelian</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Tambah Pembelian</li>
     </ol>
   </nav>
 
-  <div class="row">
-    <div class="col-md-12 grid-margin stretch-card">
-    <div class="card">
-      <div class="card-body">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="card-title">Data Pembelian</h6>
-        <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('pembelian.create') }}" class="btn btn-dark d-flex align-items-center gap-1">
-          <i class="fa fa-plus"></i> Tambah Pembelian
-        </a>
-        </div>
-      </div>
-      <p class="text-muted mb-3">Kelola data pembelian bahan baku dan barang lainnya</p>
-      <form class="search-form">
+  <h4 class="fw-bold mb-3">Buat Pembelian Baru</h4>
+  <p class="text-muted mb-4">Buat transaksi pembelian bahan baku baru.</p>
+
+  <form id="addForm" action="{{ route('pembelian.store') }}" method="POST">
+    @csrf
+    <div class="row">
+    {{-- Sidebar kiri: informasi pemasok --}}
+    <div class="col-md-3">
+      <div class="mb-4 p-3 border rounded bg-light">
+      <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pemasok</div>
+      <div class="mb-3">
+        <label class="form-label">Pemasok</label>
         <div class="input-group">
-        <div class="input-group-text">
-          <i class="fas fa-search"></i>
-        </div>
-        <input type="text" class="form-control" id="searchForm" placeholder="Cari data pembelian..."
-          onkeyup="filterContent()">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearSearchForm()" title="Clear">
-          <i class="fas fa-times"></i>
-        </button>
-        </div>
-      </form>
-      <div class="p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
-        <div class="d-flex align-items-center gap-2">
-        <label class="me-2">Filter:</label>
-        <select class="form-select form-select-sm" style="width: 150px;" aria-label="Filter Status">
-          <option selected disabled>Status</option>
-          <option value="lunas">Lunas</option>
-          <option value="belum_lunas">Belum Lunas</option>
+        <select class="form-select" name="supplier_id" required>
+          <option value="" selected disabled>Pilih pemasok...</option>
+          <option value="1">PT. Sumber Makmur</option>
+          <option value="2">CV. Bahan Jaya</option>
+          <option value="3">UD. Kertas Abadi</option>
         </select>
-        <select class="form-select form-select-sm" style="width: 150px;" aria-label="Filter Supplier">
-          <option selected disabled>Supplier</option>
-          <option value="supplier1">Supplier 1</option>
-          <option value="supplier2">Supplier 2</option>
-        </select>
-        <select class="form-select form-select-sm" style="width: 150px;" aria-label="Filter Periode">
-          <option selected disabled>Periode</option>
-          <option value="bulan_ini">Bulan Ini</option>
-          <option value="bulan_lalu">Bulan Lalu</option>
-          <option value="tahun_ini">Tahun Ini</option>
-        </select>
-        </div>
-        <div class="pagination-controls d-flex align-items-center gap-2">
-        <button class="btn btn-outline-dark btn-sm" id="prevPageButton">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <span class="text-primary" id="currentPage">1/1</span>
-        <button class="btn btn-outline-dark btn-sm" id="nextPageButton">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+        <button class="btn btn-outline-secondary" type="button"><i class="fa fa-search"></i></button>
         </div>
       </div>
-      <br>
-      <div class="table-responsive">
-        <table id="data-source-1" class="table">
-        <thead>
-          <tr class="table-responsive">
-          <th style="width: 5%;">No</th>
-          <th style="width: 15%;">Nomor Faktur</th>
-          <th style="width: 15%;">Tanggal</th>
-          <th style="width: 20%;">Supplier</th>
-          <th style="width: 10%;">Total</th>
-          <th style="width: 10%;">Status</th>
-          <th style="width: 10%;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- Data akan ditampilkan di sini -->
-        </tbody>
-        </table>
-      </div>
-      </div>
-    </div>
-    </div>
-  </div>
 
+      <div class="mb-3">
+        <label class="form-label">Tanggal Pembelian</label>
+        <input type="date" class="form-control" name="tanggal" value="{{ date('Y-m-d') }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Status Pembelian</label>
+        <select class="form-select" name="status">
+        <option value="dipesan">Dipesan</option>
+        <option value="diterima">Diterima</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Gunakan Nomor Form</label>
+        <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" id="useFormNumber" name="use_form_number"
+          onchange="toggleNomorForm()">
+        <label class="form-check-label" for="useFormNumber"></label>
+        </div>
+        <input type="text" class="form-control mt-2" id="nomorFormInput" name="nomor_form" placeholder="Nomor form"
+        style="display:none;">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tanggal Jatuh Tempo <span class="text-muted small">(Opsional)</span></label>
+        <input type="date" class="form-control" name="jatuh_tempo">
+      </div>
+      </div>
+      <div class="mb-4 p-3 border rounded bg-light">
+      <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
+      <textarea class="form-control" name="catatan" rows="3"
+        placeholder="Tambahkan catatan untuk pembelian ini"></textarea>
+      </div>
+      <div class="p-3 border rounded bg-light">
+      <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
+      <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span class="ringkasan-subtotal">Rp
+        0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Diskon:</span><span class="ringkasan-diskon">- Rp
+        0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Pengiriman:</span><span
+        class="ringkasan-pengiriman">Rp 0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Pajak (11%):</span><span class="ringkasan-pajak">Rp
+        0</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fw-bold"><span>Total:</span><span class="ringkasan-total">Rp 0</span>
+      </div>
+      </div>
+    </div>
+
+    {{-- Konten kanan: item pembelian --}}
+    <div class="col-md-9">
+      <div class="card border-0 shadow-none">
+      <div class="card-body p-0">
+        <ul class="nav nav-tabs mb-3" id="tabPembelian" role="tablist">
+        <li class="nav-item" role="presentation">
+          <button class="nav-link active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPembelian"
+          type="button" role="tab">Item Pembelian</button>
+        </li>
+        <li class="nav-item" role="presentation">
+          <button class="nav-link" id="biaya-tab" data-bs-toggle="tab" data-bs-target="#biayaTambahan" type="button"
+          role="tab">Biaya Tambahan</button>
+        </li>
+        </ul>
+        <div class="tab-content" id="tabPembelianContent">
+        <div class="tab-pane fade show active" id="itemPembelian" role="tabpanel">
+          <div class="mb-3">
+          <label class="form-label">Material</label>
+          <div class="input-group mb-2">
+            <select class="form-select" id="materialSelect" name="material_id">
+            <option value="" selected disabled>Pilih material...</option>
+            <option value="1" data-nama="Kertas HVS A4" data-harga="25000">Kertas HVS A4</option>
+            <option value="2" data-nama="Tinta Printer Epson" data-harga="50000">Tinta Printer Epson</option>
+            <option value="3" data-nama="Lem Kertas" data-harga="10000">Lem Kertas</option>
+            </select>
+            <button class="btn btn-outline-secondary" type="button"><i class="fa fa-search"></i></button>
+          </div>
+          <div class="row g-2 mb-2">
+            <div class="col-md-3">
+            <input type="number" class="form-control" id="jumlahInput" placeholder="Jumlah" min="1" value="1">
+            </div>
+            <div class="col-md-3">
+            <input type="number" class="form-control" id="hargaInput" placeholder="Harga" min="0" value="0">
+            </div>
+            <div class="col-md-3">
+            <input type="number" class="form-control" id="diskonInput" placeholder="Diskon" min="0" value="0">
+            </div>
+          </div>
+          <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i>
+            Tambah Item</button>
+          </div>
+          <div class="table-responsive">
+          <table class="table table-bordered align-middle" id="tabelItemPembelian">
+            <thead class="table-light">
+            <tr>
+              <th>Kode</th>
+              <th>Material</th>
+              <th>Jumlah</th>
+              <th>Harga</th>
+              <th>Diskon</th>
+              <th>Total</th>
+              <th></th>
+            </tr>
+            </thead>
+            <tbody id="itemBody">
+            <tr>
+              <td colspan="7" class="text-center text-muted">Belum ada item yang ditambahkan</td>
+            </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="biayaTambahan" role="tabpanel">
+          <div class="row g-3 mb-3">
+          <div class="col-md-3">
+            <label class="form-label">Diskon (%)</label>
+            <input type="number" class="form-control" value="0" name="diskon_persen">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Tarif Pajak (%)</label>
+            <input type="number" class="form-control" value="0" name="tarif_pajak">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Jumlah Diskon (Rp)</label>
+            <input type="number" class="form-control" value="0" name="jumlah_diskon">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Nota Kredit (Rp)</label>
+            <input type="number" class="form-control" value="0" name="nota_kredit">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Biaya Pengiriman (Rp)</label>
+            <input type="number" class="form-control" value="0" name="biaya_pengiriman">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Label Biaya Lain</label>
+            <input type="text" class="form-control" placeholder="Biaya admin, dll." name="label_biaya_lain">
+          </div>
+          <div class="col-md-3">
+            <label class="form-label">Jumlah (Rp)</label>
+            <input type="number" class="form-control" value="0" name="jumlah_biaya_lain">
+          </div>
+          </div>
+          <div class="p-3 border rounded bg-light mt-3">
+          <div class="fw-bold mb-2">Ringkasan Biaya</div>
+          <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span
+            class="ringkasan-subtotal">Rp 0</span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Diskon:</span><span
+            class="ringkasan-diskon">- Rp 0</span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Biaya Pengiriman:</span><span
+            class="ringkasan-pengiriman">Rp 0</span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Pajak (%):</span><span
+            class="ringkasan-pajak">Rp 0</span></div>
+          <hr class="my-2">
+          <div class="d-flex justify-content-between fw-bold"><span>Total:</span><span class="ringkasan-total">Rp
+            0</span></div>
+          </div>
+        </div>
+        </div>
+      </div>
+      </div>
+      <div class="d-flex justify-content-end gap-2 mt-4">
+      <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+      <button type="submit" class="btn btn-primary"><i class="fa fa-save me-1"></i> Simpan Pembelian</button>
+      </div>
+    </div>
+    </div>
+
+    <!-- <div class="d-flex justify-content-end gap-2 mt-4">
+    <a href="{{ route('pembelian.index') }}" class="btn btn-light">Batal</a>
+    <button type="submit" class="btn btn-primary">
+      <i class="fa fa-save me-1"></i> Simpan Pembelian
+    </button>
+    </div> -->
+  </form>
 @endsection
-
-@push('plugin-scripts')
-  <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>
-  <script src="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.js') }}"></script>
-@endpush
 
 @push('custom-scripts')
   <script>
-    let dataTableInstance;
-
-    document.addEventListener('DOMContentLoaded', function () {
-    try {
-      dataTableInstance = $('#data-source-1').DataTable({
-      paging: true,
-      searching: true,
-      ordering: true,
-      info: true,
-      autoWidth: false,
-      responsive: true,
-      language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-      },
-      dom: 'lrtip'
-      });
-
-      updatePaginationControls();
-    } catch (error) {
-      console.error('Error initializing DataTables:', error);
-    }
-    });
-
-    function updatePaginationControls() {
-    if (!dataTableInstance) return;
-
-    const pageInfo = dataTableInstance.page.info();
-    document.getElementById('currentPage').textContent = `${pageInfo.page + 1}/${pageInfo.pages || 1}`;
-
-    document.getElementById('prevPageButton').disabled = pageInfo.page === 0;
-    document.getElementById('nextPageButton').disabled = pageInfo.page === pageInfo.pages - 1 || pageInfo.pages === 0;
-    }
-
-    document.getElementById('prevPageButton').addEventListener('click', function () {
-    if (!dataTableInstance || !dataTableInstance.page.info().page) return;
-    dataTableInstance.page('previous').draw('page');
-    updatePaginationControls();
-    });
-
-    document.getElementById('nextPageButton').addEventListener('click', function () {
-    if (!dataTableInstance || dataTableInstance.page.info().page === dataTableInstance.page.info().pages - 1) return;
-    dataTableInstance.page('next').draw('page');
-    updatePaginationControls();
-    });
-
     function filterContent() {
     if (!dataTableInstance) return;
     dataTableInstance.search(document.getElementById('searchForm').value).draw();

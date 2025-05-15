@@ -59,7 +59,8 @@ Route::group(['prefix' => 'backend'], function () {
 
 Route::group(['prefix' => 'pembelian'], function(){
     Route::get('/', [PembelianController::class, 'index'])->name('pembelian.index');
-    Route::post('/create', [PembelianController::class, 'store'])->name('pembelian.create');
+    Route::get('/create', [PembelianController::class, 'create'])->name('pembelian.create');
+    Route::post('/create', [PembelianController::class, 'store'])->name('pembelian.store');
 });
 
 Route::group(['prefix' => 'spk'], function(){
