@@ -69,6 +69,14 @@
         </a>
       </li>
 
+      <!-- Kasir -->
+      <li class="nav-item {{ active_class(['kasir/*', 'kasir']) }}">
+        <a class="nav-link" href="{{ url('/kasir') }}" role="button">
+          <i class="link-icon" data-feather="dollar-sign"></i>
+          <span class="link-title">Kasir</span>
+        </a>
+      </li>
+
       <li class="nav-item nav-category">Email</li>
       <li class="nav-item {{ active_class(['email/*']) }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#email" role="button" aria-expanded="{{ is_active_route(['email/*']) }}" aria-controls="email">
