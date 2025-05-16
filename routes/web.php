@@ -75,6 +75,10 @@ Route::group(['prefix' => 'produk'], function () {
 
 Route::group(['prefix' => 'kasir'], function () {
     Route::get('/', [KasirController::class, 'index'])->name('kasir.index');
+    Route::get('/invoice/{no}', [KasirController::class, 'show'])->name('kasir.invoice.show');
+    Route::get('/invoice/{no}/cetak', [KasirController::class, 'print'])->name('kasir.invoice.print');
+    Route::get('/invoice/{no}/payment', [KasirController::class, 'payment'])->name('kasir.invoice.payment');
+    Route::post('/invoice/{no}/payment', [KasirController::class, 'storePayment'])->name('kasir.invoice.payment.store');
 });
 
 

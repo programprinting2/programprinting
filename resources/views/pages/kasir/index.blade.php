@@ -1,146 +1,102 @@
 @extends('layout.master')
 @section('content')
 <div class="container-fluid mt-4">
-  <div class="row">
-    <div class="col-lg-7 mb-3">
-      <div class="card p-4 h-100">
-        <div class="mb-3">
-          <h2 class="fw-bold mb-0">Kasir - Pembayaran Invoice</h2>
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="fw-bold mb-0">Daftar Invoice</h2>
+    <a href="#" class="btn btn-primary d-flex align-items-center gap-2"><i class="fas fa-plus"></i> Buat Invoice Baru</a>
+  </div>
+  <div class="row justify-content-center">
+    <div class="col-12">
+      <div class="card p-4 mb-4">
+        <div class="fw-bold mb-2 fs-5">Filter dan Pencarian</div>
+        <div class="text-muted mb-3">Cari berdasarkan nomor invoice atau nama pelanggan</div>
+        <div class="row g-2 align-items-center">
+          <div class="col-md-9">
+            <div class="input-group">
+              <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+              <input type="text" class="form-control" placeholder="Cari invoice..." id="searchInvoice">
+            </div>
+          </div>
+          <div class="col-md-3">
+            <select class="form-select" id="filterStatus">
+              <option>Semua Status</option>
+              <option value="pending">pending</option>
+              <option value="partial">partial</option>
+              <option value="paid">paid</option>
+            </select>
+          </div>
         </div>
-        <div class="mb-3 d-flex gap-2 align-items-center">
-          <input type="text" class="form-control" style="max-width:320px;" placeholder="Cari invoice...">
-          <select class="form-select" style="max-width:180px;">
-            <option>Semua Status</option>
-            <option value="pending">Pending</option>
-            <option value="partial">Partial</option>
-            <option value="paid">Paid</option>
-          </select>
-        </div>
-        <div class="fw-bold fs-5 mb-1">Daftar Invoice</div>
-        <div class="text-muted mb-2" style="font-size: 1rem;">Klik pada invoice untuk membuat pembayaran</div>
+      </div>
+      <div class="card p-4 mb-4">
         <div class="table-responsive">
           <table class="table align-middle mb-0">
             <thead>
               <tr>
                 <th>No. Invoice</th>
-                <th>Customer</th>
-                <th>Status</th>
+                <th>Pelanggan</th>
+                <th>Tanggal</th>
+                <th>Jatuh Tempo</th>
                 <th>Total</th>
-                <th>Sisa</th>
+                <th>Status</th>
                 <th>Aksi</th>
               </tr>
             </thead>
             <tbody id="invoiceTableBody">
-              @foreach($invoices as $inv)
-              <tr class="invoice-row" data-invoice="{{ $inv['no'] }}">
-                <td class="fw-bold">{{ $inv['no'] }}</td>
-                <td>{{ $inv['customer'] }}</td>
+              <tr>
+                <td><a href="#" class="fw-bold text-primary text-decoration-none">INV-2023-001</a></td>
+                <td>PT Maju Bersama Indonesia</td>
+                <td>15/7/2023</td>
+                <td>15/8/2023</td>
+                <td>Rp 450.000</td>
+                <td><span class="badge bg-white border text-dark px-3">pending</span></td>
                 <td>
-                  <span class="badge rounded-pill border border-1 text-dark bg-white text-lowercase" style="font-size:1em;">
-                    {{ $inv['status'] }}
-                  </span>
-                </td>
-                <td>Rp {{ number_format($inv['total'],0,',','.') }}</td>
-                <td class="fw-bold" style="color:#d32f2f;">Rp {{ number_format($inv['sisa'],0,',','.') }}</td>
-                <td>
-                  <button class="btn btn-sm btn-link text-dark" title="Lihat"><i class="fas fa-search"></i></button>
-                  <button class="btn btn-sm btn-link text-dark" title="Cetak"><i class="fas fa-print"></i></button>
+                  <a href="{{ route('kasir.invoice.show', 'INV-2023-001') }}" class="btn btn-sm btn-outline-secondary" title="Lihat Detail"><i class="fas fa-file-alt"></i></a>
+                  <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                  <a href="{{ route('kasir.invoice.print', 'INV-2023-001') }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Cetak"><i class="fas fa-print"></i></a>
+                  <a href="{{ route('kasir.invoice.payment', 'INV-2023-001') }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
+                  <button class="btn btn-sm btn-outline-danger" title="Hapus"><i class="fas fa-trash"></i></button>
                 </td>
               </tr>
-              @endforeach
+              <tr>
+                <td><a href="#" class="fw-bold text-primary text-decoration-none">INV-2023-002</a></td>
+                <td>PT Global Media Indonesia</td>
+                <td>20/6/2023</td>
+                <td>20/7/2023</td>
+                <td>Rp 850.000</td>
+                <td><span class="badge bg-white border text-dark px-3">partial</span></td>
+                <td>
+                  <a href="{{ route('kasir.invoice.show', 'INV-2023-002') }}" class="btn btn-sm btn-outline-secondary" title="Lihat Detail"><i class="fas fa-file-alt"></i></a>
+                  <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                  <a href="{{ route('kasir.invoice.print', 'INV-2023-002') }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Cetak"><i class="fas fa-print"></i></a>
+                  <a href="{{ route('kasir.invoice.payment', 'INV-2023-002') }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
+                  <button class="btn btn-sm btn-outline-danger" title="Hapus"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
+              <tr>
+                <td><a href="#" class="fw-bold text-primary text-decoration-none">INV-2023-003</a></td>
+                <td>Toko Bahagia</td>
+                <td>5/6/2023</td>
+                <td>5/7/2023</td>
+                <td>Rp 275.000</td>
+                <td><span class="badge bg-white border text-dark px-3">paid</span></td>
+                <td>
+                  <a href="{{ route('kasir.invoice.show', 'INV-2023-003') }}" class="btn btn-sm btn-outline-secondary" title="Lihat Detail"><i class="fas fa-file-alt"></i></a>
+                  <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a>
+                  <a href="{{ route('kasir.invoice.print', 'INV-2023-003') }}" class="btn btn-sm btn-outline-secondary" title="Cetak"><i class="fas fa-print"></i></a>
+                  <a href="{{ route('kasir.invoice.payment', 'INV-2023-003') }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
+                  <button class="btn btn-sm btn-outline-danger" title="Hapus"><i class="fas fa-trash"></i></button>
+                </td>
+              </tr>
             </tbody>
           </table>
         </div>
-      </div>
-    </div>
-    <div class="col-lg-5 mb-3">
-      <div class="card p-4 h-100">
-        <div class="fw-bold fs-4 mb-1">Form Pembayaran</div>
-        <div class="text-muted mb-3">Pilih invoice terlebih dahulu</div>
-        <div id="formPembayaranDefault" class="text-center py-5">
-          <i class="fas fa-credit-card fa-4x mb-3 text-secondary"></i>
-          <div class="fw-bold fs-5 mb-2">Belum ada invoice terpilih</div>
-          <div class="text-muted">Pilih invoice dari daftar di sebelah kiri untuk melakukan pembayaran</div>
-        </div>
-        <div id="formPembayaranDetail" style="display:none;">
-          <div class="border rounded p-3 mb-3 bg-light">
-            <div class="d-flex justify-content-between align-items-center mb-2">
-              <div>
-                <div class="fw-bold">Customer</div>
-                <div id="detailCustomer">-</div>
-              </div>
-              <div>
-                <div class="fw-bold">Status</div>
-                <span id="detailStatus" class="badge rounded-pill border border-1 text-dark bg-white text-lowercase">-</span>
-              </div>
-            </div>
-            <div class="row mb-2">
-              <div class="col-6">
-                <div class="text-muted small">Total Invoice</div>
-                <div class="fw-bold" id="detailTotal">Rp 0</div>
-              </div>
-              <div class="col-6 text-end">
-                <div class="text-muted small">Sudah Dibayar</div>
-                <div class="fw-bold text-success" id="detailDibayar">Rp 0</div>
-              </div>
-            </div>
-            <div class="text-muted small">Sisa Pembayaran</div>
-            <div class="fw-bold fs-5 mb-0" id="detailSisa" style="color:#d32f2f;">Rp 0</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Jumlah Pembayaran</label>
-            <input type="text" class="form-control" id="inputJumlahBayar" placeholder="Rp 0">
-            <div class="text-muted small mt-1">Masukkan jumlah pembayaran tanpa titik atau koma</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Metode Pembayaran</label>
-            <select class="form-select" id="inputMetode">
-              <option>Tunai</option>
-              <option>Transfer</option>
-              <option>QRIS</option>
-            </select>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Nomor Referensi</label>
-            <input type="text" class="form-control" id="inputRef" placeholder="Contoh: TRX123456">
-            <div class="text-muted small">Nomor referensi/transaksi dari pembayaran (opsional)</div>
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-bold">Catatan</label>
-            <textarea class="form-control" id="inputCatatan" rows="2" placeholder="Catatan tambahan untuk pembayaran ini"></textarea>
-          </div>
-          <button class="btn btn-primary w-100" id="btnProsesBayar"><i class="fas fa-check me-1"></i> Proses Pembayaran</button>
+        <div class="d-flex justify-content-between align-items-center mt-4">
+          <button class="btn btn-outline-secondary" onclick="window.location.href='/'">Kembali ke Dashboard</button>
+          <div class="text-muted">Menampilkan 3 invoice</div>
+          <a href="#" class="btn btn-primary d-flex align-items-center gap-2"><i class="fas fa-plus"></i> Buat Invoice Baru</a>
         </div>
       </div>
     </div>
   </div>
 </div>
-@push('custom-scripts')
-<script>
-  // Data dummy invoice (harus sama urutan dengan $invoices di controller)
-  const invoiceData = @json($invoices);
-
-  function formatRupiah(num) {
-    return 'Rp ' + (num ? num.toLocaleString('id-ID') : '0');
-  }
-
-  document.querySelectorAll('.invoice-row').forEach((row, idx) => {
-    row.addEventListener('click', function() {
-      // Highlight row
-      document.querySelectorAll('.invoice-row').forEach(r => r.classList.remove('table-active'));
-      row.classList.add('table-active');
-      // Tampilkan form pembayaran detail
-      document.getElementById('formPembayaranDefault').style.display = 'none';
-      document.getElementById('formPembayaranDetail').style.display = '';
-      // Ambil data
-      const inv = invoiceData[idx];
-      document.getElementById('detailCustomer').textContent = inv.customer;
-      document.getElementById('detailStatus').textContent = inv.status;
-      document.getElementById('detailTotal').textContent = formatRupiah(inv.total);
-      document.getElementById('detailSisa').textContent = formatRupiah(inv.sisa);
-      document.getElementById('detailDibayar').textContent = formatRupiah(inv.sudah_dibayar || (inv.total - inv.sisa));
-    });
-  });
-</script>
-@endpush
 @endsection 
