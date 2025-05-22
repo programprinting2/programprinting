@@ -33,6 +33,9 @@
               <a href="{{ url('/backend/master-mesin') }}" class="nav-link {{ active_class(['backend/master-mesin']) }}">Mesin</a>
             </li>     
             <li class="nav-item">
+              <a href="{{ url('/backend/karyawan') }}" class="nav-link {{ active_class(['backend/karyawan']) }}">Karyawan</a>
+            </li>
+            <li class="nav-item">
               <a href="{{ url('/backend/master-kontak') }}" class="nav-link {{ active_class(['backend/master-kontak']) }}">Kontak</a>            
             </li>     
             <li class="nav-item">

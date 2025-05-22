@@ -10,7 +10,8 @@
 | contains the "web" middleware group. Now create something great!
 |
 */
-use App\Http\Controllers\MasterMesinController;
+// use App\Http\Controllers\MasterMesinController;
+use App\Http\Controllers\MesinController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MasterKontakController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\PembelianController;
 use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SPKController;
 use App\Http\Controllers\KasirController;
+use App\Http\Controllers\KaryawanController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -31,13 +33,28 @@ Route::group(['prefix' => 'backend'], function () {
     // Route::get('master-mesin', function () {
     //     return view('pages.backend.master-mesin');
     // });
-    Route::get('master-mesin', [MasterMesinController::class, 'index'])->name('backend.master-mesin');
-    Route::post('master-mesin/create', [MasterMesinController::class, 'store'])->name('backend.master-mesin.create');
-    Route::put('master-mesin/{id}/update', [MasterMesinController::class, 'update'])->name('backend.master-mesin.update');
-    Route::put('master-mesin/{id}/clear-image', [MasterMesinController::class, 'clearImage'])->name('backend.master-mesin.clear-image');
-    Route::delete('master-mesin/{id}', [MasterMesinController::class, 'delete'])->name('backend.master-mesin.delete');
-    Route::get('/master-mesin/filter', [App\Http\Controllers\MasterMesinController::class, 'filter'])->name('backend.master-mesin.filter');
-    Route::get('/backend/master-mesin/grid', [App\Http\Controllers\MasterMesinController::class, 'grid'])->name('backend.master-mesin.grid');
+    // Route::get('master-mesin', [MasterMesinController::class, 'index'])->name('backend.master-mesin');
+    // Route::post('master-mesin/create', [MasterMesinController::class, 'store'])->name('backend.master-mesin.create');
+    // Route::put('master-mesin/{id}/update', [MasterMesinController::class, 'update'])->name('backend.master-mesin.update');
+    // Route::put('master-mesin/{id}/clear-image', [MasterMesinController::class, 'clearImage'])->name('backend.master-mesin.clear-image');
+    // // Route::delete('master-mesin/{id}', [MasterMesinController::class, 'delete'])->name('backend.master-mesin.delete');
+    // Route::get('/master-mesin/filter', [App\Http\Controllers\MasterMesinController::class, 'filter'])->name('backend.master-mesin.filter');
+    // Route::get('/backend/master-mesin/grid', [App\Http\Controllers\MasterMesinController::class, 'grid'])->name('backend.master-mesin.grid');
+
+    // Master Mesin New
+    // Route::get('master-mesin-new', [MasterMesinController::class, 'index'])->name('backend.master-mesin-new');
+    // Route::post('master-mesin-new/create', [MasterMesinController::class, 'store'])->name('backend.master-mesin-new.create');
+
+    // Master Mesin Resource Routes
+    Route::resource('master-mesin', MesinController::class)->names([
+        'index' => 'backend.master-mesin.index',
+        'create' => 'backend.master-mesin.create',
+        'store' => 'backend.master-mesin.store',
+        'show' => 'backend.master-mesin.show',
+        'edit' => 'backend.master-mesin.edit',
+        'update' => 'backend.master-mesin.update',
+        'destroy' => 'backend.master-mesin.destroy',
+    ]);
 
     Route::get('master-kontak', [MasterKontakController::class, 'index'])->name('backend.master-kontak');
     Route::post('master-kontak/create', [MasterKontakController::class, 'store'])->name('backend.master-kontak.create');
@@ -55,6 +72,17 @@ Route::group(['prefix' => 'backend'], function () {
     Route::delete('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'destroyDetail'])->name('backend.master-parameter.detail.destroy');
 
     Route::get('master-bahanbaku', [MasterBahanbakuController::class, 'index'])->name('backend.master-bahanbaku');
+
+    // Karyawan Resource Routes
+    Route::resource('karyawan', KaryawanController::class)->names([
+        'index' => 'backend.karyawan.index',
+        'create' => 'backend.karyawan.create',
+        'store' => 'backend.karyawan.store',
+        'show' => 'backend.karyawan.show',
+        'edit' => 'backend.karyawan.edit',
+        'update' => 'backend.karyawan.update',
+        'destroy' => 'backend.karyawan.destroy',
+    ]);
 });
 
 Route::group(['prefix' => 'pembelian'], function () {

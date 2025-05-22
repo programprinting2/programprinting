@@ -1,0 +1,54 @@
+/* Custom CSS untuk status badge */
+.icon-status {
+    width: 14px;
+    height: 14px;
+    stroke-width: 3;
+    vertical-align: -2px;
+}
+
+/* Styling badge pada card */
+.card .badge {
+    padding: 0.4em 0.65em;
+}
+
+/* Styling badge pada tabel */
+.table .badge {
+    font-size: 0.8em;
+    padding: 0.4em 0.65em;
+    white-space: nowrap;
+}
+
+/* Ukuran icon untuk tombol aksi */
+.icon-sm {
+    width: 16px;
+    height: 16px;
+    stroke-width: 2.5;
+}
+
+/* Tombol aksi di tabel */
+.table .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+/* Text nowrap untuk konten penting di tabel */
+.table td.text-nowrap {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Hover style pada baris tabel */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Styling untuk thumbnail yang bisa diklik */
+.cursor-pointer {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cursor-pointer:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+} 

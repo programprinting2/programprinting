@@ -26,12 +26,16 @@ License: For each use you must have a valid license purchased only from above li
   <!-- End fonts -->
   
   <!-- CSRF Token -->
-  <meta name="_token" content="{{ csrf_token() }}">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  
+  <!-- SweetAlert2 -->
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
   
   <link rel="shortcut icon" href="{{ asset('/favicon.ico') }}">
 
   <!-- plugin css -->
-  <link href="{{ asset('assets/fonts/feather-font/css/iconfont.css') }}" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+  <!-- <link href="{{ asset('assets/fonts/feather-font/css/iconfont.css') }}" rel="stylesheet" /> -->
   <link href="{{ asset('assets/plugins/perfect-scrollbar/perfect-scrollbar.css') }}" rel="stylesheet" />
   <!-- end plugin css -->
 
@@ -46,6 +50,7 @@ License: For each use you must have a valid license purchased only from above li
 <body data-base-url="{{url('/')}}">
 
   <script src="{{ asset('assets/js/spinner.js') }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 
   <div class="main-wrapper" id="app">
     @include('layout.sidebar')
@@ -71,6 +76,9 @@ License: For each use you must have a valid license purchased only from above li
     <!-- common js -->
     <script src="{{ asset('assets/js/template.js') }}"></script>
     <!-- end common js -->
+
+    <!-- Karyawan shared scripts -->
+    <script src="{{ asset('js/karyawan/karyawan-shared.js') }}"></script>
 
     @stack('custom-scripts')
 </body>
