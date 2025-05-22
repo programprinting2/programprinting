@@ -14,7 +14,6 @@
 use App\Http\Controllers\MesinController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\MasterKontakController;
 use App\Http\Controllers\MasterParameterController;
 use App\Http\Controllers\MasterBahanbakuController;
 use App\Http\Controllers\PembelianController;
@@ -55,12 +54,6 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.master-mesin.update',
         'destroy' => 'backend.master-mesin.destroy',
     ]);
-
-    Route::get('master-kontak', [MasterKontakController::class, 'index'])->name('backend.master-kontak');
-    Route::post('master-kontak/create', [MasterKontakController::class, 'store'])->name('backend.master-kontak.create');
-    Route::put('master-kontak/{id}/update', [MasterKontakController::class, 'update'])->name('backend.master-kontak.update');
-    Route::delete('master-kontak/{id}', [MasterKontakController::class, 'delete'])->name('backend.master-kontak.delete');
-    Route::get('/master-kontak/filter', [App\Http\Controllers\MasterKontakController::class, 'filter'])->name('backend.master-kontak.filter');
 
     Route::get('master-parameter', [MasterParameterController::class, 'index'])->name('backend.master-parameter');
     Route::post('master-parameter', [MasterParameterController::class, 'store'])->name('backend.master-parameter.store');
