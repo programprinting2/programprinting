@@ -21,6 +21,7 @@ use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SPKController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
+use App\Http\Controllers\PelangganController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -53,6 +54,17 @@ Route::group(['prefix' => 'backend'], function () {
         'edit' => 'backend.master-mesin.edit',
         'update' => 'backend.master-mesin.update',
         'destroy' => 'backend.master-mesin.destroy',
+    ]);
+
+    // Pelanggan Resource Routes
+    Route::resource('pelanggan', PelangganController::class)->names([
+        'index' => 'backend.pelanggan.index',
+        'create' => 'backend.pelanggan.create',
+        'store' => 'backend.pelanggan.store',
+        'show' => 'backend.pelanggan.show',
+        'edit' => 'backend.pelanggan.edit',
+        'update' => 'backend.pelanggan.update',
+        'destroy' => 'backend.pelanggan.destroy',
     ]);
 
     Route::get('master-parameter', [MasterParameterController::class, 'index'])->name('backend.master-parameter');
