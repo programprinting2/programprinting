@@ -43,6 +43,10 @@
                 class="nav-link {{ active_class(['backend/pelanggan']) }}">Pelanggan</a>
             </li>
             <li class="nav-item">
+              <a href="{{ url('/backend/pemasok') }}"
+                class="nav-link {{ active_class(['backend/pemasok']) }}">Pemasok</a>
+            </li>
+            <li class="nav-item">
               <a href="{{ url('/backend/master-parameter') }}"
                 class="nav-link {{ active_class(['backend/master-parameter']) }}">Parameter</a>
             </li>

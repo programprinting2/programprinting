@@ -393,119 +393,264 @@ $(function() {
     KaryawanHelper.hitungTotalGaji();
   });
 
+  // Fungsi validasi email
+  function isValidEmail(email) {
+    if (!email) return true;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+  }
+
+  // Fungsi validasi nomor telepon
+  function isValidPhone(phone) {
+    if (!phone) return true;
+    const re = /^[0-9+\-\s()]{8,20}$/;
+    return re.test(phone);
+  }
+
+  // Fungsi validasi NPWP
+  function isValidNPWP(npwp) {
+    if (!npwp) return true;
+    const re = /^\d{2}[.]\d{3}[.]\d{3}[.]\d{1}[.]\d{3}[.]\d{3}$/;
+    return re.test(npwp);
+  }
+
+  // Fungsi untuk menampilkan error
+  function showError(element, message) {
+    element.addClass('is-invalid');
+    element.after(`<div class="invalid-feedback">${message}</div>`);
+    
+    // Tandai tab yang memiliki error
+    const tabId = element.closest('.tab-pane').attr('id');
+    $(`#karyawanTabs button[data-bs-target="#${tabId}"]`).addClass('text-danger');
+  }
+
+  // Fungsi untuk reset error
+  function resetErrors() {
+    $(".is-invalid").removeClass("is-invalid");
+    $(".invalid-feedback").remove();
+    $("#karyawanTabs button").removeClass("text-danger");
+  }
+
   // Submit form via AJAX
   $('#formKaryawan').submit(function(e) {
     e.preventDefault();
-    
-    // Reset error states
-    $('.is-invalid').removeClass('is-invalid');
-    $('.invalid-feedback').remove();
-    $('#karyawanTabs button').removeClass('text-danger');
+    resetErrors();
 
+    // Nonaktifkan tombol simpan
+    const submitButton = $(this).find('button[type="submit"]');
+    submitButton.prop('disabled', true);
+    submitButton.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menyimpan...');
+
+    let hasError = false;
+    let emailValue = $("#modalKaryawan #email").val();
+    let email = emailValue ? emailValue.trim() : null;
+    
     let data = {
-      nama_lengkap: $('#nama_lengkap').val(),
-      posisi: $('#posisi').val(),
-      departemen: $('#departemen').val(),
-      tanggal_masuk: $('#tanggal_masuk').val(),
-      tanggal_lahir: $('#tanggal_lahir').val(),
-      jenis_kelamin: $('#jenis_kelamin').val(),
-      status_pernikahan: $('#status_pernikahan').val(),
-      nomor_telepon: $('#nomor_telepon').val(),
-      email: $('#email').val(),
-      gaji_pokok: $('#gaji_pokok').val(),
-      status: $('#status').val(),
-      npwp: $('#npwp').val(),
-      status_pajak: $('#status_pajak').val(),
-      tarif_pajak: $('#tarif_pajak').val(),
-      estimasi_hari_kerja: $('#estimasi_hari_kerja').val(),
-      jam_kerja_per_hari: $('#jam_kerja_per_hari').val(),
-      alamat: [],
-      rekening: [],
-      alamat_utama: $('#alamat_utama').val(),
-      rekening_utama: $('#rekening_utama').val(),
-      komponen_gaji: []
+        nama_lengkap: $("#modalKaryawan #nama_lengkap").val().trim(),
+        departemen: $("#modalKaryawan #departemen").val().trim(),
+        posisi: $("#modalKaryawan #posisi").val().trim(),
+        tanggal_lahir: $("#modalKaryawan #tanggal_lahir").val(),
+        jenis_kelamin: $("#modalKaryawan #jenis_kelamin").val(),
+        status_pernikahan: $("#modalKaryawan #status_pernikahan").val(),
+        tanggal_masuk: $("#modalKaryawan #tanggal_masuk").val(),
+        status: $("#modalKaryawan #status").val(),
+        email: email,
+        nomor_telepon: $("#modalKaryawan #nomor_telepon").val().trim(),
+        npwp: $("#modalKaryawan #npwp").val().trim(),
+        status_pajak: $("#modalKaryawan #status_pajak").val(),
+        tarif_pajak: $("#modalKaryawan #tarif_pajak").val(),
+        gaji_pokok: $("#modalKaryawan #gaji_pokok").val(),
+        estimasi_hari_kerja: $("#modalKaryawan #estimasi_hari_kerja").val(),
+        jam_kerja_per_hari: $("#modalKaryawan #jam_kerja_per_hari").val(),
+        alamat: [],
+        rekening: [],
+        alamat_utama: $("#modalKaryawan #alamat_utama").val(),
+        rekening_utama: $("#modalKaryawan #rekening_utama").val(),
+        komponen_gaji: []
     };
 
-    // Collect alamat data
-    $('#alamat-list .alamat-item').each(function() {
-      data.alamat.push({
-        label: $(this).find('input[name^="alamat_label"]').val(),
-        alamat: $(this).find('textarea[name^="alamat_alamat"]').val(),
-        kota: $(this).find('input[name^="alamat_kota"]').val(),
-        provinsi: $(this).find('input[name^="alamat_provinsi"]').val(),
-        kode_pos: $(this).find('input[name^="alamat_kode_pos"]').val(),
-        kontak_darurat: $(this).find('input[name^="alamat_kontak_darurat"]').val(),
-        telepon_darurat: $(this).find('input[name^="alamat_telepon_darurat"]').val()
-      });
+    // Validasi field wajib
+    if (!data.nama_lengkap) {
+        showError($("#modalKaryawan #nama_lengkap"), "Nama lengkap wajib diisi");
+        hasError = true;
+    }
+
+    if (!data.departemen) {
+        showError($("#modalKaryawan #departemen"), "Departemen wajib diisi");
+        hasError = true;
+    }
+
+    if (!data.posisi) {
+        showError($("#modalKaryawan #posisi"), "Posisi wajib diisi");
+        hasError = true;
+    }
+
+    if (!data.tanggal_masuk) {
+        showError($("#modalKaryawan #tanggal_masuk"), "Tanggal masuk wajib diisi");
+        hasError = true;
+    }
+
+    if (!data.status) {
+        showError($("#modalKaryawan #status"), "Status wajib diisi");
+        hasError = true;
+    }
+
+    // Validasi format
+    if (data.email && !isValidEmail(data.email)) {
+        showError($("#modalKaryawan #email"), "Format email tidak valid");
+        hasError = true;
+    }
+
+    if (data.nomor_telepon && !isValidPhone(data.nomor_telepon)) {
+        showError($("#modalKaryawan #nomor_telepon"), "Format nomor telepon tidak valid");
+        hasError = true;
+    }
+
+    if (data.npwp && !isValidNPWP(data.npwp)) {
+        showError($("#modalKaryawan #npwp"), "Format NPWP tidak valid (contoh: 12.345.678.9.012.345)");
+        hasError = true;
+    }
+
+    // Validasi alamat
+    $("#modalKaryawan #alamat-list .alamat-item").each(function() {
+        const alamat = {
+            label: $(this).find('input[name="alamat_label[]"]').val().trim(),
+            alamat: $(this).find('textarea[name="alamat_alamat[]"]').val().trim(),
+            kota: $(this).find('input[name="alamat_kota[]"]').val().trim(),
+            provinsi: $(this).find('input[name="alamat_provinsi[]"]').val().trim(),
+            kode_pos: $(this).find('input[name="alamat_kode_pos[]"]').val().trim()
+        };
+
+        if (!alamat.alamat) {
+            showError($(this).find('textarea[name="alamat_alamat[]"]'), "Alamat wajib diisi");
+            hasError = true;
+        }
+
+        data.alamat.push(alamat);
     });
 
-    // Collect rekening data
-    $('#rekening-list .rekening-item').each(function() {
-      data.rekening.push({
-        bank: $(this).find('input[name^="rekening_bank"]').val(),
-        cabang: $(this).find('input[name^="rekening_cabang"]').val(),
-        nomor: $(this).find('input[name^="rekening_nomor"]').val(),
-        nama_pemilik: $(this).find('input[name^="rekening_nama_pemilik"]').val()
-      });
+    if (data.alamat.length === 0) {
+        Swal.fire({
+            icon: "error",
+            title: "Validasi Gagal",
+            text: "Minimal satu alamat harus diisi",
+        });
+        hasError = true;
+    }
+
+    // Validasi rekening
+    $("#modalKaryawan #rekening-list .rekening-item").each(function() {
+        const rekening = {
+            bank: $(this).find('input[name="rekening_bank[]"]').val().trim(),
+            cabang: $(this).find('input[name="rekening_cabang[]"]').val().trim(),
+            nomor: $(this).find('input[name="rekening_nomor[]"]').val().trim(),
+            nama_pemilik: $(this).find('input[name="rekening_nama_pemilik[]"]').val().trim()
+        };
+
+        if (rekening.bank || rekening.nomor) {
+            if (!rekening.bank) {
+                showError($(this).find('input[name="rekening_bank[]"]'), "Nama bank wajib diisi");
+                hasError = true;
+            }
+            if (!rekening.nomor) {
+                showError($(this).find('input[name="rekening_nomor[]"]'), "Nomor rekening wajib diisi");
+                hasError = true;
+            }
+        }
+
+        data.rekening.push(rekening);
     });
 
-    // Collect komponen gaji data
-    $('#komponen-gaji-list .komponen-gaji-item').each(function() {
-      data.komponen_gaji.push({
-        tipe: $(this).find('select[name^="komponen_tipe"]').val(),
-        nama: $(this).find('input[name^="komponen_nama"]').val(),
-        nilai: $(this).find('input[name^="komponen_nilai"]').val(),
-        satuan: $(this).find('select[name^="komponen_satuan"]').val(),
-        tanggal: $(this).find('input[name^="komponen_tanggal"]').val()
-      });
+    // Validasi komponen gaji
+    $("#modalKaryawan #komponen-gaji-list .komponen-item").each(function() {
+        const komponen = {
+            nilai: $(this).find('input[name="komponen_nilai[]"]').val().trim(),
+            satuan: $(this).find('select[name="komponen_satuan[]"]').val(),
+            tanggal: $(this).find('input[name="komponen_tanggal[]"]').val()
+        };
+
+        if (komponen.nilai && komponen.nilai !== "0") {
+            if (!komponen.satuan) {
+                showError($(this).find('select[name="komponen_satuan[]"]'), "Satuan wajib diisi");
+                hasError = true;
+            }
+            if (!komponen.tanggal) {
+                showError($(this).find('input[name="komponen_tanggal[]"]'), "Tanggal wajib diisi");
+                hasError = true;
+            }
+            data.komponen_gaji.push(komponen);
+        }
     });
 
+    if (hasError) {
+        Swal.fire({
+            icon: "error",
+            title: "Validasi Gagal",
+            text: "Mohon periksa kembali form yang diisi",
+        });
+        // Aktifkan kembali tombol simpan
+        submitButton.prop('disabled', false);
+        submitButton.html('Simpan');
+        return;
+    }
+
+    // Kirim data ke server
     $.ajax({
-      url: karyawanStoreUrl,
-      method: 'POST',
-      data: data,
-      success: function(res) {
-        if(res.success) {
-          // Tampilkan pesan sukses
-          Swal.fire({
-            icon: 'success',
-            title: 'Berhasil!',
-            text: res.message || 'Data karyawan berhasil ditambahkan',
-            showConfirmButton: false,
-            timer: 1500
-          }).then(() => {
-          $('#modalKaryawan').modal('hide');
-          location.reload();
-          });
-        } else {
-          // Tampilkan pesan error umum
-          Swal.fire({
-            icon: 'error',
-            title: 'Gagal!',
-            text: res.message || 'Terjadi kesalahan saat menyimpan data',
-          });
-        }
-      },
-      error: function(xhr) {
-        if(xhr.status === 422) {
-          // Tampilkan error validasi
-          showValidationErrors(xhr.responseJSON.errors);
-          
-          // Tampilkan pesan error
-          Swal.fire({
-            icon: 'error',
-            title: 'Validasi Gagal',
-            text: 'Silakan periksa kembali data yang Anda masukkan',
-          });
-        } else {
-          // Tampilkan error umum
-          Swal.fire({
-            icon: 'error',
-            title: 'Error!',
-            text: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.',
-          });
-        }
-      }
+        url: karyawanStoreUrl,
+        method: "POST",
+        data: data,
+        dataType: "json",
+        success: function (res) {
+            if (res.success) {
+                Swal.fire({
+                    icon: "success",
+                    title: "Berhasil!",
+                    text: res.message || "Data karyawan berhasil ditambahkan",
+                    showConfirmButton: false,
+                    timer: 1500,
+                }).then(() => {
+                    $("#modalKaryawan").modal("hide");
+                    window.location.reload();
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Gagal!",
+                    text: res.message || "Terjadi kesalahan saat menyimpan data",
+                });
+                // Aktifkan kembali tombol simpan
+                submitButton.prop('disabled', false);
+                submitButton.html('Simpan');
+            }
+        },
+        error: function (xhr) {
+            if (xhr.status === 422) {
+                let errors = xhr.responseJSON.errors;
+                let errorMessage = '<ul class="text-start">';
+                Object.keys(errors).forEach(function(key) {
+                    errors[key].forEach(function(error) {
+                        errorMessage += `<li>${error}</li>`;
+                    });
+                });
+                errorMessage += '</ul>';
+
+                Swal.fire({
+                    icon: "error",
+                    title: "Validasi Gagal",
+                    html: errorMessage,
+                    confirmButtonText: "OK"
+                });
+            } else {
+                Swal.fire({
+                    icon: "error",
+                    title: "Error!",
+                    text: "Terjadi kesalahan saat menyimpan data. Silakan coba lagi.",
+                });
+            }
+            // Aktifkan kembali tombol simpan
+            submitButton.prop('disabled', false);
+            submitButton.html('Simpan');
+        },
     });
   });
 

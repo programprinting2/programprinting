@@ -1,15 +1,15 @@
-<div class="modal fade" id="tambahPelanggan" tabindex="-1" aria-labelledby="tambahPelangganLabel" aria-hidden="true">
+<div class="modal fade" id="tambahPemasok" tabindex="-1" aria-labelledby="tambahPemasokLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="tambahPelangganLabel">Tambah Pelanggan Baru</h5>
+                <h5 class="modal-title" id="tambahPemasokLabel">Tambah Pemasok Baru</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form id="formPelanggan">
+            <form id="formPemasok">
                 @csrf
                 <div class="modal-body">
                     <!-- Tab Navigation -->
-                    <ul class="nav nav-tabs mb-3" id="pelangganTabs" role="tablist">
+                    <ul class="nav nav-tabs mb-3" id="pemasokTabs" role="tablist">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link active" id="tab-umum" data-bs-toggle="tab" data-bs-target="#umum"
                                 type="button" role="tab">
@@ -17,21 +17,15 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-kontak" data-bs-toggle="tab" data-bs-target="#kontak"
-                                type="button" role="tab">
-                                <i data-feather="phone" class="me-1 icon-sm"></i> Kontak lain
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
                             <button class="nav-link" id="tab-alamat" data-bs-toggle="tab" data-bs-target="#alamat"
                                 type="button" role="tab">
-                                <i data-feather="map-pin" class="me-1 icon-sm"></i> Pengiriman
+                                <i data-feather="map-pin" class="me-1 icon-sm"></i> Alamat
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-penjualan" data-bs-toggle="tab" data-bs-target="#penjualan"
+                            <button class="nav-link" id="tab-pembelian" data-bs-toggle="tab" data-bs-target="#pembelian"
                                 type="button" role="tab">
-                                <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Penjualan
+                                <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Pembelian
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
@@ -41,24 +35,35 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-saldo-piutang" data-bs-toggle="tab"
-                                data-bs-target="#saldo-piutang" type="button" role="tab">
-                                <i data-feather="credit-card" class="me-1 icon-sm"></i> Saldo Piutang
+                            <button class="nav-link" id="tab-rekening" data-bs-toggle="tab" data-bs-target="#rekening"
+                                type="button" role="tab">
+                                <i data-feather="credit-card" class="me-1 icon-sm"></i> Rekening Bank
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-lain-lain" data-bs-toggle="tab" data-bs-target="#lain-lain"
-                                type="button" role="tab">
-                                <i data-feather="more-horizontal" class="me-1 icon-sm"></i> Lain-lain
+                            <button class="nav-link" id="tab-utang-awal" data-bs-toggle="tab"
+                                data-bs-target="#utang-awal" type="button" role="tab">
+                                <i data-feather="credit-card" class="me-1 icon-sm"></i> Utang Awal
                             </button>
                         </li>
                     </ul>
 
-                    <div class="tab-content" id="pelangganTabContent">
+                    <div class="tab-content" id="pemasokTabContent">
                         <!-- Info Umum -->
                         <div class="tab-pane fade show active" id="umum" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
+                                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                                        <i data-feather="info" class="me-2"></i>
+                                        <div>
+                                            <strong>Petunjuk:</strong>
+                                            <ul class="mb-0">
+                                                <li>Nama pemasok wajib diisi untuk identifikasi</li>
+                                                <li>Nomor handphone dan whatsapp digunakan untuk komunikasi</li>
+                                                <li>Email dan website untuk keperluan korespondensi resmi</li>
+                                            </ul>
+                                        </div>
+                                    </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label">Nama <span class="text-danger">*</span></label>
@@ -72,7 +77,7 @@
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label">No. Whatsapp</label>
-                                            <input type="tel" class="form-control" id="nomor_telepon_pelanggan" name="nomor_telepon_pelanggan">
+                                            <input type="tel" class="form-control" id="no_telp" name="no_telp">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Status</label>
@@ -85,43 +90,12 @@
                                     <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label">Email</label>
-                                            <input type="email" class="form-control" id="pelanggan_email" name="email">
+                                            <input type="email" class="form-control" id="pemasok_email" name="email">
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Website</label>
                                             <input type="url" class="form-control" id="website" name="website">
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Kontak lain -->
-                        <div class="tab-pane fade" id="kontak" role="tabpanel">
-                            <div class="card mb-0">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0">Daftar Kontak Lain</h6>
-                                        <button type="button" class="btn btn-sm btn-primary" id="addKontakLain">
-                                            <i data-feather="plus" class="icon-sm"></i> Tambah Kontak
-                                        </button>
-                                    </div>
-
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered table-hover" id="tableKontakLain">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Nama Lengkap</th>
-                                                    <th>Posisi Jabatan</th>
-                                                    <th>Email</th>
-                                                    <th>Handphone</th>
-                                                    <th>Aksi</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Kontak items will be added here dynamically -->
-                                            </tbody>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -142,8 +116,10 @@
                                         <div>
                                             <strong>Petunjuk:</strong>
                                             <ul class="mb-0">
-                                                <li>Anda dapat menambahkan beberapa alamat (rumah, kost, dll)</li>
-                                                <li>Pilih satu alamat sebagai alamat utama</li>
+                                                <li>Anda dapat menambahkan beberapa alamat (kantor pusat, gudang, dll)
+                                                </li>
+                                                <li>Pilih satu alamat sebagai alamat utama untuk pengiriman dokumen</li>
+                                                <li>Pastikan alamat lengkap dan jelas untuk memudahkan pengiriman</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -170,8 +146,8 @@
                             </div>
                         </div>
 
-                        <!-- Penjualan -->
-                        <div class="tab-pane fade" id="penjualan" role="tabpanel">
+                        <!-- Pembelian -->
+                        <div class="tab-pane fade" id="pembelian" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
@@ -179,20 +155,22 @@
                                         <div>
                                             <strong>Petunjuk:</strong>
                                             <ul class="mb-0">
-                                                <li>Kategori harga menentukan harga yang akan digunakan untuk pelanggan
-                                                    ini</li>
-                                                <li>Syarat pembayaran menentukan kapan pelanggan harus membayar</li>
+                                                <li>Kategori menentukan jenis pemasok</li>
+                                                <li>Syarat pembayaran menentukan kapan pembayaran harus dilakukan</li>
                                                 <li>Default diskon akan otomatis diterapkan pada setiap transaksi</li>
-                                                <li>Batas piutang menentukan maksimal piutang yang diizinkan</li>
+                                                <li>Pilih akun utang dan uang muka sesuai kebijakan akuntansi</li>
                                             </ul>
                                         </div>
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
-                                            <label class="form-label">Kategori Harga</label>
-                                            <select class="form-select" id="kategori_harga" name="kategori_harga">
-                                                <option value="Umum">Umum</option>
-                                                <option value="Reseller">Reseller</option>
+                                            <label class="form-label">Kategori <span
+                                                    class="text-danger">*</span></label>
+                                            <select class="form-select" id="kategori" name="kategori" required>
+                                                <!-- <option value="">Pilih Kategori</option> -->
+                                                @foreach($kategori as $kat)
+                                                    <option value="{{ $kat->nama_detail_parameter }}">{{ $kat->nama_detail_parameter }}</option>
+                                                @endforeach
                                             </select>
                                         </div>
                                         <div class="col-md-6">
@@ -212,9 +190,27 @@
                                                 name="default_diskon" min="0" max="100">
                                         </div>
                                         <div class="col-md-6">
-                                            <label class="form-label">Batas Piutang</label>
-                                            <input type="number" class="form-control" id="batas_total_piutang"
-                                                name="batas_total_piutang">
+                                            <label class="form-label">Deskripsi Pembelian</label>
+                                            <input type="text" class="form-control" id="deskripsi-pembelian"
+                                                name="deskripsi_pembelian">
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Akun Utang</label>
+                                            <select class="form-select" id="akun_utang" name="akun_utang">
+                                                <option value="Utang Usaha">Utang Usaha</option>
+                                                <option value="Utang Lain-lain">Utang Lain-lain</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Akun Uang Muka</label>
+                                            <select class="form-select" id="akun_uang_muka" name="akun_uang_muka">
+                                                <option value="Uang Muka Pembelian">Uang Muka Pembelian</option>
+                                                <option value="Kas">Kas</option>
+                                                <option value="Bank">Bank</option>
+                                            </select>
                                         </div>
                                     </div>
                                 </div>
@@ -230,9 +226,10 @@
                                         <div>
                                             <strong>Petunjuk:</strong>
                                             <ul class="mb-0">
-                                                <li>NPWP diperlukan untuk pelanggan yang wajib pajak</li>
-                                                <li>NIK/Paspor diperlukan untuk identitas pelanggan</li>
-                                                <li>Centang "Wajib Pajak" jika pelanggan memiliki NPWP</li>
+                                                <li>NPWP diperlukan untuk pemasok yang wajib pajak</li>
+                                                <li>NIK/Paspor diperlukan untuk identitas pemasok</li>
+                                                <li>Centang "Wajib Pajak" jika pemasok memiliki NPWP</li>
+                                                <li>Data pajak digunakan untuk pelaporan perpajakan</li>
                                             </ul>
                                         </div>
                                     </div>
@@ -259,8 +256,43 @@
                             </div>
                         </div>
 
-                        <!-- Saldo Piutang -->
-                        <div class="tab-pane fade" id="saldo-piutang" role="tabpanel">
+                        <!-- Rekening Pemasok -->
+                        <div class="tab-pane fade" id="rekening" role="tabpanel">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div id="rekening-list">
+                                    <!-- Rekening items will be added here dynamically -->
+                                    </div>
+                            
+                                    <button type="button" class="btn btn-outline-primary btn-sm mb-3" id="addRekening">
+                                        <i data-feather="plus"></i> Tambah Rekening
+                                    </button>
+
+                                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                                        <i data-feather="info" class="me-2"></i>
+                                        <div>
+                                            <strong>Petunjuk:</strong>
+                                            <ul class="mb-0">
+                                                <li>Tambahkan rekening bank yang digunakan untuk pembayaran</li>
+                                                <li>Pilih satu rekening sebagai rekening utama</li>
+                                                <li>Pastikan nomor rekening dan nama pemilik sesuai</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-0">
+                                        <label class="form-label">Rekening Utama <span
+                                                class="text-danger">*</span></label>
+                                        <select class="form-select" id="rekening_utama" name="rekening_utama" required>
+                                        <option value="">Pilih rekening utama</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Utang Awal -->
+                        <div class="tab-pane fade" id="utang-awal" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
@@ -268,23 +300,23 @@
                                         <div>
                                             <strong>Petunjuk:</strong>
                                             <ul class="mb-0">
-                                                <li>Piutang awal adalah saldo piutang yang sudah ada sebelum pelanggan
+                                                <li>Utang awal adalah saldo utang yang sudah ada sebelum pemasok
                                                     didaftarkan</li>
-                                                <li>Anda dapat menambahkan beberapa piutang awal dengan tanggal dan
-                                                    jumlah yang berbeda</li>
+                                                <li>Anda dapat menambahkan beberapa utang awal dengan tanggal dan jumlah
+                                                    yang berbeda</li>
                                                 <li>Pastikan untuk mengisi syarat pembayaran dan keterangan yang jelas
                                                 </li>
                                             </ul>
                                         </div>
                                     </div>
                                     <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0">Piutang Awal</h6>
-                                        <button type="button" class="btn btn-sm btn-primary" id="btnTambahPiutang">
-                                            <i data-feather="plus" class="icon-sm"></i> Tambah Piutang Awal
+                                        <h6 class="mb-0">Utang Awal</h6>
+                                        <button type="button" class="btn btn-sm btn-primary" id="btnTambahUtang">
+                                            <i data-feather="plus" class="icon-sm"></i> Tambah Utang Awal
                                         </button>
                                     </div>
                                     <div class="table-responsive">
-                                        <table class="table table-bordered table-hover" id="tablePiutangAwal">
+                                        <table class="table table-bordered table-hover" id="tableUtangAwal">
                                             <thead class="table-light">
                                                 <tr>
                                                     <th>Tanggal</th>
@@ -297,18 +329,18 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr class="piutang-row">
+                                                <tr class="utang-row">
                                                     <td>
                                                         <input type="date" class="form-control form-control-sm"
-                                                            name="piutang_tanggal[]" value="{{ date('Y-m-d') }}">
+                                                            name="utang_tanggal[]" value="{{ date('Y-m-d') }}">
                                                     </td>
                                                     <td>
                                                         <input type="number" class="form-control form-control-sm"
-                                                            name="piutang_jumlah[]" value="0">
+                                                            name="utang_jumlah[]" value="0">
                                                     </td>
                                                     <td>
                                                         <select class="form-select form-select-sm"
-                                                            name="piutang_mata_uang[]">
+                                                            name="utang_mata_uang[]">
                                                             <option value="IDR">IDR</option>
                                                             <option value="USD">USD</option>
                                                             <option value="EUR">EUR</option>
@@ -316,7 +348,7 @@
                                                     </td>
                                                     <td>
                                                         <select class="form-select form-select-sm"
-                                                            name="piutang_syarat_pembayaran[]">
+                                                            name="utang_syarat_pembayaran[]">
                                                             <option value="COD">COD</option>
                                                             <option value="Net 7">Net 7</option>
                                                             <option value="Net 14">Net 14</option>
@@ -325,70 +357,21 @@
                                                     </td>
                                                     <td>
                                                         <input type="text" class="form-control form-control-sm"
-                                                            name="piutang_nomor[]">
+                                                            name="utang_nomor[]">
                                                     </td>
                                                     <td>
                                                         <input type="text" class="form-control form-control-sm"
-                                                            name="piutang_keterangan[]">
+                                                            name="utang_keterangan[]">
                                                     </td>
                                                     <td>
                                                         <button type="button"
-                                                            class="btn btn-xs btn-danger btn-hapus-piutang">
+                                                            class="btn btn-xs btn-danger btn-hapus-utang">
                                                             <i data-feather="x" class="icon-sm"></i>
                                                         </button>
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Lain-lain -->
-                        <div class="tab-pane fade" id="lain-lain" role="tabpanel">
-                            <div class="card mb-0">
-                                <div class="card-body">
-                                    <h6 class="mb-3">Pembatasan Piutang Pelanggan</h6>
-                                    <div class="row mb-3">
-                                        <div class="col-md-12">
-                                            <div class="ms-4 mb-3">
-                                                <div class="form-check mb-3">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="batas_umur_faktur_check" name="batas_umur_faktur_check">
-                                                    <label class="form-check-label" for="batas_umur_faktur_check">
-                                                        Batasi transaksi jika ada faktur dengan umur lebih dari
-                                                    </label>
-                                                    <div class="mt-2 ms-4">
-                                                        <div class="input-group" style="width: 200px;">
-                                                            <input type="number" class="form-control form-control-sm"
-                                                                id="batas_umur_faktur" name="batas_umur_faktur" 
-                                                                value="0" min="0" disabled>
-                                                            <span class="input-group-text">Hari</span>
-                                                        </div>
-                                                        <small class="text-muted">Masukkan jumlah hari maksimal umur faktur</small>
-                                                    </div>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input type="checkbox" class="form-check-input"
-                                                        id="batas_total_piutang_check" name="batas_total_piutang_check">
-                                                    <label class="form-check-label" for="batas_total_piutang_check">
-                                                        Batasi transaksi jika total piutang & pesanan melebihi
-                                                    </label>
-                                                    <div class="mt-2 ms-4">
-                                                        <div class="input-group" style="width: 250px;">
-                                                            <span class="input-group-text">Rp</span>
-                                                            <input type="text" class="form-control form-control-sm"
-                                                                id="batas_total_piutang_nilai" name="batas_total_piutang_nilai"
-                                                                value="0" min="0" disabled
-                                                                data-type="number"
-                                                                maxlength="20">
-                                                        </div>
-                                                        <small class="text-muted">Masukkan batas maksimal total piutang</small>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -404,84 +387,10 @@
     </div>
 </div>
 
-<script>
-    // Script untuk menangani penambahan dan penghapusan baris piutang
-    document.addEventListener('DOMContentLoaded', function () {
-        // Inisialisasi Feather Icons
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-
-        // Tambah baris piutang
-        document.getElementById('btnTambahPiutang').addEventListener('click', function () {
-            const tbody = document.querySelector('#tablePiutangAwal tbody');
-            const firstRow = document.querySelector('.piutang-row');
-            const newRow = firstRow.cloneNode(true);
-
-            // Reset nilai input di baris baru
-            newRow.querySelectorAll('input[type="text"], input[type="number"]').forEach(input => {
-                if (input.name.includes('piutang_jumlah')) {
-                    input.value = '0';
-                } else if (!input.name.includes('piutang_tanggal')) {
-                    input.value = '';
-                }
-            });
-
-            // Set tanggal hari ini
-            const dateInput = newRow.querySelector('input[type="date"]');
-            if (dateInput) {
-                dateInput.value = new Date().toISOString().split('T')[0];
-            }
-
-            // Tambahkan event listener untuk tombol hapus
-            const deleteButton = newRow.querySelector('.btn-hapus-piutang');
-            if (deleteButton) {
-                deleteButton.addEventListener('click', function () {
-                    if (tbody.querySelectorAll('.piutang-row').length > 1) {
-                        this.closest('tr').remove();
-                        // Reinisialisasi Feather Icons setelah menghapus baris
-                        if (typeof feather !== 'undefined') {
-                            feather.replace();
-                        }
-                    }
-                });
-            }
-
-            tbody.appendChild(newRow);
-
-            // Reinisialisasi Feather Icons setelah menambah baris
-            if (typeof feather !== 'undefined') {
-                feather.replace();
-            }
-        });
-
-        // Event listener untuk tombol hapus pada baris yang sudah ada
-        document.querySelectorAll('.btn-hapus-piutang').forEach(button => {
-            button.addEventListener('click', function () {
-                const tbody = document.querySelector('#tablePiutangAwal tbody');
-                if (tbody.querySelectorAll('.piutang-row').length > 1) {
-                    this.closest('tr').remove();
-                    // Reinisialisasi Feather Icons setelah menghapus baris
-                    if (typeof feather !== 'undefined') {
-                        feather.replace();
-                    }
-                }
-            });
-        });
-    });
-</script>
-
 @push('custom-scripts')
     <script>
-        const pelangganStoreUrl = "{{ route('backend.pelanggan.store') }}";
+        const pemasokStoreUrl = "{{ route('backend.pemasok.store') }}";
     </script>
-    <script src="{{ asset('js/pelanggan/pelanggan-helper.js') }}"></script>
-    <script src="{{ asset('js/pelanggan/pelanggan-modal.js') }}"></script>
-    <script>
-        $(document).ready(function() {
-            // Inisialisasi format mata uang
-            PelangganHelper.initMoneyFormat();
-            PelangganHelper.prepareFormSubmit('#formPelanggan');
-        });
-    </script>
+    <script src="{{ asset('js/pemasok/pemasok-helper.js') }}"></script>
+    <script src="{{ asset('js/pemasok/pemasok-modal.js') }}"></script>
 @endpush

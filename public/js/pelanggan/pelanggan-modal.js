@@ -161,82 +161,205 @@ $("#tableKontakLain").on("click", ".removeKontakLain", function () {
     $(this).closest("tr").remove();
 });
 
-// Submit form via AJAX
-$("#formPelanggan").submit(function (e) {
-    e.preventDefault();
+// Fungsi validasi email
+function isValidEmail(email) {
+    if (!email) return true;
+    const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return re.test(email);
+}
 
-    // Reset error states
+// Fungsi validasi nomor telepon
+function isValidPhone(phone) {
+    if (!phone) return true;
+    const re = /^[0-9+\-\s()]{8,20}$/;
+    return re.test(phone);
+}
+
+// Fungsi validasi NPWP
+function isValidNPWP(npwp) {
+    if (!npwp) return true;
+    const re = /^\d{2}[.]\d{3}[.]\d{3}[.]\d{1}[.]\d{3}[.]\d{3}$/;
+    return re.test(npwp);
+}
+
+// Fungsi untuk menampilkan error
+function showError(element, message) {
+    element.addClass('is-invalid');
+    element.after(`<div class="invalid-feedback">${message}</div>`);
+    
+    // Tandai tab yang memiliki error
+    const tabId = element.closest('.tab-pane').attr('id');
+    $(`#pelangganTabs button[data-bs-target="#${tabId}"]`).addClass('text-danger');
+}
+
+// Fungsi untuk reset error
+function resetErrors() {
     $(".is-invalid").removeClass("is-invalid");
     $(".invalid-feedback").remove();
+    $("#pelangganTabs button").removeClass("text-danger");
+}
 
-    // Tampilkan loading
-    Swal.fire({
-        title: "Menyimpan...",
-        text: "Mohon tunggu sebentar",
-        allowOutsideClick: false,
-        didOpen: () => {
-            Swal.showLoading();
-        }
-    });
+// Submit form via AJAX
+$("#formPelanggan").submit(function(e) {
+    e.preventDefault();
+    resetErrors();
 
-    // Siapkan data
+    // Nonaktifkan tombol simpan
+    const submitButton = $(this).find('button[type="submit"]');
+    submitButton.prop('disabled', true);
+    submitButton.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menyimpan...');
+
+    let hasError = false;
+    let emailValue = $("#tambahPelanggan #pelanggan_email").val();
+    let email = emailValue ? emailValue.trim() : null;
+    
     let data = {
-        nama: $("#nama").val().trim(),
-        status: $("#status").val(),
-        no_telp: $("#no_telp").val().trim(),
-        handphone: $("#handphone").val().trim(),
-        email: $("#email").val().trim(),
-        website: $("#website").val().trim(),
+        nama: $("#tambahPelanggan #nama").val().trim(),
+        jenis: $("#tambahPelanggan #jenis").val(),
+        status: $("#tambahPelanggan #status").val(),
+        handphone: $("#tambahPelanggan #handphone").val().trim(),
+        nomor_telepon: $("#tambahPelanggan #nomor_telepon_pelanggan").val().trim(),
+        email: email,
+        website: $("#tambahPelanggan #website").val().trim(),
+        npwp: $("#tambahPelanggan #npwp").val().trim(),
+        nik: $("#tambahPelanggan #nik").val().trim(),
+        wajib_pajak: $("#tambahPelanggan #wajib_pajak").is(":checked") ? "1" : "0",
+        kategori_harga: $("#tambahPelanggan #kategori_harga").val(),
+        syarat_pembayaran: $("#tambahPelanggan #syarat_pembayaran").val(),
+        default_diskon: $("#tambahPelanggan #default_diskon").val(),
+        batas_total_piutang: $("#tambahPelanggan #batas_total_piutang").val(),
         alamat: [],
         kontak: [],
-        alamat_utama: parseInt($("#alamat_utama").val()) || 0,
-        kategori_harga: $("#kategori_harga").val(),
-        syarat_pembayaran: $("#syarat_pembayaran").val(),
-        default_diskon: parseFloat($("#default_diskon").val()) || 0,
-        npwp: $("#npwp").val().trim(),
-        nik: $("#nik").val().trim(),
-        wajib_pajak: $("#wajib_pajak").is(":checked"),
-        piutang_awal: [],
-        data_lain: {
-            batas_umur_faktur_check: $("#batas_umur_faktur_check").is(":checked"),
-            batas_umur_faktur: parseInt($("#batas_umur_faktur").val()) || 0,
-            batas_total_piutang_check: $("#batas_total_piutang_check").is(":checked"),
-            batas_total_piutang_nilai: parseFloat($("#batas_total_piutang_nilai").val()) || 0
-        }
+        alamat_utama: $("#tambahPelanggan #alamat_utama").val(),
+        piutang_awal: []
     };
 
-    // Kumpulkan data alamat
-    $("#alamat-list .alamat-item").each(function () {
-        data.alamat.push({
-            label: $(this).find('input[name^="alamat_label"]').val().trim(),
-            alamat: $(this).find('textarea[name^="alamat_alamat"]').val().trim(),
-            kota: $(this).find('input[name^="alamat_kota"]').val().trim(),
-            provinsi: $(this).find('input[name^="alamat_provinsi"]').val().trim(),
-            kode_pos: $(this).find('input[name^="alamat_kode_pos"]').val().trim(),
-        });
+    // Validasi field wajib
+    if (!data.nama) {
+        showError($("#tambahPelanggan #nama"), "Nama wajib diisi");
+        hasError = true;
+    }
+
+    if (!data.status) {
+        showError($("#tambahPelanggan #status"), "Status wajib diisi");
+        hasError = true;
+    }
+
+    // Validasi format
+    if (data.email && !isValidEmail(data.email)) {
+        showError($("#tambahPelanggan #pelanggan_email"), "Format email tidak valid");
+        hasError = true;
+    }
+
+    if (data.handphone && !isValidPhone(data.handphone)) {
+        showError($("#tambahPelanggan #handphone"), "Format nomor handphone tidak valid");
+        hasError = true;
+    }
+
+    if (data.nomor_telepon && !isValidPhone(data.nomor_telepon)) {
+        showError($("#tambahPelanggan #nomor_telepon_pelanggan"), "Format nomor telepon tidak valid");
+        hasError = true;
+    }
+
+    if (data.npwp && !isValidNPWP(data.npwp)) {
+        showError($("#tambahPelanggan #npwp"), "Format NPWP tidak valid (contoh: 12.345.678.9.012.345)");
+        hasError = true;
+    }
+
+    if (data.nik && !isValidNIK(data.nik)) {
+        showError($("#tambahPelanggan #nik"), "NIK harus 16 digit");
+        hasError = true;
+    }
+
+    // Validasi alamat
+    $("#tambahPelanggan #alamat-list .alamat-item").each(function() {
+        const alamat = {
+            label: $(this).find('input[name="alamat_label[]"]').val().trim(),
+            alamat: $(this).find('textarea[name="alamat_alamat[]"]').val().trim(),
+            kota: $(this).find('input[name="alamat_kota[]"]').val().trim(),
+            provinsi: $(this).find('input[name="alamat_provinsi[]"]').val().trim(),
+            kode_pos: $(this).find('input[name="alamat_kode_pos[]"]').val().trim()
+        };
+
+        if (!alamat.alamat) {
+            showError($(this).find('textarea[name="alamat_alamat[]"]'), "Alamat wajib diisi");
+            hasError = true;
+        }
+
+        data.alamat.push(alamat);
     });
 
-    // Kumpulkan data kontak
-    $("#tableKontakLain tbody tr").each(function () {
-        data.kontak.push({
-            nama: $(this).find('input[name^="kontak_nama"]').val().trim(),
-            posisi: $(this).find('input[name^="kontak_posisi"]').val().trim(),
-            email: $(this).find('input[name^="kontak_email"]').val().trim(),
-            handphone: $(this).find('input[name^="kontak_handphone"]').val().trim(),
+    if (data.alamat.length === 0) {
+        Swal.fire({
+            icon: "error",
+            title: "Validasi Gagal",
+            text: "Minimal satu alamat harus diisi",
         });
+        hasError = true;
+    }
+
+    // Validasi kontak
+    $("#tambahPelanggan #tableKontakLain tbody tr").each(function() {
+        const kontak = {
+            nama: $(this).find('input[name="kontak_nama[]"]').val().trim(),
+            posisi: $(this).find('input[name="kontak_posisi[]"]').val().trim(),
+            email: $(this).find('input[name="kontak_email[]"]').val().trim(),
+            handphone: $(this).find('input[name="kontak_handphone[]"]').val().trim()
+        };
+
+        // Hanya tambahkan kontak jika ada data yang diisi
+        if (kontak.nama || kontak.email || kontak.handphone) {
+            if (!kontak.nama) {
+                showError($(this).find('input[name="kontak_nama[]"]'), "Nama kontak wajib diisi");
+                hasError = true;
+            }
+            if (kontak.email && !isValidEmail(kontak.email)) {
+                showError($(this).find('input[name="kontak_email[]"]'), "Format email kontak tidak valid");
+                hasError = true;
+            }
+            if (kontak.handphone && !isValidPhone(kontak.handphone)) {
+                showError($(this).find('input[name="kontak_handphone[]"]'), "Format nomor handphone kontak tidak valid");
+                hasError = true;
+            }
+            data.kontak.push(kontak);
+        }
     });
 
-    // Kumpulkan data piutang awal
-    $("#tablePiutangAwal tbody tr").each(function () {
-        data.piutang_awal.push({
-            tanggal: $(this).find('input[name^="piutang_tanggal"]').val(),
-            jumlah: parseFloat($(this).find('input[name^="piutang_jumlah"]').val()) || 0,
-            mata_uang: $(this).find('select[name^="piutang_mata_uang"]').val(),
-            syarat_pembayaran: $(this).find('select[name^="piutang_syarat_pembayaran"]').val(),
-            nomor: $(this).find('input[name^="piutang_nomor"]').val(),
-            keterangan: $(this).find('input[name^="piutang_keterangan"]').val(),
-        });
+    // Validasi piutang awal
+    $("#tambahPelanggan #tablePiutangAwal tbody tr").each(function() {
+        const piutang = {
+            tanggal: $(this).find('input[name="piutang_tanggal[]"]').val(),
+            jumlah: $(this).find('input[name="piutang_jumlah[]"]').val(),
+            mata_uang: $(this).find('select[name="piutang_mata_uang[]"]').val(),
+            syarat_pembayaran: $(this).find('select[name="piutang_syarat_pembayaran[]"]').val(),
+            nomor: $(this).find('input[name="piutang_nomor[]"]').val().trim(),
+            keterangan: $(this).find('input[name="piutang_keterangan[]"]').val().trim()
+        };
+
+        if (piutang.jumlah && piutang.jumlah !== "0") {
+            if (!piutang.tanggal) {
+                showError($(this).find('input[name="piutang_tanggal[]"]'), "Tanggal wajib diisi");
+                hasError = true;
+            }
+            if (!piutang.mata_uang) {
+                showError($(this).find('select[name="piutang_mata_uang[]"]'), "Mata uang wajib diisi");
+                hasError = true;
+            }
+            data.piutang_awal.push(piutang);
+        }
     });
+
+    if (hasError) {
+        Swal.fire({
+            icon: "error",
+            title: "Validasi Gagal",
+            text: "Mohon periksa kembali form yang diisi",
+        });
+        // Aktifkan kembali tombol simpan
+        submitButton.prop('disabled', false);
+        submitButton.html('Simpan');
+        return;
+    }
 
     // Kirim data ke server
     $.ajax({
@@ -245,7 +368,6 @@ $("#formPelanggan").submit(function (e) {
         data: data,
         dataType: "json",
         success: function (res) {
-            Swal.close();
             if (res.success) {
                 Swal.fire({
                     icon: "success",
@@ -263,10 +385,12 @@ $("#formPelanggan").submit(function (e) {
                     title: "Gagal!",
                     text: res.message || "Terjadi kesalahan saat menyimpan data",
                 });
+                // Aktifkan kembali tombol simpan
+                submitButton.prop('disabled', false);
+                submitButton.html('Simpan');
             }
         },
         error: function (xhr) {
-            Swal.close();
             if (xhr.status === 422) {
                 let errors = xhr.responseJSON.errors;
                 let errorMessage = '<ul class="text-start">';
@@ -290,6 +414,9 @@ $("#formPelanggan").submit(function (e) {
                     text: "Terjadi kesalahan saat menyimpan data. Silakan coba lagi.",
                 });
             }
+            // Aktifkan kembali tombol simpan
+            submitButton.prop('disabled', false);
+            submitButton.html('Simpan');
         },
     });
 });

@@ -4,7 +4,7 @@
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Master</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Pelanggan</li>
+            <li class="breadcrumb-item active" aria-current="page">Pemasok</li>
         </ol>
     </nav>
 
@@ -15,12 +15,12 @@
                     <div class="card-title">
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="card-title">Data Pelanggan</h6>
+                                <h6 class="card-title">Data Pemasok</h6>
                             </div>
                             <div class="col-md-6 text-right">
                                 <button type="button" class="btn btn-primary float-end d-flex align-items-center"
-                                    data-bs-toggle="modal" data-bs-target="#tambahPelanggan">
-                                    <i class="link-icon icon-sm me-1" data-feather="plus"></i> Tambah Pelanggan
+                                    data-bs-toggle="modal" data-bs-target="#tambahPemasok">
+                                    <i class="link-icon icon-sm me-1" data-feather="plus"></i> Tambah Pemasok
                                 </button>
                             </div>
                         </div>
@@ -29,7 +29,7 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>ID Pelanggan</th>
+                                    <th>ID Pemasok</th>
                                     <th>Nama</th>
                                     <th>Kontak</th>
                                     <th>Kategori</th>
@@ -39,9 +39,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($pelanggan as $p)
+                                @foreach($pemasok as $p)
                                     <tr>
-                                        <td>{{ $p->kode_pelanggan }}</td>
+                                        <td>{{ $p->kode_pemasok }}</td>
                                         <td>{{ $p->nama }}</td>
                                         <td>
                                             <div>
@@ -49,7 +49,7 @@
                                                 <small class="text-muted">{{ $p->email }}</small>
                                             </div>
                                         </td>
-                                        <td>{{ $p->kategori_harga }}</td>
+                                        <td>{{ $p->kategori }}</td>
                                         <td>
                                             @if($p->alamat && is_array($p->alamat) && isset($p->alamat[$p->alamat_utama]))
                                                 {{ $p->alamat[$p->alamat_utama]['alamat'] }}
@@ -68,15 +68,15 @@
                                         <td>
                                             <div class="btn-group gap-1" role="group">
                                                 <button type="button" class="btn btn-warning btn-xs rounded"
-                                                    onclick="editPelanggan({{ $p->id }})">
+                                                    onclick="editPemasok({{ $p->id }})">
                                                     <i class="link-icon icon-sm" data-feather="edit"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-danger btn-xs rounded btn-delete-pelanggan"
+                                                <button type="button" class="btn btn-danger btn-xs rounded btn-delete-pemasok"
                                                     data-id="{{ $p->id }}" data-nama="{{ $p->nama }}">
                                                     <i class="link-icon icon-sm" data-feather="trash"></i>
                                                 </button>
-                                                <form id="formDeletePelanggan{{ $p->id }}"
-                                                    action="{{ route('backend.pelanggan.destroy', $p->id) }}" method="POST"
+                                                <form id="formDeletePemasok{{ $p->id }}"
+                                                    action="{{ route('backend.pemasok.destroy', $p->id) }}" method="POST"
                                                     style="display: none;">
                                                     @csrf
                                                     @method('DELETE')
@@ -91,16 +91,16 @@
 
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between mt-4">
-                        <p class="text-muted">Menampilkan {{ count($pelanggan) }} pelanggan.</p>
-                        {{ $pelanggan->links('pagination::bootstrap-4') }}
+                        <p class="text-muted">Menampilkan {{ count($pemasok) }} pemasok.</p>
+                        {{ $pemasok->links('pagination::bootstrap-4') }}
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-@include('backend.pelanggan.modal_form')    
-@include('backend.pelanggan.modal_edit')
+@include('backend.pemasok.modal_form')    
+@include('backend.pemasok.modal_edit')
 @endsection
 
 @push('plugin-scripts')
@@ -108,21 +108,21 @@
 @endpush
 
 @push('custom-scripts')
-    <script src="{{ asset('js/pelanggan/pelanggan-edit-modal.js') }}"></script>
+    <script src="{{ asset('js/pemasok/pemasok-edit-modal.js') }}"></script>
     <script>
         $(document).ready(function () {
             // Initialize Feather Icons
             feather.replace();
 
             // Delete confirmation
-            $('.btn-delete-pelanggan').click(function (e) {
-                e.preventDefault(); // Tambahkan ini untuk mencegah form submit langsung
+            $('.btn-delete-pemasok').click(function (e) {
+                e.preventDefault();
                 var id = $(this).data('id');
                 var nama = $(this).data('nama');
                 
                 Swal.fire({
-                    title: 'Hapus Data Pelanggan?',
-                    text: `Anda akan menghapus data pelanggan "${nama}". Data yang sudah dihapus tidak dapat dikembalikan.`,
+                    title: 'Hapus Data Pemasok?',
+                    text: `Anda akan menghapus data pemasok "${nama}". Data yang sudah dihapus tidak dapat dikembalikan.`,
                     icon: 'warning',
                     showCancelButton: true,
                     confirmButtonColor: '#d33',
@@ -131,13 +131,13 @@
                     cancelButtonText: 'Batal'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        $(`#formDeletePelanggan${id}`).submit();
+                        $(`#formDeletePemasok${id}`).submit();
                     }
                 });
             });
         });
 
-        function editPelanggan(id) {
+        function editPemasok(id) {
             // Tampilkan loading state
             Swal.fire({
                 title: 'Memuat Data...',
@@ -147,9 +147,9 @@
                 }
             });
 
-            // Ambil data pelanggan
+            // Ambil data pemasok
             $.ajax({
-                url: `/backend/pelanggan/${id}`,
+                url: `/backend/pemasok/${id}`,
                 method: "GET",
                 success: function (response) {
                     // Tutup loading state
@@ -160,12 +160,12 @@
                         window.fillFormData(response.data);
                         
                         // Tampilkan modal
-                        $("#modalEditPelanggan").modal("show");
+                        $("#modalEditPemasok").modal("show");
                     } else {
                         Swal.fire({
                             icon: "error",
                             title: "Error!",
-                            text: response.message || "Gagal memuat data pelanggan",
+                            text: response.message || "Gagal memuat data pemasok",
                         });
                     }
                 },
@@ -174,7 +174,7 @@
                     Swal.fire({
                         icon: "error",
                         title: "Error!",
-                        text: "Gagal memuat data pelanggan. Silakan coba lagi.",
+                        text: "Gagal memuat data pemasok. Silakan coba lagi.",
                     });
                 }
             });
