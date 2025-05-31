@@ -392,7 +392,6 @@ $(function () {
             email: $("#pemasok_email").val().trim(),
             website: $("#website").val().trim(),
             status: $("#status").val(),
-            kategori: $("#kategori").val(),
             syarat_pembayaran: $("#syarat_pembayaran").val(),
             default_diskon: $("#default_diskon").val(),
             deskripsi_pembelian: $("#deskripsi-pembelian").val().trim(),
@@ -412,13 +411,6 @@ $(function () {
         if (!formData.nama) {
             showError($("#nama"), "Nama pemasok wajib diisi");
             hasError = true;
-        }
-
-        if (!formData.kategori) {
-            showError($("#kategori"), "Kategori wajib diisi");
-            hasError = true;
-            // Tandai tab pembelian dengan warna merah
-            $("#pemasokTabs button[data-bs-target='#pembelian']").addClass("text-danger");
         }
 
         if (!formData.akun_utang) {

@@ -20,7 +20,6 @@ window.fillFormData = function(data) {
     $("#edit_email").val(data.email);
     $("#edit_website").val(data.website);
     $("#edit_status").val(data.status ? "1" : "0");
-    $("#edit_kategori").val(data.kategori);
     $("#edit_syarat_pembayaran").val(data.syarat_pembayaran);
     $("#edit_default_diskon").val(data.default_diskon);
     $("#edit_deskripsi_pembelian").val(data.deskripsi_pembelian);
@@ -518,7 +517,6 @@ $(document).ready(function() {
             email: $("#edit_email").val().trim(),
             website: $("#edit_website").val().trim(),
             status: $("#edit_status").val(),
-            kategori: $("#edit_kategori").val(),
             syarat_pembayaran: $("#edit_syarat_pembayaran").val(),
             default_diskon: $("#edit_default_diskon").val().replace(/[^\d]/g, ''),
             deskripsi_pembelian: $("#edit_deskripsi_pembelian").val().trim(),

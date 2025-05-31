@@ -155,7 +155,6 @@
                                         <div>
                                             <strong>Petunjuk:</strong>
                                             <ul class="mb-0">
-                                                <li>Kategori menentukan jenis pemasok</li>
                                                 <li>Syarat pembayaran menentukan kapan pembayaran harus dilakukan</li>
                                                 <li>Default diskon akan otomatis diterapkan pada setiap transaksi</li>
                                                 <li>Pilih akun utang dan uang muka sesuai kebijakan akuntansi</li>
@@ -163,16 +162,6 @@
                                         </div>
                                     </div>
                                     <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Kategori <span
-                                                    class="text-danger">*</span></label>
-                                            <select class="form-select" id="kategori" name="kategori" required>
-                                                <!-- <option value="">Pilih Kategori</option> -->
-                                                @foreach($kategori as $kat)
-                                                    <option value="{{ $kat->nama_detail_parameter }}">{{ $kat->nama_detail_parameter }}</option>
-                                                @endforeach
-                                            </select>
-                                        </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Syarat Pembayaran</label>
                                             <select class="form-select" id="syarat_pembayaran" name="syarat_pembayaran">
@@ -182,14 +171,14 @@
                                                 <option value="Net 30">Net 30</option>
                                             </select>
                                         </div>
-                                    </div>
-                                    <div class="row mb-3">
                                         <div class="col-md-6">
                                             <label class="form-label">Default Diskon (%)</label>
                                             <input type="number" class="form-control" id="default_diskon"
                                                 name="default_diskon" min="0" max="100">
                                         </div>
-                                        <div class="col-md-6">
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-12">
                                             <label class="form-label">Deskripsi Pembelian</label>
                                             <input type="text" class="form-control" id="deskripsi-pembelian"
                                                 name="deskripsi_pembelian">

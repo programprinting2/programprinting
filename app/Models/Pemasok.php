@@ -19,7 +19,6 @@ class Pemasok extends Model
         'handphone',
         'email',
         'website',
-        'kategori',
         'alamat_utama',
         'alamat',
         'syarat_pembayaran',

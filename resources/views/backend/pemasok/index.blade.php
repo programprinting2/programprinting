@@ -32,7 +32,6 @@
                                     <th>ID Pemasok</th>
                                     <th>Nama</th>
                                     <th>Kontak</th>
-                                    <th>Kategori</th>
                                     <th>Alamat</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
@@ -49,7 +48,6 @@
                                                 <small class="text-muted">{{ $p->email }}</small>
                                             </div>
                                         </td>
-                                        <td>{{ $p->kategori }}</td>
                                         <td>
                                             @if($p->alamat && is_array($p->alamat) && isset($p->alamat[$p->alamat_utama]))
                                                 {{ $p->alamat[$p->alamat_utama]['alamat'] }}
