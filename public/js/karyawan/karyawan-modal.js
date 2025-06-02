@@ -438,6 +438,7 @@ $(function() {
 
     // Nonaktifkan tombol simpan
     const submitButton = $(this).find('button[type="submit"]');
+    const originalText = submitButton.html();
     submitButton.prop('disabled', true);
     submitButton.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menyimpan...');
 
@@ -590,7 +591,7 @@ $(function() {
         });
         // Aktifkan kembali tombol simpan
         submitButton.prop('disabled', false);
-        submitButton.html('Simpan');
+        submitButton.html(originalText);
         return;
     }
 
@@ -620,7 +621,7 @@ $(function() {
                 });
                 // Aktifkan kembali tombol simpan
                 submitButton.prop('disabled', false);
-                submitButton.html('Simpan');
+                submitButton.html(originalText);
             }
         },
         error: function (xhr) {
@@ -649,7 +650,7 @@ $(function() {
             }
             // Aktifkan kembali tombol simpan
             submitButton.prop('disabled', false);
-            submitButton.html('Simpan');
+            submitButton.html(originalText);
         },
     });
   });

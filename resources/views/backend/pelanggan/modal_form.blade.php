@@ -211,11 +211,6 @@
                                             <input type="number" class="form-control" id="default_diskon"
                                                 name="default_diskon" min="0" max="100">
                                         </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Batas Piutang</label>
-                                            <input type="number" class="form-control" id="batas_total_piutang"
-                                                name="batas_total_piutang">
-                                        </div>
                                     </div>
                                 </div>
                             </div>

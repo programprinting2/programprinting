@@ -538,6 +538,12 @@ $(function() {
     $('.invalid-feedback').remove();
     $('#editKaryawanTabs button').removeClass('text-danger');
 
+    // Nonaktifkan tombol simpan
+    const submitButton = $(this).find('button[type="submit"]');
+    const originalText = submitButton.html();
+    submitButton.prop('disabled', true);
+    submitButton.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span> Menyimpan...');
+
     let id = $('#edit_id').val();
     let url = karyawanUpdateUrl.replace(':id', id);
 
@@ -644,6 +650,9 @@ $(function() {
             text: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.',
           });
         }
+        // Aktifkan kembali tombol simpan
+        submitButton.prop('disabled', false);
+        submitButton.html(originalText);
       }
     });
   });

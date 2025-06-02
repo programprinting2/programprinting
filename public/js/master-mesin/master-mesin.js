@@ -64,6 +64,11 @@ $(document).ready(function() {
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
         
+        // Nonaktifkan tombol submit dan simpan teks aslinya
+        let submitBtn = $('#submitFormMesin');
+        let originalText = submitBtn.html();
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
+        
         let formData = new FormData(this);
         
         $.ajax({
@@ -85,6 +90,9 @@ $(document).ready(function() {
                         location.reload();
                     });
                 } else {
+                    // Aktifkan kembali tombol submit
+                    submitBtn.prop('disabled', false).html(originalText);
+                    
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal!',
@@ -93,6 +101,9 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
+                // Aktifkan kembali tombol submit
+                submitBtn.prop('disabled', false).html(originalText);
+                
                 if(xhr.status === 422) {
                     // Tampilkan error validasi
                     let errors = xhr.responseJSON.errors;
@@ -129,10 +140,15 @@ $(document).ready(function() {
     $('.btn-submit-edit').click(function() {
         let id = $(this).data('id');
         let form = $('#formEditMesin' + id);
+        let submitBtn = $(this);
+        let originalText = submitBtn.html();
         
         // Reset error states
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
+        
+        // Nonaktifkan tombol submit
+        submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
         
         let formData = new FormData(form[0]);
         
@@ -155,6 +171,9 @@ $(document).ready(function() {
                         location.reload();
                     });
                 } else {
+                    // Aktifkan kembali tombol submit
+                    submitBtn.prop('disabled', false).html(originalText);
+                    
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal!',
@@ -163,6 +182,9 @@ $(document).ready(function() {
                 }
             },
             error: function(xhr) {
+                // Aktifkan kembali tombol submit
+                submitBtn.prop('disabled', false).html(originalText);
+                
                 if(xhr.status === 422) {
                     // Tampilkan error validasi
                     let errors = xhr.responseJSON.errors;
