@@ -40,17 +40,17 @@ return new class extends Migration {
             // $table->string('default_penjual')->nullable();
             $table->decimal('default_diskon', 5, 2)->default(0);
             $table->text('default_deskripsi')->nullable();
-            // $table->boolean('kirim_barang')->default(false);
+            $table->boolean('kirim_barang')->default(false);
 
             // Data pajak
             $table->string('nik')->nullable();
             $table->string('npwp')->nullable();
             $table->boolean('wajib_pajak')->nullable();
-            $table->string('nitku')->nullable();
-            $table->string('kode_negara')->nullable();
-            $table->string('tipe_transaksi')->nullable();
-            $table->string('detail_transaksi')->nullable();
-            $table->boolean('default_total_faktur_pajak')->default(false);
+            // $table->string('nitku')->nullable();
+            // $table->string('kode_negara')->nullable();
+            // $table->string('tipe_transaksi')->nullable();
+            // $table->string('detail_transaksi')->nullable();
+            // $table->boolean('default_total_faktur_pajak')->default(false);
             
             // Pembatasan piutang
             $table->json('data_lain')->nullable();

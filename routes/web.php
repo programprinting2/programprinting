@@ -22,6 +22,7 @@ use App\Http\Controllers\SPKController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\PemasokController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -65,6 +66,17 @@ Route::group(['prefix' => 'backend'], function () {
         'edit' => 'backend.pelanggan.edit',
         'update' => 'backend.pelanggan.update',
         'destroy' => 'backend.pelanggan.destroy',
+    ]);
+
+    // Pemasok Resource Routes
+    Route::resource('pemasok', PemasokController::class)->names([
+        'index' => 'backend.pemasok.index',
+        'create' => 'backend.pemasok.create',
+        'store' => 'backend.pemasok.store',
+        'show' => 'backend.pemasok.show',
+        'edit' => 'backend.pemasok.edit',
+        'update' => 'backend.pemasok.update',
+        'destroy' => 'backend.pemasok.destroy',
     ]);
 
     Route::get('master-parameter', [MasterParameterController::class, 'index'])->name('backend.master-parameter');
