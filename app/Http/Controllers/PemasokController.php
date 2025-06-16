@@ -9,10 +9,38 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class PemasokController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pemasok = Pemasok::latest()->paginate(10);
-        
+        $query = Pemasok::query();
+
+        // Pencarian berdasarkan nama, kode, atau kontak
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(kode_pemasok) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(no_telp) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(handphone) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $search . '%']);
+            });
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Pagination dengan 10 item per halaman
+        $pemasok = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Tambahkan parameter pencarian ke pagination
+        if ($request->has('search')) {
+            $pemasok->appends(['search' => $request->search]);
+        }
+        if ($request->has('status')) {
+            $pemasok->appends(['status' => $request->status]);
+        }
+
         // Data untuk dropdown akun
         // $akun_utang = [
         //     (object)['id' => 'Utang Usaha', 'kode' => '2101', 'nama' => 'Utang Usaha'],
@@ -40,7 +68,6 @@ class PemasokController extends Controller
             'handphone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
             'website' => 'nullable|url|max:255',
-            // 'kategori' => 'required|string|max:100',
             'syarat_pembayaran' => 'nullable|string|max:50',
             'default_diskon' => 'nullable|numeric|min:0|max:100',
             'deskripsi_pembelian' => 'nullable|string|max:255',
@@ -101,7 +128,6 @@ class PemasokController extends Controller
                 'handphone' => 'nullable|string|max:20',
                 'email' => 'nullable|email|max:255',
                 'website' => 'nullable|url|max:255',
-                // 'kategori' => 'required|string|max:100',
                 'syarat_pembayaran' => 'nullable|string|max:50',
                 'default_diskon' => 'nullable|numeric|min:0|max:100',
                 'deskripsi_pembelian' => 'nullable|string|max:255',

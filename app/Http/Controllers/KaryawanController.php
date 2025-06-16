@@ -9,9 +9,37 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class KaryawanController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $karyawan = Karyawan::latest()->paginate(10);
+        $query = Karyawan::query();
+
+        // Pencarian berdasarkan nama, posisi, atau departemen
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(nama_lengkap) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(posisi) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(departemen) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(id_karyawan) LIKE ?', ['%' . $search . '%']);
+            });
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Pagination dengan 10 item per halaman
+        $karyawan = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Tambahkan parameter pencarian ke pagination
+        if ($request->has('search')) {
+            $karyawan->appends(['search' => $request->search]);
+        }
+        if ($request->has('status')) {
+            $karyawan->appends(['status' => $request->status]);
+        }
+
         return view('backend.karyawan.index', compact('karyawan'));
     }
 

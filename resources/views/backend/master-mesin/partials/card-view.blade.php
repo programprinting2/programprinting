@@ -1,4 +1,4 @@
-<div id="cardView" class="row">
+<div id="cardView" class="row mesin-list">
     @forelse($mesin as $item)
     <div class="col-md-6 mb-4 mesin-item" 
          data-type="{{ $item->tipe_mesin }}" 
@@ -61,10 +61,6 @@
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="mb-2">
-                            <span class="text-muted">Lebar Max:</span>
-                            <span class="fw-medium">{{ $item->lebar_media_maksimum ? $item->lebar_media_maksimum . ' cm' : '-' }}</span>
-                        </div>
                         <div class="mb-2">
                             <span class="text-muted">Tanggal Beli:</span>
                             <span class="fw-medium">{{ $item->tanggal_pembelian ? $item->tanggal_pembelian->format('d/m/Y') : '-' }}</span>

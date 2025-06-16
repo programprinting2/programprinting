@@ -55,10 +55,6 @@
                                                 </span>
                                             </div>
                                         </div>
-                                        <div class="mb-3">
-                                            <label class="text-muted small">Lebar Media Maksimum</label>
-                                            <div class="fw-medium">{{ $item->lebar_media_maksimum ? $item->lebar_media_maksimum . ' cm' : '-' }}</div>
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -96,62 +92,110 @@
                                 <h6 class="mb-0"><i data-feather="dollar-sign" class="me-2"></i>Biaya Produksi</h6>
                             </div>
                             <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="text-muted small">Harga Tinta per Liter</label>
-                                        <div class="fw-medium">{{ $item->harga_tinta_per_liter ? 'Rp ' . number_format($item->harga_tinta_per_liter, 0, ',', '.') : '-' }}</div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="text-muted small">Konsumsi Tinta per m²</label>
-                                        <div class="fw-medium">{{ $item->konsumsi_tinta_per_m2 ? $item->konsumsi_tinta_per_m2 . ' mL' : '-' }}</div>
-                                    </div>
-                                </div>
-                                
-                                <div class="mb-3">
-                                    <label class="text-muted small">Biaya Tambahan</label>
-                                    @if(is_array($item->biaya_tambahan) && count($item->biaya_tambahan) > 0)
-                                        <div class="table-responsive">
-                                            <table class="table table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Nama Biaya</th>
-                                                        <th class="text-end">Nilai (Rp/m²)</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($item->biaya_tambahan as $biaya)
-                                                        <tr>
-                                                            <td>{{ $biaya['nama'] }}</td>
-                                                            <td class="text-end">Rp {{ number_format($biaya['nilai'], 0, ',', '.') }}</td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
+                                @if(is_array($item->biaya_perhitungan_profil) && count($item->biaya_perhitungan_profil) > 0)
+                                    @foreach($item->biaya_perhitungan_profil as $profile)
+                                        <div class="mb-4">
+                                            <h6 class="fw-bold mb-3">{{ $profile['nama'] }}</h6>
+                                            
+                                            @if($profile['tipe'] === 'per_satuan_area')
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Harga Tinta per Liter</label>
+                                                        <div class="fw-medium">Rp {{ number_format($profile['settings']['harga_tinta_per_liter'] ?? 0, 0, ',', '.') }}</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Konsumsi Tinta per m²</label>
+                                                        <div class="fw-medium">{{ $profile['settings']['konsumsi_tinta_per_m2'] ?? 0 }} mL</div>
+                                                    </div>
+                                                </div>
+                                            @elseif($profile['tipe'] === 'per_klik')
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Biaya per Klik</label>
+                                                        <div class="fw-medium">Rp {{ number_format($profile['settings']['biaya_per_klik'] ?? 0, 0, ',', '.') }}</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Konsumsi Tinta per Klik</label>
+                                                        <div class="fw-medium">{{ $profile['settings']['konsumsi_tinta_per_klik'] ?? 0 }} mL</div>
+                                                    </div>
+                                                </div>
+                                            @elseif($profile['tipe'] === 'per_lembar')
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Biaya per Lembar</label>
+                                                        <div class="fw-medium">Rp {{ number_format($profile['settings']['biaya_per_lembar'] ?? 0, 0, ',', '.') }}</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Konsumsi Tinta per Lembar</label>
+                                                        <div class="fw-medium">{{ $profile['settings']['konsumsi_tinta_per_lembar'] ?? 0 }} mL</div>
+                                                    </div>
+                                                </div>
+                                            @elseif($profile['tipe'] === 'per_waktu')
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Biaya per Jam</label>
+                                                        <div class="fw-medium">Rp {{ number_format($profile['settings']['biaya_per_jam'] ?? 0, 0, ',', '.') }}</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Konsumsi Tinta per Jam</label>
+                                                        <div class="fw-medium">{{ $profile['settings']['konsumsi_tinta_per_jam'] ?? 0 }} mL</div>
+                                                    </div>
+                                                </div>
+                                            @elseif($profile['tipe'] === 'per_berat')
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Biaya per Kilogram</label>
+                                                        <div class="fw-medium">Rp {{ number_format($profile['settings']['biaya_per_kg'] ?? 0, 0, ',', '.') }}</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Konsumsi Tinta per kg</label>
+                                                        <div class="fw-medium">{{ $profile['settings']['konsumsi_tinta_per_kg'] ?? 0 }} mL</div>
+                                                    </div>
+                                                </div>
+                                            @elseif($profile['tipe'] === 'per_job')
+                                                <div class="row mb-3">
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Biaya per Job</label>
+                                                        <div class="fw-medium">Rp {{ number_format($profile['settings']['biaya_per_job'] ?? 0, 0, ',', '.') }}</div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <label class="text-muted small">Konsumsi Tinta per Job</label>
+                                                        <div class="fw-medium">{{ $profile['settings']['konsumsi_tinta_per_job'] ?? 0 }} mL</div>
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            @if(isset($profile['settings']['biaya_tambahan_profil']) && count($profile['settings']['biaya_tambahan_profil']) > 0)
+                                                <div class="mb-3">
+                                                    <label class="text-muted small">Biaya Tambahan</label>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th>Nama Biaya</th>
+                                                                    <th class="text-end">Nilai</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach($profile['settings']['biaya_tambahan_profil'] as $biaya)
+                                                                    <tr>
+                                                                        <td>{{ $biaya['nama'] }}</td>
+                                                                        <td class="text-end">Rp {{ number_format($biaya['nilai'], 0, ',', '.') }}</td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
-                                    @else
-                                        <div class="fw-medium">-</div>
-                                    @endif
-                                </div>
-                                
-                                <div class="alert alert-light text-dark">
-                                    <div class="mb-1">
-                                        <label class="text-muted small mb-1">Biaya Tinta per m²</label>
-                                        <div class="fw-bold">{{ $item->biaya_tinta_per_m2 ? 'Rp ' . number_format($item->biaya_tinta_per_m2, 2, ',', '.') : 'Rp 0' }}</div>
+                                    @endforeach
+                                @else
+                                    <div class="text-center text-muted py-3">
+                                        <i data-feather="info" class="mb-2"></i>
+                                        <p class="mb-0">Tidak ada profil biaya produksi yang tersedia</p>
                                     </div>
-                                    <div class="mb-1">
-                                        <label class="text-muted small mb-1">Biaya Tambahan per m²</label>
-                                        <div class="fw-bold">Rp {{ number_format($item->biaya_tambahan_per_m2, 2, ',', '.') }}</div>
-                                    </div>
-                                    <hr class="my-2">
-                                    <div class="mb-1">
-                                        <label class="text-muted small mb-1">Total Biaya per m²</label>
-                                        <div class="fw-bold">Rp {{ number_format($item->total_biaya_per_m2, 2, ',', '.') }}</div>
-                                    </div>
-                                    <div>
-                                        <label class="text-muted small mb-1">Total Biaya per cm²</label>
-                                        <div class="fw-bold">Rp {{ number_format($item->total_biaya_per_cm2, 2, ',', '.') }}</div>
-                                    </div>
-                                </div>
+                                @endif
                             </div>
                         </div>
                     </div>

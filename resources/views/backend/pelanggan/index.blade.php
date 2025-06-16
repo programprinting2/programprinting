@@ -12,10 +12,11 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <div class="card-title">
+                    <div>
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="card-title">Data Pelanggan</h6>
+                                <h6 class="card-title mb-0">Master Pelanggan</h6>
+                                <p class="text-muted">Kelola data pelanggan untuk kebutuhan penjualan, pengiriman, dan pembayaran.</p>
                             </div>
                             <div class="col-md-6 text-right">
                                 <button type="button" class="btn btn-primary float-end d-flex align-items-center"
@@ -25,6 +26,41 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Divider -->
+                    <hr class="my-4">
+
+                    <!-- Search and Filter Form -->
+                    <form id="searchForm" class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <div class="input-group">
+                                <span class="input-group-text bg-light">
+                                    <i data-feather="search" class="icon-sm"></i>
+                                </span>
+                                <input type="text" class="form-control" id="search" name="search" placeholder="Cari id, nama, atau kontak..." value="{{ request('search') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <select class="form-select" id="status_filter" name="status">
+                                <option value="">Semua Status</option>
+                                <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Aktif</option>
+                                <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Tidak Aktif</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter">
+                                <i data-feather="refresh-cw" class="icon-sm me-1"></i> Reset
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -39,7 +75,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($pelanggan as $p)
+                                @forelse($pelanggan as $p)
                                     <tr>
                                         <td>{{ $p->kode_pelanggan }}</td>
                                         <td>{{ $p->nama }}</td>
@@ -84,15 +120,28 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            @if(request('search') || request('status'))
+                                                <p class="text-muted mb-0">Tidak ada data pelanggan yang ditemukan.</p>
+                                                <button type="button" class="btn btn-link btn-sm" id="clearFilter">
+                                                    <i data-feather="x" class="icon-sm me-1"></i> Hapus Filter
+                                                </button>
+                                            @else
+                                                <p class="text-muted mb-0">Belum ada data pelanggan.</p>
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
                     </div>
 
                     <!-- Pagination -->
                     <div class="d-flex justify-content-between mt-4">
-                        <p class="text-muted">Menampilkan {{ count($pelanggan) }} pelanggan.</p>
-                        {{ $pelanggan->links('pagination::bootstrap-4') }}
+                        <p class="text-muted">Menampilkan {{ $pelanggan->firstItem() ?? 0 }} - {{ $pelanggan->lastItem() ?? 0 }} dari {{ $pelanggan->total() }} pelanggan.</p>
+                        {{ $pelanggan->appends(request()->query())->links('pagination::bootstrap-4') }}
                     </div>
                 </div>
             </div>
@@ -114,9 +163,43 @@
             // Initialize Feather Icons
             feather.replace();
 
+            // Search and Filter Functionality
+            const searchForm = $('#searchForm');
+            const loadingSpinner = $('#loadingSpinner');
+            const tableContainer = $('.table-responsive');
+
+            // Handle form submission
+            searchForm.on('submit', function(e) {
+                e.preventDefault();
+                const formData = $(this).serialize();
+                window.location.href = `${window.location.pathname}?${formData}`;
+            });
+
+            // Handle status filter change
+            $('#status_filter').on('change', function() {
+                searchForm.submit();
+            });
+
+            // Handle reset filter
+            $('#resetFilter, #clearFilter').on('click', function() {
+                window.location.href = window.location.pathname;
+            });
+
+            // Show loading spinner when form is submitted
+            searchForm.on('submit', function() {
+                loadingSpinner.removeClass('d-none');
+                tableContainer.addClass('d-none');
+            });
+
+            // Hide loading spinner when page is loaded
+            $(window).on('load', function() {
+                loadingSpinner.addClass('d-none');
+                tableContainer.removeClass('d-none');
+            });
+
             // Delete confirmation
             $('.btn-delete-pelanggan').click(function (e) {
-                e.preventDefault(); // Tambahkan ini untuk mencegah form submit langsung
+                e.preventDefault();
                 var id = $(this).data('id');
                 var nama = $(this).data('nama');
                 

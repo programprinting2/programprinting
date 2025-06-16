@@ -18,20 +18,19 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <!-- Filter Panel -->
-                    <div class="col-md-3">
+                <!-- Filter Panel (moved to top) -->
+                <div class="mb-4">
                         @include('backend.master-mesin.partials.filter-panel')
                     </div>
 
-                    <!-- Content Panel -->
-                    <div class="col-md-9">
+                <!-- Content Panel (now full width) -->
+                <div>
                         <div class="card">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3">
                                     <div class="d-flex flex-column">
                                         <h5 class="mb-0">Daftar Mesin</h5>
-                                        <p class="text-muted mb-0">Menampilkan {{ count($mesin) }} mesin.</p>
+                                        <p class="text-muted mb-0">Menampilkan {{ $mesin->total() }} mesin.</p>
                                     </div>
                                     <div class="btn-group" role="group">
                                         <button type="button" class="btn btn-outline-secondary active" id="cardViewBtn">
@@ -52,7 +51,6 @@
                                 <!-- Pagination -->
                                 <div class="d-flex justify-content-center mt-3">
                                     {{ $mesin->links('pagination::bootstrap-4') }}
-                                </div> 
                             </div>
                         </div>
                     </div>
@@ -90,7 +88,6 @@
 @endsection
 
 @push('plugin-scripts')
-    <script src="{{ asset('assets/js/feather.min.js') }}"></script>
     <script src="{{ asset('assets/plugins/flatpickr/flatpickr.min.js') }}"></script>
 @endpush
 

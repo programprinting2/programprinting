@@ -2,12 +2,14 @@ $(document).ready(function() {
     // Tambah spesifikasi dinamis (untuk modal tambah)
     $('#tambah_detail').click(function() {
         tambahDetailBaris('#detail_mesin_container');
+        $('#no_specs_message').hide();
     });
     
     // Tambah spesifikasi dinamis (untuk modal edit)
     $('.tambah-detail-edit').click(function() {
         var id = $(this).data('id');
         tambahDetailBaris('#edit_detail_mesin_container' + id);
+        $('#edit_no_specs_message' + id).hide();
     });
     
     // Fungsi untuk menambah baris detail
@@ -25,7 +27,7 @@ $(document).ready(function() {
                 </div>
                 <div class="col-md-1">
                     <button type="button" class="btn btn-outline-danger btn-sm remove-detail">
-                        <i data-feather="trash-2"></i>
+                        <i data-feather="trash-2" class="icon-sm"></i>
                     </button>
                 </div>
             </div>
@@ -41,56 +43,29 @@ $(document).ready(function() {
     function setupRemoveDetailButton() {
         $('.remove-detail').off('click').on('click', function() {
             $(this).closest('.detail-item').remove();
+            
+            // Cek apakah masih ada detail yang tersisa
+            var container = $(this).closest('#detail_mesin_container, [id^="edit_detail_mesin_container"]');
+            if (container.find('.detail-item').length === 0) {
+                // Jika tidak ada detail yang tersisa, tampilkan pesan kosong
+                if (container.attr('id') === 'detail_mesin_container') {
+                    $('#no_specs_message').show();
+                } else {
+                    var id = container.attr('id').replace('edit_detail_mesin_container', '');
+                    $('#edit_no_specs_message' + id).show();
+                }
+            }
         });
     }
     
     // Inisialisasi setup tombol hapus
     setupRemoveDetailButton();
     
-    // Perubahan tipe mesin untuk tambah
-    $('#tipe_mesin').change(function() {
-        var tipeMesin = $(this).val();
-        var printerSpecs = $('#printer-specs');
-        
-        // Reset container spesifikasi
-        printerSpecs.html('');
-        
-        if (tipeMesin === 'Printer Large Format' || tipeMesin === 'Digital Printer A3+') {
-            // Tambahkan field untuk printer
-            printerSpecs.html(`
-                <div class="col-md-6 mb-3">
-                    <label for="lebar_media_maksimum" class="form-label">Lebar Media Maksimum (cm)</label>
-                    <input type="number" step="0.1" class="form-control" id="lebar_media_maksimum" name="lebar_media_maksimum" placeholder="0">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="resolusi" class="form-label">Resolusi Default</label>
-                    <input type="text" class="form-control" id="resolusi" name="resolusi" placeholder="contoh: 1440 x 1440 dpi">
-                </div>
-            `);
-        } else if (tipeMesin === 'Mesin Finishing') {
-            // Tambahkan field untuk mesin finishing
-            printerSpecs.html(`
-                <div class="col-md-6 mb-3">
-                    <label for="dimensi" class="form-label">Dimensi Mesin (cm)</label>
-                    <input type="text" class="form-control" id="dimensi" name="dimensi" placeholder="P x L x T">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="daya_listrik" class="form-label">Daya Listrik</label>
-                    <input type="text" class="form-control" id="daya_listrik" name="daya_listrik" placeholder="contoh: 220V/380V">
-                </div>
-            `);
-        }
-    });
-    
     // Form submit handling untuk tambah mesin
     $('#submitFormMesin').click(function() {
         // Kumpulkan detail mesin 
         var detailMesin = kumpulkanDetailMesin('formTambahMesin');
         $('#detail_mesin_json').val(JSON.stringify(detailMesin));
-        
-        // Kumpulkan biaya tambahan
-        var biayaTambahan = kumpulkanBiayaTambahan('#biaya_tambahan_container');
-        $('#biaya_tambahan_json').val(JSON.stringify(biayaTambahan));
         
         // Submit form
         $('#formTambahMesin').submit();
@@ -103,10 +78,6 @@ $(document).ready(function() {
         // Kumpulkan detail mesin
         var detailMesin = kumpulkanDetailMesin('formEditMesin' + id);
         $('#edit_detail_mesin_json' + id).val(JSON.stringify(detailMesin));
-        
-        // Kumpulkan biaya tambahan
-        var biayaTambahan = kumpulkanBiayaTambahan('#edit_biaya_tambahan_container' + id);
-        $('#edit_biaya_tambahan_json' + id).val(JSON.stringify(biayaTambahan));
         
         // Submit form
         $('#formEditMesin' + id).submit();
@@ -133,37 +104,6 @@ $(document).ready(function() {
             }
         });
         
-        // Tambahkan field resolusi, dimensi, dan daya_listrik ke detail mesin jika ada
-        form.find('input[name="resolusi"]').each(function() {
-            if ($(this).val()) {
-                detailMesin.push({
-                    nama: 'Resolusi',
-                    nilai: $(this).val(),
-                    satuan: 'dpi'
-                });
-            }
-        });
-        
-        form.find('input[name="dimensi"]').each(function() {
-            if ($(this).val()) {
-                detailMesin.push({
-                    nama: 'Dimensi',
-                    nilai: $(this).val(),
-                    satuan: 'cm'
-                });
-            }
-        });
-        
-        form.find('input[name="daya_listrik"]').each(function() {
-            if ($(this).val()) {
-                detailMesin.push({
-                    nama: 'Daya Listrik',
-                    nilai: $(this).val(),
-                    satuan: ''
-                });
-            }
-        });
-        
         return detailMesin;
     }
     
@@ -172,7 +112,7 @@ $(document).ready(function() {
         var biayaTambahan = [];
         
         $(containerId + ' .biaya-item').each(function() {
-            var nama = $(this).find('.biaya-nama').val();
+            var nama = $(this).find('.biaya-nama').val()?.trim();
             var nilai = parseFloat($(this).find('.biaya-nilai').val()) || 0;
             
             if (nama && nilai > 0) {
@@ -203,4 +143,20 @@ $(document).ready(function() {
             preview.style.display = 'none';
         }
     }
+    
+    // Saat modal edit mesin dibuka, cek dan atur pesan kosong spesifikasi
+    $(document).on('shown.bs.modal', function (e) {
+        if ($(e.target).is('[id^="editMesinModal"]')) {
+            var mesinId = $(e.target).attr('id').replace('editMesinModal', '');
+            var container = $('#edit_detail_mesin_container' + mesinId);
+            var noSpecsMsg = $('#edit_no_specs_message' + mesinId);
+            // Hapus duplikasi baris spesifikasi jika ada (hanya biarkan baris dari blade atau hasil load json)
+            // (Jika ingin lebih advance, bisa clear dan render ulang dari JSON, tapi untuk sekarang cukup pastikan tidak ada duplikasi)
+            if (container.find('.detail-item').length > 0) {
+                noSpecsMsg.hide();
+            } else {
+                noSpecsMsg.show();
+            }
+        }
+    });
 }); 

@@ -3,6 +3,7 @@
 @push('plugin-styles')
   <link href="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.css') }}" rel="stylesheet" />
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.min.css" rel="stylesheet">
 @endpush
 
 @section('content')
@@ -105,6 +106,78 @@
     padding: 0.2rem 0.4rem;
     font-size: 0.75rem;
     }
+
+    .loading-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .loading-spinner {
+      width: 3rem;
+      height: 3rem;
+    }
+
+    .table-container {
+      position: relative;
+      min-height: 200px;
+    }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    .btn-loading {
+      position: relative;
+      color: transparent !important;
+      pointer-events: none;
+    }
+
+    .btn-loading:after {
+      content: "";
+      position: absolute;
+      width: 1rem;
+      height: 1rem;
+      top: 50%;
+      left: 50%;
+      margin: -0.5rem 0 0 -0.5rem;
+      border: 2px solid #fff;
+      border-right-color: transparent;
+      border-radius: 50%;
+      animation: button-loading-spinner 0.75s linear infinite;
+    }
+
+    @keyframes button-loading-spinner {
+      from {
+        transform: rotate(0turn);
+      }
+      to {
+        transform: rotate(1turn);
+      }
+    }
+
+    .btn-loading.btn-outline-primary:after {
+      border-color: #0d6efd;
+      border-right-color: transparent;
+    }
+
+    .btn-loading.btn-outline-danger:after {
+      border-color: #dc3545;
+      border-right-color: transparent;
+    }
+
+    .btn-loading.btn-dark:after {
+      border-color: #fff;
+      border-right-color: transparent;
+    }
   </style>
 
   <nav class="page-breadcrumb">
@@ -140,7 +213,7 @@
         <button class="btn btn-dark btn-sm" id="btnAddDetail" disabled><i class="fa fa-plus"></i></button>
         </div>
         <input type="text" class="form-control mb-2" id="searchDetail" placeholder="Cari detail...">
-        <div class="table-responsive">
+        <div class="table-responsive table-container">
         <table class="table table-bordered">
           <thead>
           <tr>
@@ -156,6 +229,11 @@
           </tr>
           </tbody>
         </table>
+        <div id="loadingDetail" class="loading-overlay" style="display: none;">
+          <div class="spinner-border text-primary loading-spinner" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+        </div>
         </div>
       </div>
       </div>
@@ -234,73 +312,115 @@
 @push('plugin-scripts')
   <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>
   <script src="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.js') }}"></script>
-  <script>
-    $(document).ready(function () {
-    $('#category-table').DataTable({
-      searching: false,
-      paging: false,
-      info: false
-    });
-
-    $('#data-source-1').DataTable({
-      searching: false,
-      paging: false,
-      info: false
-    });
-
-    // Add custom pagination logic here if needed
-    });
-
-    function selectCategory(category) {
-    console.log('Selected category:', category);
-    // Add logic to filter the right table based on the selected category
-    }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 @endpush
 
 @push('custom-scripts')
   <script>
     let kategoriAktif = null;
+    let isSubmitting = false;
+
+    function showLoading() {
+      $('#loadingDetail').show();
+    }
+
+    function hideLoading() {
+      $('#loadingDetail').hide();
+    }
+
+    function setLoadingState(isLoading) {
+      isSubmitting = isLoading;
+      
+      // Set loading state untuk button kategori
+      $('#btnAddKategori').prop('disabled', isLoading);
+      if (isLoading) {
+        $('#btnAddKategori').addClass('btn-loading');
+      } else {
+        $('#btnAddKategori').removeClass('btn-loading');
+      }
+      
+      // Set loading state untuk button detail
+      $('#btnAddDetail').prop('disabled', isLoading);
+      if (isLoading) {
+        $('#btnAddDetail').addClass('btn-loading');
+      } else {
+        $('#btnAddDetail').removeClass('btn-loading');
+      }
+      
+      // Set loading state untuk button edit dan delete
+      $('.btn-edit-kat, .btn-del-kat, .btn-edit-detail, .btn-del-detail').prop('disabled', isLoading);
+      if (isLoading) {
+        $('.btn-edit-kat, .btn-edit-detail').addClass('btn-loading');
+        $('.btn-del-kat, .btn-del-detail').addClass('btn-loading');
+      } else {
+        $('.btn-edit-kat, .btn-edit-detail').removeClass('btn-loading');
+        $('.btn-del-kat, .btn-del-detail').removeClass('btn-loading');
+      }
+      
+      // Set loading state untuk button simpan di modal
+      $('#btnSaveKategori, #btnSaveDetail').prop('disabled', isLoading);
+      if (isLoading) {
+        $('#btnSaveKategori, #btnSaveDetail').addClass('btn-loading');
+      } else {
+        $('#btnSaveKategori, #btnSaveDetail').removeClass('btn-loading');
+      }
+    }
 
     function loadKategori() {
-    fetch('/backend/master-parameter')
-      .then(res => res.text())
-      .then(html => {
-      let data = @json($data_parameter);
-      let list = '';
-      data.forEach(kat => {
-        list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif == kat.id ? 'active' : ''}" data-id="${kat.id}">
-      <span>${kat.nama_parameter}</span>
-      <div class="btn-group">
-      <button class="btn btn-xs btn-outline-primary btn-edit-kat"><i class="fa fa-edit"></i></button>
-      <button class="btn btn-xs btn-outline-danger btn-del-kat"><i class="fa fa-trash"></i></button>
-      </div>
-      </li>`;
-      });
-      document.getElementById('kategoriList').innerHTML = list;
-      });
+      fetch('/backend/master-parameter')
+        .then(res => res.text())
+        .then(html => {
+          let data = @json($data_parameter);
+          let list = '';
+          data.forEach(kat => {
+            list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif == kat.id ? 'active' : ''}" data-id="${kat.id}">
+              <div class="d-flex flex-column">
+                <span>${kat.nama_parameter}</span>
+                <span class="text-muted">${kat.keterangan || ''}</span>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-xs btn-outline-primary btn-edit-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
+                <button class="btn btn-xs btn-outline-danger btn-del-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
+              </div>
+            </li>`;
+          });
+          document.getElementById('kategoriList').innerHTML = list;
+        });
     }
 
     function loadDetail(id) {
-    fetch(`/backend/master-parameter/${id}/detail`)
-      .then(res => res.json())
-      .then(data => {
-      let list = '';
-      if (data.length == 0) list = `<tr><td colspan="5" class="text-center text-muted">Belum ada detail</td></tr>`;
-      data.forEach(det => {
-        list += `<tr data-id="${det.id}">
-      <td>${det.isi_parameter || ''}</td>
-      <td>${det.nama_detail_parameter}</td>
-      <td>${det.keterangan || ''}</td>
-      <td><span class="badge bg-${det.aktif ? 'primary' : 'secondary'}">${det.aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-      <td>
-      <button class="btn btn-xs btn-outline-primary btn-edit-detail"><i class="fa fa-edit"></i></button>
-      <button class="btn btn-xs btn-outline-danger btn-del-detail"><i class="fa fa-trash"></i></button>
-      </td>
-      </tr>`;
-      });
-      document.getElementById('detailList').innerHTML = list;
-      });
+      showLoading();
+      fetch(`/backend/master-parameter/${id}/detail`)
+        .then(res => res.json())
+        .then(data => {
+          let list = '';
+          if (data.length == 0) {
+            list = `<tr><td colspan="5" class="text-center text-muted">Belum ada detail</td></tr>`;
+          } else {
+            data.forEach(det => {
+              list += `<tr data-id="${det.id}">
+                <td>${det.nama_detail_parameter}</td>
+                <td>${det.keterangan || ''}</td>
+                <td><span class="badge bg-${det.aktif ? 'primary' : 'secondary'}">${det.aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+                <td>
+                  <button class="btn btn-xs btn-outline-primary btn-edit-detail" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
+                  <button class="btn btn-xs btn-outline-danger btn-del-detail" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
+                </td>
+              </tr>`;
+            });
+          }
+          document.getElementById('detailList').innerHTML = list;
+          hideLoading();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          hideLoading();
+          Swal.fire({
+            title: 'Error!',
+            text: 'Terjadi kesalahan saat memuat data',
+            icon: 'error'
+          });
+        });
     }
 
     // Kategori event
@@ -323,11 +443,45 @@
     });
     $(document).on('click', '.btn-del-kat', function (e) {
     e.stopPropagation();
-    if (!confirm('Hapus kategori ini?')) return;
     let id = $(this).closest('li').data('id');
-    $.ajax({ url: `/backend/master-parameter/${id}`, type: 'DELETE', data: { _token: '{{csrf_token()}}' }, success: () => { loadKategori(); if (kategoriAktif == id) { kategoriAktif = null; $('#detailList').html('<tr><td colspan="5" class="text-center text-muted">Pilih kategori parameter</td></tr>'); } } });
+    let nama = $(this).closest('li').find('span').first().text();
+    
+    confirmDelete(
+      'Hapus Kategori?',
+      `Apakah Anda yakin ingin menghapus kategori "${nama}"?`,
+      function() {
+        setLoadingState(true);
+        $.ajax({ 
+          url: `/backend/master-parameter/${id}`, 
+          type: 'DELETE', 
+          data: { _token: '{{csrf_token()}}' }, 
+          success: () => { 
+            setLoadingState(false);
+            Swal.fire({
+              title: 'Berhasil!',
+              text: 'Kategori berhasil dihapus',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              window.location.href = '{{ route("backend.master-parameter") }}';
+            });
+          },
+          error: function(xhr) {
+            setLoadingState(false);
+            Swal.fire({
+              title: 'Error!',
+              text: 'Terjadi kesalahan saat menghapus kategori',
+              icon: 'error'
+            });
+          }
+        });
+      }
+    );
     });
     $(document).on('click', '#btnSaveKategori', function () {
+    if (isSubmitting) return;
+    
     let id = $('#kategoriId').val();
     let data = {
       nama_parameter: $('#kategoriNama').val(),
@@ -335,11 +489,39 @@
       aktif: $('#kategoriAktif').is(':checked') ? 1 : 0,
       _token: '{{csrf_token()}}'
     };
+
     if (!data.nama_parameter) return alert('Nama kategori wajib diisi!');
+    
+    setLoadingState(true);
+    
     if (id) {
-      $.ajax({ url: `/backend/master-parameter/${id}`, type: 'PUT', data, success: () => { loadKategori(); $('#modalKategori').modal('hide'); } });
+      $.ajax({ 
+        url: `/backend/master-parameter/${id}`, 
+        type: 'PUT', 
+        data, 
+        success: () => { 
+          // Redirect ke halaman yang sama untuk refresh data
+          window.location.href = '{{ route("backend.master-parameter") }}';
+        },
+        error: function(xhr) {
+          alert('Terjadi kesalahan: ' + xhr.responseText);
+          setLoadingState(false);
+        }
+      });
     } else {
-      $.post('/backend/master-parameter', data, () => { loadKategori(); $('#modalKategori').modal('hide'); });
+      $.ajax({
+        url: '/backend/master-parameter',
+        type: 'POST',
+        data,
+        success: () => { 
+          // Redirect ke halaman yang sama untuk refresh data
+          window.location.href = '{{ route("backend.master-parameter") }}';
+        },
+        error: function(xhr) {
+          alert('Terjadi kesalahan: ' + xhr.responseText);
+          setLoadingState(false);
+        }
+      });
     }
     });
     $(document).on('click', '#kategoriList li', function () {
@@ -364,37 +546,118 @@
       $('#modalDetailTitle').text('Edit Detail Parameter');
       $('#detailId').val(det.id);
       $('#detailNama').val(det.nama_detail_parameter);
-      $('#detailIsi').val(det.isi_parameter);
       $('#detailKeterangan').val(det.keterangan);
       $('#detailAktif').prop('checked', det.aktif);
       $('#modalDetail').modal('show');
     });
     });
     $(document).on('click', '.btn-del-detail', function () {
-    if (!confirm('Hapus detail ini?')) return;
     let id = $(this).closest('tr').data('id');
-    $.ajax({ url: `/backend/master-parameter/${kategoriAktif}/detail/${id}`, type: 'DELETE', data: { _token: '{{csrf_token()}}' }, success: () => loadDetail(kategoriAktif) });
+    let nama = $(this).closest('tr').find('td').first().text();
+    
+    confirmDelete(
+      'Hapus Detail?',
+      `Apakah Anda yakin ingin menghapus detail "${nama}"?`,
+      function() {
+        setLoadingState(true);
+        $.ajax({ 
+          url: `/backend/master-parameter/${kategoriAktif}/detail/${id}`, 
+          type: 'DELETE', 
+          data: { _token: '{{csrf_token()}}' }, 
+          success: () => { 
+            setLoadingState(false);
+            Swal.fire({
+              title: 'Berhasil!',
+              text: 'Detail berhasil dihapus',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            }).then(() => {
+              loadDetail(kategoriAktif);
+            });
+          },
+          error: function(xhr) {
+            setLoadingState(false);
+            Swal.fire({
+              title: 'Error!',
+              text: 'Terjadi kesalahan saat menghapus detail',
+              icon: 'error'
+            });
+          }
+        });
+      }
+    );
     });
     $(document).on('click', '#btnSaveDetail', function () {
-    let id = $('#detailId').val();
-    let data = {
-      nama_detail_parameter: $('#detailNama').val(),
-      isi_parameter: $('#detailIsi').val(),
-      keterangan: $('#detailKeterangan').val(),
-      aktif: $('#detailAktif').is(':checked') ? 1 : 0,
-      _token: '{{csrf_token()}}'
-    };
-    if (!data.nama_detail_parameter) return alert('Nama detail wajib diisi!');
-    if (id) {
-      $.ajax({ url: `/backend/master-parameter/${kategoriAktif}/detail/${id}`, type: 'PUT', data, success: () => { loadDetail(kategoriAktif); $('#modalDetail').modal('hide'); } });
-    } else {
-      $.post(`/backend/master-parameter/${kategoriAktif}/detail`, data, () => { loadDetail(kategoriAktif); $('#modalDetail').modal('hide'); });
-    }
+      if (isSubmitting) return;
+      
+      let id = $('#detailId').val();
+      let data = {
+        nama_detail_parameter: $('#detailNama').val(),
+        keterangan: $('#detailKeterangan').val(),
+        aktif: $('#detailAktif').is(':checked') ? 1 : 0,
+        _token: '{{csrf_token()}}'
+      };
+
+      if (!data.nama_detail_parameter) return alert('Nama detail wajib diisi!');
+      
+      setLoadingState(true);
+      
+      if (id) {
+        $.ajax({ 
+          url: `/backend/master-parameter/${kategoriAktif}/detail/${id}`, 
+          type: 'PUT', 
+          data, 
+          success: () => { 
+            loadDetail(kategoriAktif); 
+            $('#modalDetail').modal('hide'); 
+            setLoadingState(false);
+          },
+          error: function(xhr) {
+            alert('Terjadi kesalahan: ' + xhr.responseText);
+            setLoadingState(false);
+          }
+        });
+      } else {
+        $.ajax({
+          url: `/backend/master-parameter/${kategoriAktif}/detail`,
+          type: 'POST',
+          data,
+          success: () => { 
+            loadDetail(kategoriAktif); 
+            $('#modalDetail').modal('hide'); 
+            setLoadingState(false);
+          },
+          error: function(xhr) {
+            alert('Terjadi kesalahan: ' + xhr.responseText);
+            setLoadingState(false);
+          }
+        });
+      }
     });
 
     // Initial load
     $(function () {
     loadKategori();
     });
+
+    // Fungsi untuk konfirmasi delete
+    function confirmDelete(title, text, callback) {
+      Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal',
+        reverseButtons: true
+      }).then((result) => {
+        if (result.isConfirmed) {
+          callback();
+        }
+      });
+    }
   </script>
 @endpush

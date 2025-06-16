@@ -21,15 +21,15 @@ $(document).ready(function() {
     
     // ===== Biaya Tambahan =====
     // Tambah biaya tambahan pada form tambah
-    $('#tambah_biaya').click(function() {
-        tambahBiayaTambahan('#biaya_tambahan_container', null);
-    });
+    // $('#tambah_biaya').click(function() {
+    //     tambahBiayaTambahan('#biaya_tambahan_container', null);
+    // });
     
-    // Tambah biaya tambahan pada form edit
-    $('.tambah-biaya-edit').click(function() {
-        var id = $(this).data('id');
-        tambahBiayaTambahan('#edit_biaya_tambahan_container' + id, id);
-    });
+    // // Tambah biaya tambahan pada form edit
+    // $('.tambah-biaya-edit').click(function() {
+    //     var id = $(this).data('id');
+    //     tambahBiayaTambahan('#edit_biaya_tambahan_container' + id, id);
+    // });
     
     // ===== Function Handlers =====
     // Fungsi untuk menambah form biaya tambahan

@@ -12,13 +12,9 @@ $(document).ready(function() {
         if (tipeMesin === 'Printer Large Format' || tipeMesin === 'Digital Printer A3+') {
             // Tambahkan field untuk printer
             printerSpecs.html(`
-                <div class="col-md-6 mb-3">
+                <div class="col-md-12 mb-3">
                     <label for="edit_lebar_media_maksimum${itemId}" class="form-label">Lebar Media Maksimum (cm)</label>
                     <input type="number" step="0.1" class="form-control" id="edit_lebar_media_maksimum${itemId}" name="lebar_media_maksimum" value="${currentLebarMedia}" placeholder="0">
-                </div>
-                <div class="col-md-6 mb-3">
-                    <label for="edit_resolusi${itemId}" class="form-label">Resolusi Default</label>
-                    <input type="text" class="form-control" id="edit_resolusi${itemId}" name="resolusi" value="${getDetailValue(itemId, 'Resolusi')}" placeholder="contoh: 1440 x 1440 dpi">
                 </div>
             `);
         } else if (tipeMesin === 'Mesin Finishing') {

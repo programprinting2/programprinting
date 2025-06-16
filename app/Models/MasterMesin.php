@@ -40,7 +40,7 @@ class MasterMesin extends Model
         'cloudinary_public_id',
         'harga_tinta_per_liter',
         'konsumsi_tinta_per_m2',
-        'biaya_tambahan',
+        'biaya_perhitungan_profil',
     ];
 
     /**
@@ -55,8 +55,23 @@ class MasterMesin extends Model
         'detail_mesin' => 'json',
         'harga_tinta_per_liter' => 'decimal:2',
         'konsumsi_tinta_per_m2' => 'decimal:2',
-        'biaya_tambahan' => 'json',
+        'biaya_perhitungan_profil' => 'json',
     ];
+
+    /**
+     * Set the harga pembelian attribute.
+     *
+     * @param  string|int|float  $value
+     * @return void
+     */
+    public function setHargaPembelianAttribute($value)
+    {
+        if ($value !== null) {
+            $this->attributes['harga_pembelian'] = str_replace('.', '', $value);
+        } else {
+            $this->attributes['harga_pembelian'] = null;
+        }
+    }
 
     /**
      * Get the formatted price with currency symbol.

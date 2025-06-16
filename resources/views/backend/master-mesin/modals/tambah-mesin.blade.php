@@ -11,7 +11,7 @@
                     
                     <!-- Hidden inputs -->
                     <input type="hidden" name="detail_mesin_json" id="detail_mesin_json" value="[]">
-                    <input type="hidden" name="biaya_tambahan_json" id="biaya_tambahan_json" value="[]">
+                    <input type="hidden" name="biaya_perhitungan_profil_json" id="biaya_perhitungan_profil_json" value="[]">
                     
                     <!-- Tab Navigation -->
                     <ul class="nav nav-tabs mb-3" id="mesinTabs" role="tablist">
@@ -64,13 +64,18 @@
                                     <input type="text" class="form-control" id="nama_mesin" name="nama_mesin" placeholder="Nama Mesin" required>
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="tipe_mesin" class="form-label">Tipe Mesin <span class="text-danger">*</span></label>
-                                    <select class="form-select" id="tipe_mesin" name="tipe_mesin" required>
+                                    <label class="form-label">Tipe Mesin <span class="text-danger">*</span></label>
+                                    <select class="form-select @error('tipe_mesin') is-invalid @enderror" name="tipe_mesin" id="tipe_mesin" required>
                                         <option value="">Pilih Tipe Mesin</option>
-                                        <option value="Printer Large Format">Printer Large Format</option>
-                                        <option value="Digital Printer A3+">Digital Printer A3+</option>
-                                        <option value="Mesin Finishing">Mesin Finishing</option>
+                                        @foreach($tipe_mesin as $tipe)
+                                            <option value="{{ $tipe->nama_detail_parameter }}" {{ old('tipe_mesin') == $tipe->nama_detail_parameter ? 'selected' : '' }}>
+                                                {{ $tipe->nama_detail_parameter }}
+                                            </option>
+                                        @endforeach
                                     </select>
+                                    @error('tipe_mesin')
+                                        <div class="invalid-feedback">{{ $message }}</div>
+                                    @enderror
                                 </div>
                             </div>
                             <div class="row mb-3">
@@ -104,10 +109,10 @@
                                     <input type="date" class="form-control" id="tanggal_pembelian" name="tanggal_pembelian">
                                 </div>
                                 <div class="col-md-6">
-                                    <label for="harga_pembelian" class="form-label">Harga Pembelian</label>
+                                    <label class="form-label">Harga Pembelian</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rp</span>
-                                        <input type="number" class="form-control" id="harga_pembelian" name="harga_pembelian" placeholder="0">
+                                        <input type="text" class="form-control money-format" name="harga_pembelian" id="harga_pembelian">
                                     </div>
                                 </div>
                             </div>
@@ -124,49 +129,30 @@
                                 <div>
                                     <strong>Petunjuk:</strong>
                                     <ul class="mb-0">
-                                        <li>Lebar media maksimum digunakan untuk validasi ukuran cetak</li>
-                                        <li>Spesifikasi tambahan bisa berupa resolusi, kecepatan cetak, dll</li>
+                                                <li>Tambahkan spesifikasi mesin sesuai dengan kebutuhan</li>
                                         <li>Pastikan satuan yang digunakan konsisten</li>
+                                                <li>Contoh spesifikasi: Dimensi, Daya Listrik, Resolusi, dll</li>
                                     </ul>
                                 </div>
                             </div>
-                            <div class="row mb-3" id="printer-specs">
-                                <div class="col-md-6">
-                                    <label for="lebar_media_maksimum" class="form-label">Lebar Media Maksimum (cm)</label>
-                                    <input type="number" step="0.1" class="form-control" id="lebar_media_maksimum" name="lebar_media_maksimum" placeholder="0">
-                                </div>
+                                    
+                                    <!-- Spesifikasi Mesin -->
+                                    <div class="card mb-3">
+                                        <div class="card-header bg-light">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h6 class="mb-0">Spesifikasi Mesin</h6>
+                                                <button type="button" class="btn btn-outline-primary btn-sm" id="tambah_detail">
+                                                    <i data-feather="plus" class="icon-sm"></i> Tambah Spesifikasi
+                                                </button>
                             </div>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Spesifikasi Tambahan</label>
-                                <div id="detail_mesin_container">
-                                    <div class="row mb-2 detail-item">
-                                        <div class="col-md-4">
-                                            <input type="text" class="form-control" name="detail_nama[]" placeholder="Nama Spesifikasi">
                                         </div>
-                                        <div class="col-md-4">
-                                            <input type="text" class="form-control" name="detail_nilai[]" placeholder="Nilai">
+                                        <div class="card-body">
+                                            <div id="detail_mesin_container">
+                                                <div class="text-muted text-center py-3" id="no_specs_message">
+                                                    Belum ada spesifikasi mesin. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
                                         </div>
-                                        <div class="col-md-3">
-                                            <input type="text" class="form-control" name="detail_satuan[]" placeholder="Satuan">
                                         </div>
-                                        <div class="col-md-1">
-                                            <button type="button" class="btn btn-outline-danger btn-sm remove-detail">
-                                                <i data-feather="trash-2"></i>
-                                            </button>
                                         </div>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="tambah_detail">
-                                    <i data-feather="plus"></i> Tambah Spesifikasi
-                                </button>
-                            </div>
-                            
-                            <div class="mt-2 mb-0">
-                                <small class="text-muted">
-                                    <i class="icon-sm" data-feather="info"></i> 
-                                    Spesifikasi akan menyesuaikan dengan tipe mesin yang dipilih.
-                                </small>
                             </div>
                         </div>
                     </div>
@@ -174,84 +160,22 @@
 
                         <!-- Tab Biaya Produksi -->
                         <div class="tab-pane fade" id="biaya-produksi" role="tabpanel" aria-labelledby="biaya-produksi-tab">
-                            <div class="card mb-3">
+                            <div class="col-md-12">
+                                <div class="card">
                                 <div class="card-header bg-light">
-                                    <h6 class="mb-0">Biaya Tinta</h6>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Profil Biaya Produksi</h6>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="tambah_profil">
+                                                <i data-feather="plus" class="icon-sm"></i> Tambah Profil
+                                            </button>
+                                        </div>
                                 </div>
                                 <div class="card-body">
-                                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
-                                        <i data-feather="info" class="me-2"></i>
-                                        <div>
-                                            <strong>Petunjuk:</strong>
-                                            <ul class="mb-0">
-                                                <li>Harga tinta per liter digunakan untuk menghitung biaya tinta per m²</li>
-                                                <li>Konsumsi tinta per m² dalam milliliter (mL)</li>
-                                                <li>Biaya tambahan bisa berupa biaya operator, listrik, maintenance, dll</li>
-                                            </ul>
-                                        </div>
-                                    </div>
-                                    <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label">Harga Tinta per Liter (Rp)</label>
-                                            <input type="number" class="form-control" name="harga_tinta_per_liter" id="harga_tinta_per_liter" placeholder="0" min="0">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Konsumsi Tinta per m² (mL)</label>
-                                            <input type="number" class="form-control" name="konsumsi_tinta_per_m2" id="konsumsi_tinta_per_m2" placeholder="0" min="0" step="0.01">
-                                            <small class="text-muted mt-1 d-block">
-                                                Jumlah tinta dalam milliliter (mL) yang digunakan untuk mencetak 1 m²
-                                            </small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="card mb-3">
-                                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                    <h6 class="mb-0">Biaya Tambahan</h6>
-                                    <button type="button" class="btn btn-sm btn-outline-primary" id="tambah_biaya">
-                                        <i data-feather="plus" class="icon-sm"></i> Tambah Biaya
-                                    </button>
-                                </div>
-                                <div class="card-body">
-                                    <div id="biaya_tambahan_container">
-                                        <div class="text-muted mb-2" id="no_biaya_message">
-                                            Belum ada biaya tambahan. Klik tombol "Tambah Biaya" untuk menambahkan.
-                                        </div>
-                                        <div class="alert alert-light mt-2 mb-0" style="display: none;" id="total_biaya_tambahan_container">
-                                            <div class="d-flex text-dark justify-content-between align-items-center">
-                                                <span class="fw-bold">Total Biaya Tambahan:</span>
-                                                <span class="fw-bold" id="total_biaya_tambahan">Rp 0</span>
+                                        <div id="biaya_perhitungan_profil_container">
+                                            <div class="text-muted text-center py-3" id="no_profil_message">
+                                                Belum ada profil biaya. Klik tombol "Tambah Profil" untuk menambahkan.
                                             </div>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
-                    
-                    <div class="card">
-                        <div class="card-header bg-light">
-                                    <h6 class="mb-0">Total Biaya Produksi</h6>
-                                </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered">
-                                            <tr>
-                                                <th>Biaya Tinta per m²:</th>
-                                                <td class="text-end"><span id="biaya_tinta_per_m2">Rp 0</span></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Biaya Tambahan per m²:</th>
-                                                <td class="text-end"><span id="biaya_tambahan_per_m2">Rp 0</span></td>
-                                            </tr>
-                                            <tr class="table-active fw-bold">
-                                                <th>Total Biaya per m²:</th>
-                                                <td class="text-end"><span id="total_biaya_per_m2">Rp 0</span></td>
-                                            </tr>
-                                            <tr>
-                                                <th>Total Biaya per cm²:</th>
-                                                <td class="text-end"><span id="total_biaya_per_cm2">Rp 0</span></td>
-                                            </tr>
-                                        </table>
                                     </div>
                                 </div>
                             </div>
@@ -302,3 +226,7 @@
         </div>
     </div>
 </div> 
+
+<script>
+window.MODE_WARNA_OPTIONS = @json($mode_warna_options ?? []);
+</script> 

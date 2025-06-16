@@ -9,9 +9,38 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class PelangganController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $pelanggan = Pelanggan::latest()->paginate(10);
+        $query = Pelanggan::query();
+
+        // Pencarian berdasarkan nama, kode, atau kontak
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(kode_pelanggan) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(no_telp) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(handphone) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(email) LIKE ?', ['%' . $search . '%']);
+            });
+        }
+
+        // Filter berdasarkan status
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Pagination dengan 10 item per halaman
+        $pelanggan = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Tambahkan parameter pencarian ke pagination
+        if ($request->has('search')) {
+            $pelanggan->appends(['search' => $request->search]);
+        }
+        if ($request->has('status')) {
+            $pelanggan->appends(['status' => $request->status]);
+        }
+
         return view('backend.pelanggan.index', compact('pelanggan'));
     }
 

@@ -41,8 +41,8 @@ return new class extends Migration
             $table->decimal('harga_tinta_per_liter', 15, 2)->nullable()->after('catatan_tambahan');
             $table->decimal('konsumsi_tinta_per_m2', 10, 2)->nullable()->after('harga_tinta_per_liter');
             
-            // Biaya Tambahan (disimpan sebagai JSON)
-            $table->json('biaya_tambahan')->nullable()->after('konsumsi_tinta_per_m2');
+            // Profile Perhitungan
+            $table->json('biaya_perhitungan_profil')->nullable();
             
             $table->timestamps();
             $table->softDeletes(); // Untuk fitur "soft delete" agar data tidak benar-benar terhapus

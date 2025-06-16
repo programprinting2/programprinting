@@ -12,10 +12,11 @@
         <div class="col-md-12 grid-margin stretch-card">
             <div class="card">
                 <div class="card-body">
-                    <div class="card-title">
+                    <div>
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="card-title">Data Pemasok</h6>
+                                <h6 class="card-title mb-0">Master Pemasok</h6>
+                                <p class="text-muted">Kelola informasi pemasok untuk keperluan pemesanan bahan baku</p>
                             </div>
                             <div class="col-md-6 text-right">
                                 <button type="button" class="btn btn-primary float-end d-flex align-items-center"
@@ -25,6 +26,43 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Divider -->
+                    <hr class="my-4">
+
+                    <!-- Search and Filter Form -->
+                    <form id="searchForm" class="mb-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light">
+                                        <i data-feather="search" class="icon-sm"></i>
+                                    </span>
+                                    <input type="text" class="form-control" name="search" placeholder="Cari berdasarkan Id, nama, atau kontak..." value="{{ request('search') }}">
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select" name="status" onchange="this.form.submit()">
+                                    <option value="">Semua Status</option>
+                                    <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Tidak Aktif</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <a href="{{ route('backend.pemasok.index') }}" class="btn btn-outline-secondary w-100">
+                                    <i data-feather="refresh-cw" class="icon-sm me-1"></i> Reset
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Loading Spinner -->
+                    <div id="loadingSpinner" class="text-center py-4 d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table class="table">
                             <thead>
@@ -38,7 +76,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach($pemasok as $p)
+                                @forelse ($pemasok as $p)
                                     <tr>
                                         <td>{{ $p->kode_pemasok }}</td>
                                         <td>{{ $p->nama }}</td>
@@ -82,15 +120,31 @@
                                             </div>
                                         </td>
                                     </tr>
-                                @endforeach
+                                @empty
+                                    <tr>
+                                        <td colspan="7" class="text-center">
+                                            @if(request()->has('search') || request()->has('status'))
+                                                Tidak ada data pemasok yang ditemukan dengan filter yang dipilih.
+                                                <br>
+                                                <a href="{{ route('backend.pemasok.index') }}" class="btn btn-sm btn-primary mt-2">
+                                                    <i data-feather="refresh-cw"></i> Reset Filter
+                                                </a>
+                                            @else
+                                                Belum ada data pemasok yang tersedia.
+                                            @endif
+                                        </td>
+                                    </tr>
+                                @endforelse
                             </tbody>
                         </table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="d-flex justify-content-between mt-4">
-                        <p class="text-muted">Menampilkan {{ count($pemasok) }} pemasok.</p>
-                        {{ $pemasok->links('pagination::bootstrap-4') }}
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                Menampilkan {{ $pemasok->firstItem() ?? 0 }} - {{ $pemasok->lastItem() ?? 0 }} dari {{ $pemasok->total() }} data pemasok
+                            </div>
+                            <div>
+                                {{ $pemasok->appends(request()->query())->links('pagination::bootstrap-4') }}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -111,6 +165,36 @@
         $(document).ready(function () {
             // Initialize Feather Icons
             feather.replace();
+
+            // Search form handling
+            const searchForm = $('#searchForm');
+            const loadingSpinner = $('#loadingSpinner');
+            const tableContainer = $('.table-responsive');
+
+            searchForm.on('submit', function(e) {
+                e.preventDefault();
+                const formData = $(this).serialize();
+                const url = `${window.location.pathname}?${formData}`;
+                
+                // Show loading spinner
+                loadingSpinner.removeClass('d-none');
+                tableContainer.addClass('d-none');
+                
+                // Redirect to search URL
+                window.location.href = url;
+            });
+
+            // Show loading spinner when page is loading
+            $(window).on('beforeunload', function() {
+                loadingSpinner.removeClass('d-none');
+                tableContainer.addClass('d-none');
+            });
+
+            // Hide loading spinner when page is fully loaded
+            $(window).on('load', function() {
+                loadingSpinner.addClass('d-none');
+                tableContainer.removeClass('d-none');
+            });
 
             // Delete confirmation
             $('.btn-delete-pemasok').click(function (e) {

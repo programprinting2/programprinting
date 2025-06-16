@@ -62,34 +62,41 @@ class MasterParameterController extends Controller
 
     public function storeDetail(Request $request, $id)
     {
-        $validated = $request->validate([
-            'nama_detail_parameter' => 'required|string|max:255',
-            'isi_parameter' => 'nullable|string',
-            'keterangan' => 'nullable|string',
-            'icon' => 'nullable|string',
-            'warna' => 'nullable|string',
-            'aktif' => 'boolean',
-        ]);
-        $validated['master_parameter_id'] = $id;
-        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
-        $detail = DetailParameter::create($validated);
-        return response()->json($detail);
+        try {
+            $validated = $request->validate([
+                'nama_detail_parameter' => 'required|string|max:255',
+                'isi_parameter' => 'nullable|string',
+                'keterangan' => 'nullable|string',
+                'aktif' => 'required|in:0,1',
+            ]);
+            
+            $validated['master_parameter_id'] = $id;
+            $validated['aktif'] = (int)$request->input('aktif', 1);
+            
+            $detail = DetailParameter::create($validated);
+            return response()->json($detail);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function updateDetail(Request $request, $id, $detailId)
     {
-        $detail = DetailParameter::findOrFail($detailId);
-        $validated = $request->validate([
-            'nama_detail_parameter' => 'required|string|max:255',
-            'isi_parameter' => 'nullable|string',
-            'keterangan' => 'nullable|string',
-            'icon' => 'nullable|string',
-            'warna' => 'nullable|string',
-            'aktif' => 'boolean',
-        ]);
-        $validated['aktif'] = $request->has('aktif') ? 1 : 0;
-        $detail->update($validated);
-        return response()->json($detail);
+        try {
+            $detail = DetailParameter::findOrFail($detailId);
+            $validated = $request->validate([
+                'nama_detail_parameter' => 'required|string|max:255',
+                'isi_parameter' => 'nullable|string',
+                'keterangan' => 'nullable|string',
+                'aktif' => 'required|in:0,1',
+            ]);
+            
+            $validated['aktif'] = (int)$request->input('aktif', 1);
+            $detail->update($validated);
+            return response()->json($detail);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
     public function destroyDetail($id, $detailId)
