@@ -8,6 +8,7 @@ use Database\Seeders\ContactSeeder;
 use Database\Seeders\ParametersSeeder;
 use Database\Seeders\DetailParametersSeeder;
 use Database\Seeders\KaryawanSeeder;
+use Database\Seeders\BahanBakuSeeder;
 
 class DatabaseSeeder extends Seeder
 {
@@ -23,7 +24,8 @@ class DatabaseSeeder extends Seeder
             ContactSeeder::class,
             ParametersSeeder::class,
             DetailParametersSeeder::class,
-            KaryawanSeeder::class
+            KaryawanSeeder::class,
+            BahanBakuSeeder::class
         ]);
     }
 }
