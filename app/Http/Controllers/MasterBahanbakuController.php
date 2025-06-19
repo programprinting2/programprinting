@@ -8,6 +8,7 @@ use App\Models\MasterParameter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
+use Illuminate\Support\Facades\Storage;
 
 class MasterBahanbakuController extends Controller
 {
@@ -73,23 +74,18 @@ class MasterBahanbakuController extends Controller
             'sub_kategori' => 'nullable|string|max:255',
             'status_aktif' => 'required|in:0,1',
             'satuan_utama' => 'required|string|max:50',
-            'pilihan_warna' => 'nullable|string|max:50',
-            'nama_warna_custom' => 'nullable|string|max:100',
-            'berat' => 'nullable|numeric|min:0',
-            'tinggi' => 'nullable|numeric|min:0',
-            'tebal' => 'nullable|numeric|min:0',
-            'gramasi_densitas' => 'nullable|numeric|min:0',
-            'volume' => 'nullable|numeric|min:0',
             'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
             'harga_terakhir' => 'nullable|numeric|min:0',
-            'histori_harga_json' => 'nullable|string',
             'stok_saat_ini' => 'nullable|integer|min:0',
             'stok_minimum' => 'nullable|integer|min:0',
             'stok_maksimum' => 'nullable|integer|min:0',
-            'foto_produk_url' => 'nullable|string|max:255',
-            'dokumen_pendukung_json' => 'nullable|string',
-            'keterangan' => 'nullable|string'
+            'detail_spesifikasi_json' => 'nullable|json',
+            'foto_pendukung_new.*' => 'nullable|file|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:5048',
+            'video_pendukung_new.*' => 'nullable|file|mimes:mp4,avi,mpeg,quicktime|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime|max:20480',
+            'dokumen_pendukung_new.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,txt,csv,jpg,jpeg,png,gif|max:10240',
+            'keterangan' => 'nullable|string',
+            'link_pendukung_json' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -98,6 +94,35 @@ class MasterBahanbakuController extends Controller
                 'message' => 'Validasi gagal', 
                 'errors' => $validator->errors()
             ], 422);
+        }
+
+        // Validasi manual ekstra untuk keamanan file upload
+        if ($request->hasFile('foto_pendukung_new')) {
+            foreach ($request->file('foto_pendukung_new') as $file) {
+                if (!in_array($file->extension(), ['jpeg','jpg','png','gif'])) {
+                    return response()->json(['success'=>false,'message'=>'Format foto tidak diizinkan.'], 422);
+                }
+                if (strpos($file->getMimeType(), 'image/') !== 0) {
+                    return response()->json(['success'=>false,'message'=>'File foto harus berupa gambar.'], 422);
+                }
+            }
+        }
+        if ($request->hasFile('video_pendukung_new')) {
+            foreach ($request->file('video_pendukung_new') as $file) {
+                if (!in_array($file->extension(), ['mp4','avi','mpeg','quicktime'])) {
+                    return response()->json(['success'=>false,'message'=>'Format video tidak diizinkan.'], 422);
+                }
+                if (strpos($file->getMimeType(), 'video/') !== 0) {
+                    return response()->json(['success'=>false,'message'=>'File video harus berupa video.'], 422);
+                }
+            }
+        }
+        if ($request->hasFile('dokumen_pendukung_new')) {
+            foreach ($request->file('dokumen_pendukung_new') as $file) {
+                if (!in_array($file->extension(), ['pdf','doc','docx','xls','xlsx','ppt','pptx','zip','rar','txt','csv','jpg','jpeg','png','gif'])) {
+                    return response()->json(['success'=>false,'message'=>'Format dokumen tidak diizinkan.'], 422);
+                }
+            }
         }
 
         try {
@@ -147,16 +172,16 @@ class MasterBahanbakuController extends Controller
                     $data['konversi_satuan_json'] = [];
                 }
 
-                // Histori harga
-                if ($request->has('histori_harga_json')) {
-                    $historiData = json_decode($request->input('histori_harga_json'), true);
+                // Spesifikasi teknis (JSON)
+                if ($request->has('detail_spesifikasi_json')) {
+                    $spesifikasiData = json_decode($request->input('detail_spesifikasi_json'), true);
                     if (json_last_error() === JSON_ERROR_NONE) {
-                        $data['histori_harga_json'] = $historiData;
+                        $data['detail_spesifikasi_json'] = $spesifikasiData;
                     } else {
-                        throw new \Exception('Format histori harga tidak valid');
+                        throw new \Exception('Format spesifikasi teknis tidak valid');
                     }
                 } else {
-                    $data['histori_harga_json'] = [];
+                    $data['detail_spesifikasi_json'] = [];
                 }
 
                 // Dokumen pendukung
@@ -170,6 +195,60 @@ class MasterBahanbakuController extends Controller
                 } else {
                     $data['dokumen_pendukung_json'] = [];
                 }
+
+                // Link pendukung
+                if ($request->has('link_pendukung_json')) {
+                    $linkData = json_decode($request->input('link_pendukung_json'), true);
+                    if (json_last_error() === JSON_ERROR_NONE) {
+                        $data['link_pendukung_json'] = $linkData;
+                    } else {
+                        throw new \Exception('Format link pendukung tidak valid');
+                    }
+                } else {
+                    $data['link_pendukung_json'] = [];
+                }
+
+                // --- Penanganan Unggah Foto Pendukung ke Storage --- 
+                $fotoPendukungPaths = [];
+                if ($request->hasFile('foto_pendukung_new')) {
+                    foreach ($request->file('foto_pendukung_new') as $file) {
+                        $path = $file->store('bahan_baku/foto', 'public');
+                        if ($path) {
+                            $fotoPendukungPaths[] = '/storage/' . $path;
+                        }
+                    }
+                }
+                $data['foto_pendukung_json'] = $fotoPendukungPaths;
+
+                // --- Penanganan Unggah Video Pendukung ke Storage --- 
+                $videoPendukungPaths = [];
+                if ($request->hasFile('video_pendukung_new')) {
+                    foreach ($request->file('video_pendukung_new') as $file) {
+                        $path = $file->store('bahan_baku/video', 'public');
+                        if ($path) {
+                            $videoPendukungPaths[] = '/storage/' . $path;
+                        }
+                    }
+                }
+                $data['video_pendukung_json'] = $videoPendukungPaths;
+
+                // --- Penanganan Unggah Dokumen Pendukung ke Storage --- 
+                $dokumenPendukungPaths = [];
+                if ($request->hasFile('dokumen_pendukung_new')) {
+                    foreach ($request->file('dokumen_pendukung_new') as $file) {
+                        $path = $file->store('bahan_baku/dokumen', 'public');
+                        if ($path) {
+                            $dokumenPendukungPaths[] = [
+                                'nama' => $file->getClientOriginalName(),
+                                'path' => '/storage/' . $path,
+                                'ukuran' => $file->getSize(),
+                                'tipe' => $file->getClientMimeType(),
+                            ];
+                        }
+                    }
+                }
+                $data['dokumen_pendukung_json'] = $dokumenPendukungPaths;
+
             } catch (\Exception $e) {
                 return response()->json([
                     'success' => false,
@@ -199,25 +278,22 @@ class MasterBahanbakuController extends Controller
             'nama_bahan' => 'required|string|max:255',
             'kategori' => 'required|string|max:255',
             'sub_kategori' => 'nullable|string|max:255',
-            'status_aktif' => 'required|boolean',
+            'status_aktif' => 'required|in:0,1',
             'satuan_utama' => 'required|string|max:50',
-            'pilihan_warna' => 'nullable|string|max:50',
-            'nama_warna_custom' => 'nullable|string|max:100',
-            'berat' => 'nullable|numeric|min:0',
-            'tinggi' => 'nullable|numeric|min:0',
-            'tebal' => 'nullable|numeric|min:0',
-            'gramasi_densitas' => 'nullable|numeric|min:0',
-            'volume' => 'nullable|numeric|min:0',
-            'konversi_satuan_json' => 'nullable|json',
+            'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
             'harga_terakhir' => 'nullable|numeric|min:0',
-            'histori_harga_json' => 'nullable|json',
-            'stok_saat_ini' => 'nullable|numeric|min:0',
-            'stok_minimum' => 'nullable|numeric|min:0',
-            'stok_maksimum' => 'nullable|numeric|min:0',
-            'foto_produk_url' => 'nullable|string|max:255',
-            'dokumen_pendukung_json' => 'nullable|json',
-            'keterangan' => 'nullable|string'
+            'stok_saat_ini' => 'nullable|integer|min:0',
+            'stok_minimum' => 'nullable|integer|min:0',
+            'stok_maksimum' => 'nullable|integer|min:0',
+            'detail_spesifikasi_json' => 'nullable|json',
+            'foto_pendukung_new.*' => 'nullable|file|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:5048',
+            'video_pendukung_new.*' => 'nullable|file|mimes:mp4,avi,mpeg,quicktime|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime|max:20480',
+            'foto_pendukung_existing_json' => 'nullable|string',
+            'video_pendukung_existing_json' => 'nullable|string',
+            'dokumen_pendukung_json' => 'nullable|string',
+            'keterangan' => 'nullable|string',
+            'link_pendukung_json' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {
@@ -226,13 +302,21 @@ class MasterBahanbakuController extends Controller
 
         $data = $request->all();
         
+        // Konversi nilai numerik (sama seperti store method)
+        $data['harga_terakhir'] = $request->input('harga_terakhir') ? (int) $request->input('harga_terakhir') : null;
+        $data['stok_saat_ini'] = $request->input('stok_saat_ini') ? (int) $request->input('stok_saat_ini') : 0;
+        $data['stok_minimum'] = $request->input('stok_minimum') ? (int) $request->input('stok_minimum') : 0;
+        $data['stok_maksimum'] = $request->input('stok_maksimum') ? (int) $request->input('stok_maksimum') : 0;
+        
+        // Konversi status_aktif ke boolean
+        $data['status_aktif'] = (bool) $request->input('status_aktif');
+
         // Memastikan data JSON valid
         try {
-            // Konversi satuan
+            // Konversi satuan (sama seperti store method)
             if ($request->has('konversi_satuan_json')) {
                 $konversiData = json_decode($request->input('konversi_satuan_json'), true);
                 if (json_last_error() === JSON_ERROR_NONE) {
-                    // Konversi format lama ke format baru jika diperlukan
                     $konversiData = array_map(function($item) {
                         if (isset($item['from_value'])) {
                             return [
@@ -248,19 +332,23 @@ class MasterBahanbakuController extends Controller
                 } else {
                     throw new \Exception('Format konversi satuan tidak valid');
                 }
+            } else {
+                $data['konversi_satuan_json'] = [];
             }
 
-            // Histori harga
-            if ($request->has('histori_harga_json')) {
-                $historiData = json_decode($request->input('histori_harga_json'), true);
+            // Spesifikasi teknis (JSON)
+            if ($request->has('detail_spesifikasi_json')) {
+                $spesifikasiData = json_decode($request->input('detail_spesifikasi_json'), true);
                 if (json_last_error() === JSON_ERROR_NONE) {
-                    $data['histori_harga_json'] = $historiData;
+                    $data['detail_spesifikasi_json'] = $spesifikasiData;
                 } else {
-                    throw new \Exception('Format histori harga tidak valid');
+                    throw new \Exception('Format spesifikasi teknis tidak valid');
                 }
+            } else {
+                $data['detail_spesifikasi_json'] = [];
             }
 
-            // Dokumen pendukung
+            // Dokumen pendukung (sama seperti store method)
             if ($request->has('dokumen_pendukung_json')) {
                 $dokumenData = json_decode($request->input('dokumen_pendukung_json'), true);
                 if (json_last_error() === JSON_ERROR_NONE) {
@@ -268,7 +356,94 @@ class MasterBahanbakuController extends Controller
                 } else {
                     throw new \Exception('Format dokumen pendukung tidak valid');
                 }
+            } else {
+                $data['dokumen_pendukung_json'] = [];
             }
+
+            // Link pendukung
+            if ($request->has('link_pendukung_json')) {
+                $linkData = json_decode($request->input('link_pendukung_json'), true);
+                if (json_last_error() === JSON_ERROR_NONE) {
+                    $data['link_pendukung_json'] = $linkData;
+                } else {
+                    throw new \Exception('Format link pendukung tidak valid');
+                }
+            } else {
+                $data['link_pendukung_json'] = [];
+            }
+
+            // --- Penanganan Foto & Video Pendukung (Update) ---
+            // Foto
+            $fotoLama = $bahanbaku->foto_pendukung_json ?: [];
+            $fotoDipertahankan = $request->has('foto_pendukung_existing_json') ? json_decode($request->input('foto_pendukung_existing_json'), true) : [];
+            $fotoBaru = [];
+            if ($request->hasFile('foto_pendukung_new')) {
+                foreach ($request->file('foto_pendukung_new') as $file) {
+                    $path = $file->store('bahan_baku/foto', 'public');
+                    if ($path) {
+                        $fotoBaru[] = '/storage/' . $path;
+                    }
+                }
+            }
+            // Hapus file fisik yang dihapus user
+            $fotoTerhapus = array_diff($fotoLama, $fotoDipertahankan);
+            foreach ($fotoTerhapus as $path) {
+                $storagePath = str_replace('/storage/', '', $path);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($storagePath);
+            }
+            $data['foto_pendukung_json'] = array_values(array_merge($fotoDipertahankan, $fotoBaru));
+
+            // Video
+            $videoLama = $bahanbaku->video_pendukung_json ?: [];
+            $videoDipertahankan = $request->has('video_pendukung_existing_json') ? json_decode($request->input('video_pendukung_existing_json'), true) : [];
+            $videoBaru = [];
+            if ($request->hasFile('video_pendukung_new')) {
+                foreach ($request->file('video_pendukung_new') as $file) {
+                    $path = $file->store('bahan_baku/video', 'public');
+                    if ($path) {
+                        $videoBaru[] = '/storage/' . $path;
+                    }
+                }
+            }
+            // Hapus file fisik yang dihapus user
+            $videoTerhapus = array_diff($videoLama, $videoDipertahankan);
+            foreach ($videoTerhapus as $path) {
+                $storagePath = str_replace('/storage/', '', $path);
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($storagePath);
+            }
+            $data['video_pendukung_json'] = array_values(array_merge($videoDipertahankan, $videoBaru));
+
+            // --- Penanganan Dokumen Pendukung (Update) ---
+            $dokumenLama = $bahanbaku->dokumen_pendukung_json ?: [];
+            $dokumenDipertahankan = $data['dokumen_pendukung_json']; // dari dokumen_pendukung_json (array lama yang dipertahankan)
+            $dokumenDipertahankan = is_array($dokumenDipertahankan) ? $dokumenDipertahankan : [];
+            $dokumenBaru = [];
+            // Unggah dokumen baru
+            if ($request->hasFile('dokumen_pendukung_new')) {
+                foreach ($request->file('dokumen_pendukung_new') as $file) {
+                    $path = $file->store('bahan_baku/dokumen', 'public');
+                    if ($path) {
+                        $dokumenBaru[] = [
+                            'nama' => $file->getClientOriginalName(),
+                            'path' => '/storage/' . $path,
+                            'ukuran' => $file->getSize(),
+                            'tipe' => $file->getClientMimeType(),
+                        ];
+                    }
+                }
+            }
+            // Hapus file fisik dokumen yang dihapus user
+            $dokumenLamaPaths = array_map(function($doc) { return $doc['path'] ?? null; }, $dokumenLama);
+            $dokumenDipertahankanPaths = array_map(function($doc) { return $doc['path'] ?? null; }, $dokumenDipertahankan);
+            $dokumenTerhapus = array_diff($dokumenLamaPaths, $dokumenDipertahankanPaths);
+            foreach ($dokumenTerhapus as $path) {
+                if ($path) {
+                    $storagePath = str_replace('/storage/', '', $path);
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($storagePath);
+                }
+            }
+            $data['dokumen_pendukung_json'] = array_values(array_merge($dokumenDipertahankan, $dokumenBaru));
+
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -288,6 +463,33 @@ class MasterBahanbakuController extends Controller
     {
         try {
             $bahanbaku = BahanBaku::findOrFail($id);
+
+            // Hapus semua foto pendukung dari storage
+            if ($bahanbaku->foto_pendukung_json && is_array($bahanbaku->foto_pendukung_json)) {
+                foreach ($bahanbaku->foto_pendukung_json as $path) {
+                    $storagePath = str_replace('/storage/', '', $path);
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($storagePath);
+                }
+            }
+
+            // Hapus semua video pendukung dari storage
+            if ($bahanbaku->video_pendukung_json && is_array($bahanbaku->video_pendukung_json)) {
+                foreach ($bahanbaku->video_pendukung_json as $path) {
+                    $storagePath = str_replace('/storage/', '', $path);
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($storagePath);
+                }
+            }
+
+            // Hapus semua dokumen pendukung dari storage
+            if ($bahanbaku->dokumen_pendukung_json && is_array($bahanbaku->dokumen_pendukung_json)) {
+                foreach ($bahanbaku->dokumen_pendukung_json as $doc) {
+                    if (isset($doc['path'])) {
+                        $storagePath = str_replace('/storage/', '', $doc['path']);
+                        \Illuminate\Support\Facades\Storage::disk('public')->delete($storagePath);
+                    }
+                }
+            }
+            
             $bahanbaku->delete();
 
             return response()->json([
@@ -308,3 +510,5 @@ class MasterBahanbakuController extends Controller
         return response()->json($bahanbaku);
     }
 }
+
+

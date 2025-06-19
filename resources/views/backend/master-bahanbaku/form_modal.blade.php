@@ -1,5 +1,5 @@
 <div class="modal fade" id="addMaterialModal" tabindex="-1" aria-labelledby="addMaterialModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="addMaterialModalLabel">Tambah Bahan Baku Baru</h5>
@@ -25,9 +25,9 @@
             <li class="nav-item" role="presentation">
               <button class="nav-link" id="informasi-stok-tab" data-bs-toggle="tab" data-bs-target="#informasi-stok" type="button" role="tab" aria-controls="informasi-stok" aria-selected="false"><i data-feather="box" class="me-1 icon-sm"></i> Informasi Stok</button>
             </li>
-            <!-- <li class="nav-item" role="presentation">
+            <li class="nav-item" role="presentation">
               <button class="nav-link" id="media-dokumen-tab" data-bs-toggle="tab" data-bs-target="#media-dokumen" type="button" role="tab" aria-controls="media-dokumen" aria-selected="false"><i data-feather="file-text" class="me-1 icon-sm"></i> Media & Dokumen</button>
-            </li> -->
+            </li>
           </ul>
 
           <div class="tab-content mt-3">
@@ -67,32 +67,7 @@
                   </div>
                     
                   <div class="row mb-3">
-                    <div class="col-md-12">
-                      <div class="form-check">
-                        <input class="form-check-input" type="checkbox" id="statusAktif" name="status_aktif" checked>
-                        <label class="form-check-label" for="statusAktif">
-                            Status Aktif
-                            <p class="text-muted mb-0" style="font-size: 0.85rem;">Bahan baku ini aktif dan dapat digunakan dalam proses produksi</p>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col-md-12">
-                      <label for="deskripsi" class="form-label">Spesifikasi</label>
-                      <textarea class="form-control" id="deskripsi" name="keterangan" rows="3" placeholder="Deskripsi lengkap dan spesifikasi teknis bahan baku."></textarea>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Spesifikasi Teknis Tab -->
-            <div class="tab-pane fade" id="spesifikasi-teknis" role="tabpanel" aria-labelledby="spesifikasi-teknis-tab">
-              <div class="card mb-0">
-                <div class="card-body">
-                  <div class="row mb-3">
-                    <div class="col-md-6">
+                  <div class="col-md-6">
                       <label for="satuanUtama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
                       <select class="form-select" id="satuanUtama" name="satuan_utama" required>
                         <option value="" selected disabled>Pilih satuan</option>
@@ -108,47 +83,52 @@
                       <small class="text-muted">Satuan utama untuk perhitungan stok</small>
                     </div>
                     <div class="col-md-6">
-                      <label for="pilihanWarna" class="form-label">Pilihan Warna</label>
-                      <select class="form-select" id="pilihanWarna" name="pilihan_warna">
-                        <option value="" selected disabled>Pilih warna</option>
-                        <option value="merah">Merah</option>
-                        <option value="biru">Biru</option>
-                        <option value="hijau">Hijau</option>
+                      <label for="statusAktif" class="form-label">Status Aktif</label>
+                      <select class="form-select" id="statusAktif" name="status_aktif" required>
+                        <option value="1">Aktif</option>
+                        <option value="0">Tidak Aktif</option>
                       </select>
-                    </div>
+                      <div class="form-text">Bahan baku ini aktif dan dapat digunakan dalam proses produksi</div>
+                    </div>      
                   </div>
                   <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="namaWarnaCustom" class="form-label">Nama Warna Custom</label>
-                      <input type="text" class="form-control" id="namaWarnaCustom" name="nama_warna_custom" placeholder="Contoh: Merah Marun, Biru Navy, dll">
-                      <small class="text-muted">Nama warna spesifik jika berbeda dari pilihan standar</small>
-                    </div>
-                    <div class="col-md-6">
-                      <label for="beratGram" class="form-label">Berat (gram)</label>
-                      <input type="number" class="form-control" id="beratGram" name="berat" value="0" min="0">
-                      <small class="text-muted">Berat per unit satuan utama</small>
+                    <div class="col-md-12">
+                      <label for="deskripsi" class="form-label">Spesifikasi</label>
+                      <textarea class="form-control" id="deskripsi" name="keterangan" rows="3" placeholder="Deskripsi lengkap dan spesifikasi teknis bahan baku."></textarea>
                     </div>
                   </div>
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="tinggiCm" class="form-label">Tinggi (cm)</label>
-                      <input type="number" class="form-control" id="tinggiCm" name="tinggi" value="0" min="0">
-                    </div>
-                    <div class="col-md-6">
-                      <label for="tebalMm" class="form-label">Tebal (mm)</label>
-                      <input type="number" class="form-control" id="tebalMm" name="tebal" value="0" min="0">
+                </div>
+              </div>
+            </div>
+
+            <!-- Spesifikasi Teknis Tab -->
+            <div class="tab-pane fade" id="spesifikasi-teknis" role="tabpanel" aria-labelledby="spesifikasi-teknis-tab">
+              <div class="card mb-0">
+                <div class="card-body">
+                  <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                    <i data-feather="info" class="me-2"></i>
+                    <div>
+                      <strong>Petunjuk:</strong>
+                      <ul class="mb-0">
+                        <li>Tambahkan spesifikasi teknis sesuai kebutuhan bahan baku</li>
+                        <li>Contoh: Dimensi, Berat, Warna, Daya Serap, dll</li>
+                      </ul>
                     </div>
                   </div>
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="gramasiDensitas" class="form-label">Gramasi/Densitas</label>
-                      <input type="number" class="form-control" id="gramasiDensitas" name="gramasi_densitas" value="0" min="0">
-                      <small class="text-muted">g/m² untuk kertas, g/cm³ untuk lainnya</small>
+                  <div class="card mb-3">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                      <h6 class="mb-0">Spesifikasi Teknis</h6>
+                      <button type="button" class="btn btn-outline-primary btn-sm" id="tambah_detail_spesifikasi">
+                        <i data-feather="plus" class="icon-sm"></i> Tambah Spesifikasi
+                      </button>
                     </div>
-                    <div class="col-md-6">
-                      <label for="volumeLiter" class="form-label">Volume (liter)</label>
-                      <input type="number" class="form-control" id="volumeLiter" name="volume" value="0" min="0">
-                      <small class="text-muted">Untuk bahan cair/tinta</small>
+                    <div class="card-body">
+                      <div id="detail_spesifikasi_container">
+                        <div class="text-muted text-center py-3" id="no_spesifikasi_message">
+                          Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
+                        </div>
+                      </div>
+                      <input type="hidden" name="detail_spesifikasi_json" id="detail_spesifikasi_json" value="[]">
                     </div>
                   </div>
                 </div>
@@ -160,12 +140,18 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h6 class="mb-0">Konversi Satuan</h6>
+                    <div>
+                      <h6 class="mb-0">Konversi Satuan</h6>
+                      <p class="text-muted mb-3" style="font-size: 0.85rem;">Konversi satuan membantu perhitungan otomatis antara satuan yang berbeda. Contoh: 1 Rim = 500 Lembar, 1 Roll = 50 Meter</p>
+                    </div>
                     <button type="button" class="btn btn-sm btn-primary" id="tambahKonversi"><i data-feather="plus" class="me-1 icon-sm"></i>Tambah Konversi</button>
                   </div>
-                  <p class="text-muted mb-3" style="font-size: 0.85rem;">Konversi satuan membantu perhitungan otomatis antara satuan yang berbeda. Contoh: 1 Rim = 500 Lembar, 1 Roll = 50 Meter</p>
+                  
                   <div id="conversionUnitsContainer">
                     <!-- Dynamic conversion rows will be added here -->
+                    <div class="col-12 text-center text-muted py-4" id="noConversionMessage">
+                        <i data-feather="refresh-cw" class="icon-lg mb-2"></i><br>Belum ada konversi satuan yang ditambahkan.
+                    </div>
                   </div>
                   <!-- New: Contoh Konversi Satuan -->
                   <div class="alert alert-info mt-3" role="alert">
@@ -260,7 +246,7 @@
                         <div class="col-md-12">
                           <label for="stokMinimum" class="form-label">Stok Minimum</label>
                           <div class="input-group">
-                            <input type="number" class="form-control" id="stokMinimum" name="stok_minimum" value="0" min="0">
+                            <input type="number" class="form-control" id="stokMinimum" name="stok_minimum" value="20" min="0">
                             <span class="input-group-text" id="stokMinimumUnit">Unit</span>
                           </div>
                           <small class="text-muted">Jumlah stok minimum sebelum perlu re-order</small>
@@ -270,7 +256,7 @@
                         <div class="col-md-12">
                           <label for="stokMaksimum" class="form-label">Stok Maksimum</label>
                           <div class="input-group">
-                            <input type="number" class="form-control" id="stokMaksimum" name="stok_maksimum" value="0" min="0">
+                            <input type="number" class="form-control" id="stokMaksimum" name="stok_maksimum" value="100" min="0">
                             <span class="input-group-text" id="stokMaksimumUnit">Unit</span>
                           </div>
                           <small class="text-muted">Jumlah stok maksimum yang direkomendasikan</small>
@@ -311,30 +297,94 @@
 
             <!-- Media & Dokumen Tab -->
             <div class="tab-pane fade" id="media-dokumen" role="tabpanel" aria-labelledby="media-dokumen-tab">
-              <div class="card mb-0">
-                <div class="card-body">
-                  <div class="row mb-3">
-                    <div class="col-md-12">
-                      <label for="fotoProduk" class="form-label">Foto Produk</label>
-                      <input type="file" class="form-control" id="fotoProduk" name="foto_produk_url" accept="image/*">
-                      <small class="text-muted">Upload gambar produk (JPG, PNG, maksimal 2MB)</small>
+                <div class="card mb-3">
+                    <div class="card-body">
+                        <h6 class="mb-3">Media (Foto & Video)</h6>
+                        <div class="dropzone-area-media mb-3 text-center p-4 border-2 border-dashed rounded bg-light position-relative" id="mediaDropzoneArea" style="cursor:pointer;">
+                            <input type="file" class="d-none" id="mediaPendukungInput" name="media_pendukung_new[]" multiple accept="image/*,video/*">
+                            <div class="dz-message text-muted">
+                                <i data-feather="upload-cloud" class="icon-lg mb-2"></i><br>
+                                <span>Seret & lepas foto/video di sini atau klik untuk memilih file</span>
+                                <div style="font-size:0.85rem;">Maksimal 10 file, format gambar/video didukung</div>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-2">
+                            <div class="col-12 mb-1 text-start"><strong>Foto</strong></div>
+                            <div class="col-12" id="fotoPendukungPreview">
+                                <div class="text-muted text-center" id="noFotoMessage">
+                                    <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-2 mb-4">
+                            <div class="col-12 mb-1 text-start"><strong>Video</strong></div>
+                            <div class="col-12" id="videoPendukungPreview">
+                                <div class="text-muted text-center" id="noVideoMessage">
+                                    <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col-md-12">
-                      <label for="dokumenPendukung" class="form-label">Dokumen Pendukung</label>
-                      <input type="file" class="form-control" id="dokumenPendukung" name="dokumen_pendukung_json" accept=".pdf,.doc,.docx,.xls,.xlsx">
-                      <small class="text-muted">Upload dokumen terkait (PDF, Word, Excel, maksimal 5MB)</small>
-                    </div>
-                  </div>
                 </div>
-              </div>
+
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Dokumen Pendukung</h6>
+                            <button type="button" class="btn btn-sm btn-primary" id="tambahDokumen"><i data-feather="plus" class="me-1 icon-sm"></i> Tambah Dokumen</button>
+                        </div>
+                        <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan dokumen pendukung seperti spesifikasi teknis, sertifikat, atau laporan uji.</p>
+                        <div class="table-responsive">
+                            <table class="table table-bordered mb-0" id="dokumenPendukungTable">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 25%;">Nama Dokumen</th>
+                                        <th style="width: 20%;">Jenis</th>
+                                        <th style="width: 15%;">Ukuran</th>
+                                        <th style="width: 10%;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dokumenPendukungBody">
+                                    <!-- Document rows will be added here -->
+                                    <tr id="noDokumenMessage">
+                                        <td colspan="5" class="text-center text-muted py-4">
+                                            <i data-feather="file-text" class="icon-lg mb-2"></i><br>Belum ada dokumen yang ditambahkan.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Input file dokumen pendukung (hidden) -->
+                        <input type="file" class="d-none" id="dokumenPendukungInput" name="dokumen_pendukung_new[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
+                    </div>
+                </div>
+
+                <!-- Link Pendukung -->
+                <div class="card mt-3 mb-0">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="mb-0">Link Pendukung</h6>
+                        </div>
+                        <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan link pendukung seperti Google Drive, YouTube, atau website lain yang relevan.</p>
+                        <div class="row g-2 mb-2">
+                            <div class="col-md-10">
+                                <input type="url" class="form-control" id="inputLinkPendukung" placeholder="https://contoh.com/link-pendukung">
+                            </div>
+                            <div class="col-md-2">
+                                <button type="button" class="btn btn-outline-primary w-100" id="tambahLinkPendukung"><i data-feather="plus" class="icon-sm me-1"></i>Tambah Link</button>
+                            </div>
+                        </div>
+                        <ul class="list-group" id="daftarLinkPendukung">
+                            <!-- Daftar link akan muncul di sini -->
+                        </ul>
+                    </div>
+                </div>
             </div>
           </div>
         </div>
         <div class="modal-footer modal-footer-sticky">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-          <button type="submit" class="btn btn-primary">Simpan Bahan Baku</button>
+          <button type="submit" class="btn btn-primary">Simpan</button>
         </div>
       </form>
     </div>
