@@ -4,7 +4,7 @@
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="#">Master</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Pemasok</li>
+            <li class="breadcrumb-item active" aria-current="page">Produk</li>
         </ol>
     </nav>
 
@@ -15,13 +15,13 @@
                     <div>
                         <div class="row">
                             <div class="col-md-6">
-                                <h6 class="card-title mb-0">Master Pemasok</h6>
-                                <p class="text-muted">Kelola informasi pemasok untuk keperluan pemesanan bahan baku</p>
+                                <h6 class="card-title mb-0">Master Produk</h6>
+                                <p class="text-muted">Kelola informasi produk untuk keperluan penjualan</p>
                             </div>
                             <div class="col-md-6 text-right">
                                 <button type="button" class="btn btn-primary float-end d-flex align-items-center"
-                                    data-bs-toggle="modal" data-bs-target="#tambahPemasok">
-                                    <i class="link-icon icon-sm me-1" data-feather="plus"></i> Tambah Pemasok
+                                    data-bs-toggle="modal" data-bs-target="#tambahProduk">
+                                    <i class="link-icon icon-sm me-1" data-feather="plus"></i> Tambah Produk
                                 </button>
                             </div>
                         </div>
@@ -38,7 +38,7 @@
                                     <span class="input-group-text bg-light">
                                         <i data-feather="search" class="icon-sm"></i>
                                     </span>
-                                    <input type="text" class="form-control" name="search" placeholder="Cari berdasarkan Id, nama, atau kontak..." value="{{ request('search') }}">
+                                    <input type="text" class="form-control" name="search" placeholder="Cari berdasarkan kode, nama produk..." value="{{ request('search') }}">
                                 </div>
                             </div>
                             <div class="col-md-3">
@@ -67,16 +67,16 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>ID Pemasok</th>
+                                    <th>Kode</th>
                                     <th>Nama</th>
-                                    <th>Kontak</th>
-                                    <th>Alamat</th>
+                                    <th>Kategori</th>
+                                    <th>Sub Kategori</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse ($pemasok as $p)
+                                {{-- @forelse ($pemasok as $p)
                                     <tr>
                                         <td>{{ $p->kode_pemasok }}</td>
                                         <td>{{ $p->nama }}</td>
@@ -134,16 +134,16 @@
                                             @endif
                                         </td>
                                     </tr>
-                                @endforelse
+                                @endforelse --}}
                             </tbody>
                         </table>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            <div>
+                            {{-- <div>
                                 Menampilkan {{ $pemasok->firstItem() ?? 0 }} - {{ $pemasok->lastItem() ?? 0 }} dari {{ $pemasok->total() }} data pemasok
                             </div>
                             <div>
                                 {{ $pemasok->appends(request()->query())->links('pagination::bootstrap-4') }}
-                            </div>
+                            </div> --}}
                         </div>
                     </div>
                 </div>
@@ -151,8 +151,8 @@
         </div>
     </div>
 
-@include('backend.pemasok.modal_form')    
-@include('backend.pemasok.modal_edit')
+@include('backend.master-produk.modal_form')    
+@include('backend.master-produk.modal_edit')
 @endsection
 
 @push('plugin-scripts')
@@ -160,7 +160,7 @@
 @endpush
 
 @push('custom-scripts')
-    <script src="{{ asset('js/pemasok/pemasok-edit-modal.js') }}"></script>
+    {{-- <script src="{{ asset('js/pemasok/pemasok-edit-modal.js') }}"></script> --}}
     <script>
         $(document).ready(function () {
             // Initialize Feather Icons
@@ -261,5 +261,5 @@
                 }
             });
         }
-    </script>
+    </script> 
 @endpush

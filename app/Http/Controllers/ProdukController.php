@@ -35,6 +35,6 @@ class ProdukController extends Controller
                 'stok' => 200,
             ],
         ];
-        return view('pages.produk.index', compact('produk'));
+        return view('backend.master-produk.index', compact('produk'));
     }
 } 
