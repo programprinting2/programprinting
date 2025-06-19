@@ -693,4 +693,36 @@ $(document).ready(function() {
   });
   // Inisialisasi awal
   renderSpesifikasiTeknis();
+
+  // Event handler klik pada thumbnail foto di preview
+  $(document).on('click', '#fotoPendukungPreview img', function(e) {
+    // Cegah jika klik pada tombol hapus
+    if ($(e.target).closest('.delete-photo').length > 0) return;
+    const src = $(this).attr('src');
+    const alt = $(this).attr('alt') || '';
+    $('#mediaPreviewModalBody').html(`<img src="${src}" alt="${alt}" class="img-fluid rounded" style="max-height:70vh;">`);
+    $('#mediaPreviewModal').modal('show');
+  });
+  // Event handler klik pada thumbnail video di preview (ikon video)
+  $(document).on('click', '#videoPendukungPreview .preview-card', function(e) {
+    // Cegah jika klik pada tombol hapus
+    if ($(e.target).closest('.delete-video').length > 0) return;
+    // Ambil nama file dari .text-truncate
+    const fileName = $(this).find('.text-truncate').text().trim();
+    // Cari file video di selectedVideos berdasarkan nama
+    const fileObj = selectedVideos.find(f => f.name === fileName);
+    if (fileObj) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        $('#mediaPreviewModalBody').html(`<video src="${ev.target.result}" controls autoplay style="max-width:100%;max-height:70vh;"></video>`);
+        $('#mediaPreviewModal').modal('show');
+      };
+      reader.readAsDataURL(fileObj);
+    }
+  });
+
+  // Bersihkan konten modal preview media saat ditutup agar video berhenti total
+  $('#mediaPreviewModal').on('hidden.bs.modal', function() {
+    $('#mediaPreviewModalBody').html('');
+  });
 }); 

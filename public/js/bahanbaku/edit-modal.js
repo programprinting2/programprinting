@@ -976,4 +976,43 @@ $(document).ready(function() {
     videoLamaEdit.splice(index, 1);
     renderEditVideosPreview();
   });
+
+  // Event handler klik pada thumbnail foto di preview (edit)
+  $(document).on('click', '#editFotoPendukungPreview img', function(e) {
+    if ($(e.target).closest('.delete-edit-photo, .delete-foto-lama').length > 0) return;
+    const src = $(this).attr('src');
+    const alt = $(this).attr('alt') || '';
+    $('#editMediaPreviewModalBody').html(`<img src="${src}" alt="${alt}" class="img-fluid rounded" style="max-height:70vh;">`);
+    $('#editMediaPreviewModal').modal('show');
+  });
+  // Event handler klik pada thumbnail video di preview (edit)
+  $(document).on('click', '#editVideoPendukungPreview .preview-card', function(e) {
+    if ($(e.target).closest('.delete-edit-video, .delete-video-lama').length > 0) return;
+    const fileName = $(this).find('.text-truncate').text().trim();
+    // Cek di videoLamaEdit (string url) atau selectedEditVideos (File)
+    let videoSrc = null;
+    // Cek video lama (url)
+    const idxLama = videoLamaEdit.findIndex(url => url.split('/').pop() === fileName);
+    if (idxLama !== -1) {
+      videoSrc = videoLamaEdit[idxLama];
+      $('#editMediaPreviewModalBody').html(`<video src="${videoSrc}" controls autoplay style="max-width:100%;max-height:70vh;"></video>`);
+      $('#editMediaPreviewModal').modal('show');
+      return;
+    }
+    // Cek video baru (File)
+    const fileObj = selectedEditVideos.find(f => f.name === fileName);
+    if (fileObj) {
+      const reader = new FileReader();
+      reader.onload = function(ev) {
+        $('#editMediaPreviewModalBody').html(`<video src="${ev.target.result}" controls autoplay style="max-width:100%;max-height:70vh;"></video>`);
+        $('#editMediaPreviewModal').modal('show');
+      };
+      reader.readAsDataURL(fileObj);
+    }
+  });
+
+  // Bersihkan konten modal preview media saat ditutup agar video berhenti total
+  $('#editMediaPreviewModal').on('hidden.bs.modal', function() {
+    $('#editMediaPreviewModalBody').html('');
+  });
 }); 

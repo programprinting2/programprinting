@@ -352,6 +352,21 @@
   </div>
 </div>
 
+<!-- Modal Preview Media (Foto/Video) -->
+<div class="modal fade" id="editMediaPreviewModal" tabindex="-1" aria-labelledby="editMediaPreviewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="editMediaPreviewModalLabel">Preview Media</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center" id="editMediaPreviewModalBody">
+        <!-- Konten media akan diisi via JS -->
+      </div>
+    </div>
+  </div>
+</div>
+
 @push('custom-scripts')
   <script>
     // Inisialisasi data sub-kategori
