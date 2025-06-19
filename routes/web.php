@@ -100,6 +100,18 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.karyawan.update',
         'destroy' => 'backend.karyawan.destroy',
     ]);
+
+    // Produk Resource Routes
+    Route::resource('master-produk', ProdukController::class)->names([
+        'index' => 'backend.master-produk.index',
+        'create' => 'backend.master-produk.create',
+        'store' => 'backend.master-produk.store',
+        'show' => 'backend.master-produk.show',
+        'edit' => 'backend.master-produk.edit',
+        'update' => 'backend.master-produk.update',
+        'destroy' => 'backend.master-produk.destroy',
+    ]);
+
 });
 
 Route::group(['prefix' => 'pembelian'], function () {
