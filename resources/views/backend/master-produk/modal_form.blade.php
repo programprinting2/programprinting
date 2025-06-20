@@ -133,20 +133,7 @@
                                             <div><small class="text-muted">Produk akan tampil di daftar produk aktif</small></div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="produk_digital" name="produk_digital">
-                                            <label class="form-check-label" for="produk_digital">Produk Digital</label>
-                                            <div><small class="text-muted">Produk tidak memerlukan pengiriman fisik</small></div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="tampil_online" name="tampil_online" checked>
-                                            <label class="form-check-label" for="tampil_online">Tampil Online</label>
-                                            <div><small class="text-muted">Produk akan tampil di website/marketplace</small></div>
-                                        </div>
-                                    </div>
+                                   
                                 </div>
                             </div>
                             </div>
