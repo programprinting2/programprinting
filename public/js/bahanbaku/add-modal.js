@@ -281,6 +281,10 @@ $(document).ready(function() {
     // Tambahkan link pendukung ke FormData
     formData.set('link_pendukung_json', JSON.stringify(linkPendukung));
 
+    // Pastikan pengambilan value sub-kategori menggunakan id
+    const subKategoriId = $('#sub_kategori_id').val();
+    formData.append('sub_kategori_id', subKategoriId);
+
     return formData;
   }
 

@@ -109,7 +109,7 @@ function initSubKategoriData(data) {
 
 // Fungsi untuk mengupdate opsi sub-kategori di form modal
 function updateSubKategoriOptions(selectedKategori) {
-  const subKategoriSelect = $('#subKategori');
+  const subKategoriSelect = $('#sub_kategori_id');
   subKategoriSelect.empty();
   subKategoriSelect.prop('disabled', true);
   subKategoriSelect.append('<option value="" selected disabled>Pilih sub-kategori</option>');
@@ -118,7 +118,7 @@ function updateSubKategoriOptions(selectedKategori) {
     const parameterName = kategoriToSubKategoriMap[selectedKategori];
     if (subKategoriParametersData[parameterName] && subKategoriParametersData[parameterName].details) {
       subKategoriParametersData[parameterName].details.forEach(detail => {
-        subKategoriSelect.append(`<option value="${detail.nama_detail_parameter}">${detail.nama_detail_parameter}</option>`);
+        subKategoriSelect.append(`<option value="${detail.id}">${detail.nama_detail_parameter}</option>`);
       });
       subKategoriSelect.prop('disabled', false);
     }
@@ -126,8 +126,8 @@ function updateSubKategoriOptions(selectedKategori) {
 }
 
 // Fungsi untuk mengupdate opsi sub-kategori di edit modal
-function updateEditSubKategoriOptions(selectedKategori, currentSubKategori = null) {
-  const subKategoriSelect = $('#edit_sub_kategori');
+function updateEditSubKategoriOptions(selectedKategori, currentSubKategoriId = null) {
+  const subKategoriSelect = $('#edit_sub_kategori_id');
   subKategoriSelect.empty();
   subKategoriSelect.prop('disabled', true);
   subKategoriSelect.append('<option value="" selected disabled>Pilih sub-kategori</option>');
@@ -136,13 +136,12 @@ function updateEditSubKategoriOptions(selectedKategori, currentSubKategori = nul
     const parameterName = kategoriToSubKategoriMap[selectedKategori];
     if (subKategoriParametersData[parameterName] && subKategoriParametersData[parameterName].details) {
       subKategoriParametersData[parameterName].details.forEach(detail => {
-        subKategoriSelect.append(`<option value="${detail.nama_detail_parameter}">${detail.nama_detail_parameter}</option>`);
+        subKategoriSelect.append(`<option value="${detail.id}">${detail.nama_detail_parameter}</option>`);
       });
       subKategoriSelect.prop('disabled', false);
-
       // Set nilai yang sudah ada jika ada
-      if (currentSubKategori) {
-        subKategoriSelect.val(currentSubKategori);
+      if (currentSubKategoriId) {
+        subKategoriSelect.val(currentSubKategoriId);
       }
     }
   }

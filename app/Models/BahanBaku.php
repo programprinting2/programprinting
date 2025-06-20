@@ -16,7 +16,7 @@ class BahanBaku extends Model
         'keterangan',
         'detail_spesifikasi_json',
         'kategori',
-        'sub_kategori',
+        'sub_kategori_id',
         'status_aktif',
         'satuan_utama',
         'konversi_satuan_json',
@@ -51,5 +51,10 @@ class BahanBaku extends Model
     public function pemasokUtama()
     {
         return $this->belongsTo(Pemasok::class, 'pemasok_utama_id');
+    }
+
+    public function subKategoriDetail()
+    {
+        return $this->belongsTo(\App\Models\DetailParameter::class, 'sub_kategori_id');
     }
 }

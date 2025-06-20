@@ -56,7 +56,7 @@
 
         <!-- Form Pencarian dan Filter -->
         <form id="searchForm" class="row g-3 mb-4">
-          <div class="col-md-6">
+          <div class="col-md-4">
             <div class="input-group">
               <span class="input-group-text bg-light">
                 <i data-feather="search" class="icon-sm"></i>
@@ -77,6 +77,12 @@
             </select>
           </div>
           <div class="col-md-3">
+            <select class="form-select" id="sub_kategori_filter" name="sub_kategori" disabled>
+              <option value="">Semua Sub-Kategori</option>
+              <!-- Opsi akan diisi dinamis oleh JS, value=id -->
+            </select>
+          </div>
+          <div class="col-md-2">
             <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter">
               <i data-feather="refresh-cw" class="icon-sm me-1"></i> Reset
             </button>
@@ -97,6 +103,7 @@
                 <th>Kode Bahan</th>
                 <th>Nama Bahan</th>
                 <th>Kategori</th>
+                <th>Sub-Kategori</th>
                 <th>Satuan Utama</th>
                 <th>Stok Saat Ini</th>
                 <th>Harga Terakhir</th>
@@ -115,6 +122,7 @@
                     </div>
                 </td>
                 <td>{{ $b->kategori }}</td>
+                <td>{{ $b->subKategoriDetail ? $b->subKategoriDetail->nama_detail_parameter : '-' }}</td>
                 <td>{{ $b->satuan_utama }}</td>
                 <td>{{ $b->stok_saat_ini }}</td>
                 <td>
@@ -191,37 +199,71 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{{ asset('js/bahanbaku/bahanbaku-helper.js') }}"></script>
   <script>
+    // Inisialisasi data sub-kategori dari backend
+    window.subKategoriParametersData = @json($subKategoriParameters ?? []);
+    window.kategoriToSubKategoriMap = {
+      'Bahan Lembaran': 'SUB KATEGORI BAHAN LEMBARAN',
+      'Bahan Roll': 'SUB KATEGORI BAHAN ROLL',
+      'Bahan Cair': 'SUB KATEGORI BAHAN CAIR',
+      'Bahan Berat': 'SUB KATEGORI BAHAN BERAT',
+      'Bahan Unit/Biji': 'SUB KATEGORI BAHAN UNIT/BIJI',
+      'Bahan Paket/Set': 'SUB KATEGORI BAHAN PAKET/SET',
+      'Bahan Waktu/Jasa': 'SUB KATEGORI BAHAN WAKTU/JASA',
+    };
+    function updateSubKategoriFilterOptions(selectedKategori, selectedSubKategori = null) {
+      const subKategoriSelect = $('#sub_kategori_filter');
+      subKategoriSelect.empty();
+      subKategoriSelect.append('<option value="">Semua Sub-Kategori</option>');
+      subKategoriSelect.prop('disabled', true);
+      if (selectedKategori && window.kategoriToSubKategoriMap[selectedKategori]) {
+        const parameterName = window.kategoriToSubKategoriMap[selectedKategori];
+        const paramData = window.subKategoriParametersData[parameterName];
+        if (paramData && paramData.details) {
+          paramData.details.forEach(detail => {
+            subKategoriSelect.append(`<option value="${detail.id}">${detail.nama_detail_parameter}</option>`);
+          });
+          subKategoriSelect.prop('disabled', false);
+        }
+      }
+      // Set nilai terpilih jika ada
+      if (selectedSubKategori) {
+        subKategoriSelect.val(selectedSubKategori);
+      }
+    }
     $(document).ready(function() {
       feather.replace();
-
       // Inisialisasi format mata uang
       BahanBakuHelper.initMoneyFormat();
-      
       // Persiapan form submit
       BahanBakuHelper.prepareFormSubmit('#formTambahBahanBaku');
       BahanBakuHelper.prepareFormSubmit('#formEditBahanBaku');
-
       // Event listener untuk tombol reset filter
       $('#resetFilter').on('click', function() {
         window.location.href = '{{ route("backend.master-bahanbaku.index") }}';
       });
-
       // Event listener untuk tombol clearSearch (jika ada hasil kosong)
       $('#clearSearch').on('click', function() {
         window.location.href = '{{ route("backend.master-bahanbaku.index") }}';
       });
-
       // Submit form filter saat ada perubahan input search atau kategori_filter
       $('#search').on('keypress', function(e) {
         if (e.which == 13) { // Enter key pressed
           $('#searchForm').submit();
         }
       });
-
       $('#kategori_filter').on('change', function() {
+        const selectedKategori = $(this).val();
+        updateSubKategoriFilterOptions(selectedKategori, null);
+        // Reset sub-kategori saat kategori berubah
+        $('#sub_kategori_filter').val('');
         $('#searchForm').submit();
       });
-
+      // Inisialisasi sub-kategori filter saat halaman dimuat
+      updateSubKategoriFilterOptions($('#kategori_filter').val(), '{{ request('sub_kategori') }}');
+      // Submit form saat sub-kategori filter berubah
+      $('#sub_kategori_filter').on('change', function() {
+        $('#searchForm').submit();
+      });
       // Delete confirmation
       $('.btn-delete-bahanbaku').click(function(e) {
         e.preventDefault();

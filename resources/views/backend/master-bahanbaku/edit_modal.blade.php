@@ -61,8 +61,11 @@
                       </select>
                     </div>
                     <div class="col-md-6">
-                      <label for="edit_sub_kategori" class="form-label">Sub Kategori</label>
-                      <input type="text" class="form-control" id="edit_sub_kategori" name="sub_kategori">
+                      <label for="edit_sub_kategori_id" class="form-label">Sub Kategori</label>
+                      <select class="form-select" id="edit_sub_kategori_id" name="sub_kategori_id">
+                        <option value="" selected disabled>Pilih sub-kategori</option>
+                        <!-- Options akan diisi dinamis oleh JS, value=id -->
+                      </select>
                     </div>
                   </div>
                   <div class="row mb-3">
@@ -71,7 +74,7 @@
                       <select class="form-select" id="edit_satuan_utama" name="satuan_utama" required disabled>
                         <option value="">Pilih kategori terlebih dahulu</option>
                       </select>
-                    </div>
+                      </div>
                     <div class="col-md-6">
                       <label for="edit_status_aktif" class="form-label">Status Aktif</label>
                       <select class="form-select" id="edit_status_aktif" name="status_aktif" required>
@@ -116,8 +119,8 @@
                       <div id="edit_detail_spesifikasi_container">
                         <div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">
                           Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
-                        </div>
-                      </div>
+                    </div>
+                  </div>
                       <input type="hidden" name="detail_spesifikasi_json" id="edit_detail_spesifikasi_json" value="[]">
                     </div>
                   </div>
@@ -273,7 +276,7 @@
                             <div class="col-12 mb-1 text-start"><strong>Foto</strong></div>
                             <div class="col-12" id="editFotoPendukungPreview">
                                 <div class="text-muted text-center" id="noEditFotoMessage">
-                                    <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
+                                <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
                                 </div>
                             </div>
                         </div>
@@ -281,7 +284,7 @@
                             <div class="col-12 mb-1 text-start"><strong>Video</strong></div>
                             <div class="col-12" id="editVideoPendukungPreview">
                                 <div class="text-muted text-center" id="noEditVideoMessage">
-                                    <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
+                                <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
                                 </div>
                             </div>
                         </div>
@@ -328,8 +331,11 @@
                         </div>
                         <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan link pendukung seperti Google Drive, YouTube, atau website lain yang relevan.</p>
                         <div class="row g-2 mb-2">
-                            <div class="col-md-10">
+                            <div class="col-md-6">
                                 <input type="url" class="form-control" id="editInputLinkPendukung" placeholder="https://contoh.com/link-pendukung">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="editInputKeteranganLinkPendukung" placeholder="Keterangan (opsional)">
                             </div>
                             <div class="col-md-2">
                                 <button type="button" class="btn btn-outline-primary w-100" id="editTambahLinkPendukung"><i data-feather="plus" class="icon-sm me-1"></i>Tambah Link</button>
@@ -375,7 +381,7 @@
     // Event listener untuk perubahan kategori di modal edit
     $(document).ready(function() {
       // Inisialisasi awal
-      updateEditSubKategoriOptions($('#edit_kategori').val(), $('#edit_sub_kategori').val());
+      updateEditSubKategoriOptions($('#edit_kategori').val(), $('#edit_sub_kategori_id').val());
 
       $('#edit_kategori').on('change', function() {
         const selectedKategori = $(this).val();
@@ -386,7 +392,7 @@
       $('#editModal').on('shown.bs.modal', function () {
         // Panggil ini lagi untuk memastikan sub-kategori dimuat setelah kategori diset oleh loadBahanBakuData
         const selectedKategoriOnShow = $('#edit_kategori').val();
-        const currentSubKategoriOnShow = $('#edit_sub_kategori').val();
+        const currentSubKategoriOnShow = $('#edit_sub_kategori_id').val();
         updateEditSubKategoriOptions(selectedKategoriOnShow, currentSubKategoriOnShow);
       });
     });

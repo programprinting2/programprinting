@@ -58,9 +58,9 @@
                     </div>
                     <div class="col-md-6">
                       <label for="subKategori" class="form-label">Sub-Kategori</label>
-                      <select class="form-select" id="subKategori" name="sub_kategori">
+                      <select class="form-select" id="sub_kategori_id" name="sub_kategori_id">
                         <option value="" selected disabled>Pilih sub-kategori</option>
-                        <!-- Options will be dynamically loaded based on category -->
+                        <!-- Options akan diisi dinamis oleh JS, value=id -->
                       </select>
                       <small class="text-muted">Pengelompokan lebih detail dalam kategori yang sama</small>
                     </div>
@@ -367,8 +367,11 @@
                         </div>
                         <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan link pendukung seperti Google Drive, YouTube, atau website lain yang relevan.</p>
                         <div class="row g-2 mb-2">
-                            <div class="col-md-10">
+                            <div class="col-md-6">
                                 <input type="url" class="form-control" id="inputLinkPendukung" placeholder="https://contoh.com/link-pendukung">
+                            </div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control" id="inputKeteranganLinkPendukung" placeholder="Keterangan (opsional)">
                             </div>
                             <div class="col-md-2">
                                 <button type="button" class="btn btn-outline-primary w-100" id="tambahLinkPendukung"><i data-feather="plus" class="icon-sm me-1"></i>Tambah Link</button>

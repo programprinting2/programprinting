@@ -16,8 +16,8 @@ class MasterBahanbakuController extends Controller
     {
         $query = BahanBaku::query();
 
-        // Eager load relasi pemasokUtama
-        $query->with('pemasokUtama');
+        // Eager load relasi pemasokUtama dan subKategoriDetail
+        $query->with(['pemasokUtama', 'subKategoriDetail']);
 
         // Pencarian berdasarkan nama, kode, atau kategori
         if ($request->filled('search')) {
@@ -28,11 +28,16 @@ class MasterBahanbakuController extends Controller
                   ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $search . '%'])
                   ->orWhereRaw('LOWER(sub_kategori) LIKE ?', ['%' . $search . '%']);
             });
-    }
+        }
 
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
             $query->where('kategori', $request->kategori);
+        }
+
+        // Filter berdasarkan sub-kategori (FK)
+        if ($request->filled('sub_kategori')) {
+            $query->where('sub_kategori_id', $request->sub_kategori);
         }
 
         // Filter berdasarkan status
@@ -53,6 +58,9 @@ class MasterBahanbakuController extends Controller
         if ($request->has('status')) {
             $bahanbaku->appends(['status' => $request->status]);
         }
+        if ($request->has('sub_kategori')) {
+            $bahanbaku->appends(['sub_kategori' => $request->sub_kategori]);
+        }
 
         // Ambil data pemasok
         $pemasok = Pemasok::all();
@@ -71,7 +79,7 @@ class MasterBahanbakuController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_bahan' => 'required|string|max:255',
             'kategori' => 'required|string|max:255',
-            'sub_kategori' => 'nullable|string|max:255',
+            'sub_kategori_id' => 'required|exists:detail_parameters,id',
             'status_aktif' => 'required|in:0,1',
             'satuan_utama' => 'required|string|max:50',
             'konversi_satuan_json' => 'nullable|string',
@@ -200,6 +208,21 @@ class MasterBahanbakuController extends Controller
                 if ($request->has('link_pendukung_json')) {
                     $linkData = json_decode($request->input('link_pendukung_json'), true);
                     if (json_last_error() === JSON_ERROR_NONE) {
+                        // Migrasi data lama (array string) ke array objek
+                        $linkData = array_map(function($item) {
+                            if (is_string($item)) return ['url' => $item, 'keterangan' => ''];
+                            // Jika sudah objek, pastikan key url dan keterangan ada
+                            return [
+                                'url' => $item['url'] ?? '',
+                                'keterangan' => $item['keterangan'] ?? ''
+                            ];
+                        }, $linkData);
+                        // Validasi setiap item
+                        foreach ($linkData as $link) {
+                            if (!isset($link['url'])) {
+                                throw new \Exception('Setiap link pendukung harus memiliki url.');
+                            }
+                        }
                         $data['link_pendukung_json'] = $linkData;
                     } else {
                         throw new \Exception('Format link pendukung tidak valid');
@@ -277,7 +300,7 @@ class MasterBahanbakuController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_bahan' => 'required|string|max:255',
             'kategori' => 'required|string|max:255',
-            'sub_kategori' => 'nullable|string|max:255',
+            'sub_kategori_id' => 'required|exists:detail_parameters,id',
             'status_aktif' => 'required|in:0,1',
             'satuan_utama' => 'required|string|max:50',
             'konversi_satuan_json' => 'nullable|string',
@@ -364,6 +387,21 @@ class MasterBahanbakuController extends Controller
             if ($request->has('link_pendukung_json')) {
                 $linkData = json_decode($request->input('link_pendukung_json'), true);
                 if (json_last_error() === JSON_ERROR_NONE) {
+                    // Migrasi data lama (array string) ke array objek
+                    $linkData = array_map(function($item) {
+                        if (is_string($item)) return ['url' => $item, 'keterangan' => ''];
+                        // Jika sudah objek, pastikan key url dan keterangan ada
+                        return [
+                            'url' => $item['url'] ?? '',
+                            'keterangan' => $item['keterangan'] ?? ''
+                        ];
+                    }, $linkData);
+                    // Validasi setiap item
+                    foreach ($linkData as $link) {
+                        if (!isset($link['url'])) {
+                            throw new \Exception('Setiap link pendukung harus memiliki url.');
+                        }
+                    }
                     $data['link_pendukung_json'] = $linkData;
                 } else {
                     throw new \Exception('Format link pendukung tidak valid');

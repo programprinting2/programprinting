@@ -20,7 +20,8 @@ return new class extends Migration
             $table->text('keterangan')->nullable();
             $table->json('detail_spesifikasi_json');
             $table->string('kategori')->nullable();
-            $table->string('sub_kategori')->nullable();
+            // $table->string('sub_kategori')->nullable();
+            $table->unsignedBigInteger('sub_kategori_id')->nullable();
             $table->boolean('status_aktif')->default(true);
             $table->string('satuan_utama')->nullable();
             // $table->string('pilihan_warna')->nullable();
@@ -46,6 +47,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('pemasok_utama_id')->references('id')->on('pemasok')->onDelete('set null');
+            $table->foreign('sub_kategori_id')->references('id')->on('detail_parameters')->onDelete('set null');
         });
     }
 

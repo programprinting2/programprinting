@@ -189,30 +189,30 @@ function renderEditVideosPreview() {
               <i data-feather="x" class="icon-sm"></i>
             </button>
           </div>
-        </div>
+      </div>
       `;
       previewContainer.append(previewItem);
-      feather.replace();
+    feather.replace();
     });
   }
   // Video baru
   if (selectedEditVideos.length > 0) {
-    selectedEditVideos.forEach((file, index) => {
-      const previewItem = `
-        <div class="col-md-4 col-lg-3 col-xl-2 position-relative mb-2">
-          <div class="card border-0 preview-card d-flex flex-column align-items-center justify-content-center p-2" style="height: 100px; overflow: hidden;">
-            <i data-feather="video" class="icon-lg text-primary mb-1"></i>
+  selectedEditVideos.forEach((file, index) => {
+    const previewItem = `
+      <div class="col-md-4 col-lg-3 col-xl-2 position-relative mb-2">
+        <div class="card border-0 preview-card d-flex flex-column align-items-center justify-content-center p-2" style="height: 100px; overflow: hidden;">
+          <i data-feather="video" class="icon-lg text-primary mb-1"></i>
             <div class="text-truncate w-100 text-center" style="font-size: 0.75rem;">${file.name}</div>
-            <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-edit-video" data-index="${index}" style="--bs-btn-padding-y: .15rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .75rem;">
-              <i data-feather="x" class="icon-sm"></i>
-            </button>
-          </div>
+          <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-edit-video" data-index="${index}" style="--bs-btn-padding-y: .15rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .75rem;">
+            <i data-feather="x" class="icon-sm"></i>
+          </button>
         </div>
-      `;
-      previewContainer.append(previewItem);
-      feather.replace();
-    });
-  }
+      </div>
+    `;
+    previewContainer.append(previewItem);
+    feather.replace();
+  });
+}
   if (videoLamaEdit.length === 0 && selectedEditVideos.length === 0) {
     previewContainer.append(`
       <div class="col-12 text-center text-muted" id="noEditVideoMessage">
@@ -281,10 +281,13 @@ function renderEditLinkPendukung() {
     list.append('<li class="list-group-item text-muted text-center">Belum ada link yang ditambahkan.</li>');
     return;
   }
-  editLinkPendukung.forEach((link, idx) => {
+  editLinkPendukung.forEach((item, idx) => {
     list.append(`
       <li class="list-group-item d-flex justify-content-between align-items-center">
-        <a href="${link}" target="_blank" rel="noopener">${link}</a>
+        <div>
+          <a href="${item.url}" target="_blank" rel="noopener">${item.url}</a>
+          <br><small class="text-muted">${item.keterangan ? item.keterangan : ''}</small>
+        </div>
         <button type="button" class="btn btn-sm btn-danger edit-hapus-link-pendukung" data-index="${idx}"><i data-feather="trash" class="icon-sm"></i></button>
       </li>
     `);
@@ -295,9 +298,11 @@ function renderEditLinkPendukung() {
 // Event handler tambah link di modal edit
 $(document).on('click', '#editTambahLinkPendukung', function() {
   const link = $('#editInputLinkPendukung').val().trim();
-  if (link && /^https?:\/\//.test(link) && !editLinkPendukung.includes(link)) {
-    editLinkPendukung.push(link);
+  const ket = $('#editInputKeteranganLinkPendukung').val().trim();
+  if (link && /^https?:\/\//.test(link) && !editLinkPendukung.some(item => item.url === link)) {
+    editLinkPendukung.push({url: link, keterangan: ket});
     $('#editInputLinkPendukung').val('');
+    $('#editInputKeteranganLinkPendukung').val('');
     renderEditLinkPendukung();
   } else {
     Swal.fire({
@@ -470,7 +475,10 @@ function loadBahanBakuData(id) {
     updateEditStokInfo();
 
     // Saat load data edit, isi array link dari backend
-    editLinkPendukung = Array.isArray(data.link_pendukung_json) ? [...data.link_pendukung_json] : [];
+    editLinkPendukung = Array.isArray(data.link_pendukung_json) ? data.link_pendukung_json.map(item => {
+      if (typeof item === 'string') return {url: item, keterangan: ''};
+      return item;
+    }) : [];
     renderEditLinkPendukung();
 
     // === Spesifikasi Teknis Dinamis (Edit) ===
@@ -716,6 +724,10 @@ function prepareFormData(formData) {
 
     // Tambahkan link pendukung ke FormData
     formData.set('link_pendukung_json', JSON.stringify(editLinkPendukung));
+
+    // Pastikan pengambilan value sub-kategori menggunakan id
+    const subKategoriId = $('#edit_sub_kategori_id').val();
+    formData.append('sub_kategori_id', subKategoriId);
 
     return formData;
 }
