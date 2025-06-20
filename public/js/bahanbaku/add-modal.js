@@ -545,6 +545,8 @@ $(document).ready(function() {
     const formData = new FormData(this);
     // Panggil fungsi prepareFormData untuk memproses data sebelum dikirim
     prepareFormData(formData);
+    // Tambahkan CSRF token ke FormData agar tidak terjadi CSRF token mismatch
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     $.ajax({
       url: $('#addMaterialForm').attr('action') || '/backend/master-bahanbaku',
