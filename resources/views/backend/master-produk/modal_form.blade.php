@@ -227,8 +227,7 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Harga -->
+                        
                         <!-- Harga -->
                         <div class="tab-pane fade" id="alamat" role="tabpanel">
                             <div class="card mb-0">
@@ -430,8 +429,84 @@
                             </div>
                         </div>
                        
-                       
+                        <!-- alur produksi -->
+                        <!-- Alur Produksi -->
+                        <div class="tab-pane fade" id="penjualan" role="tabpanel">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="fw-semibold">Alur Produksi</span>
+                                                <div class="small text-muted">Tentukan mesin yang digunakan untuk memproduksi item ini</div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahMesin">
+                                                + Tambah Mesin
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div id="daftarMesin">
+                                        <!-- Mesin akan ditambahkan secara dinamis di sini -->
+                                    </div>
+                                    <div class="alert alert-info d-flex align-items-center mt-3" role="alert">
+                                        <i data-feather="info" class="me-2"></i>
+                                        <div>
+                                            Langkah-langkah produksi akan disimpan sebagai JSON dan digunakan untuk pelacakan produksi. Seleksi mesin akan memengaruhi biaya produksi dan perhitungan waktu.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
+                        @push('custom-scripts')
+                        <script>
+                        let mesinIndex = 0;
+
+                        function mesinTemplate(index = 0, data = {}) {
+                            return `
+                            <div class="border rounded mb-3 p-3 position-relative mesin-item" data-index="${index}">
+                                <button type="button" class="btn btn-link text-danger position-absolute top-0 end-0 mt-2 me-2 btnHapusMesin" title="Hapus Mesin"><i data-feather="trash-2"></i></button>
+                                <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
+                                <div class="row mb-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Nama Mesin</label>
+                                        <input type="text" class="form-control" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ''}" placeholder="Nama mesin" required>
+                                        <small class="text-muted">Tipe: <span>${data.tipe_mesin || 'Tidak diketahui'}</span></small>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Estimasi Waktu (menit)</label>
+                                        <input type="number" class="form-control" name="alur_produksi[${index}][estimasi_waktu]" value="${data.estimasi_waktu || ''}" min="0" placeholder="Estimasi waktu" required>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Catatan</label>
+                                    <textarea class="form-control" name="alur_produksi[${index}][catatan]" rows="2" placeholder="Catatan proses">${data.catatan || ''}</textarea>
+                                </div>
+                            </div>
+                            `;
+                        }
+
+                        function refreshFeather() {
+                            if (typeof feather !== 'undefined') {
+                                feather.replace();
+                            }
+                        }
+
+                        $(document).on('click', '#btnTambahMesin', function() {
+                            $('#daftarMesin').append(mesinTemplate(mesinIndex));
+                            mesinIndex++;
+                            refreshFeather();
+                        });
+
+                        $(document).on('click', '.btnHapusMesin', function() {
+                            $(this).closest('.mesin-item').remove();
+                            refreshFeather();
+                        });
+
+                        // Optional: Tambahkan mesin default jika diperlukan
+                        // $('#btnTambahMesin').trigger('click');
+                        </script>
+                        @endpush
                     </div>
 
                 </div>
