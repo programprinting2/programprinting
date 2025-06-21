@@ -13,8 +13,8 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('mesin', function (Blueprint $table) {
-            //
+        Schema::table('bahan_baku', function (Blueprint $table) {
+            $table->json('link_pendukung_json')->nullable()->after('dokumen_pendukung_json');
         });
     }
 
@@ -25,8 +25,8 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::table('mesin', function (Blueprint $table) {
-            //
+        Schema::table('bahan_baku', function (Blueprint $table) {
+            $table->dropColumn('link_pendukung_json');
         });
     }
 };

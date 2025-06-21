@@ -210,8 +210,7 @@ class MesinController extends Controller
                 ->route('backend.master-mesin.index')
                 ->with('success', 'Mesin berhasil ditambahkan');
         } catch (\Exception $e) {
-            \Log::error('Error in MesinController@store: ' . $e->getMessage());
-            \Log::error($e->getTraceAsString());
+
             
             if ($request->ajax()) {
                 return response()->json([
@@ -390,7 +389,6 @@ class MesinController extends Controller
                 'message' => 'Data mesin berhasil diperbarui'
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error updating mesin: ' . $e->getMessage());
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memperbarui data mesin: ' . $e->getMessage()
