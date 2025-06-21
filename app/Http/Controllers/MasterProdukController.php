@@ -17,11 +17,13 @@ class MasterProdukController extends Controller
      public function index(Request $request)
     {
         //$kategoriUtama='agus';
-        $kategoriUtama = MasterParameter::with('details')
-                                                ->where('nama_parameter', 'like', 'SUB KATEGORI%')
-                                                ->get()
-                                                ->keyBy('nama_parameter');
+        $masterKategoriUtama = MasterParameter::with('details')
+                                                ->where('nama_parameter', 'KATEGORI PRODUK')->first();
         
+        $kategoriUtama = $masterKategoriUtama ? 
+            $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
+
+       
         return view('backend.master-produk.index',compact('kategoriUtama'));
     }
 
