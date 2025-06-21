@@ -22,7 +22,7 @@ class MasterProdukController extends Controller
                                                 ->get()
                                                 ->keyBy('nama_parameter');
         
-        return view('backend.master-produk.index');
+        return view('backend.master-produk.index',compact('kategoriUtama'));
     }
 
     public function create()
