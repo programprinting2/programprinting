@@ -60,16 +60,16 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="kategori_utama" class="form-label">Kategori Utama *</label>
+                                        <label for="kategori_utama" class="form-label">Kategori Utama*</label>
                                         <div class="input-group">
                                             <select class="form-select" id="kategori_utama" name="kategori_utama" required>
-                                                @if(isset($kategoriUtama) && count($kategoriUtama) > 0)
+                                                {{-- @if(isset($kategoriUtama) && count($kategoriUtama) > 0) --}}
                                                     @foreach($kategoriUtama as $kategori)
                                                         <option value="{{ $kategori }}">{{ $kategori }}</option>
                                                     @endforeach
-                                                @else
+                                                {{-- @else
                                                     <option value="">Tidak ada data kategori utama</option>
-                                                @endif
+                                                @endif --}}
                                             </select>
                                             <button class="btn btn-outline-secondary" type="button">+ Tambah</button>
                                         </div>

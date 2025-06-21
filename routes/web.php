@@ -22,8 +22,8 @@ use App\Http\Controllers\SPKController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
-use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\PemasokController;
+use App\Http\Controllers\MasterProdukController;
 
 
 Route::get('/', function () {

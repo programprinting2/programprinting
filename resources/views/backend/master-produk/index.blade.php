@@ -161,7 +161,7 @@
 
 @push('custom-scripts')
     {{-- <script src="{{ asset('js/pemasok/pemasok-edit-modal.js') }}"></script> --}}
-    <script>
+    {{-- <script>
         $(document).ready(function () {
             // Initialize Feather Icons
             feather.replace();
@@ -261,5 +261,5 @@
                 }
             });
         }
-    </script> 
+    </script>  --}}
 @endpush
