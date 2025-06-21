@@ -1,0 +1,17 @@
+.dropzone-area-media {
+  border: 2px dashed #6c757d;
+  background: #f8f9fa;
+  transition: border-color 0.2s, background 0.2s;
+  cursor: pointer;
+  min-height: 120px;
+  position: relative;
+}
+.dropzone-area-media.dragover {
+  border-color: #007bff;
+  background: #e9f5ff;
+}
+.dropzone-area-media .dz-message {
+  color: #6c757d;
+  font-size: 1rem;
+  pointer-events: none;
+} 

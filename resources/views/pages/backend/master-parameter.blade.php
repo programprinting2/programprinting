@@ -210,7 +210,6 @@
       <div class="card-body">
         <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="card-title" id="detailTitle">Detail Parameter</h6>
-        <button class="btn btn-dark btn-sm" id="btnAddDetail" disabled><i class="fa fa-plus"></i></button>
         </div>
         <input type="text" class="form-control mb-2" id="searchDetail" placeholder="Cari detail...">
         <div class="table-responsive table-container">
@@ -310,14 +309,13 @@
 @endsection
 
 @push('plugin-scripts')
-  <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>
-  <script src="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.7.32/dist/sweetalert2.all.min.js"></script>
 @endpush
 
 @push('custom-scripts')
   <script>
     let kategoriAktif = null;
+    let namaKategoriAktif = '';
     let isSubmitting = false;
 
     function showLoading() {
@@ -371,45 +369,44 @@
         .then(res => res.text())
         .then(html => {
           let data = @json($data_parameter);
-          let list = '';
-          data.forEach(kat => {
-            list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif == kat.id ? 'active' : ''}" data-id="${kat.id}">
-              <div class="d-flex flex-column">
-                <span>${kat.nama_parameter}</span>
-                <span class="text-muted">${kat.keterangan || ''}</span>
-              </div>
-              <div class="btn-group">
-                <button class="btn btn-xs btn-outline-primary btn-edit-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
-                <button class="btn btn-xs btn-outline-danger btn-del-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
-              </div>
-            </li>`;
-          });
-          document.getElementById('kategoriList').innerHTML = list;
+          renderKategoriList(data);
         });
     }
+
+    function renderKategoriList(data) {
+      let keyword = $('#searchKategori').val()?.toLowerCase() || '';
+      let list = '';
+      data.filter(kat => {
+        return kat.nama_parameter.toLowerCase().includes(keyword) || (kat.keterangan || '').toLowerCase().includes(keyword);
+      }).forEach(kat => {
+        list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif == kat.id ? 'active' : ''}" data-id="${kat.id}">
+          <div class="d-flex flex-column">
+            <span>${kat.nama_parameter}</span>
+            <span class="text-muted">${kat.keterangan || ''}</span>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-xs btn-outline-primary btn-edit-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
+            <button class="btn btn-xs btn-outline-danger btn-del-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
+            <button class="btn btn-xs btn-dark btn-add-detail" title="Tambah Detail Parameter" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-plus"></i></button>
+          </div>
+        </li>`;
+      });
+      document.getElementById('kategoriList').innerHTML = list;
+    }
+
+    // Search kategori event
+    $(document).on('input', '#searchKategori', function() {
+      let data = @json($data_parameter);
+      renderKategoriList(data);
+    });
 
     function loadDetail(id) {
       showLoading();
       fetch(`/backend/master-parameter/${id}/detail`)
         .then(res => res.json())
         .then(data => {
-          let list = '';
-          if (data.length == 0) {
-            list = `<tr><td colspan="5" class="text-center text-muted">Belum ada detail</td></tr>`;
-          } else {
-            data.forEach(det => {
-              list += `<tr data-id="${det.id}">
-                <td>${det.nama_detail_parameter}</td>
-                <td>${det.keterangan || ''}</td>
-                <td><span class="badge bg-${det.aktif ? 'primary' : 'secondary'}">${det.aktif ? 'Aktif' : 'Nonaktif'}</span></td>
-                <td>
-                  <button class="btn btn-xs btn-outline-primary btn-edit-detail" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
-                  <button class="btn btn-xs btn-outline-danger btn-del-detail" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
-                </td>
-              </tr>`;
-            });
-          }
-          document.getElementById('detailList').innerHTML = list;
+          window._detailData = data; // simpan data detail untuk pencarian
+          renderDetailList(data);
           hideLoading();
         })
         .catch(error => {
@@ -422,6 +419,37 @@
           });
         });
     }
+
+    function renderDetailList(data) {
+      let keyword = $('#searchDetail').val()?.toLowerCase() || '';
+      let list = '';
+      let filtered = data.filter(det => {
+        return det.nama_detail_parameter.toLowerCase().includes(keyword) || (det.keterangan || '').toLowerCase().includes(keyword);
+      });
+      if (filtered.length == 0) {
+        list = `<tr><td colspan="5" class="text-center text-muted">Tidak ada data detail ditemukan</td></tr>`;
+      } else {
+        filtered.forEach(det => {
+          list += `<tr data-id="${det.id}">
+            <td>${det.nama_detail_parameter}</td>
+            <td>${det.keterangan || ''}</td>
+            <td><span class="badge bg-${det.aktif ? 'primary' : 'secondary'}">${det.aktif ? 'Aktif' : 'Nonaktif'}</span></td>
+            <td>
+              <button class="btn btn-xs btn-outline-primary btn-edit-detail" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
+              <button class="btn btn-xs btn-outline-danger btn-del-detail" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>`;
+        });
+      }
+      document.getElementById('detailList').innerHTML = list;
+    }
+
+    // Search detail event
+    $(document).on('input', '#searchDetail', function() {
+      if (window._detailData) {
+        renderDetailList(window._detailData);
+      }
+    });
 
     // Kategori event
     $(document).on('click', '#btnAddKategori', function () {
@@ -528,22 +556,37 @@
     $('#kategoriList li').removeClass('active');
     $(this).addClass('active');
     kategoriAktif = $(this).data('id');
+    namaKategoriAktif = $(this).find('span').first().text();
     $('#btnAddDetail').prop('disabled', false);
     loadDetail(kategoriAktif);
     });
 
-    // Detail event
-    $(document).on('click', '#btnAddDetail', function () {
-    $('#modalDetailTitle').text('Tambah Detail Parameter');
-    $('#formDetail')[0].reset();
-    $('#detailId').val('');
-    $('#modalDetail').modal('show');
+    // Event baru untuk tombol tambah detail di kategori
+    $(document).on('click', '.btn-add-detail', function (e) {
+      e.stopPropagation();
+      let li = $(this).closest('li');
+      kategoriAktif = li.data('id');
+      namaKategoriAktif = li.find('span').first().text();
+      let title = 'Tambah Detail Parameter';
+      if (namaKategoriAktif) {
+        title += ' untuk ' + namaKategoriAktif;
+      }
+      $('#modalDetailTitle').text(title);
+      $('#formDetail')[0].reset();
+      $('#detailId').val('');
+      $('#modalDetail').modal('show');
     });
+
+    // Detail event
     $(document).on('click', '.btn-edit-detail', function () {
     let id = $(this).closest('tr').data('id');
     $.get(`/backend/master-parameter/${kategoriAktif}/detail`, function (data) {
       let det = data.find(d => d.id == id);
-      $('#modalDetailTitle').text('Edit Detail Parameter');
+      let title = 'Edit Detail Parameter';
+      if (namaKategoriAktif) {
+        title += ' untuk ' + namaKategoriAktif;
+      }
+      $('#modalDetailTitle').text(title);
       $('#detailId').val(det.id);
       $('#detailNama').val(det.nama_detail_parameter);
       $('#detailKeterangan').val(det.keterangan);

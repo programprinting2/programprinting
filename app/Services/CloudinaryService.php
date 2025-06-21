@@ -56,7 +56,6 @@ class CloudinaryService
             
             return $result['public_id'];
         } catch (\Exception $e) {
-            \Log::error('Cloudinary upload error: ' . $e->getMessage());
             return null;
         }
     }
@@ -75,7 +74,6 @@ class CloudinaryService
             ]);
             return true;
         } catch (\Exception $e) {
-            \Log::error('Cloudinary delete error: ' . $e->getMessage());
             return false;
         }
     }

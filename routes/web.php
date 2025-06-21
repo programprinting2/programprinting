@@ -88,7 +88,16 @@ Route::group(['prefix' => 'backend'], function () {
     Route::put('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'updateDetail'])->name('backend.master-parameter.detail.update');
     Route::delete('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'destroyDetail'])->name('backend.master-parameter.detail.destroy');
 
-    Route::get('master-bahanbaku', [MasterBahanbakuController::class, 'index'])->name('backend.master-bahanbaku');
+     // Bahan Baku Resource Routes
+     Route::resource('master-bahanbaku', MasterBahanBakuController::class)->names([
+        'index' => 'backend.master-bahanbaku.index',
+        'create' => 'backend.master-bahanbaku.create',
+        'store' => 'backend.master-bahanbaku.store',
+        'show' => 'backend.master-bahanbaku.show',
+        'edit' => 'backend.master-bahanbaku.edit',
+        'update' => 'backend.master-bahanbaku.update',
+        'destroy' => 'backend.master-bahanbaku.destroy',
+    ]);
 
     // Karyawan Resource Routes
     Route::resource('karyawan', KaryawanController::class)->names([
