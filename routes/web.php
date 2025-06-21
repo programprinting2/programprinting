@@ -22,7 +22,9 @@ use App\Http\Controllers\SPKController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
+use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\PemasokController;
+
 
 Route::get('/', function () {
     return view('dashboard');
@@ -111,7 +113,7 @@ Route::group(['prefix' => 'backend'], function () {
     ]);
 
     // Produk Resource Routes
-    Route::resource('master-produk', ProdukController::class)->names([
+    Route::resource('master-produk', MasterProdukController::class)->names([
         'index' => 'backend.master-produk.index',
         'create' => 'backend.master-produk.create',
         'store' => 'backend.master-produk.store',
@@ -120,6 +122,7 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.master-produk.update',
         'destroy' => 'backend.master-produk.destroy',
     ]);
+
 
 });
 

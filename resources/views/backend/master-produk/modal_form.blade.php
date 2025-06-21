@@ -63,8 +63,13 @@
                                         <label for="kategori_utama" class="form-label">Kategori Utama *</label>
                                         <div class="input-group">
                                             <select class="form-select" id="kategori_utama" name="kategori_utama" required>
-                                                <option value="Digital Print">Digital Print</option>
-                                                <!-- Tambahkan opsi lain jika perlu -->
+                                                @if(isset($kategoriUtama) && count($kategoriUtama) > 0)
+                                                    @foreach($kategoriUtama as $kategori)
+                                                        <option value="{{ $kategori }}">{{ $kategori }}</option>
+                                                    @endforeach
+                                                @else
+                                                    <option value="">Tidak ada data kategori utama</option>
+                                                @endif
                                             </select>
                                             <button class="btn btn-outline-secondary" type="button">+ Tambah</button>
                                         </div>
