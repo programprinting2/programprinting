@@ -6,6 +6,8 @@ use Illuminate\Http\Request;
 use App\Models\MasterParameter;
 use Illuminate\Support\Facades\Storage;
 use App\Models\DetailParameter;
+use App\Models\SubDetailParameter;
+use Illuminate\Support\Facades\DB;
 
 class MasterParameterController extends Controller
 {
@@ -63,19 +65,42 @@ class MasterParameterController extends Controller
     public function storeDetail(Request $request, $id)
     {
         try {
+            DB::beginTransaction();
+            
             $validated = $request->validate([
                 'nama_detail_parameter' => 'required|string|max:255',
                 'isi_parameter' => 'nullable|string',
                 'keterangan' => 'nullable|string',
                 'aktif' => 'required|in:0,1',
+                'sub_details' => 'nullable|string', // JSON string dari frontend
             ]);
             
             $validated['master_parameter_id'] = $id;
             $validated['aktif'] = (int)$request->input('aktif', 1);
             
             $detail = DetailParameter::create($validated);
+            
+            // Proses sub detail parameter
+            if ($request->has('sub_details') && $request->sub_details) {
+                $subDetails = json_decode($request->sub_details, true);
+                if (is_array($subDetails)) {
+                    foreach ($subDetails as $subDetail) {
+                        if (!empty($subDetail['nama_sub_detail_parameter'])) {
+                            SubDetailParameter::create([
+                                'detail_parameter_id' => $detail->id,
+                                'nama_sub_detail_parameter' => $subDetail['nama_sub_detail_parameter'],
+                                'keterangan' => $subDetail['keterangan'] ?? null,
+                                'aktif' => $subDetail['aktif'] ?? true,
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            DB::commit();
             return response()->json($detail);
         } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
@@ -83,18 +108,45 @@ class MasterParameterController extends Controller
     public function updateDetail(Request $request, $id, $detailId)
     {
         try {
+            DB::beginTransaction();
+            
             $detail = DetailParameter::findOrFail($detailId);
             $validated = $request->validate([
                 'nama_detail_parameter' => 'required|string|max:255',
                 'isi_parameter' => 'nullable|string',
                 'keterangan' => 'nullable|string',
                 'aktif' => 'required|in:0,1',
+                'sub_details' => 'nullable|string', // JSON string dari frontend
             ]);
             
             $validated['aktif'] = (int)$request->input('aktif', 1);
             $detail->update($validated);
+            
+            // Proses sub detail parameter
+            if ($request->has('sub_details') && $request->sub_details) {
+                $subDetails = json_decode($request->sub_details, true);
+                if (is_array($subDetails)) {
+                    // Hapus semua sub detail yang ada
+                    SubDetailParameter::where('detail_parameter_id', $detailId)->delete();
+                    
+                    // Buat ulang sub detail yang baru
+                    foreach ($subDetails as $subDetail) {
+                        if (!empty($subDetail['nama_sub_detail_parameter'])) {
+                            SubDetailParameter::create([
+                                'detail_parameter_id' => $detailId,
+                                'nama_sub_detail_parameter' => $subDetail['nama_sub_detail_parameter'],
+                                'keterangan' => $subDetail['keterangan'] ?? null,
+                                'aktif' => $subDetail['aktif'] ?? true,
+                            ]);
+                        }
+                    }
+                }
+            }
+            
+            DB::commit();
             return response()->json($detail);
         } catch (\Exception $e) {
+            DB::rollback();
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
