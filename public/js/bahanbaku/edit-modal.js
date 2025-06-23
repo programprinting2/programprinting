@@ -335,7 +335,8 @@ function loadBahanBakuData(id) {
     $('#edit_kode_bahan').val(data.kode_bahan);
     $('#edit_nama_bahan').val(data.nama_bahan);
     $('#edit_kategori').val(data.kategori).trigger('change');
-    $('#edit_sub_kategori').val(data.sub_kategori);
+    updateEditSubKategoriOptions(data.kategori, data.sub_kategori_id);
+    $('#edit_sub_kategori_id').val(data.sub_kategori_id);
     $('#edit_satuan_utama').val(data.satuan_utama);
     $('#edit_status_aktif').val(data.status_aktif ? '1' : '0');
     $('#edit_keterangan').val(data.keterangan);

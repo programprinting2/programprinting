@@ -275,7 +275,7 @@
 
   <!-- Modal Detail -->
   <div class="modal fade" id="modalDetail" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <div class="modal-header">
       <h5 class="modal-title" id="modalDetailTitle">Tambah Detail Parameter</h5>
@@ -295,6 +295,30 @@
         <div class="form-check form-switch mb-3">
         <input class="form-check-input" type="checkbox" id="detailAktif" checked>
         <label class="form-check-label" for="detailAktif">Aktif</label>
+        </div>
+        
+        <!-- Section Sub Detail Parameter -->
+        <hr>
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h6>Sub Detail Parameter</h6>
+          <button type="button" class="btn btn-dark btn-sm" id="btnAddSubDetail"><i class="fa fa-plus"></i> Tambah Baris</button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-bordered table-sm">
+            <thead>
+              <tr>
+                <th>Nama</th>
+                <th>Deskripsi</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="subDetailList">
+              <tr>
+                <td colspan="4" class="text-center text-muted">Belum ada sub detail parameter</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </form>
       </div>
@@ -316,7 +340,11 @@
   <script>
     let kategoriAktif = null;
     let namaKategoriAktif = '';
+    let detailAktif = null;
     let isSubmitting = false;
+
+    // Data lokal untuk sub detail
+    let subDetailData = [];
 
     function showLoading() {
       $('#loadingDetail').show();
@@ -345,14 +373,22 @@
         $('#btnAddDetail').removeClass('btn-loading');
       }
       
-      // Set loading state untuk button edit dan delete
-      $('.btn-edit-kat, .btn-del-kat, .btn-edit-detail, .btn-del-detail').prop('disabled', isLoading);
+      // Set loading state untuk button sub detail
+      $('#btnAddSubDetail').prop('disabled', isLoading);
       if (isLoading) {
-        $('.btn-edit-kat, .btn-edit-detail').addClass('btn-loading');
-        $('.btn-del-kat, .btn-del-detail').addClass('btn-loading');
+        $('#btnAddSubDetail').addClass('btn-loading');
       } else {
-        $('.btn-edit-kat, .btn-edit-detail').removeClass('btn-loading');
-        $('.btn-del-kat, .btn-del-detail').removeClass('btn-loading');
+        $('#btnAddSubDetail').removeClass('btn-loading');
+      }
+      
+      // Set loading state untuk button edit dan delete
+      $('.btn-edit-kat, .btn-del-kat, .btn-edit-detail, .btn-del-detail, .btn-edit-sub-detail, .btn-del-sub-detail').prop('disabled', isLoading);
+      if (isLoading) {
+        $('.btn-edit-kat, .btn-edit-detail, .btn-edit-sub-detail').addClass('btn-loading');
+        $('.btn-del-kat, .btn-del-detail, .btn-del-sub-detail').addClass('btn-loading');
+      } else {
+        $('.btn-edit-kat, .btn-edit-detail, .btn-edit-sub-detail').removeClass('btn-loading');
+        $('.btn-del-kat, .btn-del-detail, .btn-del-sub-detail').removeClass('btn-loading');
       }
       
       // Set loading state untuk button simpan di modal
@@ -375,25 +411,25 @@
 
     function renderKategoriList(data) {
       let keyword = $('#searchKategori').val()?.toLowerCase() || '';
-      let list = '';
+          let list = '';
       data.filter(kat => {
         return kat.nama_parameter.toLowerCase().includes(keyword) || (kat.keterangan || '').toLowerCase().includes(keyword);
       }).forEach(kat => {
-        list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif == kat.id ? 'active' : ''}" data-id="${kat.id}">
-          <div class="d-flex flex-column">
-            <span>${kat.nama_parameter}</span>
-            <span class="text-muted">${kat.keterangan || ''}</span>
-          </div>
-          <div class="btn-group">
-            <button class="btn btn-xs btn-outline-primary btn-edit-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
-            <button class="btn btn-xs btn-outline-danger btn-del-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
+            list += `<li class="list-group-item d-flex justify-content-between align-items-center ${kategoriAktif == kat.id ? 'active' : ''}" data-id="${kat.id}">
+              <div class="d-flex flex-column">
+                <span>${kat.nama_parameter}</span>
+                <span class="text-muted">${kat.keterangan || ''}</span>
+              </div>
+              <div class="btn-group">
+                <button class="btn btn-xs btn-outline-primary btn-edit-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-edit"></i></button>
+                <button class="btn btn-xs btn-outline-danger btn-del-kat" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-trash"></i></button>
             <button class="btn btn-xs btn-dark btn-add-detail" title="Tambah Detail Parameter" ${isSubmitting ? 'disabled' : ''}><i class="fa fa-plus"></i></button>
-          </div>
-        </li>`;
-      });
-      document.getElementById('kategoriList').innerHTML = list;
+              </div>
+            </li>`;
+          });
+          document.getElementById('kategoriList').innerHTML = list;
     }
-
+    
     // Search kategori event
     $(document).on('input', '#searchKategori', function() {
       let data = @json($data_parameter);
@@ -431,7 +467,10 @@
       } else {
         filtered.forEach(det => {
           list += `<tr data-id="${det.id}">
-            <td>${det.nama_detail_parameter}</td>
+            <td>
+              <div>${det.nama_detail_parameter}</div>
+              <ul class='mb-0 ps-3 small text-muted sub-detail-list' data-detail-id='${det.id}' style='list-style: disc;'></ul>
+            </td>
             <td>${det.keterangan || ''}</td>
             <td><span class="badge bg-${det.aktif ? 'primary' : 'secondary'}">${det.aktif ? 'Aktif' : 'Nonaktif'}</span></td>
             <td>
@@ -442,6 +481,23 @@
         });
       }
       document.getElementById('detailList').innerHTML = list;
+      // Setelah render, load sub detail untuk setiap detail
+      filtered.forEach(det => loadSubDetailIndex(det.id));
+    }
+
+    // Fungsi untuk load sub detail di index
+    function loadSubDetailIndex(detailId) {
+      fetch(`/backend/master-parameter/${kategoriAktif}/detail/${detailId}/sub-detail`)
+        .then(res => res.json())
+        .then(data => {
+          let html = '';
+          if (data.length > 0) {
+            data.forEach(sub => {
+              html += `<li>${sub.nama_sub_detail_parameter}${sub.aktif ? '' : ' <span class=\'badge bg-secondary\'>Nonaktif</span>'}</li>`;
+            });
+          }
+          $(`.sub-detail-list[data-detail-id='${detailId}']`).html(html);
+        });
     }
 
     // Search detail event
@@ -451,6 +507,79 @@
       }
     });
 
+    // Render sub detail ke tabel
+    function renderSubDetailTable() {
+      let list = '';
+      if (subDetailData.length === 0) {
+        list = '<tr><td colspan="4" class="text-center text-muted">Belum ada sub detail parameter</td></tr>';
+      } else {
+        subDetailData.forEach((sub, idx) => {
+          list += `<tr data-idx="${idx}">
+            <td><input type="text" class="form-control form-control-sm sub-nama" value="${sub.nama_sub_detail_parameter || ''}" placeholder="Nama sub detail" /></td>
+            <td><input type="text" class="form-control form-control-sm sub-keterangan" value="${sub.keterangan || ''}" placeholder="Keterangan" /></td>
+            <td class="text-center">
+              <input type="checkbox" class="form-check-input sub-aktif" ${sub.aktif ? 'checked' : ''} />
+            </td>
+            <td class="text-center">
+              <button type="button" class="btn btn-xs btn-outline-danger btn-del-sub-detail"><i class="fa fa-trash"></i></button>
+            </td>
+          </tr>`;
+        });
+      }
+      $('#subDetailList').html(list);
+    }
+
+    // Tambah baris sub detail
+    $(document).on('click', '#btnAddSubDetail', function() {
+      subDetailData.push({ nama_sub_detail_parameter: '', keterangan: '', aktif: true });
+      renderSubDetailTable();
+    });
+
+    // Hapus baris sub detail
+    $(document).on('click', '.btn-del-sub-detail', function() {
+      let idx = $(this).closest('tr').data('idx');
+      subDetailData.splice(idx, 1);
+      renderSubDetailTable();
+    });
+
+    // Edit inline sub detail (nama/keterangan/aktif)
+    $(document).on('input', '.sub-nama', function() {
+      let idx = $(this).closest('tr').data('idx');
+      subDetailData[idx].nama_sub_detail_parameter = $(this).val();
+    });
+    $(document).on('input', '.sub-keterangan', function() {
+      let idx = $(this).closest('tr').data('idx');
+      subDetailData[idx].keterangan = $(this).val();
+    });
+    $(document).on('change', '.sub-aktif', function() {
+      let idx = $(this).closest('tr').data('idx');
+      subDetailData[idx].aktif = $(this).is(':checked');
+    });
+
+    // Saat modal detail dibuka, load sub detail ke data lokal
+    function loadSubDetail(detailId) {
+      if (!detailId) {
+        subDetailData = [];
+        renderSubDetailTable();
+        return;
+      }
+      fetch(`/backend/master-parameter/${kategoriAktif}/detail/${detailId}/sub-detail`)
+        .then(res => res.json())
+        .then(data => {
+          subDetailData = data.map(sub => ({
+            id: sub.id,
+            nama_sub_detail_parameter: sub.nama_sub_detail_parameter,
+            keterangan: sub.keterangan,
+            aktif: sub.aktif
+          }));
+          renderSubDetailTable();
+        })
+        .catch(error => {
+          subDetailData = [];
+          renderSubDetailTable();
+        });
+    }
+    
     // Kategori event
     $(document).on('click', '#btnAddKategori', function () {
     $('#modalKategoriTitle').text('Tambah Kategori');
@@ -567,14 +696,16 @@
       let li = $(this).closest('li');
       kategoriAktif = li.data('id');
       namaKategoriAktif = li.find('span').first().text();
+      detailAktif = null; // Reset detail aktif
       let title = 'Tambah Detail Parameter';
       if (namaKategoriAktif) {
         title += ' untuk ' + namaKategoriAktif;
       }
       $('#modalDetailTitle').text(title);
-      $('#formDetail')[0].reset();
-      $('#detailId').val('');
-      $('#modalDetail').modal('show');
+    $('#formDetail')[0].reset();
+    $('#detailId').val('');
+      loadSubDetail(null); // Reset sub detail list
+    $('#modalDetail').modal('show');
     });
 
     // Detail event
@@ -582,15 +713,17 @@
     let id = $(this).closest('tr').data('id');
     $.get(`/backend/master-parameter/${kategoriAktif}/detail`, function (data) {
       let det = data.find(d => d.id == id);
-      let title = 'Edit Detail Parameter';
-      if (namaKategoriAktif) {
-        title += ' untuk ' + namaKategoriAktif;
-      }
-      $('#modalDetailTitle').text(title);
+        detailAktif = det.id; // Set detail aktif
+        let title = 'Edit Detail Parameter';
+        if (namaKategoriAktif) {
+          title += ' untuk ' + namaKategoriAktif;
+        }
+        $('#modalDetailTitle').text(title);
       $('#detailId').val(det.id);
       $('#detailNama').val(det.nama_detail_parameter);
       $('#detailKeterangan').val(det.keterangan);
       $('#detailAktif').prop('checked', det.aktif);
+        loadSubDetail(det.id); // Load sub detail untuk detail ini
       $('#modalDetail').modal('show');
     });
     });
@@ -639,10 +772,19 @@
         nama_detail_parameter: $('#detailNama').val(),
         keterangan: $('#detailKeterangan').val(),
         aktif: $('#detailAktif').is(':checked') ? 1 : 0,
+        sub_details: JSON.stringify(subDetailData),
         _token: '{{csrf_token()}}'
       };
 
       if (!data.nama_detail_parameter) return alert('Nama detail wajib diisi!');
+      
+      // Validasi sub detail
+      for (let sub of subDetailData) {
+        if (!sub.nama_sub_detail_parameter) {
+          alert('Nama sub detail wajib diisi!');
+          return;
+        }
+      }
       
       setLoadingState(true);
       
@@ -653,8 +795,17 @@
           data, 
           success: () => { 
             loadDetail(kategoriAktif); 
+            detailAktif = id;
+            loadSubDetail(id);
             $('#modalDetail').modal('hide'); 
             setLoadingState(false);
+            Swal.fire({
+              title: 'Berhasil!',
+              text: 'Detail parameter dan sub detail berhasil disimpan',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
           },
           error: function(xhr) {
             alert('Terjadi kesalahan: ' + xhr.responseText);
@@ -666,10 +817,21 @@
           url: `/backend/master-parameter/${kategoriAktif}/detail`,
           type: 'POST',
           data,
-          success: () => { 
+          success: (response) => { 
             loadDetail(kategoriAktif); 
+            if (response && response.id) {
+              detailAktif = response.id;
+              loadSubDetail(response.id);
+            }
             $('#modalDetail').modal('hide'); 
             setLoadingState(false);
+            Swal.fire({
+              title: 'Berhasil!',
+              text: 'Detail parameter dan sub detail berhasil disimpan',
+              icon: 'success',
+              timer: 1500,
+              showConfirmButton: false
+            });
           },
           error: function(xhr) {
             alert('Terjadi kesalahan: ' + xhr.responseText);

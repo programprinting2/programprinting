@@ -23,6 +23,7 @@ use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
+use App\Http\Controllers\SubDetailParameterController;
 
 Route::get('/', function () {
     return view('dashboard');
@@ -87,6 +88,17 @@ Route::group(['prefix' => 'backend'], function () {
     Route::post('master-parameter/{id}/detail', [MasterParameterController::class, 'storeDetail'])->name('backend.master-parameter.detail.store');
     Route::put('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'updateDetail'])->name('backend.master-parameter.detail.update');
     Route::delete('master-parameter/{id}/detail/{detailId}', [MasterParameterController::class, 'destroyDetail'])->name('backend.master-parameter.detail.destroy');
+    
+    // Sub Detail Parameter Resource Routes
+    Route::resource('master-parameter.detail.sub-detail', SubDetailParameterController::class)->names([
+        'index' => 'backend.master-parameter.detail.sub-detail.index',
+        'create' => 'backend.master-parameter.detail.sub-detail.create',
+        'store' => 'backend.master-parameter.detail.sub-detail.store',
+        'show' => 'backend.master-parameter.detail.sub-detail.show',
+        'edit' => 'backend.master-parameter.detail.sub-detail.edit',
+        'update' => 'backend.master-parameter.detail.sub-detail.update',
+        'destroy' => 'backend.master-parameter.detail.sub-detail.destroy',
+    ]);
 
      // Bahan Baku Resource Routes
      Route::resource('master-bahanbaku', MasterBahanBakuController::class)->names([
