@@ -21,4 +21,9 @@ class DetailParameter extends Model
         'nama_detail_parameter',
         'warna',
     ];
+
+    public function subDetailParameters()
+    {
+        return $this->hasMany(SubDetailParameter::class, 'detail_parameter_id');
+    }
 }
