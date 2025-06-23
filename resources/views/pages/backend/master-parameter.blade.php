@@ -429,7 +429,7 @@
           });
           document.getElementById('kategoriList').innerHTML = list;
     }
-
+    
     // Search kategori event
     $(document).on('input', '#searchKategori', function() {
       let data = @json($data_parameter);
@@ -579,7 +579,7 @@
           renderSubDetailTable();
         });
     }
-
+    
     // Kategori event
     $(document).on('click', '#btnAddKategori', function () {
     $('#modalKategoriTitle').text('Tambah Kategori');
