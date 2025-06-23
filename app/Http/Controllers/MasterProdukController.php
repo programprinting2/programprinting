@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\MasterParameter;
+use App\Models\SubDetailParameter;
 use Illuminate\Http\Request;
 use App\Services\CloudinaryService;
 use App\Models\DetailParameter; // Pastikan model ini sesuai dengan tabel kategori utama
@@ -23,9 +24,9 @@ class MasterProdukController extends Controller
         $kategoriUtama = $masterKategoriUtama ? 
             $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
 
-       
-        // $subKategori = $masterKategoriUtama ? 
-        //     $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
+
+        $masterSubKategori = SubDetailParameter::with('details')
+                                                ->where('sub_detail_parameter', 'KATEGORI PRODUK')->first();
 
         return view('backend.master-produk.index',compact('kategoriUtama'));
     }
