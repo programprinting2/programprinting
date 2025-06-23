@@ -24,8 +24,8 @@ class MasterProdukController extends Controller
             $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
 
        
-        $subKategori = $masterKategoriUtama ? 
-            $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
+        // $subKategori = $masterKategoriUtama ? 
+        //     $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
 
         return view('backend.master-produk.index',compact('kategoriUtama'));
     }

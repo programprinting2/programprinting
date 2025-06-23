@@ -79,9 +79,9 @@
                                         <div class="input-group">
                                             <select class="form-select" id="sub_kategori" name="sub_kategori" required>
                                                 {{-- @if(isset($subKategori) && count($subKategori) > 0) --}}
-                                                    @foreach($subKategori as $sub_kategori)
+                                                    {{-- @foreach($subKategori as $sub_kategori)
                                                         <option value="{{ $sub_kategori }}">{{ $sub_kategori }}</option>
-                                                    @endforeach
+                                                    @endforeach --}}
                                                 {{-- @else
                                                     <option value="">Tidak ada data kategori utama</option>
                                                 @endif --}}
