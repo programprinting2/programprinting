@@ -88,61 +88,37 @@ if (typeof BahanBakuHelper === 'undefined') {
     };
 }
 
-// Deklarasi variabel global untuk data sub-kategori
-let subKategoriParametersData = {};
-
-// Mapping kategori ke nama parameter sub-kategori
-const kategoriToSubKategoriMap = {
-  'Bahan Lembaran': 'SUB KATEGORI BAHAN LEMBARAN',
-  'Bahan Roll': 'SUB KATEGORI BAHAN ROLL',
-  'Bahan Cair': 'SUB KATEGORI BAHAN CAIR',
-  'Bahan Berat': 'SUB KATEGORI BAHAN BERAT',
-  'Bahan Unit/Biji': 'SUB KATEGORI BAHAN UNIT/BIJI',
-  'Bahan Paket/Set': 'SUB KATEGORI BAHAN PAKET/SET',
-  'Bahan Waktu/Jasa': 'SUB KATEGORI BAHAN WAKTU/JASA',
-};
-
-// Fungsi untuk menginisialisasi data sub-kategori
-function initSubKategoriData(data) {
-  subKategoriParametersData = data;
-}
-
 // Fungsi untuk mengupdate opsi sub-kategori di form modal
-function updateSubKategoriOptions(selectedKategori) {
+function updateSubKategoriOptions(selectedKategoriId) {
   const subKategoriSelect = $('#sub_kategori_id');
   subKategoriSelect.empty();
   subKategoriSelect.prop('disabled', true);
   subKategoriSelect.append('<option value="" selected disabled>Pilih sub-kategori</option>');
 
-  if (selectedKategori && kategoriToSubKategoriMap[selectedKategori]) {
-    const parameterName = kategoriToSubKategoriMap[selectedKategori];
-    if (subKategoriParametersData[parameterName] && subKategoriParametersData[parameterName].details) {
-      subKategoriParametersData[parameterName].details.forEach(detail => {
-        subKategoriSelect.append(`<option value="${detail.id}">${detail.nama_detail_parameter}</option>`);
-      });
-      subKategoriSelect.prop('disabled', false);
-    }
+  if (selectedKategoriId && window.subKategoriList) {
+    const filtered = window.subKategoriList.filter(sub => sub.detail_parameter_id == selectedKategoriId);
+    filtered.forEach(sub => {
+      subKategoriSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
+    });
+    if (filtered.length > 0) subKategoriSelect.prop('disabled', false);
   }
 }
 
 // Fungsi untuk mengupdate opsi sub-kategori di edit modal
-function updateEditSubKategoriOptions(selectedKategori, currentSubKategoriId = null) {
+function updateEditSubKategoriOptions(selectedKategoriId, currentSubKategoriId = null) {
   const subKategoriSelect = $('#edit_sub_kategori_id');
   subKategoriSelect.empty();
   subKategoriSelect.prop('disabled', true);
   subKategoriSelect.append('<option value="" selected disabled>Pilih sub-kategori</option>');
 
-  if (selectedKategori && kategoriToSubKategoriMap[selectedKategori]) {
-    const parameterName = kategoriToSubKategoriMap[selectedKategori];
-    if (subKategoriParametersData[parameterName] && subKategoriParametersData[parameterName].details) {
-      subKategoriParametersData[parameterName].details.forEach(detail => {
-        subKategoriSelect.append(`<option value="${detail.id}">${detail.nama_detail_parameter}</option>`);
-      });
-      subKategoriSelect.prop('disabled', false);
-      // Set nilai yang sudah ada jika ada
-      if (currentSubKategoriId) {
-        subKategoriSelect.val(currentSubKategoriId);
-      }
+  if (selectedKategoriId && window.subKategoriList) {
+    const filtered = window.subKategoriList.filter(sub => sub.detail_parameter_id == selectedKategoriId);
+    filtered.forEach(sub => {
+      subKategoriSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
+    });
+    if (filtered.length > 0) subKategoriSelect.prop('disabled', false);
+    if (currentSubKategoriId) {
+      subKategoriSelect.val(currentSubKategoriId);
     }
   }
 } 

@@ -67,13 +67,9 @@
           <div class="col-md-3">
             <select class="form-select" id="kategori_filter" name="kategori">
               <option value="">Semua Kategori</option>
-              <option value="Bahan Lembaran" {{ request('kategori') == 'Bahan Lembaran' ? 'selected' : '' }}>Bahan Lembaran</option>
-              <option value="Bahan Roll" {{ request('kategori') == 'Bahan Roll' ? 'selected' : '' }}>Bahan Roll</option>
-              <option value="Bahan Cair" {{ request('kategori') == 'Bahan Cair' ? 'selected' : '' }}>Bahan Cair</option>
-              <option value="Bahan Berat" {{ request('kategori') == 'Bahan Berat' ? 'selected' : '' }}>Bahan Berat</option>
-              <option value="Bahan Unit/Biji" {{ request('kategori') == 'Bahan Unit/Biji' ? 'selected' : '' }}>Bahan Unit/Biji</option>
-              <option value="Bahan Paket/Set" {{ request('kategori') == 'Bahan Paket/Set' ? 'selected' : '' }}>Bahan Paket/Set</option>
-              <option value="Bahan Waktu/Jasa" {{ request('kategori') == 'Bahan Waktu/Jasa' ? 'selected' : '' }}>Bahan Waktu/Jasa</option>
+              @foreach($kategoriList as $kat)
+                <option value="{{ $kat->id }}" {{ request('kategori') == $kat->id ? 'selected' : '' }}>{{ $kat->nama_detail_parameter }}</option>
+              @endforeach
             </select>
           </div>
           <div class="col-md-3">
@@ -121,9 +117,9 @@
                         <small class="text-muted">{{ $b->keterangan }}</small>
                     </div>
                 </td>
-                <td>{{ $b->kategori }}</td>
+                <td>{{ $b->kategoriDetail ? $b->kategoriDetail->nama_detail_parameter : '-' }}</td>
                 <td>{{ $b->subKategoriDetail ? $b->subKategoriDetail->nama_detail_parameter : '-' }}</td>
-                <td>{{ $b->satuan_utama }}</td>
+                <td>{{ $b->satuanUtamaDetail ? $b->satuanUtamaDetail->nama_detail_parameter : '-' }}</td>
                 <td>{{ $b->stok_saat_ini }}</td>
                 <td>
                     <div>
@@ -199,31 +195,20 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{{ asset('js/bahanbaku/bahanbaku-helper.js') }}"></script>
   <script>
-    // Inisialisasi data sub-kategori dari backend
-    window.subKategoriParametersData = @json($subKategoriParameters ?? []);
-    window.kategoriToSubKategoriMap = {
-      'Bahan Lembaran': 'SUB KATEGORI BAHAN LEMBARAN',
-      'Bahan Roll': 'SUB KATEGORI BAHAN ROLL',
-      'Bahan Cair': 'SUB KATEGORI BAHAN CAIR',
-      'Bahan Berat': 'SUB KATEGORI BAHAN BERAT',
-      'Bahan Unit/Biji': 'SUB KATEGORI BAHAN UNIT/BIJI',
-      'Bahan Paket/Set': 'SUB KATEGORI BAHAN PAKET/SET',
-      'Bahan Waktu/Jasa': 'SUB KATEGORI BAHAN WAKTU/JASA',
-    };
-    function updateSubKategoriFilterOptions(selectedKategori, selectedSubKategori = null) {
+    window.kategoriList = @json($kategoriList);
+    window.subKategoriList = @json($subKategoriList);
+    window.satuanList = @json($satuanList);
+    function updateSubKategoriFilterOptions(selectedKategoriId, selectedSubKategori = null) {
       const subKategoriSelect = $('#sub_kategori_filter');
       subKategoriSelect.empty();
       subKategoriSelect.append('<option value="">Semua Sub-Kategori</option>');
       subKategoriSelect.prop('disabled', true);
-      if (selectedKategori && window.kategoriToSubKategoriMap[selectedKategori]) {
-        const parameterName = window.kategoriToSubKategoriMap[selectedKategori];
-        const paramData = window.subKategoriParametersData[parameterName];
-        if (paramData && paramData.details) {
-          paramData.details.forEach(detail => {
-            subKategoriSelect.append(`<option value="${detail.id}">${detail.nama_detail_parameter}</option>`);
-          });
-          subKategoriSelect.prop('disabled', false);
-        }
+      if (selectedKategoriId && window.subKategoriList) {
+        const filtered = window.subKategoriList.filter(sub => sub.detail_parameter_id == selectedKategoriId);
+        filtered.forEach(sub => {
+          subKategoriSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
+        });
+        if (filtered.length > 0) subKategoriSelect.prop('disabled', false);
       }
       // Set nilai terpilih jika ada
       if (selectedSubKategori) {

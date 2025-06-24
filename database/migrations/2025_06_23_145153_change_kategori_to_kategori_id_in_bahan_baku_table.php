@@ -14,7 +14,13 @@ return new class extends Migration
     public function up()
     {
         Schema::table('bahan_baku', function (Blueprint $table) {
-            $table->json('link_pendukung_json')->nullable()->after('dokumen_pendukung_json');
+            // Hapus kolom lama
+            if (Schema::hasColumn('bahan_baku', 'kategori')) {
+                $table->dropColumn('kategori');
+            }
+            // Tambahkan kolom baru
+            $table->unsignedBigInteger('kategori_id')->nullable()->after('kode_bahan');
+            $table->foreign('kategori_id')->references('id')->on('detail_parameters')->onDelete('set null');
         });
     }
 
@@ -26,7 +32,9 @@ return new class extends Migration
     public function down()
     {
         Schema::table('bahan_baku', function (Blueprint $table) {
-            $table->dropColumn('link_pendukung_json');
+            $table->dropForeign(['kategori_id']);
+            $table->dropColumn('kategori_id');
+            $table->string('kategori')->nullable();
         });
     }
 };
