@@ -63,6 +63,7 @@
                                         <label for="kategori_utama" class="form-label">Kategori Utama*</label>
                                         <div class="input-group">
                                             <select class="form-select" id="kategori_utama" name="kategori_utama" required>
+                                                 <option value="" selected disabled>Pilih Kategori Utama</option>
                                                 {{-- @if(isset($kategoriUtama) && count($kategoriUtama) > 0) --}}
                                                     @foreach($kategoriUtama as $kategori)
                                                         <option value="{{ $kategori }}">{{ $kategori }}</option>
@@ -78,10 +79,10 @@
                                         <label for="sub_kategori" class="form-label">Sub Kategori *</label>
                                         <div class="input-group">
                                             <select class="form-select" id="sub_kategori" name="sub_kategori" required>
-
-                                                    @foreach($subKategori as $sub_kategori)
-                                                        <option value="{{ $sub_kategori }}">{{ $sub_kategori }}</option>
-                                                    @endforeach
+                                                <option value="" selected disabled>Pilih Sub Kategori</option>
+                                                        @foreach($subKategori as $sub_kategori)
+                                                            <option value="{{ $sub_kategori }}">{{ $sub_kategori }}</option>
+                                                        @endforeach
                                             </select>
                                             
                                         </div>
@@ -91,8 +92,10 @@
                                     <div class="col-md-6">
                                         <label for="satuan" class="form-label">Satuan *</label>
                                         <select class="form-select" id="satuan" name="satuan" required>
-                                            <option value="m2">Luas (m<sup>2</sup>)</option>
-                                            <!-- Tambahkan opsi lain jika perlu -->
+                                            <option value="" selected disabled>Pilih satuan</option>
+                                            @foreach($DetailParameter as $detail)
+                                                <option value="{{ $detail }}">{{ $detail }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-6">
