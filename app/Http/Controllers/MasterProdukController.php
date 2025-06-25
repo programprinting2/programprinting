@@ -25,8 +25,8 @@ class MasterProdukController extends Controller
             $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
 
 
-        $masterSubKategori = SubDetailParameter::with('detailParameter')
-                                                ->where('detail_parameter_id', '12')->first();
+        // $masterSubKategori = SubDetailParameter::with('detailParameter')
+        //                                         ->where('detail_parameter_id', '12')->first();
         // dd($masterSubKategori);                                                
 
         // $subKategori = $masterSubKategori ? 
@@ -47,7 +47,10 @@ class MasterProdukController extends Controller
                                                 // $masterSubKategori = SubDetailParameter::with('details')
                                                 // ->where('detail_parameter_id', $masterKategoriUtama->id)->first();
 
-        return view('backend.master-produk.index',compact('kategoriUtama'));
+        // Ambil semua nama_sub_detail_parameter dari tabel sub_detail_parameter
+        $subKategori = SubDetailParameter::pluck('nama_sub_detail_parameter');
+
+        return view('backend.master-produk.index', compact('kategoriUtama', 'subKategori'));
     }
 
     public function create()

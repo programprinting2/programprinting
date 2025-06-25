@@ -71,22 +71,19 @@
                                                     <option value="">Tidak ada data kategori utama</option>
                                                 @endif --}}
                                             </select>
-                                            <button class="btn btn-outline-secondary" type="button">+ Tambah</button>
+                                            
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label for="sub_kategori" class="form-label">Sub Kategori *</label>
                                         <div class="input-group">
                                             <select class="form-select" id="sub_kategori" name="sub_kategori" required>
-                                                @if(isset($subKategori) && count($subKategori) > 0)
+
                                                     @foreach($subKategori as $sub_kategori)
                                                         <option value="{{ $sub_kategori }}">{{ $sub_kategori }}</option>
                                                     @endforeach
-                                                @else
-                                                    <option value="">Tidak ada data sub kategori</option>
-                                                @endif
                                             </select>
-                                            <button class="btn btn-outline-secondary" type="button">+ Tambah</button>
+                                            
                                         </div>
                                     </div>
                                 </div>
