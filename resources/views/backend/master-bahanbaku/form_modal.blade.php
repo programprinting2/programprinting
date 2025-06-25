@@ -80,7 +80,7 @@
                         <option value="0">Tidak Aktif</option>
                       </select>
                       <div class="form-text">Bahan baku ini aktif dan dapat digunakan dalam proses produksi</div>
-                    </div>      
+                    </div>
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-12">
@@ -117,8 +117,8 @@
                       <div id="detail_spesifikasi_container">
                         <div class="text-muted text-center py-3" id="no_spesifikasi_message">
                           Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
-                        </div>
-                      </div>
+                    </div>
+                  </div>
                       <input type="hidden" name="detail_spesifikasi_json" id="detail_spesifikasi_json" value="[]">
                     </div>
                   </div>
@@ -303,7 +303,7 @@
                             <div class="col-12 mb-1 text-start"><strong>Foto</strong></div>
                             <div class="col-12" id="fotoPendukungPreview">
                                 <div class="text-muted text-center" id="noFotoMessage">
-                                    <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
+                                <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
                                 </div>
                             </div>
                         </div>
@@ -311,7 +311,7 @@
                             <div class="col-12 mb-1 text-start"><strong>Video</strong></div>
                             <div class="col-12" id="videoPendukungPreview">
                                 <div class="text-muted text-center" id="noVideoMessage">
-                                    <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
+                                <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
                                 </div>
                             </div>
                         </div>

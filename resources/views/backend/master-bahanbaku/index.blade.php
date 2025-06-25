@@ -118,7 +118,7 @@
                     </div>
                 </td>
                 <td>{{ $b->kategoriDetail ? $b->kategoriDetail->nama_detail_parameter : '-' }}</td>
-                <td>{{ $b->subKategoriDetail ? $b->subKategoriDetail->nama_detail_parameter : '-' }}</td>
+                <td>{{ $b->subKategoriDetail ? $b->subKategoriDetail->nama_sub_detail_parameter : '-' }}</td>
                 <td>{{ $b->satuanUtamaDetail ? $b->satuanUtamaDetail->nama_detail_parameter : '-' }}</td>
                 <td>{{ $b->stok_saat_ini }}</td>
                 <td>

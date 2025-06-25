@@ -3,11 +3,10 @@ $(document).ready(function() {
 
   // Fungsi untuk mengupdate label unit pada input stok
   function updateStockUnitLabels() {
-    const satuanUtama = $('#satuanUtama').val();
-    const unitText = satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit';
-    $('#stokSaatIniUnit').text(unitText);
-    $('#stokMinimumUnit').text(unitText);
-    $('#stokMaksimumUnit').text(unitText);
+    // Selalu tampilkan 'Unit' pada label satuan
+    $('#stokSaatIniUnit').text('Unit');
+    $('#stokMinimumUnit').text('Unit');
+    $('#stokMaksimumUnit').text('Unit');
   }
 
   // Fungsi untuk mengupdate informasi stok secara dinamis

@@ -55,7 +55,7 @@ class BahanBaku extends Model
 
     public function subKategoriDetail()
     {
-        return $this->belongsTo(\App\Models\DetailParameter::class, 'sub_kategori_id');
+        return $this->belongsTo(\App\Models\SubDetailParameter::class, 'sub_kategori_id');
     }
 
     public function kategoriDetail()

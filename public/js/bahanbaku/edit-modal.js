@@ -53,11 +53,10 @@ function getEditSatuanOptions(kategori) {
 
 // Fungsi untuk mengupdate label unit pada input stok edit (dipindahkan ke global scope)
 function updateEditStockUnitLabels() {
-  const satuanUtama = $('#edit_satuan_utama').val();
-  const unitText = satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit';
-  $('#editStokSaatIniUnit').text(unitText);
-  $('#editStokMinimumUnit').text(unitText);
-  $('#editStokMaksimumUnit').text(unitText);
+  // Selalu tampilkan 'Unit' pada label satuan
+  $('#editStokSaatIniUnit').text('Unit');
+  $('#editStokMinimumUnit').text('Unit');
+  $('#editStokMaksimumUnit').text('Unit');
 }
 
 // Fungsi untuk mengupdate informasi stok edit secara dinamis (dipindahkan ke global scope)

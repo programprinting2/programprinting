@@ -28,7 +28,7 @@ class MasterBahanbakuController extends Controller
                   ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $search . '%'])
                   ->orWhereRaw('LOWER(sub_kategori) LIKE ?', ['%' . $search . '%']);
             });
-        }
+    }
 
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
@@ -98,7 +98,7 @@ class MasterBahanbakuController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_bahan' => 'required|string|max:255',
             'kategori_id' => 'required|exists:detail_parameters,id',
-            'sub_kategori_id' => 'required|exists:detail_parameters,id',
+            'sub_kategori_id' => 'required|exists:sub_detail_parameter,id',
             'satuan_utama_id' => 'required|exists:detail_parameters,id',
             'status_aktif' => 'required|in:0,1',
             'konversi_satuan_json' => 'nullable|string',
@@ -319,7 +319,7 @@ class MasterBahanbakuController extends Controller
         $validator = Validator::make($request->all(), [
             'nama_bahan' => 'required|string|max:255',
             'kategori_id' => 'required|exists:detail_parameters,id',
-            'sub_kategori_id' => 'required|exists:detail_parameters,id',
+            'sub_kategori_id' => 'required|exists:sub_detail_parameter,id',
             'satuan_utama_id' => 'required|exists:detail_parameters,id',
             'status_aktif' => 'required|in:0,1',
             'konversi_satuan_json' => 'nullable|string',
