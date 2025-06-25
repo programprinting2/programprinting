@@ -64,10 +64,9 @@
                                         <div class="input-group">
                                             <select class="form-select" id="kategori_utama" name="kategori_utama" required>
                                                  <option value="" selected disabled>Pilih Kategori Utama</option>
-                                                {{-- @if(isset($kategoriUtama) && count($kategoriUtama) > 0) --}}
-                                                    @foreach($kategoriUtama as $kategori)
-                                                        <option value="{{ $kategori }}">{{ $kategori }}</option>
-                                                    @endforeach
+                                                @foreach($kategoriProdukList as $kategori)
+                                                    <option value="{{ $kategori->id }}">{{ $kategori->nama_detail_parameter }}</option>
+                                                @endforeach
                                                 {{-- @else
                                                     <option value="">Tidak ada data kategori utama</option>
                                                 @endif --}}
@@ -76,16 +75,15 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="sub_kategori" class="form-label">Sub Kategori *</label>
-                                        <div class="input-group">
-                                            <select class="form-select" id="sub_kategori" name="sub_kategori" required>
-                                                <option value="" selected disabled>Pilih Sub Kategori</option>
-                                                        @foreach($subKategori as $sub_kategori)
-                                                            <option value="{{ $sub_kategori }}">{{ $sub_kategori }}</option>
-                                                        @endforeach
-                                            </select>
-                                            
-                                        </div>
+                                    <label for="subKategori" class="form-label">Sub-Kategori</label>
+                                    <select class="form-select" id="sub_kategori_id_produk" name="sub_kategori_id">
+                                        <option value="" selected disabled>Pilih sub-kategori</option>
+                                        <!-- Options akan diisi dinamis oleh JS, value=id -->
+                                        @foreach($subKategoriList as $subKategori)
+                                            <option value="{{ $subKategori->id }}">{{ $subKategori->nama_detail_parameter }}</option>
+                                        @endforeach
+                                    </select>
+                                    <small class="text-muted">Pengelompokan lebih detail dalam kategori yang sama</small>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
@@ -93,9 +91,9 @@
                                         <label for="satuan" class="form-label">Satuan *</label>
                                         <select class="form-select" id="satuan" name="satuan" required>
                                             <option value="" selected disabled>Pilih satuan</option>
-                                            @foreach($DetailParameter as $detail)
+                                            {{-- @foreach($DetailParameter as $detail)
                                                 <option value="{{ $detail }}">{{ $detail }}</option>
-                                            @endforeach
+                                            @endforeach --}}
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -515,7 +513,7 @@
         </div>
     </div>
 </div>
-
+{{-- 
 <script>
     // Script untuk menangani penambahan dan penghapusan baris piutang
     document.addEventListener('DOMContentLoaded', function () {
@@ -526,19 +524,25 @@
 
         });
     });
-</script>
+</script> --}}
 
 @push('custom-scripts')
-    <script>
-        const ProdukStoreUrl = "{{ route('backend.master-produk.store') }}";
-    </script>
-    {{-- <script src="{{ asset('js/Produk/Produk-helper.js') }}"></script>
-    <script src="{{ asset('js/Produk/Produk-modal.js') }}"></script> --}}
-    <script>
-        $(document).ready(function() {
-            // Inisialisasi format mata uang
-            ProdukHelper.initMoneyFormat();
-            ProdukHelper.prepareFormSubmit('#formProduk');
-        });
-    </script>
+  
+  {{-- <script>
+    // Event listener untuk perubahan kategori
+    $(document).ready(function() {
+  
+      // Inisialisasi awal
+       updateSubKategoriOptions($('#kategori_utama').val());
+          
+      $('#kategori_utama').on('change', function() {
+        const selectedKategoriId = $(this).val();
+        
+        updateSubKategoriOptions(selectedKategoriId);
+      });
+
+
+    });
+  </script> --}}
+  {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}}
 @endpush

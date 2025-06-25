@@ -17,21 +17,45 @@ class MasterProdukController extends Controller
 
      public function index(Request $request)
     {
-        //$kategoriUtama='agus';
-        $masterKategoriUtama = MasterParameter::with('details')
-                                                ->where('nama_parameter', 'KATEGORI PRODUK')->first();
+
+
+          // Ambil master parameter kategori produk
+        $kategoriProduk = \App\Models\MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
+        $kategoriProdukList = [];
+        if ($kategoriProduk) {
+            $kategoriProdukList = \App\Models\DetailParameter::where('master_parameter_id', $kategoriProduk->id)
+                ->where('aktif', 1)
+                ->orderBy('nama_detail_parameter')
+                //->pluck('nama_detail_parameter', 'id');
+                ->select('id', 'nama_detail_parameter')
+                ->get();
+        }
+
+
+            // Ambil semua sub kategori (sub detail parameter) yang aktif
+        $subKategoriList = \App\Models\SubDetailParameter::with('detailParameter')
+            ->where('aktif', 1)
+            ->orderBy('nama_sub_detail_parameter')
+            ->get();
+
+            
+    //    dd($subKategoriList);
+
+        // //$kategoriUtama='agus';
+        // $masterKategoriUtama = MasterParameter::with('details')
+        //                                         ->where('nama_parameter', 'KATEGORI PRODUK')->first();
         
-        $kategoriUtama = $masterKategoriUtama ? 
-            $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
+        // $kategoriUtama = $masterKategoriUtama ? 
+        //     $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
 
 
      
-        $DetailParameter = DetailParameter::where('master_parameter_id', 4)
-            ->pluck('nama_detail_parameter');
+        // $DetailParameter = DetailParameter::where('master_parameter_id', 4)
+        //     ->pluck('nama_detail_parameter');
 
-        $subKategori = SubDetailParameter::pluck('nama_sub_detail_parameter');
+        // $subKategori = SubDetailParameter::pluck('nama_sub_detail_parameter');
 
-        return view('backend.master-produk.index', compact('kategoriUtama', 'subKategori', 'DetailParameter'));
+        return view('backend.master-produk.index', compact('kategoriProdukList','subKategoriList'));
     }
 
     public function create()
