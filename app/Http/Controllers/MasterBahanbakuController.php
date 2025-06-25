@@ -28,11 +28,11 @@ class MasterBahanbakuController extends Controller
                   ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $search . '%'])
                   ->orWhereRaw('LOWER(sub_kategori) LIKE ?', ['%' . $search . '%']);
             });
-        }
+    }
 
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
-            $query->where('kategori', $request->kategori);
+            $query->where('kategori_id', $request->kategori);
         }
 
         // Filter berdasarkan sub-kategori (FK)
@@ -65,23 +65,42 @@ class MasterBahanbakuController extends Controller
         // Ambil data pemasok
         $pemasok = Pemasok::all();
 
-        // Ambil data sub-kategori dari MasterParameter dan DetailParameter
-        $subKategoriParameters = MasterParameter::with('details')
-                                                ->where('nama_parameter', 'like', 'SUB KATEGORI%')
-                                                ->get()
-                                                ->keyBy('nama_parameter');
+        // Ambil master parameter kategori bahan baku
+        $kategoriMaster = \App\Models\MasterParameter::where('nama_parameter', 'KATEGORI BAHAN BAKU')->first();
+        $kategoriList = [];
+        if ($kategoriMaster) {
+            $kategoriList = \App\Models\DetailParameter::where('master_parameter_id', $kategoriMaster->id)
+                ->where('aktif', 1)
+                ->orderBy('nama_detail_parameter')
+                ->get();
+        }
+        // Ambil semua sub kategori (sub detail parameter) yang aktif
+        $subKategoriList = \App\Models\SubDetailParameter::with('detailParameter')
+            ->where('aktif', 1)
+            ->orderBy('nama_sub_detail_parameter')
+            ->get();
 
-        return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'subKategoriParameters'));
+        // Ambil master parameter satuan
+        $satuanMaster = \App\Models\MasterParameter::where('nama_parameter', 'SATUAN')->first();
+        $satuanList = [];
+        if ($satuanMaster) {
+            $satuanList = \App\Models\DetailParameter::where('master_parameter_id', $satuanMaster->id)
+                ->where('aktif', 1)
+                ->orderBy('nama_detail_parameter')
+                ->get();
+        }
+
+        return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'satuanList'));
     }
 
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
             'nama_bahan' => 'required|string|max:255',
-            'kategori' => 'required|string|max:255',
-            'sub_kategori_id' => 'required|exists:detail_parameters,id',
+            'kategori_id' => 'required|exists:detail_parameters,id',
+            'sub_kategori_id' => 'required|exists:sub_detail_parameter,id',
+            'satuan_utama_id' => 'required|exists:detail_parameters,id',
             'status_aktif' => 'required|in:0,1',
-            'satuan_utama' => 'required|string|max:50',
             'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
             'harga_terakhir' => 'nullable|numeric|min:0',
@@ -299,10 +318,10 @@ class MasterBahanbakuController extends Controller
         
         $validator = Validator::make($request->all(), [
             'nama_bahan' => 'required|string|max:255',
-            'kategori' => 'required|string|max:255',
-            'sub_kategori_id' => 'required|exists:detail_parameters,id',
+            'kategori_id' => 'required|exists:detail_parameters,id',
+            'sub_kategori_id' => 'required|exists:sub_detail_parameter,id',
+            'satuan_utama_id' => 'required|exists:detail_parameters,id',
             'status_aktif' => 'required|in:0,1',
-            'satuan_utama' => 'required|string|max:50',
             'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
             'harga_terakhir' => 'nullable|numeric|min:0',

@@ -44,15 +44,11 @@
                   <div class="row mb-3">
                     <div class="col-md-6">
                       <label for="kategori" class="form-label">Kategori <span class="text-danger">*</span></label>
-                      <select class="form-select" id="kategori" name="kategori" required>
+                      <select class="form-select" id="kategori" name="kategori_id" required>
                         <option value="" selected disabled>Pilih kategori</option>
-                        <option value="Bahan Lembaran">Bahan Lembaran</option>
-                        <option value="Bahan Roll">Bahan Roll</option>
-                        <option value="Bahan Cair">Bahan Cair</option>
-                        <option value="Bahan Berat">Bahan Berat</option>
-                        <option value="Bahan Unit/Biji">Bahan Unit/Biji</option>
-                        <option value="Bahan Paket/Set">Bahan Paket/Set</option>
-                        <option value="Bahan Waktu/Jasa">Bahan Waktu/Jasa</option>
+                        @foreach($kategoriList as $kat)
+                          <option value="{{ $kat->id }}">{{ $kat->nama_detail_parameter }}</option>
+                        @endforeach
                       </select>
                       <small class="text-muted">Otomatis menyesuaikan metode perhitungan sesuai kategori</small>
                     </div>
@@ -69,16 +65,11 @@
                   <div class="row mb-3">
                   <div class="col-md-6">
                       <label for="satuanUtama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
-                      <select class="form-select" id="satuanUtama" name="satuan_utama" required>
+                      <select class="form-select" id="satuanUtama" name="satuan_utama_id" required>
                         <option value="" selected disabled>Pilih satuan</option>
-                        <option value="lembar">Lembar</option>
-                        <option value="roll">Roll</option>
-                        <option value="kg">Kg</option>
-                        <option value="liter">Liter</option>
-                        <option value="pcs">Pcs</option>
-                        <option value="set">Set</option>
-                        <option value="meter">Meter</option>
-                        <option value="menit">Menit</option>
+                        @foreach($satuanList as $satuan)
+                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
+                        @endforeach
                       </select>
                       <small class="text-muted">Satuan utama untuk perhitungan stok</small>
                     </div>
@@ -89,7 +80,7 @@
                         <option value="0">Tidak Aktif</option>
                       </select>
                       <div class="form-text">Bahan baku ini aktif dan dapat digunakan dalam proses produksi</div>
-                    </div>      
+                    </div>
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-12">
@@ -126,8 +117,8 @@
                       <div id="detail_spesifikasi_container">
                         <div class="text-muted text-center py-3" id="no_spesifikasi_message">
                           Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
-                        </div>
-                      </div>
+                    </div>
+                  </div>
                       <input type="hidden" name="detail_spesifikasi_json" id="detail_spesifikasi_json" value="[]">
                     </div>
                   </div>
@@ -312,7 +303,7 @@
                             <div class="col-12 mb-1 text-start"><strong>Foto</strong></div>
                             <div class="col-12" id="fotoPendukungPreview">
                                 <div class="text-muted text-center" id="noFotoMessage">
-                                    <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
+                                <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
                                 </div>
                             </div>
                         </div>
@@ -320,7 +311,7 @@
                             <div class="col-12 mb-1 text-start"><strong>Video</strong></div>
                             <div class="col-12" id="videoPendukungPreview">
                                 <div class="text-muted text-center" id="noVideoMessage">
-                                    <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
+                                <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
                                 </div>
                             </div>
                         </div>
@@ -417,17 +408,14 @@
 
 @push('custom-scripts')
   <script>
-    // Inisialisasi data sub-kategori
-    initSubKategoriData(@json($subKategoriParameters ?? []));
-
     // Event listener untuk perubahan kategori
     $(document).ready(function() {
       // Inisialisasi awal
       updateSubKategoriOptions($('#kategori').val());
 
       $('#kategori').on('change', function() {
-        const selectedKategori = $(this).val();
-        updateSubKategoriOptions(selectedKategori);
+        const selectedKategoriId = $(this).val();
+        updateSubKategoriOptions(selectedKategoriId);
       });
     });
   </script>

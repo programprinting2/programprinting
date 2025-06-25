@@ -728,41 +728,41 @@
     });
     });
     $(document).on('click', '.btn-del-detail', function () {
-    let id = $(this).closest('tr').data('id');
-    let nama = $(this).closest('tr').find('td').first().text();
-    
-    confirmDelete(
-      'Hapus Detail?',
-      `Apakah Anda yakin ingin menghapus detail "${nama}"?`,
-      function() {
-        setLoadingState(true);
-        $.ajax({ 
-          url: `/backend/master-parameter/${kategoriAktif}/detail/${id}`, 
-          type: 'DELETE', 
-          data: { _token: '{{csrf_token()}}' }, 
-          success: () => { 
-            setLoadingState(false);
-            Swal.fire({
-              title: 'Berhasil!',
-              text: 'Detail berhasil dihapus',
-              icon: 'success',
-              timer: 1500,
-              showConfirmButton: false
-            }).then(() => {
-              loadDetail(kategoriAktif);
-            });
-          },
-          error: function(xhr) {
-            setLoadingState(false);
-            Swal.fire({
-              title: 'Error!',
-              text: 'Terjadi kesalahan saat menghapus detail',
-              icon: 'error'
-            });
-          }
-        });
-      }
-    );
+      let id = $(this).closest('tr').data('id');
+      let nama = $(this).closest('tr').find('td').first().text();
+      
+      confirmDelete(
+        'Hapus Detail?',
+        `Apakah Anda yakin ingin menghapus detail "${nama}"?`,
+        function() {
+          setLoadingState(true);
+          $.ajax({ 
+            url: `/backend/master-parameter/${kategoriAktif}/detail/${id}`, 
+            type: 'DELETE', 
+            data: { _token: '{{csrf_token()}}' }, 
+            success: () => { 
+              setLoadingState(false);
+              Swal.fire({
+                title: 'Berhasil!',
+                text: 'Detail berhasil dihapus',
+                icon: 'success',
+                timer: 1500,
+                showConfirmButton: false
+              }).then(() => {
+                loadDetail(kategoriAktif);
+              });
+            },
+            error: function(xhr) {
+              setLoadingState(false);
+              Swal.fire({
+                title: 'Error!',
+                text: 'Terjadi kesalahan saat menghapus detail',
+                icon: 'error'
+              });
+            }
+          });
+        }
+      );
     });
     $(document).on('click', '#btnSaveDetail', function () {
       if (isSubmitting) return;

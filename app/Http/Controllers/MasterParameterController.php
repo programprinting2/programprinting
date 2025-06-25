@@ -126,12 +126,32 @@ class MasterParameterController extends Controller
             if ($request->has('sub_details') && $request->sub_details) {
                 $subDetails = json_decode($request->sub_details, true);
                 if (is_array($subDetails)) {
-                    // Hapus semua sub detail yang ada
-                    SubDetailParameter::where('detail_parameter_id', $detailId)->delete();
-                    
-                    // Buat ulang sub detail yang baru
+                    $existingSubDetails = SubDetailParameter::where('detail_parameter_id', $detailId)->get();
+                    $existingIds = $existingSubDetails->pluck('id')->toArray();
+                    $newIds = collect($subDetails)->pluck('id')->filter()->toArray();
+
+                    // Hapus sub detail yang tidak ada di data baru
+                    $toDelete = array_diff($existingIds, $newIds);
+                    if (!empty($toDelete)) {
+                        foreach ($toDelete as $subId) {
+                            // Set null pada bahan_baku yang referensi ke sub detail ini
+                            DB::table('bahan_baku')->where('sub_kategori_id', $subId)->update(['sub_kategori_id' => null]);
+                            // Hapus sub detail
+                            SubDetailParameter::where('id', $subId)->delete();
+                        }
+                    }
+
+                    // Update/insert sub detail
                     foreach ($subDetails as $subDetail) {
-                        if (!empty($subDetail['nama_sub_detail_parameter'])) {
+                        if (!empty($subDetail['id']) && in_array($subDetail['id'], $existingIds)) {
+                            // Update
+                            SubDetailParameter::where('id', $subDetail['id'])->update([
+                                'nama_sub_detail_parameter' => $subDetail['nama_sub_detail_parameter'],
+                                'keterangan' => $subDetail['keterangan'] ?? null,
+                                'aktif' => $subDetail['aktif'] ?? true,
+                            ]);
+                        } elseif (empty($subDetail['id']) && !empty($subDetail['nama_sub_detail_parameter'])) {
+                            // Insert baru
                             SubDetailParameter::create([
                                 'detail_parameter_id' => $detailId,
                                 'nama_sub_detail_parameter' => $subDetail['nama_sub_detail_parameter'],

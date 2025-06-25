@@ -49,15 +49,11 @@
                   <div class="row mb-3">
                     <div class="col-md-6">
                       <label for="edit_kategori" class="form-label">Kategori <span class="text-danger">*</span></label>
-                      <select class="form-select" id="edit_kategori" name="kategori" required>
+                      <select class="form-select" id="edit_kategori" name="kategori_id" required>
                         <option value="" selected disabled>Pilih kategori</option>
-                        <option value="Bahan Lembaran">Bahan Lembaran</option>
-                        <option value="Bahan Roll">Bahan Roll</option>
-                        <option value="Bahan Cair">Bahan Cair</option>
-                        <option value="Bahan Berat">Bahan Berat</option>
-                        <option value="Bahan Unit/Biji">Bahan Unit/Biji</option>
-                        <option value="Bahan Paket/Set">Bahan Paket/Set</option>
-                        <option value="Bahan Waktu/Jasa">Bahan Waktu/Jasa</option>
+                        @foreach($kategoriList as $kat)
+                          <option value="{{ $kat->id }}">{{ $kat->nama_detail_parameter }}</option>
+                        @endforeach
                       </select>
                     </div>
                     <div class="col-md-6">
@@ -71,8 +67,11 @@
                   <div class="row mb-3">
                   <div class="col-md-6">
                       <label for="edit_satuan_utama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
-                      <select class="form-select" id="edit_satuan_utama" name="satuan_utama" required disabled>
-                        <option value="">Pilih kategori terlebih dahulu</option>
+                      <select class="form-select" id="edit_satuan_utama" name="satuan_utama_id" required>
+                        <option value="" selected disabled>Pilih satuan</option>
+                        @foreach($satuanList as $satuan)
+                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
+                        @endforeach
                       </select>
                       </div>
                     <div class="col-md-6">
@@ -375,22 +374,18 @@
 
 @push('custom-scripts')
   <script>
-    // Inisialisasi data sub-kategori
-    initSubKategoriData(@json($subKategoriParameters ?? []));
-
     // Event listener untuk perubahan kategori di modal edit
     $(document).ready(function() {
       // Inisialisasi awal
       updateEditSubKategoriOptions($('#edit_kategori').val(), $('#edit_sub_kategori_id').val());
 
       $('#edit_kategori').on('change', function() {
-        const selectedKategori = $(this).val();
-        updateEditSubKategoriOptions(selectedKategori);
+        const selectedKategoriId = $(this).val();
+        updateEditSubKategoriOptions(selectedKategoriId);
       });
 
       // Panggil saat modal edit ditampilkan (untuk mengupdate sub-kategori berdasarkan data yang dimuat)
       $('#editModal').on('shown.bs.modal', function () {
-        // Panggil ini lagi untuk memastikan sub-kategori dimuat setelah kategori diset oleh loadBahanBakuData
         const selectedKategoriOnShow = $('#edit_kategori').val();
         const currentSubKategoriOnShow = $('#edit_sub_kategori_id').val();
         updateEditSubKategoriOptions(selectedKategoriOnShow, currentSubKategoriOnShow);

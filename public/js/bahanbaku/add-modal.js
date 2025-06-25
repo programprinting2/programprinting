@@ -1,91 +1,12 @@
 $(document).ready(function() {
   feather.replace();
 
-  // Definisi satuan berdasarkan kategori
-  const satuanByKategori = {
-    'Bahan Lembaran': [
-      { value: 'lembar', label: 'Lembar' },
-      { value: 'pcs', label: 'Pcs' },
-      { value: 'rim', label: 'Rim' },
-      { value: 'pak', label: 'Pak' }
-    ],
-    'Bahan Roll': [
-      { value: 'roll', label: 'Roll' },
-      { value: 'meter', label: 'Meter' },
-      { value: 'cm2', label: 'cm2' },
-      { value: 'm2', label: 'm2' }
-    ],
-    'Bahan Cair': [
-      { value: 'ml', label: 'ml' },
-      { value: 'liter', label: 'Liter' },
-      { value: 'galon', label: 'Galon' },
-      { value: 'botol', label: 'Botol' }
-    ],
-    'Bahan Berat': [
-      { value: 'gram', label: 'Gram' },
-      { value: 'kg', label: 'Kg' },
-      { value: 'ton', label: 'Ton' },
-      { value: 'ball', label: 'Ball' }
-    ],
-    'Bahan Unit/Biji': [
-      { value: 'pcs', label: 'Pcs' },
-      { value: 'unit', label: 'Unit' },
-      { value: 'biji', label: 'Biji' },
-      { value: 'box', label: 'Box' }
-    ],
-    'Bahan Paket/Set': [
-      { value: 'paket', label: 'Paket' },
-      { value: 'set', label: 'Set' },
-      { value: 'bundle', label: 'Bundle' }
-    ],
-    'Bahan Waktu/Jasa': [
-      { value: 'detik', label: 'Detik' },
-      { value: 'menit', label: 'Menit' },
-      { value: 'jam', label: 'Jam' },
-      { value: 'hari', label: 'Hari' }
-    ]
-  };
-
-  // Fungsi untuk mengupdate opsi satuan
-  function updateSatuanOptions(kategori) {
-    const satuanSelect = $('#satuanUtama');
-    satuanSelect.empty();
-    
-    if (!kategori) {
-      // Jika kategori belum dipilih
-      satuanSelect.append('<option value="" selected disabled>Pilih kategori terlebih dahulu</option>');
-      satuanSelect.prop('disabled', true);
-    } else {
-      // Jika kategori sudah dipilih
-      satuanSelect.prop('disabled', false);
-      satuanSelect.append('<option value="" selected disabled>Pilih satuan</option>');
-      
-      // Tambahkan opsi berdasarkan kategori
-      if (satuanByKategori[kategori]) {
-        satuanByKategori[kategori].forEach(satuan => {
-          satuanSelect.append(`<option value="${satuan.value}">${satuan.label}</option>`);
-        });
-      }
-    }
-  }
-
-  // Inisialisasi awal
-  updateSatuanOptions(null);
-
-  // Event listener untuk perubahan kategori
-  $('#kategori').on('change', function() {
-    const selectedKategori = $(this).val();
-    updateSatuanOptions(selectedKategori);
-    updateStockUnitLabels(selectedKategori);
-  });
-
   // Fungsi untuk mengupdate label unit pada input stok
-  function updateStockUnitLabels(kategori) {
-    const satuanUtama = $('#satuanUtama').val();
-    const unitText = satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit';
-    $('#stokSaatIniUnit').text(unitText);
-    $('#stokMinimumUnit').text(unitText);
-    $('#stokMaksimumUnit').text(unitText);
+  function updateStockUnitLabels() {
+    // Selalu tampilkan 'Unit' pada label satuan
+    $('#stokSaatIniUnit').text('Unit');
+    $('#stokMinimumUnit').text('Unit');
+    $('#stokMaksimumUnit').text('Unit');
   }
 
   // Fungsi untuk mengupdate informasi stok secara dinamis
@@ -145,14 +66,6 @@ $(document).ready(function() {
   updateStockUnitLabels();
   updateStokInfo();
 
-  // Fungsi untuk mendapatkan opsi satuan berdasarkan kategori
-  function getSatuanOptions(kategori) {
-    if (satuanByKategori[kategori]) {
-      return satuanByKategori[kategori].map(satuan => `<option value="${satuan.value}">${satuan.label}</option>`).join('');
-    }
-    return '<option value="">Pilih satuan</option>';
-  }
-
   // Fungsi untuk update visibilitas pesan konversi satuan kosong
   function updateNoConversionMessage() {
     if ($('.conversion-row').length === 0) {
@@ -174,10 +87,19 @@ $(document).ready(function() {
   // Panggil saat halaman siap
   updateNoConversionMessage();
 
+  // Fungsi untuk generate <option> satuan dari window.satuanList
+  function getSatuanOptionsFromList() {
+    if (!window.satuanList) return '<option value="" selected disabled>Pilih satuan</option>';
+    let html = '<option value="" selected disabled>Pilih satuan</option>';
+    window.satuanList.forEach(function(satuan) {
+      html += `<option value="${satuan.id}">${satuan.nama_detail_parameter}</option>`;
+    });
+    return html;
+  }
+
   // Fungsi untuk menambahkan baris konversi satuan baru
   $('#tambahKonversi').on('click', function() {
-    const selectedKategori = $('#kategori').val();
-    const optionsHtml = getSatuanOptions(selectedKategori);
+    const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
         <div class="col-md-2">
@@ -218,17 +140,7 @@ $(document).ready(function() {
   // Perbarui opsi satuan saat kategori berubah
   $('#kategori').on('change', function() {
     const selectedKategori = $(this).val();
-    // Perbarui dropdown satuan utama
-    updateSatuanOptions(selectedKategori);
-    updateStockUnitLabels(selectedKategori);
-
-    // Perbarui dropdown satuan di setiap baris konversi yang sudah ada
-    $('.conversion-row').each(function() {
-      const dariSelect = $(this).find('select[name*="[dari]"]');
-      const keSelect = $(this).find('select[name*="[ke]"]');
-      dariSelect.empty().append(getSatuanOptions(selectedKategori));
-      keSelect.empty().append(getSatuanOptions(selectedKategori));
-    });
+    updateStockUnitLabels();
   });
 
   // Fungsi untuk mempersiapkan data sebelum submit
@@ -280,10 +192,6 @@ $(document).ready(function() {
 
     // Tambahkan link pendukung ke FormData
     formData.set('link_pendukung_json', JSON.stringify(linkPendukung));
-
-    // Pastikan pengambilan value sub-kategori menggunakan id
-    const subKategoriId = $('#sub_kategori_id').val();
-    formData.append('sub_kategori_id', subKategoriId);
 
     return formData;
   }

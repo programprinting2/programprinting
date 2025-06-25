@@ -53,11 +53,10 @@ function getEditSatuanOptions(kategori) {
 
 // Fungsi untuk mengupdate label unit pada input stok edit (dipindahkan ke global scope)
 function updateEditStockUnitLabels() {
-  const satuanUtama = $('#edit_satuan_utama').val();
-  const unitText = satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit';
-  $('#editStokSaatIniUnit').text(unitText);
-  $('#editStokMinimumUnit').text(unitText);
-  $('#editStokMaksimumUnit').text(unitText);
+  // Selalu tampilkan 'Unit' pada label satuan
+  $('#editStokSaatIniUnit').text('Unit');
+  $('#editStokMinimumUnit').text('Unit');
+  $('#editStokMaksimumUnit').text('Unit');
 }
 
 // Fungsi untuk mengupdate informasi stok edit secara dinamis (dipindahkan ke global scope)
@@ -334,10 +333,10 @@ function loadBahanBakuData(id) {
     // Isi form dengan data
     $('#edit_kode_bahan').val(data.kode_bahan);
     $('#edit_nama_bahan').val(data.nama_bahan);
-    $('#edit_kategori').val(data.kategori).trigger('change');
-    updateEditSubKategoriOptions(data.kategori, data.sub_kategori_id);
+    $('#edit_kategori').val(data.kategori_id).trigger('change');
+    updateEditSubKategoriOptions(data.kategori_id, data.sub_kategori_id);
     $('#edit_sub_kategori_id').val(data.sub_kategori_id);
-    $('#edit_satuan_utama').val(data.satuan_utama);
+    $('#edit_satuan_utama').val(data.satuan_utama_id);
     $('#edit_status_aktif').val(data.status_aktif ? '1' : '0');
     $('#edit_keterangan').val(data.keterangan);
     
@@ -364,7 +363,6 @@ function loadBahanBakuData(id) {
     if (data.konversi_satuan_json) {
       let konversiData;
       try {
-        // Jika data sudah dalam bentuk array, gunakan langsung
         konversiData = Array.isArray(data.konversi_satuan_json) ? 
           data.konversi_satuan_json : 
           JSON.parse(data.konversi_satuan_json);
@@ -372,10 +370,7 @@ function loadBahanBakuData(id) {
         console.error('Error parsing konversi_satuan_json:', e);
         konversiData = [];
       }
-
-      const selectedKategori = $('#edit_kategori').val();
-      const optionsHtml = getEditSatuanOptions(selectedKategori);
-
+      const optionsHtml = getSatuanOptionsFromList();
       konversiData.forEach(konversi => {
         const newRow = `
           <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
@@ -404,10 +399,9 @@ function loadBahanBakuData(id) {
           </div>
         `;
         $('#editConversionUnitsContainer').append(newRow);
-
         // Set selected values for the new dropdowns
-        $(`#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_dari]"]`).val(konversi.satuan_dari || konversi.from_unit);
-        $(`#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_ke]"]`).val(konversi.satuan_ke || konversi.to_unit);
+        $('#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_dari]"]').val(konversi.satuan_dari || konversi.from_unit);
+        $('#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_ke]"]').val(konversi.satuan_ke || konversi.to_unit);
       });
       feather.replace();
     }
@@ -790,6 +784,16 @@ $('#editModal').on('hidden.bs.modal', function () {
   renderEditSpesifikasiTeknis();
 });
 
+// Fungsi untuk generate <option> satuan dari window.satuanList
+function getSatuanOptionsFromList() {
+  if (!window.satuanList) return '<option value="" selected disabled>Pilih satuan</option>';
+  let html = '<option value="" selected disabled>Pilih satuan</option>';
+  window.satuanList.forEach(function(satuan) {
+    html += `<option value="${satuan.id}">${satuan.nama_detail_parameter}</option>`;
+  });
+  return html;
+}
+
 $(document).ready(function() {
   feather.replace(); // Pastikan feather icons diinisialisasi untuk elemen statis juga
   updateEditStockUnitLabels();
@@ -797,8 +801,7 @@ $(document).ready(function() {
 
   // Event listener untuk tombol tambah konversi pada modal edit
   $('#editTambahKonversi').on('click', function() {
-    const selectedKategori = $('#edit_kategori').val();
-    const optionsHtml = getEditSatuanOptions(selectedKategori);
+    const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
         <div class="col-md-2">
@@ -838,60 +841,7 @@ $(document).ready(function() {
 
   // Event listener untuk perubahan kategori di modal edit
   $('#edit_kategori').on('change', function() {
-    const kategori = $(this).val();
-    const satuanSelect = $('#edit_satuan_utama');
-    
-    // Reset dan disable satuan utama
-    satuanSelect.empty().prop('disabled', true);
-    
-    if (kategori) {
-      // Enable satuan utama
-      satuanSelect.prop('disabled', false);
-      
-      // Tambahkan opsi berdasarkan kategori
-      let options = [];
-      switch(kategori) {
-        case 'Bahan Lembaran':
-          options = ['lembar', 'pcs', 'rim', 'pak'];
-          break;
-        case 'Bahan Roll':
-          options = ['meter', 'yard', 'roll'];
-          break;
-        case 'Bahan Cair':
-          options = ['ml', 'liter', 'galon', 'botol'];
-          break;
-        case 'Bahan Berat':
-          options = ['gram', 'kg', 'ton'];
-          break;
-        case 'Bahan Unit/Biji':
-          options = ['pcs', 'unit', 'buah'];
-          break;
-        case 'Bahan Paket/Set':
-          options = ['paket', 'set', 'box'];
-          break;
-        case 'Bahan Waktu/Jasa':
-          options = ['jam', 'hari', 'minggu'];
-          break;
-      }
-      
-      // Tambahkan opsi ke select
-      options.forEach(option => {
-        satuanSelect.append(`<option value="${option}">${option}</option>`);
-      });
-    } else {
-      // Jika tidak ada kategori yang dipilih
-      satuanSelect.append('<option value="">Pilih kategori terlebih dahulu</option>');
-    }
-    updateEditStockUnitLabels();
-    updateEditStokInfo();
-
-    // Perbarui dropdown satuan di setiap baris konversi yang sudah ada
-    $('#editConversionUnitsContainer .conversion-row').each(function() {
-      const fromUnitSelect = $(this).find('select[name*="[satuan_dari]"]');
-      const toUnitSelect = $(this).find('select[name*="[satuan_ke]"]');
-      fromUnitSelect.empty().append(getEditSatuanOptions(kategori));
-      toUnitSelect.empty().append(getEditSatuanOptions(kategori));
-    });
+    updateEditSubKategoriOptions($(this).val());
   });
 
   // Event listener untuk form submit
@@ -1027,5 +977,11 @@ $(document).ready(function() {
   // Bersihkan konten modal preview media saat ditutup agar video berhenti total
   $('#editMediaPreviewModal').on('hidden.bs.modal', function() {
     $('#editMediaPreviewModalBody').html('');
+  });
+
+  // Event listener untuk perubahan satuan utama di modal edit
+  $('#edit_satuan_utama').on('change', function(){
+    updateEditStockUnitLabels();
+    updateEditStokInfo();
   });
 }); 
