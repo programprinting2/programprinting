@@ -17,58 +17,47 @@ class MasterProdukController extends Controller
 
      public function index(Request $request)
     {
-
-
-          // Ambil master parameter kategori produk
+        // Ambil master parameter kategori produk
         $kategoriProduk = \App\Models\MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
         $kategoriProdukList = [];
         if ($kategoriProduk) {
             $kategoriProdukList = \App\Models\DetailParameter::where('master_parameter_id', $kategoriProduk->id)
                 ->where('aktif', 1)
                 ->orderBy('nama_detail_parameter')
-                //->pluck('nama_detail_parameter', 'id');
-                ->select('id', 'nama_detail_parameter')
                 ->get();
         }
 
-
-            // Ambil semua sub kategori (sub detail parameter) yang aktif
+        // Ambil semua sub kategori (sub detail parameter) yang aktif
         $subKategoriList = \App\Models\SubDetailParameter::with('detailParameter')
             ->where('aktif', 1)
             ->orderBy('nama_sub_detail_parameter')
             ->get();
 
-            
-    //    dd($subKategoriList);
+        // TODO: Ambil data produk dan pagination jika sudah ada modelnya
+        // $produk = Produk::orderBy('created_at', 'desc')->paginate(10);
 
-        // //$kategoriUtama='agus';
-        // $masterKategoriUtama = MasterParameter::with('details')
-        //                                         ->where('nama_parameter', 'KATEGORI PRODUK')->first();
-        
-        // $kategoriUtama = $masterKategoriUtama ? 
-        //     $masterKategoriUtama->details()->where('aktif', 1)->get()->pluck('nama_detail_parameter') : [];
-
-
-     
-        // $DetailParameter = DetailParameter::where('master_parameter_id', 4)
-        //     ->pluck('nama_detail_parameter');
-
-        // $subKategori = SubDetailParameter::pluck('nama_sub_detail_parameter');
-
-        return view('backend.master-produk.index', compact('kategoriProdukList','subKategoriList'));
+        return view('backend.master-produk.index', compact('kategoriProdukList', 'subKategoriList'));
     }
 
     public function create()
     {
-        // $kategoriUtama='agus';
-        // dd($kategoriUtama);
-        // // Ambil hanya field nama_detail_parameter dari tabel detail_parameters
-        // $kategoriUtama = DetailParameter::where('nama_parameter', 'Kategori Utama')
-        //     ->pluck('nama_detail_parameter');
+        // Ambil master parameter kategori produk
+        $kategoriProduk = \App\Models\MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
+        $kategoriProdukList = [];
+        if ($kategoriProduk) {
+            $kategoriProdukList = \App\Models\DetailParameter::where('master_parameter_id', $kategoriProduk->id)
+                ->where('aktif', 1)
+                ->orderBy('nama_detail_parameter')
+                ->get();
+        }
 
-        // // Kirim data ke view modal_form.blade.php
-        // return view('backend.master-produk.modal_form', compact('kategoriUtama'));
-        return view('backend.master-produk.modal_form');
+        // Ambil semua sub kategori (sub detail parameter) yang aktif
+        $subKategoriList = \App\Models\SubDetailParameter::with('detailParameter')
+            ->where('aktif', 1)
+            ->orderBy('nama_sub_detail_parameter')
+            ->get();
+
+        return view('backend.master-produk.modal_form', compact('kategoriProdukList', 'subKategoriList'));
     }
 
     // ...method lain jika diperlukan...

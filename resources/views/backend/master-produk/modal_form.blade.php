@@ -79,9 +79,6 @@
                                     <select class="form-select" id="sub_kategori_id_produk" name="sub_kategori_id">
                                         <option value="" selected disabled>Pilih sub-kategori</option>
                                         <!-- Options akan diisi dinamis oleh JS, value=id -->
-                                        @foreach($subKategoriList as $subKategori)
-                                            <option value="{{ $subKategori->id }}">{{ $subKategori->nama_detail_parameter }}</option>
-                                        @endforeach
                                     </select>
                                     <small class="text-muted">Pengelompokan lebih detail dalam kategori yang sama</small>
                                     </div>
@@ -513,7 +510,7 @@
         </div>
     </div>
 </div>
-{{-- 
+<!-- {{-- 
 <script>
     // Script untuk menangani penambahan dan penghapusan baris piutang
     document.addEventListener('DOMContentLoaded', function () {
@@ -524,11 +521,10 @@
 
         });
     });
-</script> --}}
+</script> --}} -->
 
 @push('custom-scripts')
-  
-  {{-- <script>
+  <script>
     // Event listener untuk perubahan kategori
     $(document).ready(function() {
   
@@ -543,6 +539,6 @@
 
 
     });
-  </script> --}}
-  {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}}
+  </script>
+  <!-- {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}} -->
 @endpush

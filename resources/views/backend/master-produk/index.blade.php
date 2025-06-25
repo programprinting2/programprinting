@@ -160,6 +160,9 @@
 @endpush
 
 @push('custom-scripts')
+  <script>
+    window.subKategoriList = @json($subKategoriList ?? []);
+  </script>
   <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{{ asset('js/master-produk/produk-helper.js') }}"></script>
