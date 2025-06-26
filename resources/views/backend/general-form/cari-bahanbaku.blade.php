@@ -1,45 +1,132 @@
-{{-- <!-- filepath: resources/views/backend/general-form/cari-bahanbaku.blade.php -->
-<div class="modal fade" id="modalCariBahanBaku" tabindex="-1" aria-labelledby="modalCariBahanBakuLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header pb-2">
-        <h5 class="modal-title" id="modalCariBahanBakuLabel">Pilih Bahan Baku</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-      </div>
-      <div class="modal-body pt-0">
-        <div class="mb-3">
-          <small class="text-muted">Cari dan pilih bahan baku yang akan digunakan</small>
-        </div>
-        <div class="mb-3">
-          <input type="text" class="form-control" id="searchBahanBaku" placeholder="Cari bahan...">
-        </div>
-        <div id="listBahanBaku" style="max-height: 300px; overflow-y: auto;">
-          <!-- Contoh item, ganti dengan loop data -->
-          <div class="card mb-2 bahan-baku-item" style="cursor:pointer;">
-            <div class="card-body py-2 px-3">
-              <div class="fw-bold">Vinyl Banner</div>
-              <div class="text-muted small">Media Cetak</div>
-              <div class="text-primary small">Rp 25.000 / m²</div>
-            </div>
-          </div>
-          <div class="card mb-2 bahan-baku-item" style="cursor:pointer;">
-            <div class="card-body py-2 px-3">
-              <div class="fw-bold">Art Paper 150gsm</div>
-              <div class="text-muted small">Kertas</div>
-              <div class="text-primary small">Rp 1.500 / lembar</div>
-            </div>
-          </div>
-          <div class="card mb-2 bahan-baku-item" style="cursor:pointer;">
-            <div class="card-body py-2 px-3">
-              <div class="fw-bold">Sticker Vinyl</div>
-              <div class="text-muted small">Media Cetak</div>
-              <!-- Harga bisa dikosongkan jika tidak ada -->
-            </div>
-          </div>
-          <!-- End contoh item -->
-        </div>
-      </div>
-    </div>
-  </div>
-</div> --}}
 
+<!-- Modal Cari Bahan Baku (pastikan ada di file ini atau include) -->
+<div class="modal fade" id="modalCariBahanBaku" tabindex="-1" aria-labelledby="modalCariBahanBakuLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-bs-focus="false">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border border-primary" style="box-shadow: 0 0 0 1px #000000; border-width: 1px; border-style: solid; border-width: thin;">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCariBahanBakuLabel">Cari Bahan Baku</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Konten modal untuk mencari bahan baku -->
+        <div class="mb-3">
+          <label for="searchBahanBaku" class="form-label">Cari Bahan Baku</label>
+          <div class="input-group">
+             
+            <span class="input-group-text bg-light">
+                <i data-feather="search" class="icon-sm"></i>
+            </span>
+            <input type="text" class="form-control" name="searchBahanBaku" id="searchBahanBaku" placeholder="Cari berdasarkan kode, nama produk..." value="{{ request('searchBahanBaku') }}">
+            <script>
+              document.addEventListener('shown.bs.modal', function(event) {
+                if (event.target.id === 'modalCariBahanBaku') {
+                  const input = document.getElementById('searchBahanBaku');
+                  input.focus();
+                  if (input.value) {
+                    input.select();
+                  }
+                }
+              });
+            </script>
+            <script>
+              document.addEventListener('shown.bs.modal', function(event) {
+                if (event.target.id === 'modalCariBahanBaku') {
+                  document.getElementById('searchBahanBaku').focus();
+                }
+              });
+            </script>
+            <span class="input-group-text input-group-addon" id="clearSearchBahanBaku" style="cursor:pointer;">
+              <i data-feather="delete"></i>
+            </span>
+            <script>
+              document.addEventListener('DOMContentLoaded', function() {
+                const clearBtn = document.getElementById('clearSearchBahanBaku');
+                const searchInput = document.getElementById('searchBahanBaku');
+                clearBtn.addEventListener('click', function() {
+                  searchInput.value = '';
+                  searchInput.focus();
+                });
+              });
+            </script>
+          </div>
+        </div>
+       
+       
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle mb-0" id="tabelCariBahanBaku">
+        <thead class="table-light">
+          <tr>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Kode Bahan</th>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Bahan</th>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Kategori</th>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Sub-Kategori</th>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Satuan Utama</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Data bahan baku akan dimuat di sini melalui AJAX -->
+        </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+        </div>
+  </div>
+</div>
+
+@push('custom-scripts')
+<script>
+/**
+ * Agar modal utama tidak tertutup saat modal kedua dibuka (Bootstrap 5)
+ * - Modal utama: #tambahProduk
+ * - Modal kedua: #modalCariBahanBaku
+ * 
+ * Kunci: intercept event hide pada modal utama saat modal kedua dibuka.
+ */
+$(function() {
+    // Cegah modal utama tertutup saat modal kedua dibuka
+    var preventClose = false;
+
+    $('#modalCariBahanBaku').on('show.bs.modal', function () {
+        preventClose = true;
+    });
+
+    $('#tambahProduk').on('hide.bs.modal', function (e) {
+        if (preventClose) {
+            e.preventDefault();
+        }
+    });
+
+    $('#modalCariBahanBaku').on('hidden.bs.modal', function () {
+        preventClose = false;
+        if ($('#tambahProduk').hasClass('show')) {
+            $('body').addClass('modal-open');
+        }
+    });
+});
+</script>
+@endpush
+
+@push('custom-scripts')
+<script>
+// Nested modal: buka modalCariBahanBaku tanpa menutup modal parent
+$(document).on('click', '#btnTambahBahan', function() {
+    var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBaku'), {
+        backdrop: 'static',
+        keyboard: false,
+        focus: true
+    });
+    modalBahan.show();
+
+    // Pastikan body tetap punya class modal-open agar modal parent tidak tertutup
+    setTimeout(function() {
+        if ($('#tambahProduk').hasClass('show')) {
+            $('body').addClass('modal-open');
+        }
+    }, 200);
+});
+
+</script>
+@endpush

@@ -250,7 +250,7 @@
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="fw-semibold">Bahan Baku</div>
                                                     <!-- Tombol + Tambah Bahan -->
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahBahan" data-bs-toggle="modal" data-bs-target="#modalCariBahanBaku" data-bs-backdrop="static" data-bs-keyboard="false">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahBahan">
                                                         + Tambah Bahan
                                                     </button>
                                                 </div>
@@ -258,17 +258,25 @@
                                                     <table class="table table-bordered align-middle mb-0" id="tabelBahanBaku">
                                                         <thead class="table-light">
                                                             <tr>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">NAMA</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">DESKRIPSI</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">STATUS</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">AKSI</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Bahan</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Satuan</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Harga</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jumlah</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Total</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="4" class="text-center text-muted">Pilih kategori parameter</td>
+                                                                <td colspan="6" class="text-center text-muted">Belum ada bahan baku ditambahkan</td>
                                                             </tr>
                                                         </tbody>
+                                                        <tfoot>
+                                                            <tr>
+                                                                <td colspan="4" class="text-end fw-bold">Total Modal Bahan:</td>
+                                                                <td colspan="2" class="fw-bold" id="totalModalBahan">Rp 0</td>
+                                                            </tr>
+                                                        </tfoot>
                                                     </table>
                                                 </div>
                                             </div>
@@ -608,106 +616,3 @@
         </div>
     </div>
 </div>
-<!-- {{-- 
-<script>
-    // Script untuk menangani penambahan dan penghapusan baris piutang
-    document.addEventListener('DOMContentLoaded', function () {
-        // Inisialisasi Feather Icons
-        if (typeof feather !== 'undefined') {
-            feather.replace();
-        }
-
-        });
-    });
-</script> --}} -->
-
-@push('custom-scripts')
-  <script>
-    // Event listener untuk perubahan kategori
-    $(document).ready(function() {
-  
-      // Inisialisasi awal
-       updateSubKategoriOptions($('#kategori_utama').val());
-          
-      $('#kategori_utama').on('change', function() {
-        const selectedKategoriId = $(this).val();
-        
-        updateSubKategoriOptions(selectedKategoriId);
-      });
-
-
-    });
-  </script>
-  <!-- {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}} -->
-@endpush
-
-<!-- Modal Cari Bahan Baku (pastikan ada di file ini atau include) -->
-<div class="modal fade" id="modalCariBahanBaku" tabindex="-1" aria-labelledby="modalCariBahanBakuLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-bs-focus="false">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="modalCariBahanBakuLabel">Cari Bahan Baku</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Konten modal untuk mencari bahan baku -->
-                <div class="mb-3">
-                    <label for="searchBahanBaku" class="form-label">Cari Bahan Baku</label>
-                    <input type="text" class="form-control" id="searchBahanBaku" placeholder="Nama atau kode bahan baku">
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0" id="tabelCariBahanBaku">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Pilih</th>
-                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Bahan</th>
-                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Kode Bahan</th>
-                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Satuan</th>
-                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Stok</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- Data bahan baku akan dimuat di sini melalui AJAX -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('custom-scripts')
-<script>
-/**
- * Agar modal utama tidak tertutup saat modal kedua dibuka (Bootstrap 5)
- * - Modal utama: #tambahProduk
- * - Modal kedua: #modalCariBahanBaku
- * 
- * Kunci: intercept event hide pada modal utama saat modal kedua dibuka.
- */
-$(function() {
-    // Cegah modal utama tertutup saat modal kedua dibuka
-    var preventClose = false;
-
-    $('#modalCariBahanBaku').on('show.bs.modal', function () {
-        preventClose = true;
-    });
-
-    $('#tambahProduk').on('hide.bs.modal', function (e) {
-        if (preventClose) {
-            e.preventDefault();
-        }
-    });
-
-    $('#modalCariBahanBaku').on('hidden.bs.modal', function () {
-        preventClose = false;
-        if ($('#tambahProduk').hasClass('show')) {
-            $('body').addClass('modal-open');
-        }
-    });
-});
-</script>
-@endpush

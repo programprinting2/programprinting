@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\CariController;
 use App\Models\MasterParameter;
 use App\Models\SubDetailParameter;
 use Illuminate\Http\Request;
@@ -18,17 +19,17 @@ class MasterProdukController extends Controller
      public function index(Request $request)
     {
         // Ambil master parameter kategori produk
-        $kategoriProduk = \App\Models\MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
+        $kategoriProduk = MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
         $kategoriProdukList = [];
         if ($kategoriProduk) {
-            $kategoriProdukList = \App\Models\DetailParameter::where('master_parameter_id', $kategoriProduk->id)
+            $kategoriProdukList = DetailParameter::where('master_parameter_id', $kategoriProduk->id)
                 ->where('aktif', 1)
                 ->orderBy('nama_detail_parameter')
                 ->get();
         }
 
         // Ambil semua sub kategori (sub detail parameter) yang aktif
-        $subKategoriList = \App\Models\SubDetailParameter::with('detailParameter')
+        $subKategoriList = SubDetailParameter::with('detailParameter')
             ->where('aktif', 1)
             ->orderBy('nama_sub_detail_parameter')
             ->get();

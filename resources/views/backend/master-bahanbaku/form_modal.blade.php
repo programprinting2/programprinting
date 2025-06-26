@@ -421,3 +421,23 @@
   </script>
   <script src="{{ asset('js/bahanbaku/add-modal.js') }}"></script>
 @endpush 
+
+@push('custom-scripts')
+  <script>
+    // Event listener untuk perubahan kategori
+    $(document).ready(function() {
+  
+      // Inisialisasi awal
+       updateSubKategoriOptions($('#kategori_utama').val());
+          
+      $('#kategori_utama').on('change', function() {
+        const selectedKategoriId = $(this).val();
+        
+        updateSubKategoriOptions(selectedKategoriId);
+      });
+
+
+    });
+  </script>
+  <!-- {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}} -->
+@endpush
