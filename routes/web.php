@@ -24,6 +24,8 @@ use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\CariController;
+
 
 Route::get('/', function () {
     return view('dashboard');
@@ -132,6 +134,9 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.master-produk.update',
         'destroy' => 'backend.master-produk.destroy',
     ]);
+    
+    // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
+    Route::get('/cari-bahanbaku/', [CariController::class, 'CariBahanBaku'])->name('backend.general-form.cari-bahanbaku');
 
 
 });

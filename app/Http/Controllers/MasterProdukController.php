@@ -9,6 +9,8 @@ use App\Models\SubDetailParameter;
 use Illuminate\Http\Request;
 use App\Services\CloudinaryService;
 use App\Models\DetailParameter; // Pastikan model ini sesuai dengan tabel kategori utama
+use App\Models\BahanBaku;
+
 // use App\Models\MasterParameter;
 // use Illuminate\Support\Facades\Validator;
 
@@ -43,12 +45,17 @@ class MasterProdukController extends Controller
                 ->orderBy('nama_detail_parameter')
                 ->get();
         }
+
+        // $bahanBaku = BahanBaku::all();
+        //  dd($bahanBaku);
+
     //    dd($satuanList);
 
         // TODO: Ambil data produk dan pagination jika sudah ada modelnya
         // $produk = Produk::orderBy('created_at', 'desc')->paginate(10);
 
         return view('backend.master-produk.index', compact('kategoriProdukList', 'subKategoriList', 'satuanList'));
+        // return view('backend.master-produk.index', compact('kategoriProdukList', 'subKategoriList', 'satuanList', 'bahanBaku'));
     }
 
     public function create()
@@ -72,5 +79,23 @@ class MasterProdukController extends Controller
         return view('backend.master-produk.modal_form', compact('kategoriProdukList', 'subKategoriList'));
     }
 
-    // ...method lain jika diperlukan...
+    
+    // public function CariBahanBaku(Request $request)
+    // {
+    //     // tampilakan semua data bahan BahanBaku
+    //     $bahanBaku = BahanBaku::all();
+    //      dd($bahanBaku);
+    //     // return response()->json($bahanBaku);
+    //     // $searchTerm = $request->input('searchBahanBaku');
+
+    //     // $bahanBaku = BahanBaku::query()
+    //     //     ->when($searchTerm, function ($query, $searchTerm) {
+    //     //         $query->where('kode_bahan', 'like', "%{$searchTerm}%")
+    //     //               ->orWhere('nama_bahan', 'like', "%{$searchTerm}%");
+    //     //     })
+    //     //     ->get(); 
+
+    // return view('backend.master-produk.index', compact('bahanBaku'));
+
+    // }
 }

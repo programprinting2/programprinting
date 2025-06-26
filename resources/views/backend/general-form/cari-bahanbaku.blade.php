@@ -1,4 +1,3 @@
-
 <!-- Modal Cari Bahan Baku (pastikan ada di file ini atau include) -->
 <div class="modal fade" id="modalCariBahanBaku" tabindex="-1" aria-labelledby="modalCariBahanBakuLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-bs-focus="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -65,6 +64,19 @@
         </thead>
         <tbody>
           <!-- Data bahan baku akan dimuat di sini melalui AJAX -->
+            {{-- @forelse ($bahanBaku as $item)
+              <tr>
+                <td>{{ $item->kode_bahan }}</td>
+                <td>{{ $item->nama_bahan }}</td>
+                <td>{{ $item->kategori }}</td>
+                <td>{{ $item->sub_kategori }}</td>
+                <td>{{ $item->satuan_utama }}</td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="5" class="text-center">Tidak ada data</td>
+              </tr>
+            @endforelse --}}
         </tbody>
           </table>
         </div>
@@ -128,5 +140,53 @@ $(document).on('click', '#btnTambahBahan', function() {
     }, 200);
 });
 
+function loadBahanBaku(search = '') {
+    fetch(`/backend/cari-bahanbaku?search=${encodeURIComponent(search)}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = '';
+            if (data.length > 0) {
+                data.forEach(item => {
+                    html += `<tr>
+                        <td>${item.kode_bahan}</td>
+                        <td>${item.nama_bahan}</td>
+                        <td>${item.kategori}</td>
+                        <td>${item.sub_kategori}</td>
+                        <td>${item.satuan_utama}</td>
+                    </tr>`;
+                });
+            } else {
+                html = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+            }
+            $('#tabelCariBahanBaku tbody').html(html);
+        })
+        .catch(() => {
+            $('#tabelCariBahanBaku tbody').html('<tr><td colspan="5" class="text-center">Gagal memuat data</td></tr>');
+        });
+}
+
+// Event: search realtime saat ketik
+$(document).on('input', '#searchBahanBaku', function() {
+    loadBahanBaku(this.value);
+});
+
+// Event: clear search
+$(document).on('click', '#clearSearchBahanBaku', function() {
+    $('#searchBahanBaku').val('');
+    loadBahanBaku('');
+});
+
+// Load data saat modal dibuka
+$('#modalCariBahanBaku').on('shown.bs.modal', function () {
+    loadBahanBaku($('#searchBahanBaku').val());
+});
+
+// Event: handle tombol Enter
+$(document).on('keypress', '#searchBahanBaku', function(event) {
+  if (event.key === 'Enter') {
+    loadBahanBaku(this.value);
+    event.preventDefault(); // Mencegah form submit saat enter ditekan
+  }
+});
 </script>
 @endpush

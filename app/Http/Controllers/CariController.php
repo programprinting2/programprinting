@@ -10,6 +10,10 @@ class CariController extends Controller
 {
     public function CariBahanBaku(Request $request)
     {
+        // tampilakan semua data bahan BahanBaku
+        // $bahanBaku = BahanBaku::all();
+        // dd($bahanBaku);
+        // return response()->json($bahanBaku);
         $searchTerm = $request->input('searchBahanBaku');
 
         $bahanBaku = BahanBaku::query()
@@ -17,8 +21,9 @@ class CariController extends Controller
                 $query->where('kode_bahan', 'like', "%{$searchTerm}%")
                       ->orWhere('nama_bahan', 'like', "%{$searchTerm}%");
             })
-            ->get();
+            ->get(); 
 
+        // return json_encode($bahanBaku);
         return response()->json($bahanBaku);
     }
 
