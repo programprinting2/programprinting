@@ -153,7 +153,7 @@
 
 @include('backend.master-produk.modal_form')    
 @include('backend.master-produk.modal_edit')
-@include('backend.general-form.cari-bahanbaku');
+{{-- @include('backend.general-form.cari-bahanbaku') --}}
 @endsection
 
 @push('plugin-scripts')

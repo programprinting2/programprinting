@@ -136,7 +136,7 @@ Route::group(['prefix' => 'backend'], function () {
     ]);
     
     // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
-    Route::get('/cari-bahanbaku/', [CariController::class, 'CariBahanBaku'])->name('backend.general-form.cari-bahanbaku');
+    Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
 
 
 });

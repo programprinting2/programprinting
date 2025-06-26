@@ -603,6 +603,97 @@
 
                         // Optional: Tambahkan mesin default jika diperlukan
                         // $('#btnTambahMesin').trigger('click');
+
+                        window.addEventListener('bahanBakuDipilih', function(e) {
+                            const data = e.detail;
+                            // Cek duplikat
+                            if ($('#tabelBahanBaku tbody tr[data-id="'+data.id+'"]').length > 0) {
+                                Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
+                                return;
+                            }
+                            // Tambahkan baris ke tabelBahanBaku
+                            let row = `
+                                <tr data-id="${data.id}">
+                                    <td>${data.nama}<input type="hidden" name="bahan_baku_id[]" value="${data.id}"></td>
+                                    <td>${data.satuan}</td>
+                                    <td><input type="number" class="form-control form-control-sm harga-bahan" name="harga_bahan[]" value="${data.harga}" min="0"></td>
+                                    <td><input type="number" class="form-control form-control-sm jumlah-bahan" name="jumlah_bahan[]" value="1" min="1"></td>
+                                    <td class="total-bahan">Rp ${data.harga}</td>
+                                    <td><button type="button" class="btn btn-danger btn-xs btn-hapus-bahan"><i data-feather="trash-2" class="icon-sm"></i></button></td>
+                                </tr>
+                            `;
+                            // Hapus pesan kosong jika ada
+                            $('#tabelBahanBaku tbody .text-muted').remove();
+                            $('#tabelBahanBaku tbody').append(row);
+                            if (typeof feather !== 'undefined') feather.replace();
+                            hitungTotalModalBahan();
+                        });
+
+                        // Nested modal: buka modalCariBahanBaku tanpa menutup modal parent
+                        $(document).on('click', '#btnTambahBahan', function() {
+                            var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBaku'), {
+                                backdrop: 'static',
+                                keyboard: false,
+                                focus: true
+                            });
+                            modalBahan.show();
+
+                            // Pastikan body tetap punya class modal-open agar modal parent tidak tertutup
+                            setTimeout(function() {
+                                if ($('#tambahProduk').hasClass('show')) {
+                                    $('body').addClass('modal-open');
+                                }
+                            }, 200);
+                        });
+
+                        $(function() {
+                            // Cegah modal utama tertutup saat modal kedua dibuka
+                            var preventClose = false;
+
+                            $('#modalCariBahanBaku').on('show.bs.modal', function () {
+                                preventClose = true;
+                            });
+
+                            $('#tambahProduk').on('hide.bs.modal', function (e) {
+                                if (preventClose) {
+                                    e.preventDefault();
+                                }
+                            });
+
+                            $('#modalCariBahanBaku').on('hidden.bs.modal', function () {
+                                preventClose = false;
+                                if ($('#tambahProduk').hasClass('show')) {
+                                    $('body').addClass('modal-open');
+                                }
+                            });
+                        });
+
+                        // Hitung total saat harga/jumlah berubah
+                        $(document).on('input', '.harga-bahan, .jumlah-bahan', function() {
+                            const row = $(this).closest('tr');
+                            const harga = parseInt(row.find('.harga-bahan').val()) || 0;
+                            const jumlah = parseInt(row.find('.jumlah-bahan').val()) || 0;
+                            const total = harga * jumlah;
+                            row.find('.total-bahan').text('Rp ' + total.toLocaleString('id-ID'));
+                            hitungTotalModalBahan();
+                        });
+
+                        // Hapus baris bahan baku
+                        $(document).on('click', '.btn-hapus-bahan', function() {
+                            $(this).closest('tr').remove();
+                            hitungTotalModalBahan();
+                        });
+
+                        // Hitung total semua bahan
+                        function hitungTotalModalBahan() {
+                            let total = 0;
+                            $('#tabelBahanBaku tbody tr').each(function() {
+                                const harga = parseInt($(this).find('.harga-bahan').val()) || 0;
+                                const jumlah = parseInt($(this).find('.jumlah-bahan').val()) || 0;
+                                total += harga * jumlah;
+                            });
+                            $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
+                        }
                         </script>
                         @endpush
                     </div>
@@ -616,3 +707,5 @@
         </div>
     </div>
 </div>
+
+@include('backend.general-form.cari-bahanbaku')

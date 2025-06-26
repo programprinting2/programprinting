@@ -48,7 +48,7 @@
               });
             </script>
           </div>
-        </div>
+            </div>
        
        
         <div class="table-responsive">
@@ -64,129 +64,151 @@
         </thead>
         <tbody>
           <!-- Data bahan baku akan dimuat di sini melalui AJAX -->
-            {{-- @forelse ($bahanBaku as $item)
-              <tr>
-                <td>{{ $item->kode_bahan }}</td>
-                <td>{{ $item->nama_bahan }}</td>
-                <td>{{ $item->kategori }}</td>
-                <td>{{ $item->sub_kategori }}</td>
-                <td>{{ $item->satuan_utama }}</td>
-              </tr>
-            @empty
-              <tr>
-                <td colspan="5" class="text-center">Tidak ada data</td>
-              </tr>
-            @endforelse --}}
         </tbody>
           </table>
         </div>
+        <div id="paginationBahanBaku" class="mt-3 d-flex justify-content-center"></div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
       </div>
-        </div>
+    </div>
   </div>
 </div>
 
 @push('custom-scripts')
 <script>
-/**
- * Agar modal utama tidak tertutup saat modal kedua dibuka (Bootstrap 5)
- * - Modal utama: #tambahProduk
- * - Modal kedua: #modalCariBahanBaku
- * 
- * Kunci: intercept event hide pada modal utama saat modal kedua dibuka.
- */
-$(function() {
-    // Cegah modal utama tertutup saat modal kedua dibuka
-    var preventClose = false;
-
-    $('#modalCariBahanBaku').on('show.bs.modal', function () {
-        preventClose = true;
-    });
-
-    $('#tambahProduk').on('hide.bs.modal', function (e) {
-        if (preventClose) {
-            e.preventDefault();
-        }
-    });
-
-    $('#modalCariBahanBaku').on('hidden.bs.modal', function () {
-        preventClose = false;
-        if ($('#tambahProduk').hasClass('show')) {
-            $('body').addClass('modal-open');
-        }
-    });
-});
-</script>
-@endpush
-
-@push('custom-scripts')
-<script>
-// Nested modal: buka modalCariBahanBaku tanpa menutup modal parent
-$(document).on('click', '#btnTambahBahan', function() {
-    var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBaku'), {
-        backdrop: 'static',
-        keyboard: false,
-        focus: true
-    });
-    modalBahan.show();
-
-    // Pastikan body tetap punya class modal-open agar modal parent tidak tertutup
-    setTimeout(function() {
-        if ($('#tambahProduk').hasClass('show')) {
-            $('body').addClass('modal-open');
-        }
-    }, 200);
-});
-
-function loadBahanBaku(search = '') {
-    fetch(`/backend/cari-bahanbaku?search=${encodeURIComponent(search)}`)
-        .then(res => res.json())
-        .then(data => {
+function loadBahanBaku(search = '', page = 1) {
+    $('#tabelCariBahanBaku tbody').html('<tr><td colspan="5" class="text-center">Memuat data...</td></tr>');
+    $.ajax({
+        url: '{{ route('backend.cari-bahanbaku') }}',
+        data: { searchBahanBaku: search, page: page },
+        dataType: 'json',
+        success: function(data) {
             let html = '';
-            if (data.length > 0) {
-                data.forEach(item => {
-                    html += `<tr>
-                        <td>${item.kode_bahan}</td>
-                        <td>${item.nama_bahan}</td>
-                        <td>${item.kategori}</td>
-                        <td>${item.sub_kategori}</td>
-                        <td>${item.satuan_utama}</td>
+            if (data.data && data.data.length > 0) {
+                data.data.forEach(item => {
+                    html += `<tr class="pilih-bahan-baku" 
+                        data-id="${item.id}" 
+                        data-nama="${item.nama_bahan ?? '-'}" 
+                        data-satuan="${item.satuan_utama ?? '-'}"
+                        data-harga="${item.harga_terakhir ?? 0}">
+                        <td>${item.kode_bahan ?? '-'}</td>
+                        <td>${item.nama_bahan ?? '-'}</td>
+                        <td>${item.kategori ?? '-'}</td>
+                        <td>${item.sub_kategori ?? '-'}</td>
+                        <td>${item.satuan_utama ?? '-'}</td>
                     </tr>`;
                 });
             } else {
                 html = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
             }
             $('#tabelCariBahanBaku tbody').html(html);
-        })
-        .catch(() => {
+            renderPagination(data, search);
+        },
+        error: function() {
             $('#tabelCariBahanBaku tbody').html('<tr><td colspan="5" class="text-center">Gagal memuat data</td></tr>');
-        });
+            $('#paginationBahanBaku').html('');
+        }
+    });
 }
 
-// Event: search realtime saat ketik
-$(document).on('input', '#searchBahanBaku', function() {
-    loadBahanBaku(this.value);
-});
+function renderPagination(data, search) {
+    let html = '';
+    if (data.last_page > 1) {
+        html += '<nav><ul class="pagination pagination-sm">';
+        // Tombol prev
+        if (data.current_page > 1) {
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="${data.current_page - 1}" data-search="${search}">&laquo;</a></li>`;
+        } else {
+            html += '<li class="page-item disabled"><span class="page-link">&laquo;</span></li>';
+        }
+        // Nomor halaman
+        for (let i = 1; i <= data.last_page; i++) {
+            if (i === data.current_page) {
+                html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
+            } else {
+                html += `<li class="page-item"><a class="page-link" href="#" data-page="${i}" data-search="${search}">${i}</a></li>`;
+            }
+        }
+        // Tombol next
+        if (data.current_page < data.last_page) {
+            html += `<li class="page-item"><a class="page-link" href="#" data-page="${data.current_page + 1}" data-search="${search}">&raquo;</a></li>`;
+        } else {
+            html += '<li class="page-item disabled"><span class="page-link">&raquo;</span></li>';
+        }
+        html += '</ul></nav>';
+    }
+    $('#paginationBahanBaku').html(html);
+}
 
 // Event: clear search
 $(document).on('click', '#clearSearchBahanBaku', function() {
     $('#searchBahanBaku').val('');
-    loadBahanBaku('');
+    loadBahanBaku('', 1);
 });
 
 // Load data saat modal dibuka
 $('#modalCariBahanBaku').on('shown.bs.modal', function () {
-    loadBahanBaku($('#searchBahanBaku').val());
+    loadBahanBaku($('#searchBahanBaku').val(), 1);
 });
 
 // Event: handle tombol Enter
 $(document).on('keypress', '#searchBahanBaku', function(event) {
   if (event.key === 'Enter') {
-    loadBahanBaku(this.value);
-    event.preventDefault(); // Mencegah form submit saat enter ditekan
+    loadBahanBaku(this.value, 1);
+    event.preventDefault();
   }
 });
+
+// Event: klik pagination
+$(document).on('click', '#paginationBahanBaku .page-link', function(e) {
+    e.preventDefault();
+    if ($(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
+    const page = $(this).data('page');
+    const search = $('#searchBahanBaku').val();
+    loadBahanBaku(search, page);
+});
+
+// Event: klik bahan baku, emit event custom agar bisa di-handle di file pemanggil
+$(document).on('click', '.pilih-bahan-baku', function() {
+    const data = {
+        id: $(this).data('id'),
+        nama: $(this).data('nama'),
+        satuan: $(this).data('satuan'),
+        harga: $(this).data('harga') || 0
+    };
+    // Emit event custom ke window
+    window.dispatchEvent(new CustomEvent('bahanBakuDipilih', { detail: data }));
+    // Tutup modal
+    $('#modalCariBahanBaku').modal('hide');
+});
+
+// Hitung total saat harga/jumlah berubah
+// $(document).on('input', '.harga-bahan, .jumlah-bahan', function() {
+//     const row = $(this).closest('tr');
+//     const harga = parseInt(row.find('.harga-bahan').val()) || 0;
+//     const jumlah = parseInt(row.find('.jumlah-bahan').val()) || 0;
+//     const total = harga * jumlah;
+//     row.find('.total-bahan').text('Rp ' + total.toLocaleString('id-ID'));
+//     hitungTotalModalBahan();
+// });
+
+// // Hapus baris bahan baku
+// $(document).on('click', '.btn-hapus-bahan', function() {
+//     $(this).closest('tr').remove();
+//     hitungTotalModalBahan();
+// });
+
+// // Hitung total semua bahan
+// function hitungTotalModalBahan() {
+//     let total = 0;
+//     $('#tabelBahanBaku tbody tr').each(function() {
+//         const harga = parseInt($(this).find('.harga-bahan').val()) || 0;
+//         const jumlah = parseInt($(this).find('.jumlah-bahan').val()) || 0;
+//         total += harga * jumlah;
+//     });
+//     $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
+// }
 </script>
 @endpush
