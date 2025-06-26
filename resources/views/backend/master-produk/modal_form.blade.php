@@ -41,6 +41,11 @@
                                 <i data-feather="more-horizontal" class="me-1 icon-sm"></i> Lain-lain
                             </button>
                         </li>
+
+                        <li class="nav-item" role="presentation">
+              <button class="nav-link" id="media-dokumen-tab" data-bs-toggle="tab" data-bs-target="#media-dokumen" type="button" role="tab" aria-controls="media-dokumen" aria-selected="false"><i data-feather="file-text" class="me-1 icon-sm"></i> Media & Dokumen</button>
+            </li>
+
                     </ul>
 
                     <div class="tab-content" id="ProdukTabContent">
@@ -86,11 +91,11 @@
                                 <div class="row mb-3">
                                     <div class="col-md-6">
                                         <label for="satuan" class="form-label">Satuan *</label>
-                                        <select class="form-select" id="satuan" name="satuan" required>
+                                        <select class="form-select" id="satuanBarang" name="satuanBarang" required>
                                             <option value="" selected disabled>Pilih satuan</option>
-                                            {{-- @foreach($DetailParameter as $detail)
-                                                <option value="{{ $detail }}">{{ $detail }}</option>
-                                            @endforeach --}}
+                                            @foreach($satuanList as $detail)
+                                                <option value="{{ $detail->id }}">{{ $detail->nama_detail_parameter }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                     <div class="col-md-6">
@@ -449,6 +454,98 @@
                                 </div>
                             </div>
                         </div>
+
+                         <!-- Media & Dokumen Tab -->
+                        <div class="tab-pane fade" id="media-dokumen" role="tabpanel" aria-labelledby="media-dokumen-tab">
+                            <div class="card mb-3">
+                                <div class="card-body">
+                                    <h6 class="mb-3">Media (Foto & Video)</h6>
+                                    <div class="dropzone-area-media mb-3 text-center p-4 border-2 border-dashed rounded bg-light position-relative" id="mediaDropzoneArea" style="cursor:pointer;">
+                                        <input type="file" class="d-none" id="mediaPendukungInput" name="media_pendukung_new[]" multiple accept="image/*,video/*">
+                                        <div class="dz-message text-muted">
+                                            <i data-feather="upload-cloud" class="icon-lg mb-2"></i><br>
+                                            <span>Seret & lepas foto/video di sini atau klik untuk memilih file</span>
+                                            <div style="font-size:0.85rem;">Maksimal 10 file, format gambar/video didukung</div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-12 mb-1 text-start"><strong>Foto</strong></div>
+                                        <div class="col-12" id="fotoPendukungPreview">
+                                            <div class="text-muted text-center" id="noFotoMessage">
+                                            <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row g-2 mb-4">
+                                        <div class="col-12 mb-1 text-start"><strong>Video</strong></div>
+                                        <div class="col-12" id="videoPendukungPreview">
+                                            <div class="text-muted text-center" id="noVideoMessage">
+                                            <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Dokumen Pendukung</h6>
+                                        <button type="button" class="btn btn-sm btn-primary" id="tambahDokumen"><i data-feather="plus" class="me-1 icon-sm"></i> Tambah Dokumen</button>
+                                    </div>
+                                    <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan dokumen pendukung seperti spesifikasi teknis, sertifikat, atau laporan uji.</p>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered mb-0" id="dokumenPendukungTable">
+                                            <thead>
+                                                <tr>
+                                                    <th style="width: 25%;">Nama Dokumen</th>
+                                                    <th style="width: 20%;">Jenis</th>
+                                                    <th style="width: 15%;">Ukuran</th>
+                                                    <th style="width: 10%;">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dokumenPendukungBody">
+                                                <!-- Document rows will be added here -->
+                                                <tr id="noDokumenMessage">
+                                                    <td colspan="5" class="text-center text-muted py-4">
+                                                        <i data-feather="file-text" class="icon-lg mb-2"></i><br>Belum ada dokumen yang ditambahkan.
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <!-- Input file dokumen pendukung (hidden) -->
+                                    <input type="file" class="d-none" id="dokumenPendukungInput" name="dokumen_pendukung_new[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
+                                </div>
+                            </div>
+
+                            <!-- Link Pendukung -->
+                            <div class="card mt-3 mb-0">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h6 class="mb-0">Link Pendukung</h6>
+                                    </div>
+                                    <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan link pendukung seperti Google Drive, YouTube, atau website lain yang relevan.</p>
+                                    <div class="row g-2 mb-2">
+                                        <div class="col-md-6">
+                                            <input type="url" class="form-control" id="inputLinkPendukung" placeholder="https://contoh.com/link-pendukung">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <input type="text" class="form-control" id="inputKeteranganLinkPendukung" placeholder="Keterangan (opsional)">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <button type="button" class="btn btn-outline-primary w-100" id="tambahLinkPendukung"><i data-feather="plus" class="icon-sm me-1"></i>Tambah Link</button>
+                                        </div>
+                                    </div>
+                                    <ul class="list-group" id="daftarLinkPendukung">
+                                        <!-- Daftar link akan muncul di sini -->
+                                    </ul>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        
 
                         @push('custom-scripts')
                         <script>
