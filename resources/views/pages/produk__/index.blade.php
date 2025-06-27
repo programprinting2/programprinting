@@ -17,7 +17,7 @@
         <table class="table align-middle">
             <thead>
                 <tr>
-                    <th>Kode</th>
+                    <th>Kode agus</th>
                     <th>Nama Produk</th>
                     <th>Kategori</th>
                     <th>Harga</th>

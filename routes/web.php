@@ -23,7 +23,9 @@ use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
-use App\Http\Controllers\SubDetailParameterController;
+use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\CariController;
+
 
 Route::get('/', function () {
     return view('dashboard');
@@ -121,6 +123,22 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.karyawan.update',
         'destroy' => 'backend.karyawan.destroy',
     ]);
+
+    // Produk Resource Routes
+    Route::resource('master-produk', MasterProdukController::class)->names([
+        'index' => 'backend.master-produk.index',
+        'create' => 'backend.master-produk.create',
+        'store' => 'backend.master-produk.store',
+        'show' => 'backend.master-produk.show',
+        'edit' => 'backend.master-produk.edit',
+        'update' => 'backend.master-produk.update',
+        'destroy' => 'backend.master-produk.destroy',
+    ]);
+    
+    // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
+    Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
+
+
 });
 
 Route::group(['prefix' => 'pembelian'], function () {

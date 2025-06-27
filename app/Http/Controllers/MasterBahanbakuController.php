@@ -570,6 +570,7 @@ class MasterBahanbakuController extends Controller
         $bahanbaku = BahanBaku::findOrFail($id);
         return response()->json($bahanbaku);
     }
+
 }
 
 

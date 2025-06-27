@@ -54,6 +54,10 @@
               <a href="{{ url('/backend/master-bahanbaku') }}"
                 class="nav-link {{ active_class(['backend/master-bahanbaku']) }}">Bahan Baku</a>
             </li>
+            <li class="nav-item">
+              <a href="{{ url('/backend/master-produk') }}"
+                class="nav-link {{ active_class(['backend/master-produk']) }}">Produk</a>
+            </li>
           </ul>
         </div>
       </li>
