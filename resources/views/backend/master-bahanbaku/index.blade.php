@@ -195,7 +195,7 @@
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{{ asset('js/bahanbaku/bahanbaku-helper.js') }}"></script>
   <script>
-    window.kategoriList = @json($kategoriList);
+    // window.kategoriList = @json($kategoriList);
     window.subKategoriList = @json($subKategoriList);
     window.satuanList = @json($satuanList);
     function updateSubKategoriFilterOptions(selectedKategoriId, selectedSubKategori = null) {

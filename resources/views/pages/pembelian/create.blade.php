@@ -9,7 +9,7 @@
     </ol>
   </nav>
 
-  <h4 class="fw-bold mb-3">Buat Pembelian Baru</h4>
+  <h4 class="fw-bold">Buat Pembelian Baru</h4>
   <p class="text-muted mb-4">Buat transaksi pembelian bahan baku baru.</p>
 
   <form id="addForm" action="{{ route('pembelian.store') }}" method="POST">
@@ -34,31 +34,22 @@
 
       <div class="mb-3">
         <label class="form-label">Tanggal Pembelian</label>
-        <input type="date" class="form-control" name="tanggal" value="{{ date('Y-m-d') }}" required>
+        <input type="date" class="form-control" name="tanggal" id="tanggalPembelian" value="{{ date('Y-m-d') }}" required>
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Status Pembelian</label>
-        <select class="form-select" name="status">
-        <option value="dipesan">Dipesan</option>
-        <option value="diterima">Diterima</option>
-        </select>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Gunakan Nomor Form</label>
-        <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" id="useFormNumber" name="use_form_number"
-          onchange="toggleNomorForm()">
-        <label class="form-check-label" for="useFormNumber"></label>
-        </div>
-        <input type="text" class="form-control mt-2" id="nomorFormInput" name="nomor_form" placeholder="Nomor form"
-        style="display:none;">
+        <label class="form-label">Jatuh Tempo (Hari)</label>
+        <input type="number" class="form-control" id="jatuhTempoHari" name="jatuh_tempo_hari" min="1" placeholder="Isi jumlah hari jatuh tempo">
       </div>
 
       <div class="mb-3">
         <label class="form-label">Tanggal Jatuh Tempo <span class="text-muted small">(Opsional)</span></label>
-        <input type="date" class="form-control" name="jatuh_tempo">
+        <input type="date" class="form-control" name="jatuh_tempo" id="tanggalJatuhTempo">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Gunakan Nomor Form <span class="text-muted small">(Opsional)</span></label>
+        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form">
       </div>
       </div>
       <div class="mb-4 p-3 border rounded bg-light">
@@ -98,30 +89,37 @@
         </ul>
         <div class="tab-content" id="tabPembelianContent">
         <div class="tab-pane fade show active" id="itemPembelian" role="tabpanel">
-          <div class="mb-3">
-          <label class="form-label">Material</label>
-          <div class="input-group mb-2">
-            <select class="form-select" id="materialSelect" name="material_id">
-            <option value="" selected disabled>Pilih material...</option>
-            <option value="1" data-nama="Kertas HVS A4" data-harga="25000">Kertas HVS A4</option>
-            <option value="2" data-nama="Tinta Printer Epson" data-harga="50000">Tinta Printer Epson</option>
-            <option value="3" data-nama="Lem Kertas" data-harga="10000">Lem Kertas</option>
-            </select>
-            <button class="btn btn-outline-secondary" type="button"><i class="fa fa-search"></i></button>
-          </div>
-          <div class="row g-2 mb-2">
-            <div class="col-md-3">
-            <input type="number" class="form-control" id="jumlahInput" placeholder="Jumlah" min="1" value="1">
+          <div class="card mb-3 border-primary">
+            <div class="card-body">
+              <div class="mb-2">
+                <label class="form-label mb-0">Tambah Bahan baku ke Daftar Pembelian</label>
+                <small class="text-muted d-block mb-2">Diskon di bawah ini hanya berlaku untuk item/material ini saja. Untuk diskon total pembelian, gunakan tab "Biaya Tambahan".</small>
+              </div>
+              <div class="input-group mb-2">
+                <select class="form-select" id="materialSelect" name="material_id">
+                  <option value="" selected disabled>Pilih material...</option>
+                  <option value="1" data-nama="Kertas HVS A4" data-harga="25000">Kertas HVS A4</option>
+                  <option value="2" data-nama="Tinta Printer Epson" data-harga="50000">Tinta Printer Epson</option>
+                  <option value="3" data-nama="Lem Kertas" data-harga="10000">Lem Kertas</option>
+                </select>
+                <button class="btn btn-outline-secondary" type="button"><i class="fa fa-search"></i></button>
+              </div>
+              <div class="row g-2 mb-2 align-items-end">
+                <div class="col-md-4">
+                  <label for="jumlahInput" class="form-label small mb-1">Jumlah</label>
+                  <input type="number" class="form-control" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
+                </div>
+                <div class="col-md-4">
+                  <label for="hargaInput" class="form-label small mb-1">Harga Satuan (Rp)</label>
+                  <input type="number" class="form-control" id="hargaInput" placeholder="Masukkan harga satuan" min="0" value="0">
+                </div>
+                <div class="col-md-4">
+                  <label for="diskonInput" class="form-label small mb-1">Diskon per Item (%)</label>
+                  <input type="number" class="form-control" id="diskonInput" min="0" max="100" value="0">
+                </div>
+              </div>
+              <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
             </div>
-            <div class="col-md-3">
-            <input type="number" class="form-control" id="hargaInput" placeholder="Harga" min="0" value="0">
-            </div>
-            <div class="col-md-3">
-            <input type="number" class="form-control" id="diskonInput" placeholder="Diskon" min="0" value="0">
-            </div>
-          </div>
-          <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i>
-            Tambah Item</button>
           </div>
           <div class="table-responsive">
           <table class="table table-bordered align-middle" id="tabelItemPembelian">
@@ -145,33 +143,29 @@
           </div>
         </div>
         <div class="tab-pane fade" id="biayaTambahan" role="tabpanel">
-          <div class="row g-3 mb-3">
-          <div class="col-md-3">
+          <div class="row g-3 p-3">
+          <div class="col-md-4">
             <label class="form-label">Diskon (%)</label>
             <input type="number" class="form-control" value="0" name="diskon_persen">
           </div>
-          <div class="col-md-3">
-            <label class="form-label">Tarif Pajak (%)</label>
-            <input type="number" class="form-control" value="0" name="tarif_pajak">
-          </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label">Jumlah Diskon (Rp)</label>
             <input type="number" class="form-control" value="0" name="jumlah_diskon">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
+            <label class="form-label">Tarif Pajak (%)</label>
+            <input type="number" class="form-control" value="0" name="tarif_pajak">
+          </div>
+          <div class="col-md-4">
             <label class="form-label">Nota Kredit (Rp)</label>
             <input type="number" class="form-control" value="0" name="nota_kredit">
           </div>
-          <div class="col-md-3">
+          <div class="col-md-4">
             <label class="form-label">Biaya Pengiriman (Rp)</label>
             <input type="number" class="form-control" value="0" name="biaya_pengiriman">
           </div>
-          <div class="col-md-3">
-            <label class="form-label">Label Biaya Lain</label>
-            <input type="text" class="form-control" placeholder="Biaya admin, dll." name="label_biaya_lain">
-          </div>
-          <div class="col-md-3">
-            <label class="form-label">Jumlah (Rp)</label>
+          <div class="col-md-4">
+            <label class="form-label">Biaya Lain (Rp)</label>
             <input type="number" class="form-control" value="0" name="jumlah_biaya_lain">
           </div>
           </div>
@@ -221,12 +215,6 @@
     filterContent();
     }
 
-    function toggleNomorForm() {
-    const checkbox = document.getElementById('useFormNumber');
-    const input = document.getElementById('nomorFormInput');
-    input.style.display = checkbox.checked ? 'block' : 'none';
-    }
-
     // Tambah item ke tabel
     let itemIndex = 1;
     document.getElementById('btnTambahItem').addEventListener('click', function () {
@@ -240,14 +228,14 @@
     const materialNama = materialSelect.options[materialSelect.selectedIndex]?.getAttribute('data-nama') || '';
     const harga = parseInt(hargaInput.value) || 0;
     const jumlah = parseInt(jumlahInput.value) || 1;
-    const diskon = parseInt(diskonInput.value) || 0;
-    if (!materialId) return alert('Pilih material terlebih dahulu!');
-    if (jumlah < 1) return alert('Jumlah minimal 1!');
-    if (harga < 1) return alert('Harga minimal 1!');
-    if (diskon < 0) return alert('Diskon tidak boleh negatif!');
-    if (diskon > harga * jumlah) return alert('Diskon tidak boleh lebih besar dari total harga!');
-
-    const total = (harga * jumlah) - diskon;
+    const diskonPersen = parseFloat(diskonInput.value) || 0;
+    if (!materialId) return Swal.fire({icon: 'error', title: 'Pilih material terlebih dahulu!'});
+    if (jumlah < 1) return Swal.fire({icon: 'error', title: 'Jumlah minimal 1!'});
+    if (harga < 1) return Swal.fire({icon: 'error', title: 'Harga minimal 1!'});
+    if (diskonPersen < 0 || diskonPersen > 100) return Swal.fire({icon: 'error', title: 'Diskon harus antara 0-100%'});
+    const totalSebelumDiskon = harga * jumlah;
+    const diskon = Math.round(totalSebelumDiskon * (diskonPersen / 100));
+    const total = totalSebelumDiskon - diskon;
 
     // Hapus row kosong jika ada
     if (itemBody.children.length === 1 && itemBody.children[0].children.length === 1) {
@@ -393,6 +381,32 @@
     // Trigger update saat input biaya tambahan berubah
     ['diskon_persen', 'jumlah_diskon', 'biaya_pengiriman', 'tarif_pajak', 'nota_kredit', 'jumlah_biaya_lain'].forEach(function (name) {
     document.querySelector(`[name="${name}"]`).addEventListener('input', updateRingkasanBiaya);
+    });
+
+    // Otomatisasi tanggal jatuh tempo
+    document.getElementById('jatuhTempoHari').addEventListener('input', function() {
+      const hari = parseInt(this.value) || 0;
+      const tanggalPembelian = document.getElementById('tanggalPembelian').value;
+      if (hari > 0 && tanggalPembelian) {
+        const tgl = new Date(tanggalPembelian);
+        tgl.setDate(tgl.getDate() + hari);
+        const yyyy = tgl.getFullYear();
+        const mm = String(tgl.getMonth() + 1).padStart(2, '0');
+        const dd = String(tgl.getDate()).padStart(2, '0');
+        document.getElementById('tanggalJatuhTempo').value = `${yyyy}-${mm}-${dd}`;
+      }
+    });
+    document.getElementById('tanggalPembelian').addEventListener('change', function() {
+      const hari = parseInt(document.getElementById('jatuhTempoHari').value) || 0;
+      const tanggalPembelian = this.value;
+      if (hari > 0 && tanggalPembelian) {
+        const tgl = new Date(tanggalPembelian);
+        tgl.setDate(tgl.getDate() + hari);
+        const yyyy = tgl.getFullYear();
+        const mm = String(tgl.getMonth() + 1).padStart(2, '0');
+        const dd = String(tgl.getDate()).padStart(2, '0');
+        document.getElementById('tanggalJatuhTempo').value = `${yyyy}-${mm}-${dd}`;
+      }
     });
   </script>
 @endpush

@@ -17,7 +17,7 @@ class MasterBahanbakuController extends Controller
         $query = BahanBaku::query();
 
         // Eager load relasi pemasokUtama dan subKategoriDetail
-        $query->with(['pemasokUtama', 'subKategoriDetail']);
+        $query->with(['pemasokUtama', 'subKategoriDetail', 'kategoriDetail']);
 
         // Pencarian berdasarkan nama, kode, atau kategori
         if ($request->filled('search')) {
@@ -25,10 +25,14 @@ class MasterBahanbakuController extends Controller
             $query->where(function($q) use ($search) {
                 $q->whereRaw('LOWER(nama_bahan) LIKE ?', ['%' . $search . '%'])
                   ->orWhereRaw('LOWER(kode_bahan) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(sub_kategori) LIKE ?', ['%' . $search . '%']);
+                  ->orWhereHas('kategoriDetail', function($subQuery) use ($search) {
+                      $subQuery->whereRaw('LOWER(nama_detail_parameter) LIKE ?', ['%' . $search . '%']);
+                  })
+                  ->orWhereHas('subKategoriDetail', function($subQuery) use ($search) {
+                      $subQuery->whereRaw('LOWER(nama_sub_detail_parameter) LIKE ?', ['%' . $search . '%']);
+                  });
             });
-    }
+        }
 
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
