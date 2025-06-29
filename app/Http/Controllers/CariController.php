@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
+use App\Models\Pemasok;
 use Illuminate\Http\Request;
 
 class CariController extends Controller
@@ -39,6 +40,33 @@ class CariController extends Controller
         });
 
         return response()->json($bahanBakus);
+    }
+
+    public function cariPemasok(Request $request)
+    {
+        $search = $request->input('search');
+        $query = Pemasok::query();
+        if ($search) {
+            $search = strtolower($search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(nama) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(kode_pemasok) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(handphone) LIKE ?', ["%{$search}%"])
+                  ->orWhereRaw('LOWER(email) LIKE ?', ["%{$search}%"]);
+            });
+        }
+        $pemasok = $query->orderBy('nama')->paginate(10);
+        $pemasok->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'kode' => $item->kode_pemasok,
+                'nama' => $item->nama,
+                'handphone' => $item->handphone,
+                'email' => $item->email,
+                'status' => $item->status,
+            ];
+        });
+        return response()->json($pemasok);
     }
 }
 

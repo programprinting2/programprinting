@@ -29,49 +29,135 @@
         </a>
         </div>
       </div>
-      <div class="mb-3">
-        <input type="text" class="form-control" placeholder="Cari data pembelian berdasarkan nomor faktur, supplier, atau status..." id="searchInput" onkeyup="filterTable()">
+
+      <!-- Divider -->
+      <hr class="my-4">
+
+      <!-- Form Pencarian dan Filter -->
+      <form id="searchForm" class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label small">&nbsp;</label>
+        <div class="input-group">
+            <span class="input-group-text bg-light">
+              <i data-feather="search" class="icon-sm"></i>
+            </span>
+            <input type="text" class="form-control" name="search" placeholder="Cari kode pembelian, pemasok, atau nomor form..." value="{{ request('search') }}">
+          </div>
+        </div>
+        <div class="col-md-3">
+          <label class="form-label small">&nbsp;</label>
+          <select class="form-select" name="pemasok_id">
+            <option value="">Semua Pemasok</option>
+            @foreach($pemasok_list as $pemasok)
+              <option value="{{ $pemasok->id }}" {{ request('pemasok_id') == $pemasok->id ? 'selected' : '' }}>
+                {{ $pemasok->nama }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Tanggal Dari</label>
+          <input type="date" class="form-control" name="tanggal_dari" value="{{ request('tanggal_dari') }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Tanggal Sampai</label>
+          <input type="date" class="form-control" name="tanggal_sampai" value="{{ request('tanggal_sampai') }}">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label small">&nbsp;</label>
+          <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter" title="Reset Filter">
+            <i data-feather="refresh-cw" class="icon-sm"></i> Reset
+        </button>
+        </div>
+      </form>
+
+      <!-- Loading Spinner -->
+      <div id="loadingSpinner" class="text-center py-4 d-none">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
       </div>
+
       <div class="table-responsive">
         <table class="table align-middle">
         <thead>
           <tr>
-          <th style="width: 5%;">No</th>
-          <th style="width: 15%;">Kode Pembelian</th>
-          <th style="width: 15%;">Tanggal</th>
-          <th style="width: 20%;">Pemasok</th>
-          <th style="width: 10%;">Total</th>
-          <th style="width: 10%;">Aksi</th>
+          <th>Kode Pembelian</th>
+          <th>Tanggal Pembelian</th>
+          <th>Pemasok</th>
+          <th>Total</th>
+          <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
           @forelse($data_pembelian as $i => $item)
             <tr>
-              <td>{{ $data_pembelian->firstItem() + $i }}</td>
               <td>{{ $item->kode_pembelian }}</td>
-              <td>{{ tanggal_indo($item->tanggal) }}</td>
-              <td>{{ $item->pemasok->nama ?? '-' }}</td>
-              <td>Rp {{ number_format($item->items->sum('subtotal'),0,',','.') }}</td>
               <td>
-                <a href="{{ route('pembelian.show', $item->id) }}" class="btn btn-sm btn-light" title="Detail"><i class="fa fa-eye"></i></a>
-                <a href="{{ route('pembelian.edit', $item->id) }}" class="btn btn-sm btn-warning" title="Edit"><i class="fa fa-edit"></i></a>
-                <form action="{{ route('pembelian.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-pembelian">
-                  @csrf
-                  @method('DELETE')
-                  <button type="button" class="btn btn-sm btn-danger btn-hapus-pembelian" title="Hapus"><i class="fa fa-trash"></i></button>
-                </form>
+                {{ \Carbon\Carbon::parse($item->tanggal_pembelian)->locale('id')->translatedFormat('d F Y') }}
+                @if($item->jatuh_tempo)
+                  <br><span class="text-muted small">Jatuh Tempo: {{ \Carbon\Carbon::parse($item->jatuh_tempo)->locale('id')->translatedFormat('d F Y') }}</span>
+                @else
+                  <br><span class="text-muted small">Jatuh Tempo: -</span>
+                @endif
+              </td>
+              <td>
+                {{ $item->pemasok->nama ?? '-' }}
+                @if($item->pemasok && $item->pemasok->alamat && is_array($item->pemasok->alamat) && isset($item->pemasok->alamat[$item->pemasok->alamat_utama]))
+                  <br><small class="text-muted">{{ $item->pemasok->alamat[$item->pemasok->alamat_utama]['alamat'] }}
+                  @if($item->pemasok->alamat[$item->pemasok->alamat_utama]['kota'])
+                    , {{ $item->pemasok->alamat[$item->pemasok->alamat_utama]['kota'] }}
+                  @endif
+                  </small>
+                @endif
+              </td>
+              <td class="fw-semibold">Rp {{ number_format($item->total,0,',','.') }}</td>
+              <td>
+                <div class="btn-group gap-1" role="group">
+                  <a href="{{ route('pembelian.show', $item->kode_pembelian) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail"><i class="link-icon icon-sm" data-feather="eye"></i></a>
+                  <a href="{{ route('pembelian.edit', $item->kode_pembelian) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit"><i class="link-icon icon-sm" data-feather="edit"></i></a>
+                  <form action="{{ route('pembelian.destroy', $item->kode_pembelian) }}" method="POST" class="d-inline-block form-hapus-pembelian">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-pembelian" title="Hapus"><i class="link-icon icon-sm" data-feather="trash"></i></button>
+                  </form>
+                </div>
               </td>
             </tr>
           @empty
             <tr>
-              <td colspan="6" class="text-center text-muted">Tidak ada data pembelian ditemukan</td>
+              <td colspan="5" class="text-center py-4">
+                @if(request('search') || request('pemasok_id') || request('tanggal_dari') || request('tanggal_sampai'))
+                  <div class="text-muted">
+                    <i data-feather="search" class="icon-sm mb-2"></i>
+                    <p class="mb-0">Tidak ditemukan data pembelian yang sesuai dengan kriteria pencarian.</p>
+                    <button type="button" class="btn btn-link btn-sm p-0 mt-2" id="clearSearch">
+                      <i data-feather="x" class="icon-sm"></i> Hapus filter
+                    </button>
+                  </div>
+                @else
+                  <div class="text-muted">
+                    <i data-feather="shopping-cart" class="icon-sm mb-2"></i>
+                    <p class="mb-0">Belum ada data pembelian.</p>
+                  </div>
+                @endif
+              </td>
             </tr>
           @endforelse
         </tbody>
         </table>
-      </div>
-      <div class="d-flex justify-content-end mt-3">
-        {{ $data_pembelian->links() }}
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            @if($data_pembelian->total() > 0)
+              Menampilkan {{ $data_pembelian->firstItem() ?? 0 }} - {{ $data_pembelian->lastItem() ?? 0 }} dari {{ $data_pembelian->total() }} data pembelian
+            @else
+              Tidak ada data pembelian
+            @endif
+          </div>
+          <div>
+            {{ $data_pembelian->appends(request()->query())->links('pagination::bootstrap-4') }}
+          </div>
+        </div>
       </div>
       </div>
     </div>
@@ -81,52 +167,95 @@
 @endsection
 
 @push('plugin-scripts')
-  <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>
-  <script src="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.js') }}"></script>
+  <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
 @endpush
 
 @push('custom-scripts')
   <script>
-function filterTable() {
-  var input, filter, table, tr, td, i, j, txtValue, show;
-  input = document.getElementById('searchInput');
-  filter = input.value.toUpperCase();
-  table = document.getElementById('pembelianTableBody');
-  tr = table.getElementsByTagName('tr');
-  for (i = 0; i < tr.length; i++) {
-    td = tr[i].getElementsByTagName('td');
-    show = false;
-    for (j = 0; j < td.length-1; j++) { // -1 agar kolom action tidak ikut dicari
-      if (td[j]) {
-        txtValue = td[j].textContent || td[j].innerText;
-        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-          show = true;
-          break;
-        }
-      }
-    }
-    tr[i].style.display = show ? '' : 'none';
-  }
-}
+  // Initialize Feather Icons
+  feather.replace();
 
-document.querySelectorAll('.btn-hapus-pembelian').forEach(function(btn) {
-  btn.addEventListener('click', function(e) {
-    e.preventDefault();
-    Swal.fire({
-      title: 'Hapus Data?',
-      text: 'Data pembelian yang dihapus tidak dapat dikembalikan!',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Ya, hapus!',
-      cancelButtonText: 'Batal'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        btn.closest('form').submit();
-      }
-    });
+  // Search form handling
+  const searchForm = $('#searchForm');
+  const loadingSpinner = $('#loadingSpinner');
+  const tableContainer = $('.table-responsive');
+
+  // Auto-submit form when dropdown or date changes
+  $('select[name="pemasok_id"], input[name="tanggal_dari"], input[name="tanggal_sampai"]').on('change', function() {
+    searchForm.submit();
   });
-});
+
+  // Manual submit for search input
+  $('input[name="search"]').on('keypress', function(e) {
+    if (e.which === 13) { // Enter key
+      e.preventDefault();
+      searchForm.submit();
+    }
+  });
+
+  searchForm.on('submit', function(e) {
+    e.preventDefault();
+    const formData = $(this).serialize();
+    const url = `${window.location.pathname}?${formData}`;
+    
+    // Show loading spinner
+    loadingSpinner.removeClass('d-none');
+    tableContainer.addClass('d-none');
+    
+    // Redirect to search URL
+    window.location.href = url;
+  });
+
+  // Reset filter
+  $('#resetFilter').click(function() {
+    window.location.href = '{{ route("pembelian.index") }}';
+  });
+
+  // Clear search
+  $('#clearSearch').click(function() {
+    window.location.href = '{{ route("pembelian.index") }}';
+  });
+
+  // Show loading spinner when page is loading
+  $(window).on('beforeunload', function() {
+    loadingSpinner.removeClass('d-none');
+    tableContainer.addClass('d-none');
+  });
+
+  // Hide loading spinner when page is fully loaded
+  $(window).on('load', function() {
+    loadingSpinner.addClass('d-none');
+    tableContainer.removeClass('d-none');
+  });
+
+  @if(session('success'))
+    Swal.fire({
+      title: 'Berhasil!',
+      text: '{{ session('success') }}',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  @endif
+
+  document.querySelectorAll('.btn-hapus-pembelian').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Hapus Data?',
+        text: 'Data pembelian yang dihapus tidak dapat dikembalikan!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          btn.closest('form').submit();
+        }
+      });
+    });
+    });
   </script>
 @endpush

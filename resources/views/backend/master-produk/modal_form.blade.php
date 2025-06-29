@@ -604,7 +604,22 @@
                         // Optional: Tambahkan mesin default jika diperlukan
                         // $('#btnTambahMesin').trigger('click');
 
+                        $(document).on('click', '#btnTambahBahan', function() {
+                            var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBakuProduk'), {
+                                backdrop: 'static',
+                                keyboard: false,
+                                focus: true
+                            });
+                            modalBahan.show();
+                            setTimeout(function() {
+                                if ($('#tambahProduk').hasClass('show')) {
+                                    $('body').addClass('modal-open');
+                                }
+                            }, 200);
+                        });
+
                         window.addEventListener('bahanBakuDipilih', function(e) {
+                            if (!$('#modalCariBahanBakuProduk').hasClass('show')) return;
                             const data = e.detail;
                             // Cek duplikat
                             if ($('#tabelBahanBaku tbody tr[data-id="'+data.id+'"]').length > 0) {
@@ -627,45 +642,6 @@
                             $('#tabelBahanBaku tbody').append(row);
                             if (typeof feather !== 'undefined') feather.replace();
                             hitungTotalModalBahan();
-                        });
-
-                        // Nested modal: buka modalCariBahanBaku tanpa menutup modal parent
-                        $(document).on('click', '#btnTambahBahan', function() {
-                            var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBaku'), {
-                                backdrop: 'static',
-                                keyboard: false,
-                                focus: true
-                            });
-                            modalBahan.show();
-
-                            // Pastikan body tetap punya class modal-open agar modal parent tidak tertutup
-                            setTimeout(function() {
-                                if ($('#tambahProduk').hasClass('show')) {
-                                    $('body').addClass('modal-open');
-                                }
-                            }, 200);
-                        });
-
-                        $(function() {
-                            // Cegah modal utama tertutup saat modal kedua dibuka
-                            var preventClose = false;
-
-                            $('#modalCariBahanBaku').on('show.bs.modal', function () {
-                                preventClose = true;
-                            });
-
-                            $('#tambahProduk').on('hide.bs.modal', function (e) {
-                                if (preventClose) {
-                                    e.preventDefault();
-                                }
-                            });
-
-                            $('#modalCariBahanBaku').on('hidden.bs.modal', function () {
-                                preventClose = false;
-                                if ($('#tambahProduk').hasClass('show')) {
-                                    $('body').addClass('modal-open');
-                                }
-                            });
                         });
 
                         // Hitung total saat harga/jumlah berubah
@@ -708,4 +684,10 @@
     </div>
 </div>
 
-@include('backend.general-form.cari-bahanbaku')
+@include('backend.general-form.cari-bahanbaku', [
+  'modalId' => 'modalCariBahanBakuProduk',
+  'inputId' => 'searchBahanBakuProduk',
+  'tableId' => 'tabelCariBahanBakuProduk',
+  'paginationId' => 'paginationBahanBakuProduk',
+  'clearBtnId' => 'clearSearchBahanBakuProduk',
+])

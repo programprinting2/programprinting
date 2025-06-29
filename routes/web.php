@@ -137,7 +137,7 @@ Route::group(['prefix' => 'backend'], function () {
     
     // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
     Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
-
+    Route::get('/cari-pemasok', [CariController::class, 'cariPemasok'])->name('backend.cari-pemasok');
 
 });
 
@@ -151,7 +151,7 @@ Route::group(['prefix' => 'pembelian'], function () {
         'edit' => 'pembelian.edit',
         'update' => 'pembelian.update',
         'destroy' => 'pembelian.destroy',
-    ])->parameters(['' => 'pembelian']);
+    ])->parameters(['' => 'kode_pembelian']);
 });
 
 Route::group(['prefix' => 'spk'], function () {

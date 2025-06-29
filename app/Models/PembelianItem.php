@@ -7,9 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class PembelianItem extends Model
 {
     use HasFactory;
-    protected $table = 'pembelian_item';
+    protected $table = 'item_pembelian';
     protected $fillable = [
-        'pembelian_id', 'material_id', 'jumlah', 'harga', 'diskon_persen', 'subtotal'
+        'pembelian_id', 'bahanbaku_id', 'jumlah', 'harga', 'diskon_persen', 'subtotal'
     ];
 
     public function pembelian()
@@ -19,6 +19,6 @@ class PembelianItem extends Model
 
     public function bahanBaku()
     {
-        return $this->belongsTo(BahanBaku::class, 'material_id');
+        return $this->belongsTo(BahanBaku::class, 'bahanbaku_id');
     }
 } 

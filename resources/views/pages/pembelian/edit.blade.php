@@ -5,7 +5,7 @@
     <ol class="breadcrumb">
     <li class="breadcrumb-item"><a href="#">Transaksi</a></li>
     <li class="breadcrumb-item"><a href="{{ route('pembelian.index') }}">Pembelian</a></li>
-    <li class="breadcrumb-item active" aria-current="page">Tambah Pembelian</li>
+    <li class="breadcrumb-item active" aria-current="page">Edit Pembelian</li>
     </ol>
   </nav>
 
@@ -30,11 +30,12 @@
     </div>
   @endif
 
-  <h4 class="fw-bold">Buat Pembelian Baru</h4>
-  <p class="text-muted mb-4">Buat transaksi pembelian bahan baku baru.</p>
+  <h4 class="fw-bold">Edit Pembelian</h4>
+  <p class="text-muted mb-4">Edit transaksi pembelian bahan baku.</p>
 
-  <form id="addForm" action="{{ route('pembelian.store') }}" method="POST">
+  <form id="editForm" action="{{ route('pembelian.update', $pembelian->kode_pembelian) }}" method="POST">
     @csrf
+    @method('PUT')
     <div class="row">
     {{-- Sidebar kiri: informasi pemasok --}}
     <div class="col-md-3">
@@ -43,16 +44,16 @@
       <div class="mb-3">
         <label class="form-label">Pemasok</label>
         <div class="input-group">
-          <input type="text" class="form-control" id="namaPemasokInput" placeholder="Pilih pemasok..." readonly style="background:#fff;cursor:pointer;">
-          <input type="hidden" id="pemasokIdInput" name="pemasok_id">
-          <input type="hidden" id="kodePemasokInput">
+          <input type="text" class="form-control" id="namaPemasokInput" placeholder="Pilih pemasok..." readonly style="background:#fff;cursor:pointer;" value="{{ $pembelian->pemasok->nama ?? '' }} [{{ $pembelian->pemasok->kode_pemasok ?? '' }}]">
+          <input type="hidden" id="pemasokIdInput" name="pemasok_id" value="{{ $pembelian->pemasok_id }}">
+          <input type="hidden" id="kodePemasokInput" value="{{ $pembelian->pemasok->kode_pemasok ?? '' }}">
           <button class="btn btn-outline-secondary" type="button" id="btnCariPemasok"><i class="fa fa-search"></i></button>
         </div>
       </div>
 
       <div class="mb-3">
         <label class="form-label">Tanggal Pembelian</label>
-        <input type="date" class="form-control" name="tanggal_pembelian" id="tanggalPembelian" value="{{ date('Y-m-d') }}" required>
+        <input type="date" class="form-control" name="tanggal_pembelian" id="tanggalPembelian" value="{{ $pembelian->tanggal_pembelian }}" required>
       </div>
 
       <div class="mb-3">
@@ -62,18 +63,18 @@
 
       <div class="mb-3">
         <label class="form-label">Tanggal Jatuh Tempo <span class="text-muted small">(Opsional)</span></label>
-        <input type="date" class="form-control" name="jatuh_tempo" id="tanggalJatuhTempo">
+        <input type="date" class="form-control" name="jatuh_tempo" id="tanggalJatuhTempo" value="{{ $pembelian->jatuh_tempo }}">
       </div>
 
       <div class="mb-3">
         <label class="form-label">Gunakan Nomor Form <span class="text-muted small">(Opsional)</span></label>
-        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form">
+        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form" value="{{ $pembelian->nomor_form }}">
       </div>
       </div>
       <div class="mb-4 p-3 border rounded bg-light">
       <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
       <textarea class="form-control" name="catatan" rows="3"
-        placeholder="Tambahkan catatan untuk pembelian ini"></textarea>
+        placeholder="Tambahkan catatan untuk pembelian ini">{{ $pembelian->catatan }}</textarea>
       </div>
       <div class="p-3 border rounded bg-light">
       <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
@@ -155,9 +156,24 @@
             </tr>
             </thead>
             <tbody id="itemBody">
-            <tr>
-              <td colspan="7" class="text-center text-muted">Belum ada item yang ditambahkan</td>
-            </tr>
+            @forelse($pembelian->items as $index => $item)
+              <tr>
+                <td>{{ $item->bahanBaku->kode_bahan ?? '-' }}<input type="hidden" name="items[{{ $index }}][bahanbaku_id]" value="{{ $item->bahanbaku_id }}"></td>
+                <td>{{ $item->bahanBaku->nama_bahan ?? '-' }}</td>
+                <td class="item-jumlah">{{ $item->jumlah }}<input type="hidden" name="items[{{ $index }}][jumlah]" value="{{ $item->jumlah }}"></td>
+                <td class="item-harga">{{ number_format($item->harga, 0, ',', '.') }}<input type="hidden" name="items[{{ $index }}][harga]" value="{{ $item->harga }}"></td>
+                <td class="item-diskon">{{ $item->diskon_persen }}%<input type="hidden" name="items[{{ $index }}][diskon_persen]" value="{{ $item->diskon_persen }}"></td>
+                <td class="item-total">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                <td>
+                  <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
+                  <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
+                </td>
+              </tr>
+            @empty
+              <tr>
+                <td colspan="7" class="text-center text-muted">Belum ada item yang ditambahkan</td>
+              </tr>
+            @endforelse
             </tbody>
           </table>
           </div>
@@ -166,7 +182,7 @@
           <div class="row g-3 p-3">
           <div class="col-md-4">
             <label class="form-label">Diskon (%)</label>
-            <input type="number" class="form-control" value="0" name="diskon_persen" min="0" max="100" step="0.01">
+            <input type="number" class="form-control" value="{{ $pembelian->diskon_persen ?? 0 }}" name="diskon_persen" min="0" max="100" step="0.01">
           </div>
           <div class="col-md-4">
             <label class="form-label"> Diskon (Rp)</label>
@@ -174,19 +190,19 @@
           </div>
           <div class="col-md-4">
             <label class="form-label">Tarif Pajak (%)</label>
-            <input type="number" class="form-control" value="0" name="tarif_pajak">
+            <input type="number" class="form-control" value="{{ $pembelian->tarif_pajak ?? 0 }}" name="tarif_pajak">
           </div>
           <div class="col-md-4">
             <label class="form-label">Nota Kredit (Rp)</label>
-            <input type="text" class="form-control" value="0" name="nota_kredit">
+            <input type="text" class="form-control" value="{{ number_format($pembelian->nota_kredit ?? 0, 0, ',', '.') }}" name="nota_kredit">
           </div>
           <div class="col-md-4">
             <label class="form-label">Biaya Pengiriman (Rp)</label>
-            <input type="text" class="form-control" value="0" name="biaya_pengiriman">
+            <input type="text" class="form-control" value="{{ number_format($pembelian->biaya_pengiriman ?? 0, 0, ',', '.') }}" name="biaya_pengiriman">
           </div>
           <div class="col-md-4">
             <label class="form-label">Biaya Lain (Rp) <span class="text-muted small">(Opsional)</label>
-            <input type="text" class="form-control" value="0" name="biaya_lain">
+            <input type="text" class="form-control" value="{{ number_format($pembelian->biaya_lain ?? 0, 0, ',', '.') }}" name="biaya_lain">
           </div>
           </div>
           <div class="p-3 border rounded bg-light mt-3">
@@ -211,20 +227,13 @@
       </div>
       <div class="d-flex justify-content-end gap-2 mt-4">
       <button type="button" class="btn btn-light" id="btnBatalPembelian">Batal</button>
-      <button type="submit" class="btn btn-primary" id="btnSimpanPembelian">
-        <span class="spinner-border spinner-border-sm me-1 d-none" id="spinnerSimpanPembelian" role="status" aria-hidden="true"></span>
-        <span class="label-simpan">Simpan Pembelian</span>
+      <button type="submit" class="btn btn-primary" id="btnUpdatePembelian">
+        <span class="spinner-border spinner-border-sm me-1 d-none" id="spinnerUpdatePembelian" role="status" aria-hidden="true"></span>
+        <span class="label-update">Update Pembelian</span>
       </button>
       </div>
     </div>
     </div>
-
-    <!-- <div class="d-flex justify-content-end gap-2 mt-4">
-    <a href="{{ route('pembelian.index') }}" class="btn btn-light">Batal</a>
-    <button type="submit" class="btn btn-primary">
-      <i class="fa fa-save me-1"></i> Simpan Pembelian
-    </button>
-    </div> -->
   </form>
 
   <style>
@@ -252,10 +261,29 @@
   'clearBtnId' => 'clearSearchPemasokPembelian',
 ])
 <script src="/js/pembelian/pembelian-helper.js"></script>
-<script src="/js/pembelian/form-create.js"></script>
+<script src="/js/pembelian/form-edit.js"></script>
   <script>
   document.getElementById('btnBatalPembelian').addEventListener('click', function() {
     window.history.back();
     });
+    
+  @if(session('success'))
+    Swal.fire({
+      title: 'Berhasil!',
+      text: '{{ session('success') }}',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  @endif
+
+  @if(session('error'))
+    Swal.fire({
+      title: 'Error!',
+      text: '{{ session('error') }}',
+      icon: 'error',
+      confirmButtonText: 'OK'
+    });
+  @endif
   </script>
-@endpush
+@endpush 

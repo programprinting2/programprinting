@@ -12,12 +12,57 @@ use Haruncpi\LaravelIdGenerator\IdGenerator;
 
 class PembelianController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $data_pembelian = Pembelian::with('pemasok')
-            ->orderByDesc('tanggal')
-            ->paginate(10);
-        return view('pages.pembelian.index', compact('data_pembelian'));
+        $query = Pembelian::with(['pemasok']);
+
+        // Pencarian berdasarkan kode pembelian, nama pemasok, atau nomor form
+        if ($request->filled('search')) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(kode_pembelian) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereRaw('LOWER(nomor_form) LIKE ?', ['%' . $search . '%'])
+                  ->orWhereHas('pemasok', function($pemasokQuery) use ($search) {
+                      $pemasokQuery->whereRaw('LOWER(nama) LIKE ?', ['%' . $search . '%'])
+                                   ->orWhereRaw('LOWER(kode_pemasok) LIKE ?', ['%' . $search . '%']);
+                  });
+            });
+        }
+
+        // Filter berdasarkan pemasok
+        if ($request->filled('pemasok_id')) {
+            $query->where('pemasok_id', $request->pemasok_id);
+        }
+
+        // Filter berdasarkan tanggal
+        if ($request->filled('tanggal_dari')) {
+            $query->where('tanggal_pembelian', '>=', $request->tanggal_dari);
+        }
+        if ($request->filled('tanggal_sampai')) {
+            $query->where('tanggal_pembelian', '<=', $request->tanggal_sampai);
+        }
+
+        // Pagination dengan 10 item per halaman
+        $data_pembelian = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Tambahkan parameter pencarian ke pagination
+        if ($request->has('search')) {
+            $data_pembelian->appends(['search' => $request->search]);
+        }
+        if ($request->has('pemasok_id')) {
+            $data_pembelian->appends(['pemasok_id' => $request->pemasok_id]);
+        }
+        if ($request->has('tanggal_dari')) {
+            $data_pembelian->appends(['tanggal_dari' => $request->tanggal_dari]);
+        }
+        if ($request->has('tanggal_sampai')) {
+            $data_pembelian->appends(['tanggal_sampai' => $request->tanggal_sampai]);
+        }
+
+        // Data untuk dropdown pemasok
+        $pemasok_list = Pemasok::where('status', true)->orderBy('nama')->get();
+
+        return view('pages.pembelian.index', compact('data_pembelian', 'pemasok_list'));
     }
 
     public function create()
@@ -82,7 +127,7 @@ class PembelianController extends Controller
             $nota_kredit = intval($request->nota_kredit ?? 0);
             $biaya_lain = intval($request->biaya_lain ?? 0);
 
-            $diskon_total = $jumlah_diskon + round($subtotal * ($diskon_persen/100));
+            $diskon_total = $jumlah_diskon;
             $dpp = $subtotal - $diskon_total;
             $pajak = round($dpp * ($tarif_pajak/100));
             $total = $dpp + $pajak + $biaya_pengiriman + $biaya_lain - $nota_kredit;
@@ -90,7 +135,7 @@ class PembelianController extends Controller
             // Simpan header pembelian
             $pembelian = Pembelian::create([
                 'kode_pembelian' => $kode_pembelian,
-                'tanggal' => $request->tanggal,
+                'tanggal_pembelian' => $request->tanggal_pembelian,
                 'pemasok_id' => $request->pemasok_id,
                 'nomor_form' => $request->nomor_form,
                 'jatuh_tempo' => $request->jatuh_tempo,
@@ -100,6 +145,7 @@ class PembelianController extends Controller
                 'tarif_pajak' => $tarif_pajak,
                 'nota_kredit' => $nota_kredit,
                 'biaya_lain' => $biaya_lain,
+                'total' => $total,
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
@@ -117,21 +163,25 @@ class PembelianController extends Controller
         }
     }
 
-    public function show($id)
+    public function show($kode_pembelian)
     {
-        $pembelian = Pembelian::with(['pemasok', 'items.bahanBaku'])->findOrFail($id);
+        $pembelian = Pembelian::with(['pemasok', 'items.bahanBaku'])
+            ->where('kode_pembelian', $kode_pembelian)
+            ->firstOrFail();
         return view('pages.pembelian.show', compact('pembelian'));
     }
 
-    public function edit($id)
+    public function edit($kode_pembelian)
     {
-        $pembelian = Pembelian::with(['pemasok', 'items.bahanBaku'])->findOrFail($id);
-        $pemasok = Pemasok::orderBy('nama')->get();
-        $bahan_baku = BahanBaku::orderBy('nama')->get();
+        $pembelian = Pembelian::with(['pemasok', 'items.bahanBaku'])
+            ->where('kode_pembelian', $kode_pembelian)
+            ->firstOrFail();
+        $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
+        $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
         return view('pages.pembelian.edit', compact('pembelian', 'pemasok', 'bahan_baku'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $kode_pembelian)
     {
         $validated = $request->validate([
             'tanggal_pembelian' => 'required|date',
@@ -153,7 +203,7 @@ class PembelianController extends Controller
 
         \DB::beginTransaction();
         try {
-            $pembelian = Pembelian::findOrFail($id);
+            $pembelian = Pembelian::where('kode_pembelian', $kode_pembelian)->firstOrFail();
             // Hitung subtotal item
             $subtotal = 0;
             $items = [];
@@ -178,14 +228,14 @@ class PembelianController extends Controller
             $nota_kredit = intval($request->nota_kredit ?? 0);
             $biaya_lain = intval($request->biaya_lain ?? 0);
 
-            $diskon_total = $jumlah_diskon + round($subtotal * ($diskon_persen/100));
+            $diskon_total = $jumlah_diskon;
             $dpp = $subtotal - $diskon_total;
             $pajak = round($dpp * ($tarif_pajak/100));
             $total = $dpp + $pajak + $biaya_pengiriman + $biaya_lain - $nota_kredit;
 
             // Update header pembelian
             $pembelian->update([
-                'tanggal' => $request->tanggal_pembelian,
+                'tanggal_pembelian' => $request->tanggal_pembelian,
                 'pemasok_id' => $request->pemasok_id,
                 'nomor_form' => $request->nomor_form,
                 'jatuh_tempo' => $request->jatuh_tempo,
@@ -195,6 +245,7 @@ class PembelianController extends Controller
                 'tarif_pajak' => $tarif_pajak,
                 'nota_kredit' => $nota_kredit,
                 'biaya_lain' => $biaya_lain,
+                'total' => $total,
                 'updated_at' => now(),
             ]);
 
@@ -212,11 +263,11 @@ class PembelianController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy($kode_pembelian)
     {
         \DB::beginTransaction();
         try {
-            $pembelian = Pembelian::findOrFail($id);
+            $pembelian = Pembelian::where('kode_pembelian', $kode_pembelian)->firstOrFail();
             $pembelian->items()->delete();
             $pembelian->delete();
             \DB::commit();

@@ -9,13 +9,13 @@ class Pembelian extends Model
     use HasFactory;
     protected $table = 'pembelian';
     protected $fillable = [
-        'kode_pembelian', 'tanggal', 'supplier_id', 'nomor_form', 'jatuh_tempo', 'catatan',
-        'diskon_persen', 'biaya_pengiriman', 'tarif_pajak', 'nota_kredit', 'biaya_lain'
+        'kode_pembelian', 'tanggal_pembelian', 'pemasok_id', 'nomor_form', 'jatuh_tempo', 'catatan',
+        'diskon_persen', 'biaya_pengiriman', 'tarif_pajak', 'nota_kredit', 'biaya_lain', 'total'
     ];
 
     public function pemasok()
     {
-        return $this->belongsTo(Pemasok::class, 'supplier_id');
+        return $this->belongsTo(Pemasok::class, 'pemasok_id');
     }
 
     public function items()
