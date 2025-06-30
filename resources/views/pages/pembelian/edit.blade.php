@@ -37,64 +37,8 @@
     @csrf
     @method('PUT')
     <div class="row">
-    {{-- Sidebar kiri: informasi pemasok --}}
-    <div class="col-md-3">
-      <div class="mb-4 p-3 border rounded bg-light">
-      <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pemasok</div>
-      <div class="mb-3">
-        <label class="form-label">Pemasok</label>
-        <div class="input-group">
-          <input type="text" class="form-control" id="namaPemasokInput" placeholder="Pilih pemasok..." readonly style="background:#fff;cursor:pointer;" value="{{ $pembelian->pemasok->nama ?? '' }} [{{ $pembelian->pemasok->kode_pemasok ?? '' }}]">
-          <input type="hidden" id="pemasokIdInput" name="pemasok_id" value="{{ $pembelian->pemasok_id }}">
-          <input type="hidden" id="kodePemasokInput" value="{{ $pembelian->pemasok->kode_pemasok ?? '' }}">
-          <button class="btn btn-outline-secondary" type="button" id="btnCariPemasok"><i class="fa fa-search"></i></button>
-        </div>
-      </div>
 
-      <div class="mb-3">
-        <label class="form-label">Tanggal Pembelian</label>
-        <input type="date" class="form-control" name="tanggal_pembelian" id="tanggalPembelian" value="{{ $pembelian->tanggal_pembelian }}" required>
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Jatuh Tempo (Hari)</label>
-        <input type="number" class="form-control" id="jatuhTempoHari" name="jatuh_tempo_hari" min="1" placeholder="Isi jumlah hari jatuh tempo">
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Tanggal Jatuh Tempo <span class="text-muted small">(Opsional)</span></label>
-        <input type="date" class="form-control" name="jatuh_tempo" id="tanggalJatuhTempo" value="{{ $pembelian->jatuh_tempo }}">
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Gunakan Nomor Form <span class="text-muted small">(Opsional)</span></label>
-        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form" value="{{ $pembelian->nomor_form }}">
-      </div>
-      </div>
-      <div class="mb-4 p-3 border rounded bg-light">
-      <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
-      <textarea class="form-control" name="catatan" rows="3"
-        placeholder="Tambahkan catatan untuk pembelian ini">{{ $pembelian->catatan }}</textarea>
-      </div>
-      <div class="p-3 border rounded bg-light">
-      <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
-      <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span class="ringkasan-subtotal">Rp
-        0</span></div>
-      <div class="d-flex justify-content-between small mb-1"><span>Diskon:</span><span class="ringkasan-diskon">- Rp
-        0</span></div>
-      <div class="d-flex justify-content-between small mb-1"><span>Pengiriman:</span><span
-        class="ringkasan-pengiriman">Rp 0</span></div>
-      <div class="d-flex justify-content-between small mb-1"><span>Biaya Lain:</span><span class="ringkasan-biayalain">Rp 0</span></div>
-      <div class="d-flex justify-content-between small mb-1"><span>Nota Kredit:</span><span class="ringkasan-notakredit">- Rp 0</span></div>
-      <div class="d-flex justify-content-between small mb-1"><span>Pajak (%):</span><span class="ringkasan-pajak">Rp
-        0</span></div>
-      <hr class="my-2">
-      <div class="d-flex justify-content-between fw-bold"><span>Total:</span><span class="ringkasan-total">Rp 0</span>
-      </div>
-      </div>
-    </div>
-
-    {{-- Konten kanan: item pembelian --}}
+    {{-- Konten kiri: item pembelian --}}
     <div class="col-md-9">
       <div class="card border-0 shadow-none">
       <div class="card-body p-0">
@@ -233,6 +177,64 @@
       </button>
       </div>
     </div>
+
+    {{-- Sidebar kanan: informasi pemasok --}}
+    <div class="col-md-3">
+      <div class="mb-4 p-3 border rounded bg-light">
+      <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pemasok</div>
+      <div class="mb-3">
+        <label class="form-label">Pemasok</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="namaPemasokInput" placeholder="Pilih pemasok..." readonly style="background:#fff;cursor:pointer;" value="{{ $pembelian->pemasok->nama ?? '' }} [{{ $pembelian->pemasok->kode_pemasok ?? '' }}]">
+          <input type="hidden" id="pemasokIdInput" name="pemasok_id" value="{{ $pembelian->pemasok_id }}">
+          <input type="hidden" id="kodePemasokInput" value="{{ $pembelian->pemasok->kode_pemasok ?? '' }}">
+          <button class="btn btn-outline-secondary" type="button" id="btnCariPemasok"><i class="fa fa-search"></i></button>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tanggal Pembelian</label>
+        <input type="date" class="form-control" name="tanggal_pembelian" id="tanggalPembelian" value="{{ $pembelian->tanggal_pembelian }}" required>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Jatuh Tempo (Hari)</label>
+        <input type="number" class="form-control" id="jatuhTempoHari" name="jatuh_tempo_hari" min="1" placeholder="Isi jumlah hari jatuh tempo">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Tanggal Jatuh Tempo <span class="text-muted small">(Opsional)</span></label>
+        <input type="date" class="form-control" name="jatuh_tempo" id="tanggalJatuhTempo" value="{{ $pembelian->jatuh_tempo }}">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Gunakan Nomor Form <span class="text-muted small">(Opsional)</span></label>
+        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form" value="{{ $pembelian->nomor_form }}">
+      </div>
+      </div>
+      <div class="mb-4 p-3 border rounded bg-light">
+      <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
+      <textarea class="form-control" name="catatan" rows="3"
+        placeholder="Tambahkan catatan untuk pembelian ini">{{ $pembelian->catatan }}</textarea>
+      </div>
+      <div class="p-3 border rounded bg-light">
+      <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
+      <div class="d-flex justify-content-between small mb-1"><span>Subtotal:</span><span class="ringkasan-subtotal">Rp
+        0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Diskon:</span><span class="ringkasan-diskon">- Rp
+        0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Biaya Pengiriman:</span><span
+        class="ringkasan-pengiriman">Rp 0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Biaya Lain:</span><span class="ringkasan-biayalain">Rp 0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Nota Kredit:</span><span class="ringkasan-notakredit">- Rp 0</span></div>
+      <div class="d-flex justify-content-between small mb-1"><span>Pajak (%):</span><span class="ringkasan-pajak">Rp
+        0</span></div>
+      <hr class="my-2">
+      <div class="d-flex justify-content-between fw-bold"><span>Total:</span><span class="ringkasan-total">Rp 0</span>
+      </div>
+      </div>
+    </div>
+
     </div>
   </form>
 
