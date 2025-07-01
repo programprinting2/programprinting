@@ -41,7 +41,7 @@ $(document).ready(function() {
 
     $('#statusStokText').text(statusText);
     $('#stokProgressBar').css('width', `${progressBarWidth}%`).removeClass('bg-primary bg-danger bg-success').addClass(progressBarClass);
-    $('#stokSummary').text(`${stokSaatIni} / ${stokMaksimum} ${satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit'}`);
+    $('#stokSummary').text(`${stokSaatIni} / ${stokMaksimum} Unit`);
     $('#stokAlert').removeClass('d-none').addClass(stokAlertClass);
 
     // Update Estimasi Nilai Stok
@@ -97,15 +97,21 @@ $(document).ready(function() {
     return html;
   }
 
+  // Fungsi untuk mendapatkan nama satuan utama dari id
+  function getNamaSatuanById(id) {
+    if (!window.satuanList) return '';
+    const satuan = window.satuanList.find(s => s.id == id);
+    return satuan ? satuan.nama_detail_parameter : '';
+  }
+
   // Fungsi untuk menambahkan baris konversi satuan baru
-  $('#tambahKonversi').on('click', function() {
+  $('#tambahKonversi').off('click').on('click', function() {
+    const satuanUtamaId = $('#satuanUtama').val();
+    const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
     const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][dari]" value="1" min="0">
-        </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
             ${optionsHtml}
           </select>
@@ -113,13 +119,12 @@ $(document).ready(function() {
         <div class="col-auto">
           <span>=</span>
         </div>
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][ke]" value="1" min="0">
-        </div>
         <div class="col-md-3">
-          <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_ke]">
-            ${optionsHtml}
-          </select>
+          <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
+          <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
         </div>
         <div class="col-auto">
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
@@ -127,8 +132,16 @@ $(document).ready(function() {
       </div>
     `;
     $('#conversionUnitsContainer').append(newRow);
-    feather.replace(); // Re-initialize feather icons for new elements
+    feather.replace();
     updateNoConversionMessage();
+  });
+
+  // Update semua satuan ke jika satuan utama berubah
+  $('#satuanUtama').on('change', function() {
+    const satuanUtamaId = $(this).val();
+    const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
+    $('.satuan-ke-readonly').val(satuanUtamaNama);
+    $('.satuan-ke-id').val(satuanUtamaId);
   });
 
   // Event listener untuk menghapus baris konversi
@@ -154,22 +167,15 @@ $(document).ready(function() {
     // Persiapkan data konversi satuan
     const konversiRows = [];
     $('.conversion-row').each(function() {
-      const dari = $(this).find('input[name*="[dari]"]').val();
       const satuanDari = $(this).find('select[name*="[satuan_dari]"]').val();
-      const ke = $(this).find('input[name*="[ke]"]').val();
-      const satuanKe = $(this).find('select[name*="[satuan_ke]"]').val();
-
-      if (dari && satuanDari && ke && satuanKe) {
+      const jumlah = $(this).find('input[name*="[jumlah]"]').val();
+      if (satuanDari && jumlah) {
         konversiRows.push({
-          dari: parseFloat(dari),
           satuan_dari: satuanDari,
-          ke: parseFloat(ke),
-          satuan_ke: satuanKe
+          jumlah: parseFloat(jumlah)
         });
       }
     });
-
-    // Set konversi satuan sebagai JSON string dengan format yang diinginkan
     formData.set('konversi_satuan_json', JSON.stringify(konversiRows));
 
     // Set status_aktif dari dropdown

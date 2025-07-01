@@ -1,56 +1,3 @@
-// Definisi satuan berdasarkan kategori (dipindahkan ke global scope)
-const satuanByKategori = {
-  'Bahan Lembaran': [
-    { value: 'lembar', label: 'Lembar' },
-    { value: 'pcs', label: 'Pcs' },
-    { value: 'rim', label: 'Rim' },
-    { value: 'pak', label: 'Pak' }
-  ],
-  'Bahan Roll': [
-    { value: 'roll', label: 'Roll' },
-    { value: 'meter', label: 'Meter' },
-    { value: 'cm2', label: 'cm2' },
-    { value: 'm2', label: 'm2' }
-  ],
-  'Bahan Cair': [
-    { value: 'ml', label: 'ml' },
-    { value: 'liter', label: 'Liter' },
-    { value: 'galon', label: 'Galon' },
-    { value: 'botol', label: 'Botol' }
-  ],
-  'Bahan Berat': [
-    { value: 'gram', label: 'Gram' },
-    { value: 'kg', label: 'Kg' },
-    { value: 'ton', label: 'Ton' },
-    { value: 'ball', label: 'Ball' }
-  ],
-  'Bahan Unit/Biji': [
-    { value: 'pcs', label: 'Pcs' },
-    { value: 'unit', label: 'Unit' },
-    { value: 'biji', label: 'Biji' },
-    { value: 'box', label: 'Box' }
-  ],
-  'Bahan Paket/Set': [
-    { value: 'paket', label: 'Paket' },
-    { value: 'set', label: 'Set' },
-    { value: 'bundle', label: 'Bundle' }
-  ],
-  'Bahan Waktu/Jasa': [
-    { value: 'detik', label: 'Detik' },
-    { value: 'menit', label: 'Menit' },
-    { value: 'jam', label: 'Jam' },
-    { value: 'hari', label: 'Hari' }
-  ]
-};
-
-// Fungsi untuk mendapatkan opsi satuan berdasarkan kategori (dipindahkan ke global scope)
-function getEditSatuanOptions(kategori) {
-  if (satuanByKategori[kategori]) {
-    return satuanByKategori[kategori].map(satuan => `<option value="${satuan.value}">${satuan.label}</option>`).join('');
-  }
-  return '<option value="">Pilih satuan</option>';
-}
-
 // Fungsi untuk mengupdate label unit pada input stok edit (dipindahkan ke global scope)
 function updateEditStockUnitLabels() {
   // Selalu tampilkan 'Unit' pada label satuan
@@ -91,7 +38,7 @@ function updateEditStokInfo() {
 
   $('#editStatusStokText').text(statusText);
   $('#editStokProgressBar').css('width', `${progressBarWidth}%`).removeClass('bg-primary bg-danger bg-success').addClass(progressBarClass);
-  $('#editStokSummary').text(`${stokSaatIni} / ${stokMaksimum} ${satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit'}`);
+  $('#editStokSummary').text(`${stokSaatIni} / ${stokMaksimum} Unit`);
   $('#editStokAlert').removeClass('d-none').addClass(stokAlertClass);
 
   // Update Estimasi Nilai Stok
@@ -372,12 +319,11 @@ function loadBahanBakuData(id) {
       }
       const optionsHtml = getSatuanOptionsFromList();
       konversiData.forEach(konversi => {
+        const satuanUtamaId = $('#edit_satuan_utama').val();
+        const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
         const newRow = `
           <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-            <div class="col-md-2">
-              <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][dari]" value="${konversi.dari || konversi.from_value}" min="0">
-            </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
               <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
                 ${optionsHtml}
               </select>
@@ -385,13 +331,12 @@ function loadBahanBakuData(id) {
             <div class="col-auto">
               <span>=</span>
             </div>
-            <div class="col-md-2">
-              <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][ke]" value="${konversi.ke || konversi.to_value}" min="0">
-            </div>
             <div class="col-md-3">
-              <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_ke]">
-                ${optionsHtml}
-              </select>
+              <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="${konversi.jumlah}" min="1" step="0.01">
+            </div>
+            <div class="col-md-4">
+              <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
+              <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
             </div>
             <div class="col-auto">
               <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
@@ -399,9 +344,8 @@ function loadBahanBakuData(id) {
           </div>
         `;
         $('#editConversionUnitsContainer').append(newRow);
-        // Set selected values for the new dropdowns
-        $('#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_dari]"]').val(konversi.satuan_dari || konversi.from_unit);
-        $('#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_ke]"]').val(konversi.satuan_ke || konversi.to_unit);
+        // Set selected value untuk dropdown satuan_dari
+        $('#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_dari]"]').val(konversi.satuan_dari);
       });
       feather.replace();
     }
@@ -662,69 +606,111 @@ function updateEditNoConversionMessage() {
   }
 }
 
-// Modifikasi prepareFormData untuk mengirim link_pendukung_json
+// Fungsi untuk mendapatkan nama satuan utama dari id
+function getNamaSatuanById(id) {
+  if (!window.satuanList) return '';
+  const satuan = window.satuanList.find(s => s.id == id);
+  return satuan ? satuan.nama_detail_parameter : '';
+}
+
+// Event listener untuk tombol tambah konversi pada modal edit
+$('#editTambahKonversi').off('click').on('click', function() {
+  const satuanUtamaId = $('#edit_satuan_utama').val();
+  const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
+  const optionsHtml = getSatuanOptionsFromList();
+  const newRow = `
+    <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
+      <div class="col-md-4">
+        <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
+          ${optionsHtml}
+        </select>
+      </div>
+      <div class="col-auto">
+        <span>=</span>
+      </div>
+      <div class="col-md-3">
+        <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
+      </div>
+      <div class="col-md-4">
+        <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
+        <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
+      </div>
+      <div class="col-auto">
+        <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
+      </div>
+    </div>
+  `;
+  $('#editConversionUnitsContainer').append(newRow);
+  feather.replace();
+  updateEditNoConversionMessage();
+});
+
+// Update semua satuan ke jika satuan utama berubah
+$('#edit_satuan_utama').on('change', function() {
+  const satuanUtamaId = $(this).val();
+  const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
+  $('.satuan-ke-readonly').val(satuanUtamaNama);
+  $('.satuan-ke-id').val(satuanUtamaId);
+});
+
+// Fungsi untuk mempersiapkan data sebelum submit
 function prepareFormData(formData) {
-    // Hapus format Rupiah dari harga terakhir
-    const hargaTerakhir = formData.get('harga_terakhir');
-    if (hargaTerakhir) {
-        formData.set('harga_terakhir', hargaTerakhir.replace(/\./g, ''));
+  // Hapus format Rupiah dari harga terakhir
+  const hargaTerakhir = formData.get('harga_terakhir');
+  if (hargaTerakhir) {
+    formData.set('harga_terakhir', hargaTerakhir.replace(/\./g, ''));
+  }
+
+  // Set status_aktif dari dropdown
+  const statusAktif = $('#edit_status_aktif').val();
+  formData.delete('status_aktif'); // Hapus nilai lama jika ada
+  formData.append('status_aktif', statusAktif);
+
+  // Persiapkan data konversi satuan
+  const konversiRows = [];
+  $('.conversion-row').each(function() {
+    const satuanDari = $(this).find('select[name*="[satuan_dari]"]').val();
+    const jumlah = $(this).find('input[name*="[jumlah]"]').val();
+    if (satuanDari && jumlah) {
+      konversiRows.push({
+        satuan_dari: satuanDari,
+        jumlah: parseFloat(jumlah)
+      });
     }
+  });
+  formData.set('konversi_satuan_json', JSON.stringify(konversiRows));
 
-    // Set status_aktif dari dropdown
-    const statusAktif = $('#edit_status_aktif').val();
-    formData.delete('status_aktif'); // Hapus nilai lama jika ada
-    formData.append('status_aktif', statusAktif);
+  // Filter dokumen lama agar tidak ada elemen kosong
+  const dokumenLamaValid = dokumenLamaEdit.filter(doc => doc && doc.nama && doc.path);
+  formData.set('dokumen_pendukung_json', JSON.stringify(dokumenLamaValid));
 
-    // Persiapkan data konversi satuan
-    const konversiRows = [];
-    $('#editConversionUnitsContainer .conversion-row').each(function() {
-        const dari = $(this).find('input[name*="[dari]"]').val();
-        const satuanDari = $(this).find('select[name*="[satuan_dari]"]').val();
-        const ke = $(this).find('input[name*="[ke]"]').val();
-        const satuanKe = $(this).find('select[name*="[satuan_ke]"]').val();
+  // Foto lama
+  formData.append('foto_pendukung_existing_json', JSON.stringify(fotoLamaEdit));
+  // Video lama
+  formData.append('video_pendukung_existing_json', JSON.stringify(videoLamaEdit));
 
-        if (dari && satuanDari && ke && satuanKe) {
-            konversiRows.push({
-                dari: parseFloat(dari),
-                satuan_dari: satuanDari,
-                ke: parseFloat(ke),
-                satuan_ke: satuanKe
-            });
-        }
-    });
-    formData.set('konversi_satuan_json', JSON.stringify(konversiRows));
+  // Tambahkan file foto baru ke FormData
+  selectedEditPhotos.forEach(file => {
+    formData.append('foto_pendukung_new[]', file);
+  });
+  // Tambahkan file video baru ke FormData
+  selectedEditVideos.forEach(file => {
+    formData.append('video_pendukung_new[]', file);
+  });
 
-    // Filter dokumen lama agar tidak ada elemen kosong
-    const dokumenLamaValid = dokumenLamaEdit.filter(doc => doc && doc.nama && doc.path);
-    formData.set('dokumen_pendukung_json', JSON.stringify(dokumenLamaValid));
+  // Tambahkan file dokumen ke FormData
+  selectedEditDocuments.forEach(file => {
+    formData.append('dokumen_pendukung_new[]', file);
+  });
 
-    // Foto lama
-    formData.append('foto_pendukung_existing_json', JSON.stringify(fotoLamaEdit));
-    // Video lama
-    formData.append('video_pendukung_existing_json', JSON.stringify(videoLamaEdit));
+  // Tambahkan link pendukung ke FormData
+  formData.set('link_pendukung_json', JSON.stringify(editLinkPendukung));
 
-    // Tambahkan file foto baru ke FormData
-    selectedEditPhotos.forEach(file => {
-      formData.append('foto_pendukung_new[]', file);
-    });
-    // Tambahkan file video baru ke FormData
-    selectedEditVideos.forEach(file => {
-      formData.append('video_pendukung_new[]', file);
-    });
+  // Pastikan pengambilan value sub-kategori menggunakan id
+  const subKategoriId = $('#edit_sub_kategori_id').val();
+  formData.append('sub_kategori_id', subKategoriId);
 
-    // Tambahkan file dokumen ke FormData
-    selectedEditDocuments.forEach(file => {
-      formData.append('dokumen_pendukung_new[]', file);
-    });
-
-    // Tambahkan link pendukung ke FormData
-    formData.set('link_pendukung_json', JSON.stringify(editLinkPendukung));
-
-    // Pastikan pengambilan value sub-kategori menggunakan id
-    const subKategoriId = $('#edit_sub_kategori_id').val();
-    formData.append('sub_kategori_id', subKategoriId);
-
-    return formData;
+  return formData;
 }
 
 // === Spesifikasi Teknis Dinamis (Edit) ===
@@ -799,15 +785,25 @@ $(document).ready(function() {
   updateEditStockUnitLabels();
   updateEditStokInfo();
 
+  // Event listener untuk perubahan input stok dan harga di modal edit
+  $('#edit_stok_saat_ini, #edit_stok_minimum, #edit_stok_maksimum, #edit_harga_terakhir').on('input', updateEditStokInfo);
+  $('#edit_satuan_utama').on('change', function(){
+    updateEditStockUnitLabels();
+    updateEditStokInfo();
+  });
+
+  // Panggil saat modal edit ditampilkan (setelah data bahan baku dimuat jika edit)
+  $('#editModal').on('shown.bs.modal', function () {
+    updateEditStockUnitLabels();
+    updateEditStokInfo();
+  });
+
   // Event listener untuk tombol tambah konversi pada modal edit
   $('#editTambahKonversi').on('click', function() {
     const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][dari]" value="1" min="0">
-        </div>
-        <div class="col-md-3">
+        <div class="col-md-4">
           <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
             ${optionsHtml}
           </select>
@@ -815,13 +811,12 @@ $(document).ready(function() {
         <div class="col-auto">
           <span>=</span>
         </div>
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][ke]" value="1" min="0">
-        </div>
         <div class="col-md-3">
-          <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_ke]">
-            ${optionsHtml}
-          </select>
+          <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
+        </div>
+        <div class="col-md-4">
+          <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
+          <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
         </div>
         <div class="col-auto">
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
@@ -977,11 +972,5 @@ $(document).ready(function() {
   // Bersihkan konten modal preview media saat ditutup agar video berhenti total
   $('#editMediaPreviewModal').on('hidden.bs.modal', function() {
     $('#editMediaPreviewModalBody').html('');
-  });
-
-  // Event listener untuk perubahan satuan utama di modal edit
-  $('#edit_satuan_utama').on('change', function(){
-    updateEditStockUnitLabels();
-    updateEditStokInfo();
   });
 }); 

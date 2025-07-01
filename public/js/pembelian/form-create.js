@@ -11,11 +11,18 @@
   document.getElementById('namaBahanBakuInput').addEventListener('click', function() {
     $('#modalCariBahanBakuPembelian').modal('show');
   });
+  // Untuk mencegah duplikasi event listener pada hargaInput
+  let hargaInputListener = null;
+
+  // Helper: cek duplikasi bahan baku
+  function checkBahanBakuDuplikat(bahanbakuId) {
+    return Array.from(document.querySelectorAll('input[name$="[bahanbaku_id]"]')).some(input => input.value == bahanbakuId);
+  }
+
   window.addEventListener('bahanBakuDipilih', function(e) {
     const data = e.detail;
-    // Cek duplikat berbasis value hidden input, bukan hanya data-id di tr
-    const duplikat = Array.from(document.querySelectorAll('input[name="items[][bahanbaku_id]"]')).some(input => input.value == data.id);
-    if (duplikat) {
+    // Cek duplikat berbasis value hidden input
+    if (checkBahanBakuDuplikat(data.id)) {
       Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
       return;
     }
@@ -24,28 +31,33 @@
     // Format harga dengan pemisah ribuan
     document.getElementById('hargaInput').value = PembelianHelper.formatNumber(data.harga);
     document.getElementById('kodeBahanBakuInput') && (document.getElementById('kodeBahanBakuInput').value = data.kode);
-    document.getElementById('satuanUtamaLabel').textContent = data.satuan || '-';
-    // Tampilkan konversi satuan jika ada
-    const konversiInfo = document.getElementById('konversiSatuanInfo');
-    konversiInfo.style.display = 'none';
-    konversiInfo.innerHTML = '';
-    if (data.konversi_satuan) {
-      let konv = data.konversi_satuan;
-      if (typeof konv === 'string') {
-        try { konv = JSON.parse(konv); } catch { konv = []; }
-      }
-      if (Array.isArray(konv) && konv.length > 0) {
-        let html = '<div class="small text-muted">Konversi Satuan:</div><ul class="mb-1 ps-3">';
-        konv.forEach(k => {
-          if (k.dari && k.satuan_dari && k.ke && k.satuan_ke) {
-            html += `<li>1 ${getNamaSatuanById(k.satuan_dari)} = ${k.ke} ${getNamaSatuanById(k.satuan_ke)}</li>`;
-          }
-        });
-        html += '</ul>';
-        konversiInfo.innerHTML = html;
-        konversiInfo.style.display = '';
-      }
+    document.getElementById('satuanInput').innerHTML = '';
+    let satuanUtama = data.satuan || '-';
+    let satuanOptions = `<option value="${satuanUtama}" data-konversi="1">${satuanUtama} (Utama)</option>`;
+    let konv = data.konversi_satuan;
+    if (typeof konv === 'string') {
+      try { konv = JSON.parse(konv); } catch { konv = []; }
     }
+    if (Array.isArray(konv) && konv.length > 0) {
+      konv.forEach(k => {
+        if (k.satuan_dari && k.jumlah) {
+          const namaKonversi = getNamaSatuanById(k.satuan_dari);
+          satuanOptions += `<option value="${namaKonversi}" data-konversi="${k.jumlah}">${namaKonversi}</option>`;
+        }
+      });
+    }
+    document.getElementById('satuanInput').innerHTML = satuanOptions;
+    document.getElementById('satuanInput').classList.remove('d-none');
+    updateKonversiSatuanInfo(data);
+    // Cegah duplikasi event listener pada hargaInput
+    const hargaInput = document.getElementById('hargaInput');
+    if (hargaInputListener) {
+      hargaInput.removeEventListener('input', hargaInputListener);
+    }
+    hargaInputListener = function() {
+      updateKonversiSatuanInfo(data);
+    };
+    hargaInput.addEventListener('input', hargaInputListener);
     updatePreviewTotalItem();
   });
 
@@ -61,14 +73,18 @@
     const jumlah = parseInt(document.getElementById('jumlahInput').value) || 1;
     const harga = PembelianHelper.getNumericValue($('#hargaInput'));
     const diskon = parseFloat(document.getElementById('diskonInput').value) || 0;
-    let total = harga * jumlah * (1 - diskon / 100);
+    const satuanSelect = document.getElementById('satuanInput');
+    const konversi = parseInt(satuanSelect.options[satuanSelect.selectedIndex].getAttribute('data-konversi')) || 1;
+    let jumlahUtama = jumlah * konversi;
+    let total = harga * jumlahUtama * (1 - diskon / 100);
     if (isNaN(total) || total < 0) total = 0;
-    document.getElementById('previewTotalItem').textContent = PembelianHelper.formatNumber(total ? total : 0, 'Rp ');
+    document.getElementById('previewTotalItem').textContent = PembelianHelper.formatNumber('Rp ' + (total ? total : 0));
   }
 
   document.getElementById('jumlahInput').addEventListener('input', updatePreviewTotalItem);
   document.getElementById('hargaInput').addEventListener('input', updatePreviewTotalItem);
   document.getElementById('diskonInput').addEventListener('input', updatePreviewTotalItem);
+  document.getElementById('satuanInput').addEventListener('change', updatePreviewTotalItem);
 
   // --- Tambah Item ---
   document.getElementById('btnTambahItem').addEventListener('click', function () {
@@ -77,20 +93,21 @@
     const jumlahInput = document.getElementById('jumlahInput');
     const hargaInput = document.getElementById('hargaInput');
     const diskonInput = document.getElementById('diskonInput');
+    const satuanSelect = document.getElementById('satuanInput');
     const itemBody = document.getElementById('itemBody');
-    // Ambil nilai numerik dari input harga yang sudah diformat
     const harga = PembelianHelper.getNumericValue($(hargaInput));
     const jumlah = parseInt(jumlahInput.value) || 1;
     const diskonPersen = parseFloat(diskonInput.value) || 0;
+    const konversi = parseInt(satuanSelect.options[satuanSelect.selectedIndex].getAttribute('data-konversi')) || 1;
+    let jumlahUtama = jumlah * konversi;
     if (!bahanbakuId) return Swal.fire({icon: 'error', title: 'Pilih bahan baku terlebih dahulu!'});
     if (jumlah < 1) return Swal.fire({icon: 'error', title: 'Jumlah minimal 1!'});
     if (harga < 1) return Swal.fire({icon: 'error', title: 'Harga minimal 1!'});
     if (diskonPersen < 0 || diskonPersen > 100) return Swal.fire({icon: 'error', title: 'Diskon harus antara 0-100%'});
-    const total = harga * jumlah * (1 - diskonPersen / 100);
+    const total = harga * jumlahUtama * (1 - diskonPersen / 100);
     if (itemBody.children.length === 1 && itemBody.children[0].children.length === 1) {
       itemBody.innerHTML = '';
     }
-    // Hitung index item yang valid (bukan baris kosong)
     let index = 0;
     for (let row of itemBody.children) {
       if (row.querySelector('input[name^="items"]')) index++;
@@ -100,10 +117,10 @@
     row.innerHTML = `
       <td>${kodeBahan}<input type="hidden" name="items[${index}][bahanbaku_id]" value="${bahanbakuId}"></td>
       <td>${bahanbakuNama}</td>
-      <td class="item-jumlah">${jumlah}<input type="hidden" name="items[${index}][jumlah]" value="${jumlah}"></td>
-      <td class="item-harga">${PembelianHelper.formatNumber(harga)}<input type="hidden" name="items[${index}][harga]" value="${harga}"></td>
-      <td class="item-diskon">${diskonPersen}%<input type="hidden" name="items[${index}][diskon_persen]" value="${diskonPersen}"></td>
-      <td class="item-total">${PembelianHelper.formatNumber(total)}</td>
+      <td class="item-jumlah">${jumlahUtama}<input type="hidden" name="items[${index}][jumlah]" value="${jumlahUtama}"></td>
+      <td class="item-harga text-end">${PembelianHelper.formatNumber(harga)}<input type="hidden" name="items[${index}][harga]" value="${harga}"></td>
+      <td class="item-diskon text-end">${diskonPersen}%<input type="hidden" name="items[${index}][diskon_persen]" value="${diskonPersen}"></td>
+      <td class="item-total text-end">${PembelianHelper.formatNumber(total)}</td>
       <td>
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -111,19 +128,18 @@
       `;
     itemBody.appendChild(row);
     reindexItemInputs();
+    updatePreviewTotalItem();
+    updateRingkasanBiaya();
+    syncDiskonSaatSubtotalBerubah();
     document.getElementById('bahanbakuIdInput').value = '';
     document.getElementById('namaBahanBakuInput').value = '';
     jumlahInput.value = 1;
     hargaInput.value = '0';
     diskonInput.value = 0;
-    document.getElementById('satuanUtamaLabel').textContent = '-';
+    document.getElementById('satuanInput').innerHTML = '';
+    document.getElementById('satuanInput').classList.add('d-none');
     document.getElementById('konversiSatuanInfo').style.display = 'none';
     document.getElementById('konversiSatuanInfo').innerHTML = '';
-    updatePreviewTotalItem();
-    
-    // Update ringkasan biaya dan sinkronisasi diskon
-    updateRingkasanBiaya();
-    syncDiskonSaatSubtotalBerubah();
   });
 
   // --- Edit & Hapus Item ---
@@ -427,4 +443,29 @@
     spinner.classList.remove('d-none');
     label.textContent = 'Menyimpan...';
   });
+
+  function updateKonversiSatuanInfo(data) {
+    const konversiInfo = document.getElementById('konversiSatuanInfo');
+    konversiInfo.style.display = 'none';
+    konversiInfo.innerHTML = '';
+    let konv = data.konversi_satuan;
+    if (typeof konv === 'string') {
+      try { konv = JSON.parse(konv); } catch { konv = []; }
+    }
+    if (Array.isArray(konv) && konv.length > 0) {
+      let html = '<div class="small text-muted">Konversi Satuan:</div><ul class="mb-1 ps-3">';
+      const satuanUtama = document.getElementById('satuanInput').options[0]?.value || '-';
+      const harga = PembelianHelper.getNumericValue($('#hargaInput'));
+      konv.forEach(k => {
+        if (k.satuan_dari && k.jumlah) {
+          const namaKonversi = getNamaSatuanById(k.satuan_dari);
+          const hargaPerSatuanUtama = k.jumlah > 0 ? Math.round(harga / k.jumlah) : 0;
+          html += `<li>1 ${namaKonversi} = ${k.jumlah} ${satuanUtama} (Rp ${PembelianHelper.formatNumber(hargaPerSatuanUtama)}/${satuanUtama})</li>`;
+        }
+      });
+      html += '</ul>';
+      konversiInfo.innerHTML = html;
+      konversiInfo.style.display = '';
+    }
+  }
 })(); 

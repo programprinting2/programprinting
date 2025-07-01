@@ -150,7 +150,7 @@ class PembelianController extends Controller
                 'total' => $total,
                 'created_at' => now(),
                 'updated_at' => now(),
-            ]);
+        ]);
 
             // Simpan detail item
             foreach ($items as $item) {
@@ -158,7 +158,7 @@ class PembelianController extends Controller
             }
 
             \DB::commit();
-            return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil ditambahkan.');
+        return redirect()->route('pembelian.index')->with('success', 'Data pembelian berhasil ditambahkan.');
         } catch (\Exception $e) {
             \DB::rollBack();
             return back()->withInput()->with('error', 'Gagal menyimpan pembelian: ' . $e->getMessage());

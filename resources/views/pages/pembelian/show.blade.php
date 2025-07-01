@@ -67,10 +67,10 @@
                   <tr>
                     <td>{{ $item->bahanBaku->kode_bahan }}</td>
                     <td>{{ $item->bahanBaku->nama_bahan ?? '-' }}</td>
-                    <td>{{ $item->jumlah }}</td>
-                    <td>Rp {{ number_format($item->harga,0,',','.') }}</td>
-                    <td>{{ $item->diskon_persen ?? 0 }}%</td>
-                    <td>Rp {{ number_format($item->subtotal,0,',','.') }}</td>
+                    <td class="text-end">{{ $item->jumlah }}</td>
+                    <td class="text-end">Rp {{ number_format($item->harga,0,',','.') }}</td>
+                    <td class="text-end">{{ $item->diskon_persen ?? 0 }}%</td>
+                    <td class="text-end">Rp {{ number_format($item->subtotal,0,',','.') }}</td>
                   </tr>
                   @empty
                   <tr>
@@ -81,7 +81,7 @@
                 <tfoot>
                   <tr>
                     <th colspan="5" class="text-end">Subtotal Item:</th>
-                    <th>Rp {{ number_format($pembelian->items->sum('subtotal'),0,',','.') }}</th>
+                    <th class="text-end">Rp {{ number_format($pembelian->items->sum('subtotal'),0,',','.') }}</th>
                   </tr>
                 </tfoot>
               </table>

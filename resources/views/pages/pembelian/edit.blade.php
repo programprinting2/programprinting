@@ -61,7 +61,7 @@
                 <small class="text-muted d-block mb-2">Diskon di bawah ini hanya berlaku untuk item/material ini saja. Untuk diskon total pembelian, gunakan tab "Biaya Tambahan".</small>
               </div>
               <div class="row g-2 mb-2 align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-4">
                   <label class="form-label small mb-1">Bahan Baku</label>
                   <div class="input-group">
                     <input type="text" class="form-control" id="namaBahanBakuInput" placeholder="Pilih bahan baku..." readonly>
@@ -71,26 +71,27 @@
                   </div>
                 </div>
                 <div class="col-md-2">
-                  <label for="jumlahInput" class="form-label small mb-1">Jumlah</label>
+                  <label for="jumlahInput" class="form-label small mb-1 d-block text-end">Jumlah</label>
                   <div class="input-group">
-                    <input type="number" class="form-control" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
-                    <span class="input-group-text" id="satuanUtamaLabel">-</span>
+                    <input type="number" class="form-control text-end" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
+                    <select class="form-select d-none" id="satuanInput" style="min-width:90px"></select>
                   </div>
                 </div>
-                <div class="col-md-3">
-                  <label for="hargaInput" class="form-label small mb-1">Harga Satuan (Rp)</label>
-                  <input type="text" class="form-control" id="hargaInput" placeholder="Masukkan harga satuan" value="0">
+                <div class="col-md-2">
+                  <label for="hargaInput" class="form-label small mb-1 d-block text-end">Harga Satuan (Rp)</label>
+                  <input type="text" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" value="0">
                 </div>
                 <div class="col-md-2">
-                  <label for="diskonInput" class="form-label small mb-1">Diskon per Item (%)</label>
-                  <input type="number" class="form-control" id="diskonInput" min="0" max="100" value="0">
+                  <label for="diskonInput" class="form-label small mb-1 d-block text-end">Diskon per Item (%)</label>
+                  <input type="number" class="form-control text-end" id="diskonInput" min="0" max="100" value="0">
                 </div>
+                <div class="col-md-2 text-end">
+                  <span class="fw-semibold">Total : </span>
+                  <span id="previewTotalItem" class="text-primary fw-bold">Rp 0</span>
+              </div>
             </div>
               <div class="mb-2" id="konversiSatuanInfo" style="display:none"></div>
-              <div class="mb-2">
-                <span class="fw-semibold">Total : </span>
-                <span id="previewTotalItem" class="text-primary fw-bold">Rp 0</span>
-              </div>
+              
               <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
             </div>
           </div>
@@ -113,9 +114,9 @@
                 <td>{{ $item->bahanBaku->kode_bahan ?? '-' }}<input type="hidden" name="items[{{ $index }}][bahanbaku_id]" value="{{ $item->bahanbaku_id }}"></td>
                 <td>{{ $item->bahanBaku->nama_bahan ?? '-' }}</td>
                 <td class="item-jumlah">{{ $item->jumlah }}<input type="hidden" name="items[{{ $index }}][jumlah]" value="{{ $item->jumlah }}"></td>
-                <td class="item-harga">{{ number_format($item->harga, 0, ',', '.') }}<input type="hidden" name="items[{{ $index }}][harga]" value="{{ $item->harga }}"></td>
-                <td class="item-diskon">{{ $item->diskon_persen }}%<input type="hidden" name="items[{{ $index }}][diskon_persen]" value="{{ $item->diskon_persen }}"></td>
-                <td class="item-total">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                <td class="item-harga text-end">{{ number_format($item->harga, 0, ',', '.') }}<input type="hidden" name="items[{{ $index }}][harga]" value="{{ $item->harga }}"></td>
+                <td class="item-diskon text-end">{{ $item->diskon_persen }}%<input type="hidden" name="items[{{ $index }}][diskon_persen]" value="{{ $item->diskon_persen }}"></td>
+                <td class="item-total text-end">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
                 <td>
                   <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
                   <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -133,28 +134,28 @@
         <div class="tab-pane fade" id="biayaTambahan" role="tabpanel">
           <div class="row g-3 p-3">
           <div class="col-md-4">
-            <label class="form-label">Diskon (%)</label>
-            <input type="number" class="form-control" value="{{ $pembelian->diskon_persen ?? 0 }}" name="diskon_persen" min="0" max="100" step="0.01">
+            <label class="form-label d-block text-end">Diskon (%)</label>
+            <input type="number" class="form-control text-end" value="{{ $pembelian->diskon_persen ?? 0 }}" name="diskon_persen" min="0" max="100" step="0.01">
           </div>
           <div class="col-md-4">
-            <label class="form-label"> Diskon (Rp)</label>
-            <input type="text" class="form-control" value="0" name="jumlah_diskon">
+            <label class="form-label d-block text-end"> Diskon (Rp)</label>
+            <input type="text" class="form-control text-end" value="0" name="jumlah_diskon">
           </div>
           <div class="col-md-4">
-            <label class="form-label">Tarif Pajak (%)</label>
-            <input type="number" class="form-control" value="{{ $pembelian->tarif_pajak ?? 0 }}" name="tarif_pajak">
+            <label class="form-label d-block text-end">Tarif Pajak (%)</label>
+            <input type="number" class="form-control text-end" value="{{ $pembelian->tarif_pajak ?? 0 }}" name="tarif_pajak">
           </div>
           <div class="col-md-4">
-            <label class="form-label">Nota Kredit (Rp)</label>
-            <input type="text" class="form-control" value="{{ number_format($pembelian->nota_kredit ?? 0, 0, ',', '.') }}" name="nota_kredit">
+            <label class="form-label d-block text-end">Nota Kredit (Rp)</label>
+            <input type="text" class="form-control text-end" value="{{ number_format($pembelian->nota_kredit ?? 0, 0, ',', '.') }}" name="nota_kredit">
           </div>
           <div class="col-md-4">
-            <label class="form-label">Biaya Pengiriman (Rp)</label>
-            <input type="text" class="form-control" value="{{ number_format($pembelian->biaya_pengiriman ?? 0, 0, ',', '.') }}" name="biaya_pengiriman">
+            <label class="form-label d-block text-end">Biaya Pengiriman (Rp)</label>
+            <input type="text" class="form-control text-end" value="{{ number_format($pembelian->biaya_pengiriman ?? 0, 0, ',', '.') }}" name="biaya_pengiriman">
           </div>
           <div class="col-md-4">
-            <label class="form-label">Biaya Lain (Rp) <span class="text-muted small">(Opsional)</label>
-            <input type="text" class="form-control" value="{{ number_format($pembelian->biaya_lain ?? 0, 0, ',', '.') }}" name="biaya_lain">
+            <label class="form-label d-block text-end">Biaya Lain (Rp) <span class="text-muted small">(Opsional)</label>
+            <input type="text" class="form-control text-end" value="{{ number_format($pembelian->biaya_lain ?? 0, 0, ',', '.') }}" name="biaya_lain">
           </div>
           </div>
           <div class="p-3 border rounded bg-light mt-3">
