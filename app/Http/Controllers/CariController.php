@@ -36,6 +36,7 @@ class CariController extends Controller
                 'sub_kategori' => $item->subKategoriDetail ? $item->subKategoriDetail->nama_sub_detail_parameter : '-',
                 'satuan_utama' => $item->satuanUtamaDetail ? $item->satuanUtamaDetail->nama_detail_parameter : '-',
                 'harga_terakhir' => $item->harga_terakhir ?? 0,
+                'konversi_satuan' => $item->konversi_satuan_json ?? [],
             ];
         });
 

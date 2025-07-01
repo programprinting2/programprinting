@@ -69,12 +69,15 @@
                     <input type="hidden" id="kodeBahanBakuInput">
                     <button type="button" class="btn btn-outline-secondary" id="btnCariBahanBaku"><i class="fa fa-search"></i></button>
                   </div>
-          </div>
+                </div>
                 <div class="col-md-2">
                   <label for="jumlahInput" class="form-label small mb-1">Jumlah</label>
-                  <input type="number" class="form-control" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
-            </div>
-            <div class="col-md-3">
+                  <div class="input-group">
+                    <input type="number" class="form-control" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
+                    <span class="input-group-text" id="satuanUtamaLabel">-</span>
+                  </div>
+                </div>
+                <div class="col-md-3">
                   <label for="hargaInput" class="form-label small mb-1">Harga Satuan (Rp)</label>
                   <input type="text" class="form-control" id="hargaInput" placeholder="Masukkan harga satuan" value="0">
                 </div>
@@ -83,6 +86,11 @@
                   <input type="number" class="form-control" id="diskonInput" min="0" max="100" value="0">
                 </div>
             </div>
+              <div class="mb-2" id="konversiSatuanInfo" style="display:none"></div>
+              <div class="mb-2">
+                <span class="fw-semibold">Total : </span>
+                <span id="previewTotalItem" class="text-primary fw-bold">Rp 0</span>
+              </div>
               <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
             </div>
           </div>
@@ -264,7 +272,7 @@
 ])
 <script src="/js/pembelian/pembelian-helper.js"></script>
 <script src="/js/pembelian/form-edit.js"></script>
-  <script>
+<script>
   document.getElementById('btnBatalPembelian').addEventListener('click', function() {
     window.history.back();
     });
@@ -287,5 +295,7 @@
       confirmButtonText: 'OK'
     });
   @endif
-  </script>
+
+  window.satuanList = @json($satuanList);
+</script>
 @endpush 

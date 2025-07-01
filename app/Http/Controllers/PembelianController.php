@@ -8,6 +8,7 @@ use App\Models\Pembelian;
 use App\Models\Pemasok;
 use App\Models\BahanBaku;
 use Haruncpi\LaravelIdGenerator\IdGenerator;
+use App\Models\DetailParameter;
 // use App\Models\PembelianItem;
 
 class PembelianController extends Controller
@@ -69,7 +70,8 @@ class PembelianController extends Controller
     {
         $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
         $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
-        return view('pages.pembelian.create', compact('pemasok', 'bahan_baku'));
+        $satuanList = DetailParameter::orderBy('nama_detail_parameter')->get(['id', 'nama_detail_parameter'])->toArray();
+        return view('pages.pembelian.create', compact('pemasok', 'bahan_baku', 'satuanList'));
     }
 
     public function store(Request $request)
@@ -178,7 +180,8 @@ class PembelianController extends Controller
             ->firstOrFail();
         $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
         $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
-        return view('pages.pembelian.edit', compact('pembelian', 'pemasok', 'bahan_baku'));
+        $satuanList = DetailParameter::orderBy('nama_detail_parameter')->get(['id', 'nama_detail_parameter'])->toArray();
+        return view('pages.pembelian.edit', compact('pembelian', 'pemasok', 'bahan_baku', 'satuanList'));
     }
 
     public function update(Request $request, $kode_pembelian)

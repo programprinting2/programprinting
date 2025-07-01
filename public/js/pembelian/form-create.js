@@ -24,7 +24,51 @@
     // Format harga dengan pemisah ribuan
     document.getElementById('hargaInput').value = PembelianHelper.formatNumber(data.harga);
     document.getElementById('kodeBahanBakuInput') && (document.getElementById('kodeBahanBakuInput').value = data.kode);
+    document.getElementById('satuanUtamaLabel').textContent = data.satuan || '-';
+    // Tampilkan konversi satuan jika ada
+    const konversiInfo = document.getElementById('konversiSatuanInfo');
+    konversiInfo.style.display = 'none';
+    konversiInfo.innerHTML = '';
+    if (data.konversi_satuan) {
+      let konv = data.konversi_satuan;
+      if (typeof konv === 'string') {
+        try { konv = JSON.parse(konv); } catch { konv = []; }
+      }
+      if (Array.isArray(konv) && konv.length > 0) {
+        let html = '<div class="small text-muted">Konversi Satuan:</div><ul class="mb-1 ps-3">';
+        konv.forEach(k => {
+          if (k.dari && k.satuan_dari && k.ke && k.satuan_ke) {
+            html += `<li>1 ${getNamaSatuanById(k.satuan_dari)} = ${k.ke} ${getNamaSatuanById(k.satuan_ke)}</li>`;
+          }
+        });
+        html += '</ul>';
+        konversiInfo.innerHTML = html;
+        konversiInfo.style.display = '';
+      }
+    }
+    updatePreviewTotalItem();
   });
+
+  // Helper: mapping id satuan ke nama
+  function getNamaSatuanById(id) {
+    if (!window.satuanList) return id;
+    const found = window.satuanList.find(s => s.id == id || s.id == String(id) || String(s.id) == String(id));
+    return found ? found.nama_detail_parameter : id;
+  }
+
+  // --- Preview Total Item ---
+  function updatePreviewTotalItem() {
+    const jumlah = parseInt(document.getElementById('jumlahInput').value) || 1;
+    const harga = PembelianHelper.getNumericValue($('#hargaInput'));
+    const diskon = parseFloat(document.getElementById('diskonInput').value) || 0;
+    let total = harga * jumlah * (1 - diskon / 100);
+    if (isNaN(total) || total < 0) total = 0;
+    document.getElementById('previewTotalItem').textContent = PembelianHelper.formatNumber(total ? total : 0, 'Rp ');
+  }
+
+  document.getElementById('jumlahInput').addEventListener('input', updatePreviewTotalItem);
+  document.getElementById('hargaInput').addEventListener('input', updatePreviewTotalItem);
+  document.getElementById('diskonInput').addEventListener('input', updatePreviewTotalItem);
 
   // --- Tambah Item ---
   document.getElementById('btnTambahItem').addEventListener('click', function () {
@@ -72,6 +116,10 @@
     jumlahInput.value = 1;
     hargaInput.value = '0';
     diskonInput.value = 0;
+    document.getElementById('satuanUtamaLabel').textContent = '-';
+    document.getElementById('konversiSatuanInfo').style.display = 'none';
+    document.getElementById('konversiSatuanInfo').innerHTML = '';
+    updatePreviewTotalItem();
     
     // Update ringkasan biaya dan sinkronisasi diskon
     updateRingkasanBiaya();
