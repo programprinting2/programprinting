@@ -92,7 +92,7 @@
     let jumlahUtama = jumlah * konversi;
     let total = harga * jumlahUtama * (1 - diskon / 100);
     if (isNaN(total) || total < 0) total = 0;
-    document.getElementById('previewTotalItem').textContent = PembelianHelper.formatNumber('Rp ' + (total ? total : 0));
+    document.getElementById('previewTotalItem').value = PembelianHelper.formatNumber('Rp ' + (total ? total : 0));
   }
 
   document.getElementById('jumlahInput').addEventListener('input', updatePreviewTotalItem);
@@ -512,17 +512,23 @@
       try { konv = JSON.parse(konv); } catch { konv = []; }
     }
     if (Array.isArray(konv) && konv.length > 0) {
-      let html = '<div class="small text-muted">Konversi Satuan:</div><ul class="mb-1 ps-3">';
+      let html = '<div class="small text-muted">Konversi Satuan:</div><div class="mb-1">';
       const satuanUtama = document.getElementById('satuanInput').options[0]?.value || '-';
       const harga = PembelianHelper.getNumericValue($('#hargaInput'));
+      let arrKonversi = [];
+      // Satuan utama
+      arrKonversi.push(`1 ${satuanUtama} (Rp ${PembelianHelper.formatNumber(harga)}/${satuanUtama})`);
+      // Satuan konversi lain
       konv.forEach(k => {
         if (k.satuan_dari && k.jumlah) {
           const namaKonversi = getNamaSatuanById(k.satuan_dari);
-          const hargaPerSatuanUtama = k.jumlah > 0 ? Math.round(harga / k.jumlah) : 0;
-          html += `<li>1 ${namaKonversi} = ${k.jumlah} ${satuanUtama} (Rp ${PembelianHelper.formatNumber(hargaPerSatuanUtama)}/${satuanUtama})</li>`;
+          // Harga per satuan konversi = harga satuan utama * jumlah konversi
+          const hargaKonversi = k.jumlah > 0 ? Math.round(harga * k.jumlah) : 0;
+          arrKonversi.push(`1 ${namaKonversi} = ${k.jumlah} ${satuanUtama} (Rp ${PembelianHelper.formatNumber(hargaKonversi)}/${namaKonversi})`);
         }
       });
-      html += '</ul>';
+      html += arrKonversi.join(' &nbsp;|&nbsp; ');
+      html += '</div>';
       konversiInfo.innerHTML = html;
       konversiInfo.style.display = '';
     }

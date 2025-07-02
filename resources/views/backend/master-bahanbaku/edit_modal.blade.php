@@ -21,9 +21,6 @@
               <button class="nav-link" id="edit-konversi-satuan-tab" data-bs-toggle="tab" data-bs-target="#edit-konversi-satuan" type="button" role="tab" aria-controls="edit-konversi-satuan" aria-selected="false"><i data-feather="refresh-cw" class="me-1 icon-sm"></i> Konversi Satuan</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-pemasok-harga-tab" data-bs-toggle="tab" data-bs-target="#edit-pemasok-harga" type="button" role="tab" aria-controls="edit-pemasok-harga" aria-selected="false"><i data-feather="truck" class="me-1 icon-sm"></i> Pemasok & Harga</button>
-            </li>
-            <li class="nav-item" role="presentation">
               <button class="nav-link" id="edit-informasi-stok-tab" data-bs-toggle="tab" data-bs-target="#edit-informasi-stok" type="button" role="tab" aria-controls="edit-informasi-stok" aria-selected="false"><i data-feather="box" class="me-1 icon-sm"></i> Informasi Stok</button>
             </li>
             <li class="nav-item" role="presentation">
@@ -65,15 +62,14 @@
                     </div>
                   </div>
                   <div class="row mb-3">
-                  <div class="col-md-6">
-                      <label for="edit_satuan_utama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
-                      <select class="form-select" id="edit_satuan_utama" name="satuan_utama_id" required>
-                        <option value="" selected disabled>Pilih satuan</option>
-                        @foreach($satuanList as $satuan)
-                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
-                        @endforeach
-                      </select>
+                    <div class="col-md-6">
+                      <label for="edit_pemasok_utama" class="form-label">Pemasok Utama</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="editNamaPemasokUtama" placeholder="Pilih pemasok..." readonly style="background:#fff;cursor:pointer;">
+                        <input type="hidden" id="editPemasokUtamaId" name="pemasok_utama_id">
+                        <button class="btn btn-outline-secondary" type="button" id="btnEditCariPemasokUtama"><i class="fa fa-search"></i></button>
                       </div>
+                    </div>
                     <div class="col-md-6">
                       <label for="edit_status_aktif" class="form-label">Status Aktif</label>
                       <select class="form-select" id="edit_status_aktif" name="status_aktif" required>
@@ -131,41 +127,13 @@
             <div class="tab-pane fade" id="edit-konversi-satuan" role="tabpanel" aria-labelledby="edit-konversi-satuan-tab">
               <div class="card mb-0">
                 <div class="card-body">
-                  <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                      <h6 class="mb-0">Konversi Satuan</h6>
-                      <p class="text-muted mb-3" style="font-size: 0.85rem;">Konversi satuan membantu perhitungan otomatis antara satuan yang berbeda. Contoh: 1 Rim = 500 Lembar, 1 Roll = 50 Meter</p>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-primary" id="editTambahKonversi"><i data-feather="plus" class="me-1 icon-sm"></i>Tambah Konversi</button>
-                  </div>
-                  <div id="editConversionUnitsContainer">
-                    <!-- Dynamic conversion rows will be added here -->
-                  </div>
-                </div>
-              </div>
-              <!-- New: Contoh Konversi Satuan -->
-              <div class="alert alert-info mt-3" role="alert">
-                <h6 class="alert-heading mb-2">Contoh Konversi Satuan</h6>
-                <ul class="list-unstyled mb-0" style="font-size: 0.9rem;">
-                  <li>1 Rim = 500 Lembar</li>
-                  <li>1 Roll = 50 Meter</li>
-                  <li>1 Karton = 20 Pack</li>
-                  <li>1 Box = 100 Pcs</li>
-                </ul>
-              </div>
-            </div>
-
-            <!-- Pemasok & Harga Tab -->
-            <div class="tab-pane fade" id="edit-pemasok-harga" role="tabpanel" aria-labelledby="edit-pemasok-harga-tab">
-              <div class="card mb-0">
-                <div class="card-body">
                   <div class="row mb-3">
                     <div class="col-md-6">
-                      <label for="edit_pemasok_utama_id" class="form-label">Pemasok Utama</label>
-                      <select class="form-select" id="edit_pemasok_utama_id" name="pemasok_utama_id">
-                        <option value="">Pilih pemasok</option>
-                        @foreach($pemasok as $supplier)
-                          <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
+                      <label for="edit_satuan_utama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
+                      <select class="form-select" id="edit_satuan_utama" name="satuan_utama_id" required>
+                        <option value="" selected disabled>Pilih satuan</option>
+                        @foreach($satuanList as $satuan)
+                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
                         @endforeach
                       </select>
                     </div>
@@ -177,14 +145,16 @@
                       </div>
                     </div>
                   </div>
-                  <!-- <div class="row mb-3">
-                    <div class="col-md-12">
-                      <label class="form-label">Histori Harga</label>
-                      <div id="editHistoriHargaContainer">
-                        <!-- Histori harga will be displayed here -->
-                      <!-- </div> -->
-                    <!-- </div> -->
-                  <!-- </div> -->
+
+                  <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                      <h6 class="mb-0">Konversi Satuan</h6>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-primary" id="editTambahKonversi"><i data-feather="plus" class="me-1 icon-sm"></i>Tambah Konversi</button>
+                  </div>
+                  <div id="editConversionUnitsContainer">
+                    <!-- Dynamic conversion rows will be added here -->
+                  </div>
                 </div>
               </div>
             </div>
@@ -373,6 +343,27 @@
 </div>
 
 @push('custom-scripts')
+@include('backend.general-form.cari-pemasok', [
+  'modalId' => 'modalCariPemasokBahanBakuEdit',
+  'inputId' => 'searchPemasokBahanBakuEdit',
+  'tableId' => 'tabelCariPemasokBahanBakuEdit',
+  'paginationId' => 'paginationCariPemasokBahanBakuEdit',
+  'clearBtnId' => 'clearSearchPemasokBahanBakuEdit',
+])
+<script>
+$(function() {
+  $('#btnEditCariPemasokUtama, #editNamaPemasokUtama').on('click', function() {
+    $('#modalCariPemasokBahanBakuEdit').modal('show');
+  });
+  window.addEventListener('pemasokDipilih', function(e) {
+    if (!$('#modalCariPemasokBahanBakuEdit').hasClass('show')) return;
+    const data = e.detail;
+    $('#editNamaPemasokUtama').val(data.nama + (data.kode ? ' ['+data.kode+']' : ''));
+    $('#editPemasokUtamaId').val(data.id);
+    $('#modalCariPemasokBahanBakuEdit').modal('hide');
+  });
+});
+</script>
   <script>
     // Event listener untuk perubahan kategori di modal edit
     $(document).ready(function() {

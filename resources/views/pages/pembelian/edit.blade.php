@@ -87,9 +87,9 @@
                 </div>
                 <div class="col-md-2 text-end">
                   <span class="fw-semibold">Total : </span>
-                  <span id="previewTotalItem" class="text-primary fw-bold">Rp 0</span>
+                  <input type="text" id="previewTotalItem" class="form-control text-primary fw-bold text-end" value="Rp 0" readonly tabindex="-1" style="box-shadow:none;pointer-events:none;" />
+                </div>
               </div>
-            </div>
               <div class="mb-2" id="konversiSatuanInfo" style="display:none"></div>
               
               <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
