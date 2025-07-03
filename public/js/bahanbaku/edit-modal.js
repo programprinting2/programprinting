@@ -298,6 +298,15 @@ function loadBahanBakuData(id) {
     
     // Pemasok & Harga
     $('#edit_pemasok_utama_id').val(data.pemasok_utama_id);
+    if (data.pemasok_utama_nama) {
+      let nama = data.pemasok_utama_nama;
+      if (data.pemasok_utama_kode) nama += ' [' + data.pemasok_utama_kode + ']';
+      $('#editNamaPemasokUtama').val(nama);
+      $('#editPemasokUtamaId').val(data.pemasok_utama_id);
+    } else {
+      $('#editNamaPemasokUtama').val('');
+      $('#editPemasokUtamaId').val('');
+    }
     BahanBakuHelper.applyMoneyFormat($('#edit_harga_terakhir').val(data.harga_terakhir));
     
     // Informasi Stok
@@ -323,7 +332,7 @@ function loadBahanBakuData(id) {
         const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
         const newRow = `
           <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-            <div class="col-md-4">
+            <div class="col-md-3">
               <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
                 ${optionsHtml}
               </select>
@@ -331,15 +340,16 @@ function loadBahanBakuData(id) {
             <div class="col-auto">
               <span>=</span>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
               <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="${konversi.jumlah}" min="1" step="0.01">
             </div>
             <div class="col-md-4">
               <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
               <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
             </div>
-            <div class="col-auto">
+            <div class="col-auto d-flex align-items-center gap-1">
               <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
+              <span class="total-konversi-harga fw-bold ps-3">Rp 0</span>
             </div>
           </div>
         `;
@@ -348,6 +358,8 @@ function loadBahanBakuData(id) {
         $('#editConversionUnitsContainer .conversion-row:last-child select[name*="[satuan_dari]"]').val(konversi.satuan_dari);
       });
       feather.replace();
+      updateEditConversionTotals();
+      updateEditNoConversionMessage();
     }
     updateEditNoConversionMessage();
 
@@ -620,7 +632,7 @@ $('#editTambahKonversi').off('click').on('click', function() {
   const optionsHtml = getSatuanOptionsFromList();
   const newRow = `
     <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-      <div class="col-md-4">
+      <div class="col-md-3">
         <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
           ${optionsHtml}
         </select>
@@ -628,20 +640,22 @@ $('#editTambahKonversi').off('click').on('click', function() {
       <div class="col-auto">
         <span>=</span>
       </div>
-      <div class="col-md-3">
+      <div class="col-md-2">
         <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
       </div>
       <div class="col-md-4">
         <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
         <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
       </div>
-      <div class="col-auto">
+      <div class="col-auto d-flex align-items-center gap-1">
         <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
+        <span class="total-konversi-harga fw-bold ps-3">Rp 0</span>
       </div>
     </div>
   `;
   $('#editConversionUnitsContainer').append(newRow);
   feather.replace();
+  updateEditConversionTotals();
   updateEditNoConversionMessage();
 });
 
@@ -651,6 +665,7 @@ $('#edit_satuan_utama').on('change', function() {
   const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
   $('.satuan-ke-readonly').val(satuanUtamaNama);
   $('.satuan-ke-id').val(satuanUtamaId);
+  updateEditConversionTotals();
 });
 
 // Fungsi untuk mempersiapkan data sebelum submit
@@ -780,6 +795,27 @@ function getSatuanOptionsFromList() {
   return html;
 }
 
+// Fungsi untuk menghitung dan update total harga per baris konversi satuan
+function updateEditConversionTotals() {
+  const hargaTerakhir = parseFloat($('#edit_harga_terakhir').val().replace(/\./g, '').replace(/,/g, '')) || 0;
+  $('#editConversionUnitsContainer .conversion-row').each(function() {
+    const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
+    const satuanId = $(this).find('select[name*="[satuan_dari]"]').val();
+    let satuanNama = '';
+    if (window.satuanList && satuanId) {
+      const satuan = window.satuanList.find(s => s.id == satuanId);
+      satuanNama = satuan ? satuan.nama_detail_parameter : '';
+    }
+    const total = jumlah * hargaTerakhir;
+    $(this).find('.total-konversi-harga').text('Rp ' + total.toLocaleString('id-ID') + (satuanNama ? '/' + satuanNama : ''));
+  });
+}
+
+// Tambahkan pemanggilan updateEditConversionTotals pada event yang relevan
+$(document).on('input', '#edit_harga_terakhir', updateEditConversionTotals);
+$(document).on('input', '#editConversionUnitsContainer .jumlah-konversi', updateEditConversionTotals);
+$(document).on('change', '#editConversionUnitsContainer select[name*="[satuan_dari]"]', updateEditConversionTotals);
+
 $(document).ready(function() {
   feather.replace(); // Pastikan feather icons diinisialisasi untuk elemen statis juga
   updateEditStockUnitLabels();
@@ -803,7 +839,7 @@ $(document).ready(function() {
     const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
             ${optionsHtml}
           </select>
@@ -811,20 +847,22 @@ $(document).ready(function() {
         <div class="col-auto">
           <span>=</span>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
         </div>
         <div class="col-md-4">
           <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
           <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
         </div>
-        <div class="col-auto">
+        <div class="col-auto d-flex align-items-center gap-1">
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
+          <span class="total-konversi-harga fw-bold ps-3">Rp 0</span>
         </div>
       </div>
     `;
     $('#editConversionUnitsContainer').append(newRow);
     feather.replace(); // Re-initialize feather icons for new elements
+    updateEditConversionTotals();
     updateEditNoConversionMessage();
   });
 

@@ -50,7 +50,7 @@
                       <small class="text-muted">Otomatis menyesuaikan metode perhitungan sesuai kategori</small>
                     </div>
                     <div class="col-md-6">
-                      <label for="subKategori" class="form-label">Sub-Kategori</label>
+                      <label for="subKategori" class="form-label">Sub-Kategori <span class="text-danger">*</span></label>
                       <select class="form-select" id="sub_kategori_id" name="sub_kategori_id">
                         <option value="" selected disabled>Pilih sub-kategori</option>
                         <!-- Options akan diisi dinamis oleh JS, value=id -->

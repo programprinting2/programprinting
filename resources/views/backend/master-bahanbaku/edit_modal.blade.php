@@ -18,7 +18,7 @@
               <button class="nav-link" id="edit-spesifikasi-teknis-tab" data-bs-toggle="tab" data-bs-target="#edit-spesifikasi-teknis" type="button" role="tab" aria-controls="edit-spesifikasi-teknis" aria-selected="false"><i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-konversi-satuan-tab" data-bs-toggle="tab" data-bs-target="#edit-konversi-satuan" type="button" role="tab" aria-controls="edit-konversi-satuan" aria-selected="false"><i data-feather="refresh-cw" class="me-1 icon-sm"></i> Konversi Satuan</button>
+              <button class="nav-link" id="edit-konversi-satuan-tab" data-bs-toggle="tab" data-bs-target="#edit-konversi-satuan" type="button" role="tab" aria-controls="edit-konversi-satuan" aria-selected="false"><i data-feather="refresh-cw" class="me-1 icon-sm"></i> Satuan & Harga</button>
             </li>
             <li class="nav-item" role="presentation">
               <button class="nav-link" id="edit-informasi-stok-tab" data-bs-toggle="tab" data-bs-target="#edit-informasi-stok" type="button" role="tab" aria-controls="edit-informasi-stok" aria-selected="false"><i data-feather="box" class="me-1 icon-sm"></i> Informasi Stok</button>
@@ -54,7 +54,7 @@
                       </select>
                     </div>
                     <div class="col-md-6">
-                      <label for="edit_sub_kategori_id" class="form-label">Sub Kategori</label>
+                      <label for="edit_sub_kategori_id" class="form-label">Sub Kategori <span class="text-danger">*</span></label>
                       <select class="form-select" id="edit_sub_kategori_id" name="sub_kategori_id">
                         <option value="" selected disabled>Pilih sub-kategori</option>
                         <!-- Options akan diisi dinamis oleh JS, value=id -->

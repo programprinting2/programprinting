@@ -557,8 +557,11 @@ class MasterBahanbakuController extends Controller
 
     public function show($id)
     {
-        $bahanbaku = BahanBaku::findOrFail($id);
-        return response()->json($bahanbaku);
+        $bahanbaku = BahanBaku::with('pemasokUtama')->findOrFail($id);
+        $data = $bahanbaku->toArray();
+        $data['pemasok_utama_nama'] = $bahanbaku->pemasokUtama ? $bahanbaku->pemasokUtama->nama : null;
+        $data['pemasok_utama_kode'] = $bahanbaku->pemasokUtama ? $bahanbaku->pemasokUtama->kode_pemasok : null;
+        return response()->json($data);
     }
 
 }

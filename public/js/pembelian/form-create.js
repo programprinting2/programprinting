@@ -13,6 +13,7 @@
   });
   // Untuk mencegah duplikasi event listener pada hargaInput
   let hargaInputListener = null;
+  window.hargaSatuanUtama = 0; // Tambah variabel global untuk harga satuan utama
 
   // Helper: cek duplikasi bahan baku
   function checkBahanBakuDuplikat(bahanbakuId) {
@@ -30,6 +31,7 @@
     document.getElementById('namaBahanBakuInput').value = data.nama;
     // Format harga dengan pemisah ribuan
     document.getElementById('hargaInput').value = PembelianHelper.formatNumber(data.harga);
+    window.hargaSatuanUtama = parseInt(data.harga) || 0; // Simpan harga satuan utama
     document.getElementById('kodeBahanBakuInput') && (document.getElementById('kodeBahanBakuInput').value = data.kode);
     document.getElementById('satuanInput').innerHTML = '';
     let satuanUtama = data.satuan || '-';
@@ -73,10 +75,8 @@
     const jumlah = parseInt(document.getElementById('jumlahInput').value) || 1;
     const harga = PembelianHelper.getNumericValue($('#hargaInput'));
     const diskon = parseFloat(document.getElementById('diskonInput').value) || 0;
-    const satuanSelect = document.getElementById('satuanInput');
-    const konversi = parseInt(satuanSelect.options[satuanSelect.selectedIndex].getAttribute('data-konversi')) || 1;
-    let jumlahUtama = jumlah * konversi;
-    let total = harga * jumlahUtama * (1 - diskon / 100);
+    // Tidak perlu konversi lagi, harga sudah sesuai satuan yang dipilih
+    let total = jumlah * harga * (1 - diskon / 100);
     if (isNaN(total) || total < 0) total = 0;
     document.getElementById('previewTotalItem').value = PembelianHelper.formatNumber('Rp ' + (total ? total : 0));
   }
@@ -84,7 +84,19 @@
   document.getElementById('jumlahInput').addEventListener('input', updatePreviewTotalItem);
   document.getElementById('hargaInput').addEventListener('input', updatePreviewTotalItem);
   document.getElementById('diskonInput').addEventListener('input', updatePreviewTotalItem);
-  document.getElementById('satuanInput').addEventListener('change', updatePreviewTotalItem);
+  document.getElementById('satuanInput').addEventListener('change', function() {
+    // Ambil harga satuan utama dari variabel global
+    const satuanSelect = document.getElementById('satuanInput');
+    const hargaInput = document.getElementById('hargaInput');
+    const konversi = parseInt(satuanSelect.options[satuanSelect.selectedIndex].getAttribute('data-konversi')) || 1;
+    // Jika satuan utama, harga = harga satuan utama
+    // Jika satuan konversi, harga = harga satuan utama x jumlah konversi
+    let hargaBaru = window.hargaSatuanUtama * konversi;
+    hargaInput.value = PembelianHelper.formatNumber(hargaBaru);
+    updatePreviewTotalItem();
+    // Optional: update info konversi satuan jika perlu
+    // Jika ingin update info konversi, panggil updateKonversiSatuanInfo dengan data bahan baku terakhir
+  });
 
   // --- Tambah Item ---
   document.getElementById('btnTambahItem').addEventListener('click', function () {
@@ -474,4 +486,19 @@
       konversiInfo.style.display = '';
     }
   }
+
+  document.getElementById('hargaInput').addEventListener('input', function() {
+    // Jika user mengubah harga pada satuan konversi, update harga satuan utama
+    const satuanSelect = document.getElementById('satuanInput');
+    const konversi = parseInt(satuanSelect.options[satuanSelect.selectedIndex].getAttribute('data-konversi')) || 1;
+    const hargaInput = document.getElementById('hargaInput');
+    let hargaSekarang = PembelianHelper.getNumericValue($(hargaInput));
+    if (konversi > 0) {
+      window.hargaSatuanUtama = Math.round(hargaSekarang / konversi);
+    } else {
+      window.hargaSatuanUtama = hargaSekarang;
+    }
+    // Tidak perlu update hargaInput di sini, biarkan user input manual
+    updatePreviewTotalItem();
+  });
 })(); 

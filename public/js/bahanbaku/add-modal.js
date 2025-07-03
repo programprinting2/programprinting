@@ -104,14 +104,36 @@ $(document).ready(function() {
     return satuan ? satuan.nama_detail_parameter : '';
   }
 
-  // Fungsi untuk menambahkan baris konversi satuan baru
+  // Fungsi untuk menghitung dan update total harga per baris konversi satuan
+  function updateAddConversionTotals() {
+    const hargaTerakhir = parseFloat($('#hargaTerakhir').val().replace(/\./g, '').replace(/,/g, '')) || 0;
+    $('#conversionUnitsContainer .conversion-row').each(function() {
+      const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
+      const satuanId = $(this).find('select[name*="[satuan_dari]"]').val();
+      let satuanNama = '';
+      if (window.satuanList && satuanId) {
+        const satuan = window.satuanList.find(s => s.id == satuanId);
+        satuanNama = satuan ? satuan.nama_detail_parameter : '';
+      }
+      const total = jumlah * hargaTerakhir;
+      $(this).find('.total-konversi-harga').text('Rp ' + total.toLocaleString('id-ID') + (satuanNama ? '/' + satuanNama : ''));
+    });
+  }
+
+  // Tambahkan pemanggilan updateAddConversionTotals pada event yang relevan
+  $(document).on('input', '#hargaTerakhir', updateAddConversionTotals);
+  $(document).on('input', '#conversionUnitsContainer .jumlah-konversi', updateAddConversionTotals);
+  $(document).on('change', '#conversionUnitsContainer select[name*="[satuan_dari]"]', updateAddConversionTotals);
+
+  // Modifikasi pembuatan baris konversi satuan agar ada kolom total
+  // Pada event tambah konversi
   $('#tambahKonversi').off('click').on('click', function() {
     const satuanUtamaId = $('#satuanUtama').val();
     const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
     const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-        <div class="col-md-4">
+        <div class="col-md-3">
           <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
             ${optionsHtml}
           </select>
@@ -119,29 +141,32 @@ $(document).ready(function() {
         <div class="col-auto">
           <span>=</span>
         </div>
-        <div class="col-md-3">
+        <div class="col-md-2">
           <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
         </div>
         <div class="col-md-4">
           <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
           <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
         </div>
-        <div class="col-auto">
+        <div class="col-auto d-flex align-items-center gap-1">
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
+          <span class="total-konversi-harga fw-bold ps-3">Rp 0</span>
         </div>
       </div>
     `;
     $('#conversionUnitsContainer').append(newRow);
     feather.replace();
+    updateAddConversionTotals();
     updateNoConversionMessage();
   });
 
-  // Update semua satuan ke jika satuan utama berubah
+  // Pastikan updateAddConversionTotals juga dipanggil saat satuan utama berubah (reset total)
   $('#satuanUtama').on('change', function() {
     const satuanUtamaId = $(this).val();
     const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
     $('.satuan-ke-readonly').val(satuanUtamaNama);
     $('.satuan-ke-id').val(satuanUtamaId);
+    updateAddConversionTotals();
   });
 
   // Event listener untuk menghapus baris konversi
