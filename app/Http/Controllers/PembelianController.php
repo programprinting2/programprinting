@@ -110,7 +110,7 @@ class PembelianController extends Controller
             $items = [];
             foreach ($request->items as $item) {
                 $diskon = isset($item['diskon_persen']) ? floatval($item['diskon_persen']) : 0;
-                $item_subtotal = ($item['harga'] * $item['jumlah']) * (1 - $diskon/100);
+                $item_subtotal = $item['harga'] * (1 - $diskon/100);
                 $items[] = [
                     'bahanbaku_id' => $item['bahanbaku_id'],
                     'jumlah' => $item['jumlah'],
@@ -212,7 +212,7 @@ class PembelianController extends Controller
             $items = [];
             foreach ($request->items as $item) {
                 $diskon = isset($item['diskon_persen']) ? floatval($item['diskon_persen']) : 0;
-                $item_subtotal = ($item['harga'] * $item['jumlah']) * (1 - $diskon/100);
+                $item_subtotal = $item['harga'] * (1 - $diskon/100);
                 $items[] = [
                     'bahanbaku_id' => $item['bahanbaku_id'],
                     'jumlah' => $item['jumlah'],

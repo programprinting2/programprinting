@@ -22,7 +22,7 @@ return new class extends Migration {
             $table->integer('nota_kredit')->nullable();
             // $table->string('label_biaya_lain')->nullable();
             $table->integer('biaya_lain')->nullable();
-            $table->integer('total')->nullable();
+            $table->bigInteger('total')->nullable();
             $table->timestamps();
 
             $table->foreign('pemasok_id')->references('id')->on('pemasok')->onDelete('restrict');

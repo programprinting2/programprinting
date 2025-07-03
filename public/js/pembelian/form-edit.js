@@ -56,7 +56,7 @@
     document.getElementById('kodeBahanBakuInput') && (document.getElementById('kodeBahanBakuInput').value = data.kode);
     document.getElementById('satuanInput').innerHTML = '';
     let satuanUtama = data.satuan || '-';
-    let satuanOptions = `<option value="${satuanUtama}" data-konversi="1">${satuanUtama} (Utama)</option>`;
+    let satuanOptions = `<option value="${satuanUtama}" data-konversi="1">${satuanUtama}</option>`;
     let konv = data.konversi_satuan;
     if (typeof konv === 'string') {
       try { konv = JSON.parse(konv); } catch { konv = []; }
@@ -134,16 +134,18 @@
     const diskonInput = document.getElementById('diskonInput');
     const satuanSelect = document.getElementById('satuanInput');
     const itemBody = document.getElementById('itemBody');
-    const harga = PembelianHelper.getNumericValue($(hargaInput));
+    const hargaSatuan = PembelianHelper.getNumericValue($(hargaInput));
     const jumlah = parseInt(jumlahInput.value) || 1;
     const diskonPersen = parseFloat(diskonInput.value) || 0;
     const konversi = parseInt(satuanSelect.options[satuanSelect.selectedIndex].getAttribute('data-konversi')) || 1;
     let jumlahUtama = jumlah * konversi;
     if (!bahanbakuId) return Swal.fire({icon: 'error', title: 'Pilih bahan baku terlebih dahulu!'});
     if (jumlah < 1) return Swal.fire({icon: 'error', title: 'Jumlah minimal 1!'});
-    if (harga < 1) return Swal.fire({icon: 'error', title: 'Harga minimal 1!'});
+    if (hargaSatuan < 1) return Swal.fire({icon: 'error', title: 'Harga minimal 1!'});
     if (diskonPersen < 0 || diskonPersen > 100) return Swal.fire({icon: 'error', title: 'Diskon harus antara 0-100%'});
-    const total = harga * jumlahUtama * (1 - diskonPersen / 100);
+    // Perhitungan baru:
+    const itemHarga = hargaSatuan * jumlah;
+    const itemTotal = itemHarga * (1 - diskonPersen / 100);
     if (itemBody.children.length === 1 && itemBody.children[0].children.length === 1) {
       itemBody.innerHTML = '';
     }
@@ -157,9 +159,9 @@
       <td>${kodeBahan}<input type="hidden" name="items[${index}][bahanbaku_id]" value="${bahanbakuId}"></td>
       <td>${bahanbakuNama}</td>
       <td class="item-jumlah">${jumlahUtama}<input type="hidden" name="items[${index}][jumlah]" value="${jumlahUtama}"></td>
-      <td class="item-harga text-end">${PembelianHelper.formatNumber(harga)}<input type="hidden" name="items[${index}][harga]" value="${harga}"></td>
+      <td class="item-harga text-end">${PembelianHelper.formatNumber(itemHarga)}<input type="hidden" name="items[${index}][harga]" value="${itemHarga}"></td>
       <td class="item-diskon text-end">${diskonPersen}%<input type="hidden" name="items[${index}][diskon_persen]" value="${diskonPersen}"></td>
-      <td class="item-total text-end">${PembelianHelper.formatNumber(total)}</td>
+      <td class="item-total text-end">${PembelianHelper.formatNumber(itemTotal)}</td>
       <td>
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -200,7 +202,12 @@
       if (diskon && diskon.includes('%')) diskon = diskon.replace('%','').trim();
       if (diskon === '' || diskon === null || diskon === undefined) diskon = 0;
       row.querySelector('.item-jumlah').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-jumlah' value='${jumlah}' min='1'>`;
-      row.querySelector('.item-harga').innerHTML = `<input type='text' class='form-control form-control-sm input-edit-harga' value='${harga}'>`;
+      // Harga satuan = item-harga / jumlah (jika jumlah > 0)
+      let hargaSatuan = 0;
+      if (parseInt(jumlah) > 0) {
+        hargaSatuan = Math.round(parseInt(harga.replace(/\./g, '')) / parseInt(jumlah));
+      }
+      row.querySelector('.item-harga').innerHTML = `<input type='text' class='form-control form-control-sm input-edit-harga' value='${PembelianHelper.formatNumber(hargaSatuan)}'>`;
       row.querySelector('.item-diskon').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-diskon' value='${diskon}' min='0' max='100' step='0.01'>`;
       row.querySelector('td:last-child').innerHTML = `
       <button type="button" class="btn btn-sm btn-success btn-simpan-edit me-1"><i class="fa fa-check"></i></button>
@@ -210,13 +217,14 @@
     if (e.target.closest('.btn-batal-edit')) {
       const row = e.target.closest('tr');
       const jumlah = row.querySelector('.input-edit-jumlah').defaultValue;
-      const harga = row.querySelector('.input-edit-harga').defaultValue;
+      const hargaSatuan = PembelianHelper.getNumericValue($(row.querySelector('.input-edit-harga')));
       const diskon = row.querySelector('.input-edit-diskon').defaultValue;
+      const itemHarga = hargaSatuan * parseInt(jumlah);
+      const itemTotal = itemHarga * (1 - (parseFloat(diskon) || 0) / 100);
       row.querySelector('.item-jumlah').innerHTML = `${jumlah}<input type="hidden" name="items[][jumlah]" value="${jumlah}">`;
-      row.querySelector('.item-harga').innerHTML = `${harga}<input type="hidden" name="items[][harga]" value="${harga.replace(/\./g, '')}">`;
+      row.querySelector('.item-harga').innerHTML = `${PembelianHelper.formatNumber(itemHarga)}<input type="hidden" name="items[][harga]" value="${itemHarga}">`;
       row.querySelector('.item-diskon').innerHTML = `${diskon}<input type="hidden" name="items[][diskon_persen]" value="${diskon}">`;
-      const total = (parseInt(harga.replace(/\./g, '')) || 0) * (parseInt(jumlah) || 0) * (1 - (parseFloat(diskon) || 0) / 100);
-      row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(total);
+      row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(itemTotal);
       row.querySelector('td:last-child').innerHTML = `
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -228,21 +236,21 @@
     if (e.target.closest('.btn-simpan-edit')) {
       const row = e.target.closest('tr');
       const jumlah = row.querySelector('.input-edit-jumlah').value;
-      const harga = PembelianHelper.getNumericValue($(row.querySelector('.input-edit-harga')));
+      const hargaSatuan = PembelianHelper.getNumericValue($(row.querySelector('.input-edit-harga')));
       const diskon = row.querySelector('.input-edit-diskon').value;
       if (jumlah < 1) return alert('Jumlah minimal 1!');
-      if (harga < 1) return alert('Harga minimal 1!');
+      if (hargaSatuan < 1) return alert('Harga minimal 1!');
       if (diskon === '' || diskon === null || diskon === undefined) {
         return alert('Diskon tidak boleh dikosongkan!');
       }
       if (diskon < 0) return alert('Diskon tidak boleh negatif!');
       if (diskon > 100) return alert('Diskon tidak boleh lebih dari 100%!');
-      if (parseInt(diskon) > harga * parseInt(jumlah)) return alert('Diskon tidak boleh lebih besar dari total harga!');
+      const itemHarga = hargaSatuan * parseInt(jumlah);
+      const itemTotal = itemHarga * (1 - (parseFloat(diskon) || 0) / 100);
       row.querySelector('.item-jumlah').innerHTML = `${jumlah}<input type="hidden" name="items[][jumlah]" value="${jumlah}">`;
-      row.querySelector('.item-harga').innerHTML = `${PembelianHelper.formatNumber(harga)}<input type="hidden" name="items[][harga]" value="${harga}">`;
+      row.querySelector('.item-harga').innerHTML = `${PembelianHelper.formatNumber(itemHarga)}<input type="hidden" name="items[][harga]" value="${itemHarga}">`;
       row.querySelector('.item-diskon').innerHTML = `${diskon}<input type="hidden" name="items[][diskon_persen]" value="${diskon}">`;
-      const total = harga * (parseInt(jumlah) || 0) * (1 - (parseFloat(diskon) || 0) / 100);
-      row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(total);
+      row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(itemTotal);
       row.querySelector('td:last-child').innerHTML = `
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -283,13 +291,9 @@
     const itemBody = document.getElementById('itemBody');
     for (let row of itemBody.children) {
       if (row.children.length < 7) continue;
-      const harga = parseFloat(row.querySelector('.item-harga').textContent.replace(/\./g, '')) || 0;
-      const jumlah = parseFloat(row.querySelector('.item-jumlah').textContent) || 0;
-      // Ambil diskon persen per item (tanpa %)
-      let diskonPersen = row.querySelector('.item-diskon').textContent;
-      if (diskonPersen && diskonPersen.includes('%')) diskonPersen = diskonPersen.replace('%','');
-      diskonPersen = parseFloat(diskonPersen) || 0;
-      subtotal += harga * jumlah * (1 - diskonPersen / 100);
+      // Ambil item-total dari kolom
+      const itemTotal = parseFloat(row.querySelector('.item-total').textContent.replace(/\./g, '').replace(/Rp\s?/g, '')) || 0;
+      subtotal += itemTotal;
     }
     // 2. Diskon total pembelian: HANYA dari field jumlah_diskon (Rp)
     //    Field diskon_persen hanya untuk sinkronisasi input, tidak ikut dijumlahkan
@@ -334,12 +338,9 @@
     const itemBody = document.getElementById('itemBody');
     for (let row of itemBody.children) {
       if (row.children.length < 7) continue;
-      const harga = parseFloat(row.querySelector('.item-harga').textContent.replace(/\./g, '')) || 0;
-      const jumlah = parseFloat(row.querySelector('.item-jumlah').textContent) || 0;
-      let diskonPersen = row.querySelector('.item-diskon').textContent;
-      if (diskonPersen && diskonPersen.includes('%')) diskonPersen = diskonPersen.replace('%','');
-      diskonPersen = parseFloat(diskonPersen) || 0;
-      subtotal += harga * jumlah * (1 - diskonPersen / 100);
+      // Ambil item-total dari kolom
+      const itemTotal = parseFloat(row.querySelector('.item-total').textContent.replace(/\./g, '').replace(/Rp\s?/g, '')) || 0;
+      subtotal += itemTotal;
     }
     return subtotal;
   }

@@ -145,6 +145,7 @@
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
                         <input type="text" class="form-control money-format" id="hargaTerakhir" name="harga_terakhir" value="0">
+                        <span class="input-group-text" id="labelSatuanHargaTerakhir"></span>
                       </div>
                       <small class="text-muted">Harga beli terakhir dari pemasok utama</small>
                     </div>

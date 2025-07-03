@@ -142,6 +142,7 @@
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
                         <input type="text" class="form-control money-format" id="edit_harga_terakhir" name="harga_terakhir" value="0">
+                        <span class="input-group-text" id="editLabelSatuanHargaTerakhir"></span>
                       </div>
                     </div>
                   </div>

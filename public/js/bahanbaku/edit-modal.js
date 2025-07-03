@@ -828,6 +828,18 @@ $(document).on('input', '#edit_harga_terakhir', updateEditConversionTotals);
 $(document).on('input', '#editConversionUnitsContainer .jumlah-konversi', updateEditConversionTotals);
 $(document).on('change', '#editConversionUnitsContainer select[name*="[satuan_dari]"]', updateEditConversionTotals);
 
+function updateEditLabelSatuanHargaTerakhir() {
+  const satuanUtamaId = $('#edit_satuan_utama').val();
+  let satuanNama = '';
+  if (window.satuanList && satuanUtamaId) {
+    const satuan = window.satuanList.find(s => s.id == satuanUtamaId);
+    satuanNama = satuan ? '/' + satuan.nama_detail_parameter : '';
+  }
+  $('#editLabelSatuanHargaTerakhir').text(satuanNama);
+}
+$('#edit_satuan_utama').on('change', updateEditLabelSatuanHargaTerakhir);
+$('#editModal').on('shown.bs.modal', updateEditLabelSatuanHargaTerakhir);
+
 $(document).ready(function() {
   feather.replace(); // Pastikan feather icons diinisialisasi untuk elemen statis juga
   updateEditStockUnitLabels();

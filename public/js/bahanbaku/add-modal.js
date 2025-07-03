@@ -677,4 +677,16 @@ $(document).ready(function() {
   $('#mediaPreviewModal').on('hidden.bs.modal', function() {
     $('#mediaPreviewModalBody').html('');
   });
+
+  function updateLabelSatuanHargaTerakhir() {
+    const satuanUtamaId = $('#satuanUtama').val();
+    let satuanNama = '';
+    if (window.satuanList && satuanUtamaId) {
+      const satuan = window.satuanList.find(s => s.id == satuanUtamaId);
+      satuanNama = satuan ? '/' + satuan.nama_detail_parameter : '';
+    }
+    $('#labelSatuanHargaTerakhir').text(satuanNama);
+  }
+  $('#satuanUtama').on('change', updateLabelSatuanHargaTerakhir);
+  $('#addMaterialModal').on('shown.bs.modal', updateLabelSatuanHargaTerakhir);
 }); 
