@@ -116,7 +116,8 @@ $(document).ready(function() {
         satuanNama = satuan ? satuan.nama_detail_parameter : '';
       }
       const total = jumlah * hargaTerakhir;
-      $(this).find('.total-konversi-harga').text('Rp ' + total.toLocaleString('id-ID') + (satuanNama ? '/' + satuanNama : ''));
+      $(this).find('.total-konversi-harga').val(total.toLocaleString('id-ID'));
+      $(this).find('.satuan-total-konversi').text(satuanNama ? '/' + satuanNama : '');
     });
   }
 
@@ -141,16 +142,19 @@ $(document).ready(function() {
         <div class="col-auto">
           <span>=</span>
         </div>
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
-        </div>
         <div class="col-md-4">
-          <input type="text" class="form-control form-control-sm satuan-ke-readonly" value="${satuanUtamaNama}" readonly disabled>
-          <input type="hidden" class="satuan-ke-id" value="${satuanUtamaId}">
+          <div class="input-group">
+            <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
+            <span class="input-group-text">${satuanUtamaNama}</span>
+          </div>
         </div>
-        <div class="col-auto d-flex align-items-center gap-1">
+        <div class="col-auto d-flex align-items-center gap-4">
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input type="text" class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" value="0" readonly disabled>
+            <span class="input-group-text satuan-total-konversi"></span>
+          </div>
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
-          <span class="total-konversi-harga fw-bold ps-3">Rp 0</span>
         </div>
       </div>
     `;
@@ -160,12 +164,15 @@ $(document).ready(function() {
     updateNoConversionMessage();
   });
 
-  // Pastikan updateAddConversionTotals juga dipanggil saat satuan utama berubah (reset total)
+  // Update label satuan pada seluruh baris konversi jika satuan utama berubah
   $('#satuanUtama').on('change', function() {
     const satuanUtamaId = $(this).val();
     const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
-    $('.satuan-ke-readonly').val(satuanUtamaNama);
-    $('.satuan-ke-id').val(satuanUtamaId);
+    $('#conversionUnitsContainer .conversion-row .input-group .input-group-text').each(function(idx, el) {
+      if ($(el).prev('input.jumlah-konversi').length > 0) {
+        $(el).text(satuanUtamaNama);
+      }
+    });
     updateAddConversionTotals();
   });
 
