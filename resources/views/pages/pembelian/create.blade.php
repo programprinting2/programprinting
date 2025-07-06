@@ -73,7 +73,7 @@
                   <label for="jumlahInput" class="form-label small mb-1 d-block text-end">Jumlah</label>
                   <div class="input-group">
                     <input type="number" class="form-control text-end" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
-                    <select class="form-select d-none" id="satuanInput" style="min-width:40px"></select>
+                    <select class="form-select" id="satuanInput" style="min-width:40px" disabled></select>
                   </div>
                 </div>
                 <div class="col-md-2">
@@ -101,7 +101,8 @@
               <th>Kode Bahan</th>
               <th>Material</th>
               <th>Jumlah</th>
-              <th>Harga</th>
+              <th>Satuan</th>
+              <th>Harga Satuan (Rp)</th>
               <th>Diskon (%)</th>
               <th>Total</th>
               <th>Aksi</th>
@@ -109,7 +110,7 @@
             </thead>
             <tbody id="itemBody">
             <tr>
-              <td colspan="7" class="text-center text-muted">Belum ada item yang ditambahkan</td>
+              <td colspan="8" class="text-center text-muted">Belum ada item yang ditambahkan</td>
             </tr>
             </tbody>
           </table>
@@ -266,6 +267,7 @@
 <script src="/js/pembelian/form-create.js"></script>
 <script>
   window.satuanList = @json($satuanList);
+  window.bahanBakuList = @json($bahan_baku);
 </script>
   <script>
   document.getElementById('btnBatalPembelian').addEventListener('click', function() {

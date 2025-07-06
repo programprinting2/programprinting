@@ -9,7 +9,7 @@ class PembelianItem extends Model
     use HasFactory;
     protected $table = 'item_pembelian';
     protected $fillable = [
-        'pembelian_id', 'bahanbaku_id', 'jumlah', 'harga', 'diskon_persen', 'subtotal'
+        'pembelian_id', 'bahanbaku_id', 'jumlah', 'satuan', 'harga', 'diskon_persen', 'subtotal'
     ];
 
     public function pembelian()

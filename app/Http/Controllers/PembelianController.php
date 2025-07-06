@@ -71,6 +71,7 @@ class PembelianController extends Controller
         $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
         $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
         $satuanList = DetailParameter::orderBy('nama_detail_parameter')->get(['id', 'nama_detail_parameter'])->toArray();
+        
         return view('pages.pembelian.create', compact('pemasok', 'bahan_baku', 'satuanList'));
     }
 
@@ -110,10 +111,28 @@ class PembelianController extends Controller
             $items = [];
             foreach ($request->items as $item) {
                 $diskon = isset($item['diskon_persen']) ? floatval($item['diskon_persen']) : 0;
-                $item_subtotal = $item['harga'] * (1 - $diskon/100);
+                $bahanBaku = \App\Models\BahanBaku::find($item['bahanbaku_id']);
+                $jumlah_input = $item['jumlah'];
+                $jumlah_utama = $jumlah_input; // Default: jumlah input = jumlah utama
+                
+                // Jika ada satuan yang dipilih dan bukan satuan utama, konversi ke satuan utama
+                if ($bahanBaku && isset($item['satuan']) && $item['satuan'] && is_array($bahanBaku->konversi_satuan_json)) {
+                    foreach ($bahanBaku->konversi_satuan_json as $konv) {
+                        if (isset($konv['satuan_dari']) && (string)$konv['satuan_dari'] === (string)$item['satuan']) {
+                            // Konversi: jumlah_input × faktor_konversi = jumlah_satuan_utama
+                            $faktor_konversi = isset($konv['jumlah']) ? floatval($konv['jumlah']) : 1;
+                            $jumlah_utama = $jumlah_input * $faktor_konversi;
+                            break;
+                        }
+                    }
+                }
+                
+                // Perhitungan subtotal: gunakan jumlah input user, bukan jumlah yang sudah dikonversi
+                $item_subtotal = $item['harga'] * $jumlah_input * (1 - $diskon/100);
                 $items[] = [
                     'bahanbaku_id' => $item['bahanbaku_id'],
-                    'jumlah' => $item['jumlah'],
+                    'jumlah' => $jumlah_utama, // Simpan jumlah dalam satuan utama
+                    'satuan' => $item['satuan'] ?? null,
                     'harga' => $item['harga'],
                     'diskon_persen' => $diskon,
                     'subtotal' => $item_subtotal,
@@ -181,6 +200,7 @@ class PembelianController extends Controller
         $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
         $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
         $satuanList = DetailParameter::orderBy('nama_detail_parameter')->get(['id', 'nama_detail_parameter'])->toArray();
+        
         return view('pages.pembelian.edit', compact('pembelian', 'pemasok', 'bahan_baku', 'satuanList'));
     }
 
@@ -212,10 +232,28 @@ class PembelianController extends Controller
             $items = [];
             foreach ($request->items as $item) {
                 $diskon = isset($item['diskon_persen']) ? floatval($item['diskon_persen']) : 0;
-                $item_subtotal = $item['harga'] * (1 - $diskon/100);
+                $bahanBaku = \App\Models\BahanBaku::find($item['bahanbaku_id']);
+                $jumlah_input = $item['jumlah'];
+                $jumlah_utama = $jumlah_input; // Default: jumlah input = jumlah utama
+                
+                // Jika ada satuan yang dipilih dan bukan satuan utama, konversi ke satuan utama
+                if ($bahanBaku && isset($item['satuan']) && $item['satuan'] && is_array($bahanBaku->konversi_satuan_json)) {
+                    foreach ($bahanBaku->konversi_satuan_json as $konv) {
+                        if (isset($konv['satuan_dari']) && (string)$konv['satuan_dari'] === (string)$item['satuan']) {
+                            // Konversi: jumlah_input × faktor_konversi = jumlah_satuan_utama
+                            $faktor_konversi = isset($konv['jumlah']) ? floatval($konv['jumlah']) : 1;
+                            $jumlah_utama = $jumlah_input * $faktor_konversi;
+                            break;
+                        }
+                    }
+                }
+                
+                // Perhitungan subtotal: gunakan jumlah input user, bukan jumlah yang sudah dikonversi
+                $item_subtotal = $item['harga'] * $jumlah_input * (1 - $diskon/100);
                 $items[] = [
                     'bahanbaku_id' => $item['bahanbaku_id'],
-                    'jumlah' => $item['jumlah'],
+                    'jumlah' => $jumlah_utama, // Simpan jumlah dalam satuan utama
+                    'satuan' => $item['satuan'] ?? null,
                     'harga' => $item['harga'],
                     'diskon_persen' => $diskon,
                     'subtotal' => $item_subtotal,

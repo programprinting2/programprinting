@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->unsignedBigInteger('pembelian_id');
             $table->unsignedBigInteger('bahanbaku_id');
             $table->integer('jumlah');
+            $table->string('satuan')->nullable();
             $table->integer('harga');
             $table->float('diskon_persen')->nullable();
             $table->integer('subtotal');

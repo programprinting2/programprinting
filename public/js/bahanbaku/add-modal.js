@@ -208,6 +208,30 @@ $(document).ready(function() {
         });
       }
     });
+    // Tambahkan baris default satuan utama ke satuan utama (jumlah 1) di urutan pertama jika belum ada
+    const satuanUtamaId = $('#satuanUtama').val();
+    if (satuanUtamaId) {
+      // Cek apakah sudah ada baris default
+      const sudahAda = konversiRows.some(row => String(row.satuan_dari) === String(satuanUtamaId) && Number(row.jumlah) === 1);
+      if (!sudahAda) {
+        // Hapus baris lain yang satuan_dari sama dan jumlah 1 (jika ada duplikat manual)
+        const tanpaDuplikat = konversiRows.filter(row => !(String(row.satuan_dari) === String(satuanUtamaId) && Number(row.jumlah) === 1));
+        konversiRows.length = 0;
+        konversiRows.push({ satuan_dari: satuanUtamaId, jumlah: 1 }, ...tanpaDuplikat);
+      } else {
+        // Pastikan baris default ada di urutan pertama
+        const urutanBaru = [];
+        konversiRows.forEach(row => {
+          if (String(row.satuan_dari) === String(satuanUtamaId) && Number(row.jumlah) === 1) {
+            urutanBaru.unshift(row);
+          } else {
+            urutanBaru.push(row);
+          }
+        });
+        konversiRows.length = 0;
+        konversiRows.push(...urutanBaru);
+      }
+    }
     formData.set('konversi_satuan_json', JSON.stringify(konversiRows));
 
     // Set status_aktif dari dropdown

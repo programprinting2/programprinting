@@ -74,7 +74,7 @@
                   <label for="jumlahInput" class="form-label small mb-1 d-block text-end">Jumlah</label>
                   <div class="input-group">
                     <input type="number" class="form-control text-end" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
-                    <select class="form-select d-none" id="satuanInput" style="min-width:90px"></select>
+                    <select class="form-select" id="satuanInput" style="min-width:90px" disabled></select>
                   </div>
                 </div>
                 <div class="col-md-2">
@@ -102,7 +102,8 @@
               <th>Kode Bahan</th>
               <th>Material</th>
               <th>Jumlah</th>
-              <th>Harga</th>
+              <th>Satuan</th>
+              <th>Harga Satuan (Rp)</th>
               <th>Diskon (%)</th>
               <th>Total</th>
               <th>Aksi</th>
@@ -114,6 +115,7 @@
                 <td>{{ $item->bahanBaku->kode_bahan ?? '-' }}<input type="hidden" name="items[{{ $index }}][bahanbaku_id]" value="{{ $item->bahanbaku_id }}"></td>
                 <td>{{ $item->bahanBaku->nama_bahan ?? '-' }}</td>
                 <td class="item-jumlah">{{ $item->jumlah }}<input type="hidden" name="items[{{ $index }}][jumlah]" value="{{ $item->jumlah }}"></td>
+                <td class="item-satuan satuan-label-prefill" data-satuan-id="{{ $item->satuan ?? '' }}">{{ $item->satuan ?? '-' }}<input type="hidden" name="items[{{ $index }}][satuan]" value="{{ $item->satuan }}"></td>
                 <td class="item-harga text-end">{{ number_format($item->harga, 0, ',', '.') }}<input type="hidden" name="items[{{ $index }}][harga]" value="{{ $item->harga }}"></td>
                 <td class="item-diskon text-end">{{ $item->diskon_persen }}%<input type="hidden" name="items[{{ $index }}][diskon_persen]" value="{{ $item->diskon_persen }}"></td>
                 <td class="item-total text-end">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
@@ -124,7 +126,7 @@
               </tr>
             @empty
               <tr>
-                <td colspan="7" class="text-center text-muted">Belum ada item yang ditambahkan</td>
+                <td colspan="8" class="text-center text-muted">Belum ada item yang ditambahkan</td>
               </tr>
             @endforelse
             </tbody>
@@ -274,6 +276,9 @@
 <script src="/js/pembelian/pembelian-helper.js"></script>
 <script src="/js/pembelian/form-edit.js"></script>
 <script>
+  window.satuanList = @json($satuanList);
+  window.bahanBakuList = @json($bahan_baku);
+  
   document.getElementById('btnBatalPembelian').addEventListener('click', function() {
     window.history.back();
     });
@@ -297,6 +302,16 @@
     });
   @endif
 
-  window.satuanList = @json($satuanList);
+  // Mapping satuan id ke label pada prefill tabel
+  document.addEventListener('DOMContentLoaded', function() {
+    const satuanList = window.satuanList || [];
+    document.querySelectorAll('.satuan-label-prefill').forEach(function(td) {
+      const id = td.getAttribute('data-satuan-id');
+      const found = satuanList.find(s => String(s.id) === String(id));
+      if (found) {
+        td.childNodes[0].nodeValue = found.nama_detail_parameter + ' ';
+      }
+    });
+  });
 </script>
 @endpush 
