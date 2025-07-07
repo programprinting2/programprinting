@@ -209,18 +209,13 @@
       let diskon = row.querySelector('.item-diskon').textContent;
       if (diskon && diskon.includes('%')) diskon = diskon.replace('%','').trim();
       if (diskon === '' || diskon === null || diskon === undefined) diskon = 0;
-      
       // Ambil data bahan baku dari row
       const bahanbakuId = row.querySelector('input[name$="[bahanbaku_id]"]').value;
       const satuanId = row.querySelector('input[name$="[satuan]"]').value;
-      
       row.querySelector('.item-jumlah').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-jumlah' value='${jumlah}' min='1'>`;
-      // Harga satuan = item-harga (sudah dalam bentuk harga satuan)
       let hargaSatuan = parseInt(harga.replace(/\./g, '')) || 0;
       row.querySelector('.item-harga').innerHTML = `<input type='text' class='form-control form-control-sm input-edit-harga' value='${PembelianHelper.formatNumber(hargaSatuan)}'>`;
       row.querySelector('.item-diskon').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-diskon' value='${diskon}' min='0' max='100' step='0.01'>`;
-      
-      // Buat dropdown satuan dinamis
       let satuanOptions = '';
       if (window.bahanBakuCache && window.bahanBakuCache[bahanbakuId]) {
         const bahanBakuData = window.bahanBakuCache[bahanbakuId];
@@ -238,26 +233,35 @@
           });
         }
       }
-      
       row.querySelector('.item-satuan').innerHTML = `
         <select class='form-control form-control-sm input-edit-satuan'>
           ${satuanOptions}
         </select>
         <input type='hidden' name='items[][satuan]' value='${satuanId}'>
       `;
-      
       row.querySelector('td:last-child').innerHTML = `
       <button type="button" class="btn btn-sm btn-success btn-simpan-edit me-1"><i class="fa fa-check"></i></button>
       <button type="button" class="btn btn-sm btn-secondary btn-batal-edit"><i class="fa fa-times"></i></button>
       `;
-      
-      // Event listener untuk dropdown satuan saat edit
+      // --- LIVE CALCULATE ---
+      const jumlahInput = row.querySelector('.input-edit-jumlah');
+      const hargaInput = row.querySelector('.input-edit-harga');
+      const diskonInput = row.querySelector('.input-edit-diskon');
       const satuanSelect = row.querySelector('.input-edit-satuan');
+      function updateItemTotalLive() {
+        const jumlahVal = parseInt(jumlahInput.value) || 0;
+        const hargaVal = PembelianHelper.getNumericValue($(hargaInput));
+        const diskonVal = parseFloat(diskonInput.value) || 0;
+        const total = hargaVal * jumlahVal * (1 - diskonVal/100);
+        row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(total);
+        updateRingkasanBiaya();
+      }
+      jumlahInput.addEventListener('input', updateItemTotalLive);
+      hargaInput.addEventListener('input', updateItemTotalLive);
+      diskonInput.addEventListener('input', updateItemTotalLive);
       if (satuanSelect) {
         satuanSelect.addEventListener('change', function() {
           const konversi = parseInt(this.options[this.selectedIndex].getAttribute('data-konversi')) || 1;
-          const hargaInput = row.querySelector('.input-edit-harga');
-          
           // Update harga berdasarkan satuan yang dipilih
           if (window.bahanBakuCache && window.bahanBakuCache[bahanbakuId]) {
             const bahanBakuData = window.bahanBakuCache[bahanbakuId];
@@ -265,8 +269,10 @@
             const hargaBaru = hargaSatuanUtama * konversi;
             hargaInput.value = PembelianHelper.formatNumber(hargaBaru);
           }
+          updateItemTotalLive();
         });
       }
+      // --- END LIVE CALCULATE ---
     }
     if (e.target.closest('.btn-batal-edit')) {
       const row = e.target.closest('tr');

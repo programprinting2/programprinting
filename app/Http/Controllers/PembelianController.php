@@ -189,7 +189,8 @@ class PembelianController extends Controller
         $pembelian = Pembelian::with(['pemasok', 'items.bahanBaku'])
             ->where('kode_pembelian', $kode_pembelian)
             ->firstOrFail();
-        return view('pages.pembelian.show', compact('pembelian'));
+        $satuanList = \App\Models\DetailParameter::orderBy('nama_detail_parameter')->get(['id', 'nama_detail_parameter'])->toArray();
+        return view('pages.pembelian.show', compact('pembelian', 'satuanList'));
     }
 
     public function edit($kode_pembelian)

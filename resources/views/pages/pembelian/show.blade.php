@@ -20,16 +20,17 @@
     <div class="col-md-8">
     <ul class="nav nav-tabs mb-3" id="tabPembelianDetail" role="tablist">
       <li class="nav-item" role="presentation">
-      <button class="nav-link active" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detailPesanan"
-        type="button" role="tab">Detail Pesanan</button>
-      </li>
-      <li class="nav-item" role="presentation">
-      <button class="nav-link" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPembelian" type="button"
+        <button class="nav-link active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPembelian" type="button"
         role="tab">Item Pembelian</button>
       </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="detail-tab" data-bs-toggle="tab" data-bs-target="#detailPesanan"
+        type="button" role="tab">Detail Pesanan</button>
+      </li>
+      
     </ul>
     <div class="tab-content" id="tabPembelianDetailContent">
-      <div class="tab-pane fade show active" id="detailPesanan" role="tabpanel">
+      <div class="tab-pane fade" id="detailPesanan" role="tabpanel">
       <div class="card mb-3">
         <div class="card-body">
         <div class="row">
@@ -57,7 +58,7 @@
         </div>
       </div>
       </div>
-      <div class="tab-pane fade" id="itemPembelian" role="tabpanel">
+      <div class="tab-pane fade show active" id="itemPembelian" role="tabpanel">
       <div class="card mb-3">
         <div class="card-body">
         <h5 class="fw-bold mb-3"><i class="fa fa-cube me-1"></i> Item Pembelian</h5>
@@ -68,6 +69,7 @@
             <th>Kode Bahan</th>
             <th>Bahan Baku</th>
             <th>Qty Pesan</th>
+            <th>Satuan</th>
             <th>Harga Satuan</th>
             <th>Diskon (%)</th>
             <th>Total</th>
@@ -78,7 +80,33 @@
         <tr>
         <td>{{ $item->bahanBaku->kode_bahan }}</td>
         <td>{{ $item->bahanBaku->nama_bahan ?? '-' }}</td>
-        <td class="text-end">{{ $item->jumlah }}</td>
+        @php
+            $satuanId = $item->satuan;
+            $jumlahTersimpan = $item->jumlah;
+            $bahanBaku = $item->bahanBaku;
+            $qtyTampil = $jumlahTersimpan;
+            $namaSatuan = $satuanId;
+            // Cari nama satuan
+            if(isset($satuanList)) {
+                foreach($satuanList as $s) {
+                    if($s['id'] == $satuanId) { $namaSatuan = $s['nama_detail_parameter']; break; }
+                }
+            }
+            // Konversi qty jika satuan bukan satuan utama
+            if($bahanBaku && $satuanId && $bahanBaku->konversi_satuan_json && is_array($bahanBaku->konversi_satuan_json)) {
+                $satuanUtamaId = $bahanBaku->satuan_utama_id ?? null;
+                if($satuanUtamaId && $satuanId != $satuanUtamaId) {
+                    foreach($bahanBaku->konversi_satuan_json as $konv) {
+                        if(isset($konv['satuan_dari']) && $konv['satuan_dari'] == $satuanId && isset($konv['jumlah']) && $konv['jumlah'] > 0) {
+                            $qtyTampil = $jumlahTersimpan / $konv['jumlah'];
+                            break;
+                        }
+                    }
+                }
+            }
+        @endphp
+        <td class="text-end">{{ rtrim(rtrim(number_format($qtyTampil, 4, '.', ''), '0'), '.') }}</td>
+        <td>{{ $namaSatuan }}</td>
         <td class="text-end">Rp {{ number_format($item->harga, 0, ',', '.') }}</td>
         <td class="text-end">{{ $item->diskon_persen ?? 0 }}%</td>
         <td class="text-end">Rp {{ number_format($item->subtotal, 0, ',', '.') }}</td>
@@ -91,7 +119,7 @@
           </tbody>
           <tfoot>
             <tr>
-            <th colspan="5" class="text-end">Subtotal Item:</th>
+            <th colspan="6" class="text-end">Subtotal Item:</th>
             <th class="text-end">Rp {{ number_format($pembelian->items->sum('subtotal'), 0, ',', '.') }}</th>
             </tr>
           </tfoot>
