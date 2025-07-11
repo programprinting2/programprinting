@@ -140,10 +140,6 @@
         <span class="text-muted small">Jumlah Item</span>
         <span class="small">{{ $pembelian->items->count() }} jenis</span>
       </div>
-      <div class="d-flex justify-content-between mb-2">
-        <span class="text-muted small">Total Quantity</span>
-        <span class="small">{{ $pembelian->items->sum('jumlah') }}</span>
-      </div>
 
       <hr class="my-2">
 
