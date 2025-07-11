@@ -19,74 +19,145 @@
     <div class="card">
       <div class="card-body">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="card-title">Data Pembelian</h6>
+        <div class="row">
+          <h6 class="card-title mb-0">Data Pembelian</h6>
+          <p class="text-muted mb-3">Kelola data pembelian bahan baku dan barang lainnya</p>
+        </div>
         <div class="d-flex align-items-center gap-3">
-        <a href="{{ route('pembelian.create') }}" class="btn btn-dark d-flex align-items-center gap-1">
+        <a href="{{ route('pembelian.create') }}" class="btn btn-primary d-flex align-items-center gap-1">
           <i class="fa fa-plus"></i> Tambah Pembelian
         </a>
         </div>
       </div>
-      <p class="text-muted mb-3">Kelola data pembelian bahan baku dan barang lainnya</p>
-      <form class="search-form">
+
+      <!-- Divider -->
+      <hr class="my-4">
+
+      <!-- Form Pencarian dan Filter -->
+      <form id="searchForm" class="row g-3 mb-4">
+        <div class="col-md-4">
+          <label class="form-label small">&nbsp;</label>
         <div class="input-group">
-        <div class="input-group-text">
-          <i class="fas fa-search"></i>
+            <span class="input-group-text bg-light">
+              <i data-feather="search" class="icon-sm"></i>
+            </span>
+            <input type="text" class="form-control" name="search" placeholder="Cari kode pembelian, pemasok, atau nomor form..." value="{{ request('search') }}">
+          </div>
         </div>
-        <input type="text" class="form-control" id="searchForm" placeholder="Cari data pembelian..."
-          onkeyup="filterContent()">
-        <button type="button" class="btn btn-outline-secondary" onclick="clearSearchForm()" title="Clear">
-          <i class="fas fa-times"></i>
+        <div class="col-md-3">
+          <label class="form-label small">&nbsp;</label>
+          <select class="form-select" name="pemasok_id">
+            <option value="">Semua Pemasok</option>
+            @foreach($pemasok_list as $pemasok)
+              <option value="{{ $pemasok->id }}" {{ request('pemasok_id') == $pemasok->id ? 'selected' : '' }}>
+                {{ $pemasok->nama }}
+              </option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Tanggal Dari</label>
+          <input type="date" class="form-control" name="tanggal_dari" value="{{ request('tanggal_dari') }}">
+        </div>
+        <div class="col-md-2">
+          <label class="form-label small">Tanggal Sampai</label>
+          <input type="date" class="form-control" name="tanggal_sampai" value="{{ request('tanggal_sampai') }}">
+        </div>
+        <div class="col-md-1">
+          <label class="form-label small">&nbsp;</label>
+          <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter" title="Reset Filter">
+            <i data-feather="refresh-cw" class="icon-sm"></i> Reset
         </button>
         </div>
       </form>
-      <div class="p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap">
-        <div class="d-flex align-items-center gap-2">
-        <label class="me-2">Filter:</label>
-        <select class="form-select form-select-sm" style="width: 150px;" aria-label="Filter Status">
-          <option selected disabled>Status</option>
-          <option value="lunas">Lunas</option>
-          <option value="belum_lunas">Belum Lunas</option>
-        </select>
-        <select class="form-select form-select-sm" style="width: 150px;" aria-label="Filter Supplier">
-          <option selected disabled>Supplier</option>
-          <option value="supplier1">Supplier 1</option>
-          <option value="supplier2">Supplier 2</option>
-        </select>
-        <select class="form-select form-select-sm" style="width: 150px;" aria-label="Filter Periode">
-          <option selected disabled>Periode</option>
-          <option value="bulan_ini">Bulan Ini</option>
-          <option value="bulan_lalu">Bulan Lalu</option>
-          <option value="tahun_ini">Tahun Ini</option>
-        </select>
-        </div>
-        <div class="pagination-controls d-flex align-items-center gap-2">
-        <button class="btn btn-outline-dark btn-sm" id="prevPageButton">
-          <i class="fas fa-chevron-left"></i>
-        </button>
-        <span class="text-primary" id="currentPage">1/1</span>
-        <button class="btn btn-outline-dark btn-sm" id="nextPageButton">
-          <i class="fas fa-chevron-right"></i>
-        </button>
+
+      <!-- Loading Spinner -->
+      <div id="loadingSpinner" class="text-center py-4 d-none">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
         </div>
       </div>
-      <br>
+
       <div class="table-responsive">
-        <table id="data-source-1" class="table">
+        <table class="table align-middle">
         <thead>
-          <tr class="table-responsive">
-          <th style="width: 5%;">No</th>
-          <th style="width: 15%;">Nomor Faktur</th>
-          <th style="width: 15%;">Tanggal</th>
-          <th style="width: 20%;">Supplier</th>
-          <th style="width: 10%;">Total</th>
-          <th style="width: 10%;">Status</th>
-          <th style="width: 10%;">Action</th>
+          <tr>
+          <th>Kode Pembelian</th>
+          <th>Tanggal Pembelian</th>
+          <th>Pemasok</th>
+          <th>Total</th>
+          <th>Aksi</th>
           </tr>
         </thead>
         <tbody>
-          <!-- Data akan ditampilkan di sini -->
+          @forelse($data_pembelian as $i => $item)
+            <tr>
+              <td>{{ $item->kode_pembelian }}</td>
+              <td>
+                {{ \Carbon\Carbon::parse($item->tanggal_pembelian)->locale('id')->translatedFormat('d F Y') }}
+                @if($item->jatuh_tempo)
+                  <br><span class="text-muted small">Jatuh Tempo: {{ \Carbon\Carbon::parse($item->jatuh_tempo)->locale('id')->translatedFormat('d F Y') }}</span>
+                @else
+                  <br><span class="text-muted small">Jatuh Tempo: -</span>
+                @endif
+              </td>
+              <td>
+                {{ $item->pemasok->nama ?? '-' }}
+                @if($item->pemasok && $item->pemasok->alamat && is_array($item->pemasok->alamat) && isset($item->pemasok->alamat[$item->pemasok->alamat_utama]))
+                  <br><small class="text-muted">{{ $item->pemasok->alamat[$item->pemasok->alamat_utama]['alamat'] }}
+                  @if($item->pemasok->alamat[$item->pemasok->alamat_utama]['kota'])
+                    , {{ $item->pemasok->alamat[$item->pemasok->alamat_utama]['kota'] }}
+                  @endif
+                  </small>
+                @endif
+              </td>
+              <td class="fw-semibold">Rp {{ number_format($item->total,0,',','.') }}</td>
+              <td>
+                <div class="btn-group gap-1" role="group">
+                  <a href="{{ route('pembelian.show', $item->kode_pembelian) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail"><i class="link-icon icon-sm" data-feather="eye"></i></a>
+                  <a href="{{ route('pembelian.edit', $item->kode_pembelian) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit"><i class="link-icon icon-sm" data-feather="edit"></i></a>
+                  <form action="{{ route('pembelian.destroy', $item->kode_pembelian) }}" method="POST" class="d-inline-block form-hapus-pembelian">
+                    @csrf
+                    @method('DELETE')
+                    <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-pembelian" title="Hapus"><i class="link-icon icon-sm" data-feather="trash"></i></button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+          @empty
+            <tr>
+              <td colspan="5" class="text-center py-4">
+                @if(request('search') || request('pemasok_id') || request('tanggal_dari') || request('tanggal_sampai'))
+                  <div class="text-muted">
+                    <i data-feather="search" class="icon-sm mb-2"></i>
+                    <p class="mb-0">Tidak ditemukan data pembelian yang sesuai dengan kriteria pencarian.</p>
+                    <button type="button" class="btn btn-link btn-sm p-0 mt-2" id="clearSearch">
+                      <i data-feather="x" class="icon-sm"></i> Hapus filter
+                    </button>
+                  </div>
+                @else
+                  <div class="text-muted">
+                    <i data-feather="shopping-cart" class="icon-sm mb-2"></i>
+                    <p class="mb-0">Belum ada data pembelian.</p>
+                  </div>
+                @endif
+              </td>
+            </tr>
+          @endforelse
         </tbody>
         </table>
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div>
+            @if($data_pembelian->total() > 0)
+              Menampilkan {{ $data_pembelian->firstItem() ?? 0 }} - {{ $data_pembelian->lastItem() ?? 0 }} dari {{ $data_pembelian->total() }} data pembelian
+            @else
+              Tidak ada data pembelian
+            @endif
+          </div>
+          <div>
+            {{ $data_pembelian->appends(request()->query())->links('pagination::bootstrap-4') }}
+          </div>
+        </div>
       </div>
       </div>
     </div>
@@ -96,239 +167,95 @@
 @endsection
 
 @push('plugin-scripts')
-  <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>
-  <script src="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.js') }}"></script>
+  <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
 @endpush
 
 @push('custom-scripts')
   <script>
-    let dataTableInstance;
+  // Initialize Feather Icons
+  feather.replace();
 
-    document.addEventListener('DOMContentLoaded', function () {
-    try {
-      dataTableInstance = $('#data-source-1').DataTable({
-      paging: true,
-      searching: true,
-      ordering: true,
-      info: true,
-      autoWidth: false,
-      responsive: true,
-      language: {
-        url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/id.json'
-      },
-      dom: 'lrtip'
+  // Search form handling
+  const searchForm = $('#searchForm');
+  const loadingSpinner = $('#loadingSpinner');
+  const tableContainer = $('.table-responsive');
+
+  // Auto-submit form when dropdown or date changes
+  $('select[name="pemasok_id"], input[name="tanggal_dari"], input[name="tanggal_sampai"]').on('change', function() {
+    searchForm.submit();
+  });
+
+  // Manual submit for search input
+  $('input[name="search"]').on('keypress', function(e) {
+    if (e.which === 13) { // Enter key
+      e.preventDefault();
+      searchForm.submit();
+    }
+  });
+
+  searchForm.on('submit', function(e) {
+    e.preventDefault();
+    const formData = $(this).serialize();
+    const url = `${window.location.pathname}?${formData}`;
+    
+    // Show loading spinner
+    loadingSpinner.removeClass('d-none');
+    tableContainer.addClass('d-none');
+    
+    // Redirect to search URL
+    window.location.href = url;
+  });
+
+  // Reset filter
+  $('#resetFilter').click(function() {
+    window.location.href = '{{ route("pembelian.index") }}';
+  });
+
+  // Clear search
+  $('#clearSearch').click(function() {
+    window.location.href = '{{ route("pembelian.index") }}';
+  });
+
+  // Show loading spinner when page is loading
+  $(window).on('beforeunload', function() {
+    loadingSpinner.removeClass('d-none');
+    tableContainer.addClass('d-none');
+  });
+
+  // Hide loading spinner when page is fully loaded
+  $(window).on('load', function() {
+    loadingSpinner.addClass('d-none');
+    tableContainer.removeClass('d-none');
+  });
+
+  @if(session('success'))
+    Swal.fire({
+      title: 'Berhasil!',
+      text: '{{ session('success') }}',
+      icon: 'success',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  @endif
+
+  document.querySelectorAll('.btn-hapus-pembelian').forEach(function(btn) {
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      Swal.fire({
+        title: 'Hapus Data?',
+        text: 'Data pembelian yang dihapus tidak dapat dikembalikan!',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, hapus!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          btn.closest('form').submit();
+        }
       });
-
-      updatePaginationControls();
-    } catch (error) {
-      console.error('Error initializing DataTables:', error);
-    }
     });
-
-    function updatePaginationControls() {
-    if (!dataTableInstance) return;
-
-    const pageInfo = dataTableInstance.page.info();
-    document.getElementById('currentPage').textContent = `${pageInfo.page + 1}/${pageInfo.pages || 1}`;
-
-    document.getElementById('prevPageButton').disabled = pageInfo.page === 0;
-    document.getElementById('nextPageButton').disabled = pageInfo.page === pageInfo.pages - 1 || pageInfo.pages === 0;
-    }
-
-    document.getElementById('prevPageButton').addEventListener('click', function () {
-    if (!dataTableInstance || !dataTableInstance.page.info().page) return;
-    dataTableInstance.page('previous').draw('page');
-    updatePaginationControls();
-    });
-
-    document.getElementById('nextPageButton').addEventListener('click', function () {
-    if (!dataTableInstance || dataTableInstance.page.info().page === dataTableInstance.page.info().pages - 1) return;
-    dataTableInstance.page('next').draw('page');
-    updatePaginationControls();
-    });
-
-    function filterContent() {
-    if (!dataTableInstance) return;
-    dataTableInstance.search(document.getElementById('searchForm').value).draw();
-    }
-
-    function clearSearchForm() {
-    document.getElementById('searchForm').value = '';
-    filterContent();
-    }
-
-    function toggleNomorForm() {
-    const checkbox = document.getElementById('useFormNumber');
-    const input = document.getElementById('nomorFormInput');
-    input.style.display = checkbox.checked ? 'block' : 'none';
-    }
-
-    // Tambah item ke tabel
-    let itemIndex = 1;
-    document.getElementById('btnTambahItem').addEventListener('click', function () {
-    const materialSelect = document.getElementById('materialSelect');
-    const jumlahInput = document.getElementById('jumlahInput');
-    const hargaInput = document.getElementById('hargaInput');
-    const diskonInput = document.getElementById('diskonInput');
-    const itemBody = document.getElementById('itemBody');
-
-    const materialId = materialSelect.value;
-    const materialNama = materialSelect.options[materialSelect.selectedIndex]?.getAttribute('data-nama') || '';
-    const harga = parseInt(hargaInput.value) || 0;
-    const jumlah = parseInt(jumlahInput.value) || 1;
-    const diskon = parseInt(diskonInput.value) || 0;
-    if (!materialId) return alert('Pilih material terlebih dahulu!');
-    if (jumlah < 1) return alert('Jumlah minimal 1!');
-    if (harga < 1) return alert('Harga minimal 1!');
-    if (diskon < 0) return alert('Diskon tidak boleh negatif!');
-    if (diskon > harga * jumlah) return alert('Diskon tidak boleh lebih besar dari total harga!');
-
-    const total = (harga * jumlah) - diskon;
-
-    // Hapus row kosong jika ada
-    if (itemBody.children.length === 1 && itemBody.children[0].children.length === 1) {
-      itemBody.innerHTML = '';
-    }
-
-    // Tambah baris baru
-    const row = document.createElement('tr');
-    row.innerHTML = `
-      <td>${materialId}</td>
-      <td>${materialNama}</td>
-      <td class="item-jumlah">${jumlah}</td>
-      <td class="item-harga">${harga}</td>
-      <td class="item-diskon">${diskon}</td>
-      <td class="item-total">${total}</td>
-      <td>
-      <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
-      <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
-      </td>
-      `;
-    itemBody.appendChild(row);
-
-    // Reset input
-    materialSelect.value = '';
-    jumlahInput.value = 1;
-    hargaInput.value = 0;
-    diskonInput.value = 0;
-
-    updateRingkasanBiaya();
-    });
-
-    // Hapus & Edit item dari tabel
-    document.getElementById('itemBody').addEventListener('click', function (e) {
-    if (e.target.closest('.btn-hapus-item')) {
-      e.target.closest('tr').remove();
-      if (itemBody.children.length === 0) {
-      itemBody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">Belum ada item yang ditambahkan</td></tr>';
-      }
-      updateRingkasanBiaya();
-    }
-    if (e.target.closest('.btn-edit-item')) {
-      const row = e.target.closest('tr');
-      // Ambil data lama
-      const jumlah = row.querySelector('.item-jumlah').textContent;
-      const harga = row.querySelector('.item-harga').textContent;
-      const diskon = row.querySelector('.item-diskon').textContent;
-      // Ganti sel menjadi input
-      row.querySelector('.item-jumlah').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-jumlah' value='${jumlah}' min='1'>`;
-      row.querySelector('.item-harga').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-harga' value='${harga}' min='1'>`;
-      row.querySelector('.item-diskon').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-diskon' value='${diskon}' min='0'>`;
-      // Ganti tombol
-      row.querySelector('td:last-child').innerHTML = `
-      <button type="button" class="btn btn-sm btn-success btn-simpan-edit me-1"><i class="fa fa-check"></i></button>
-      <button type="button" class="btn btn-sm btn-secondary btn-batal-edit"><i class="fa fa-times"></i></button>
-      `;
-    }
-    if (e.target.closest('.btn-batal-edit')) {
-      const row = e.target.closest('tr');
-      // Kembalikan ke nilai sebelum edit
-      const jumlah = row.querySelector('.input-edit-jumlah').defaultValue;
-      const harga = row.querySelector('.input-edit-harga').defaultValue;
-      const diskon = row.querySelector('.input-edit-diskon').defaultValue;
-      row.querySelector('.item-jumlah').textContent = jumlah;
-      row.querySelector('.item-harga').textContent = harga;
-      row.querySelector('.item-diskon').textContent = diskon;
-      // Update total
-      const total = (parseInt(harga) || 0) * (parseInt(jumlah) || 0) - (parseInt(diskon) || 0);
-      row.querySelector('.item-total').textContent = total;
-      // Kembalikan tombol
-      row.querySelector('td:last-child').innerHTML = `
-      <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
-      <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
-      `;
-      updateRingkasanBiaya();
-    }
-    if (e.target.closest('.btn-simpan-edit')) {
-      const row = e.target.closest('tr');
-      // Ambil nilai baru
-      const jumlah = row.querySelector('.input-edit-jumlah').value;
-      const harga = row.querySelector('.input-edit-harga').value;
-      const diskon = row.querySelector('.input-edit-diskon').value;
-      // Validasi
-      if (jumlah < 1) return alert('Jumlah minimal 1!');
-      if (harga < 1) return alert('Harga minimal 1!');
-      if (diskon < 0) return alert('Diskon tidak boleh negatif!');
-      if (parseInt(diskon) > parseInt(harga) * parseInt(jumlah)) return alert('Diskon tidak boleh lebih besar dari total harga!');
-      // Update sel
-      row.querySelector('.item-jumlah').textContent = jumlah;
-      row.querySelector('.item-harga').textContent = harga;
-      row.querySelector('.item-diskon').textContent = diskon;
-      // Update total
-      const total = (parseInt(harga) || 0) * (parseInt(jumlah) || 0) - (parseInt(diskon) || 0);
-      row.querySelector('.item-total').textContent = total;
-      // Kembalikan tombol
-      row.querySelector('td:last-child').innerHTML = `
-      <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
-      <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
-      `;
-      updateRingkasanBiaya();
-    }
-    });
-
-    // Update ringkasan biaya otomatis
-    function updateRingkasanBiaya() {
-    // Ambil data item
-    let subtotal = 0;
-    let totalDiskon = 0;
-    let total = 0;
-    const itemBody = document.getElementById('itemBody');
-    for (let row of itemBody.children) {
-      if (row.children.length < 7) continue;
-      const harga = parseInt(row.querySelector('.item-harga').textContent) || 0;
-      const jumlah = parseInt(row.querySelector('.item-jumlah').textContent) || 0;
-      const diskon = parseInt(row.querySelector('.item-diskon').textContent) || 0;
-      subtotal += harga * jumlah;
-      totalDiskon += diskon;
-    }
-
-    // Ambil biaya tambahan
-    const diskonPersen = parseFloat(document.querySelector('[name="diskon_persen"]').value) || 0;
-    const jumlahDiskon = parseInt(document.querySelector('[name="jumlah_diskon"]').value) || 0;
-    const biayaPengiriman = parseInt(document.querySelector('[name="biaya_pengiriman"]').value) || 0;
-    const tarifPajak = parseFloat(document.querySelector('[name="tarif_pajak"]').value) || 0;
-    const notaKredit = parseInt(document.querySelector('[name="nota_kredit"]').value) || 0;
-    const jumlahBiayaLain = parseInt(document.querySelector('[name="jumlah_biaya_lain"]').value) || 0;
-
-    // Hitung diskon total
-    let diskonTotal = totalDiskon + jumlahDiskon + Math.round(subtotal * (diskonPersen / 100));
-    // Hitung pajak
-    let dpp = subtotal - diskonTotal;
-    let pajak = Math.round(dpp * (tarifPajak / 100));
-    // Hitung total
-    total = dpp + pajak + biayaPengiriman + jumlahBiayaLain - notaKredit;
-
-    // Update tampilan
-    document.querySelectorAll('.ringkasan-subtotal').forEach(e => e.textContent = 'Rp ' + subtotal.toLocaleString());
-    document.querySelectorAll('.ringkasan-diskon').forEach(e => e.textContent = '- Rp ' + diskonTotal.toLocaleString());
-    document.querySelectorAll('.ringkasan-pengiriman').forEach(e => e.textContent = 'Rp ' + biayaPengiriman.toLocaleString());
-    document.querySelectorAll('.ringkasan-pajak').forEach(e => e.textContent = 'Rp ' + pajak.toLocaleString());
-    document.querySelectorAll('.ringkasan-total').forEach(e => e.textContent = 'Rp ' + total.toLocaleString());
-    }
-
-    // Trigger update saat input biaya tambahan berubah
-    ['diskon_persen', 'jumlah_diskon', 'biaya_pengiriman', 'tarif_pajak', 'nota_kredit', 'jumlah_biaya_lain'].forEach(function (name) {
-    document.querySelector(`[name="${name}"]`).addEventListener('input', updateRingkasanBiaya);
     });
   </script>
 @endpush

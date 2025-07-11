@@ -15,15 +15,16 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0001',
                 'nama_bahan' => 'Art Carton 260 gsm',
                 'keterangan' => 'Kertas Art Carton 260 gsm ukuran A3',
-                'kategori' => 'Bahan Lembaran',
-                'sub_kategori' => 'Kertas Art Carton',
+                'kategori_id' => 11, // Bahan Lembaran
+                'sub_kategori_id' => 6, // Kertas Art Carton
                 'status_aktif' => true,
-                'satuan_utama' => 'lembar',
-                'pilihan_warna' => 'putih',
-                'berat' => 260,
-                'tinggi' => 42,
-                'tebal' => 0.26,
-                'gramasi_densitas' => 260,
+                'satuan_utama_id' => 1, // lembar
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Berat', 'nilai' => '260', 'satuan' => 'gsm'],
+                    ['nama' => 'Tinggi', 'nilai' => '42', 'satuan' => 'cm'],
+                    ['nama' => 'Tebal', 'nilai' => '0.26', 'satuan' => 'mm'],
+                    ['nama' => 'Warna', 'nilai' => 'Putih', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'rim', 'ke' => 500, 'satuan_ke' => 'lembar'],
                     ['dari' => 1, 'satuan_dari' => 'pak', 'ke' => 100, 'satuan_ke' => 'lembar']
@@ -36,21 +37,26 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 2500,
                 'stok_minimum' => 500,
-                'stok_maksimum' => 5000
+                'stok_maksimum' => 5000,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
             [
                 'kode_bahan' => 'MAT-0002',
                 'nama_bahan' => 'HVS A4 80 gsm',
                 'keterangan' => 'Kertas HVS A4 80 gsm',
-                'kategori' => 'Bahan Lembaran',
-                'sub_kategori' => 'Kertas HVS',
+                'kategori_id' => 11, // Bahan Lembaran
+                'sub_kategori_id' => 1, // Kertas HVS
                 'status_aktif' => true,
-                'satuan_utama' => 'lembar',
-                'pilihan_warna' => 'putih',
-                'berat' => 80,
-                'tinggi' => 29.7,
-                'tebal' => 0.08,
-                'gramasi_densitas' => 80,
+                'satuan_utama_id' => 1, // lembar
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Berat', 'nilai' => '80', 'satuan' => 'gsm'],
+                    ['nama' => 'Tinggi', 'nilai' => '29.7', 'satuan' => 'cm'],
+                    ['nama' => 'Tebal', 'nilai' => '0.08', 'satuan' => 'mm'],
+                    ['nama' => 'Warna', 'nilai' => 'Putih', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'rim', 'ke' => 500, 'satuan_ke' => 'lembar'],
                     ['dari' => 1, 'satuan_dari' => 'pak', 'ke' => 100, 'satuan_ke' => 'lembar']
@@ -62,7 +68,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 5000,
                 'stok_minimum' => 1000,
-                'stok_maksimum' => 10000
+                'stok_maksimum' => 10000,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
 
             // Bahan Roll
@@ -70,15 +80,16 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0003',
                 'nama_bahan' => 'Stiker Vinyl Glossy',
                 'keterangan' => 'Stiker vinyl glossy untuk outdoor printing',
-                'kategori' => 'Bahan Roll',
-                'sub_kategori' => 'Stiker',
+                'kategori_id' => 12, // Bahan Roll
+                'sub_kategori_id' => 12, // Stiker Vinyl Glossy
                 'status_aktif' => true,
-                'satuan_utama' => 'meter',
-                'pilihan_warna' => 'putih',
-                'berat' => 0,
-                'tinggi' => 0.5,
-                'tebal' => 0.1,
-                'gramasi_densitas' => 0,
+                'satuan_utama_id' => 2, // meter
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Tinggi', 'nilai' => '0.5', 'satuan' => 'm'],
+                    ['nama' => 'Tebal', 'nilai' => '0.1', 'satuan' => 'mm'],
+                    ['nama' => 'Warna', 'nilai' => 'Putih', 'satuan' => '-'],
+                    ['nama' => 'Jenis', 'nilai' => 'Vinyl Glossy', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'roll', 'ke' => 50, 'satuan_ke' => 'meter']
                 ]),
@@ -89,7 +100,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 8,
                 'stok_minimum' => 2,
-                'stok_maksimum' => 10
+                'stok_maksimum' => 10,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
 
             // Bahan Cair
@@ -97,13 +112,15 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0004',
                 'nama_bahan' => 'Tinta DTF CMYK',
                 'keterangan' => 'Tinta DTF untuk printer DTF, isi 1 Liter',
-                'kategori' => 'Bahan Cair',
-                'sub_kategori' => 'Tinta',
+                'kategori_id' => 13, // Bahan Cair
+                'sub_kategori_id' => 15, // Tinta DTF
                 'status_aktif' => true,
-                'satuan_utama' => 'liter',
-                'pilihan_warna' => 'custom',
-                'nama_warna_custom' => 'CMYK',
-                'volume' => 1,
+                'satuan_utama_id' => 3, // liter
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Volume', 'nilai' => '1', 'satuan' => 'liter'],
+                    ['nama' => 'Warna', 'nilai' => 'CMYK', 'satuan' => '-'],
+                    ['nama' => 'Jenis', 'nilai' => 'DTF', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'liter', 'ke' => 1000, 'satuan_ke' => 'ml']
                 ]),
@@ -114,7 +131,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 12,
                 'stok_minimum' => 5,
-                'stok_maksimum' => 20
+                'stok_maksimum' => 20,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
 
             // Bahan Berat
@@ -122,13 +143,15 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0005',
                 'nama_bahan' => 'Kain CVC 30s',
                 'keterangan' => 'Kain CVC 30s untuk kaos, bahan katun campur polyester',
-                'kategori' => 'Bahan Berat',
-                'sub_kategori' => 'Kain',
+                'kategori_id' => 14, // Bahan Berat
+                'sub_kategori_id' => 19, // Kain CVC
                 'status_aktif' => true,
-                'satuan_utama' => 'kg',
-                'pilihan_warna' => 'custom',
-                'nama_warna_custom' => 'Hitam',
-                'berat' => 1,
+                'satuan_utama_id' => 4, // kg
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Berat', 'nilai' => '1', 'satuan' => 'kg'],
+                    ['nama' => 'Warna', 'nilai' => 'Hitam', 'satuan' => '-'],
+                    ['nama' => 'Jenis', 'nilai' => 'CVC 30s', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'kg', 'ke' => 1000, 'satuan_ke' => 'gram']
                 ]),
@@ -139,7 +162,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 75,
                 'stok_minimum' => 20,
-                'stok_maksimum' => 100
+                'stok_maksimum' => 100,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
 
             // Bahan Unit/Biji
@@ -147,12 +174,16 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0006',
                 'nama_bahan' => 'Mug Sublimasi',
                 'keterangan' => 'Mug keramik untuk sublimasi, diameter 8cm',
-                'kategori' => 'Bahan Unit/Biji',
-                'sub_kategori' => 'Merchandise',
+                'kategori_id' => 15, // Bahan Unit/Biji
+                'sub_kategori_id' => 25, // Mug Sublimasi
                 'status_aktif' => true,
-                'satuan_utama' => 'pcs',
-                'pilihan_warna' => 'putih',
-                'berat' => 300,
+                'satuan_utama_id' => 5, // pcs
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Berat', 'nilai' => '300', 'satuan' => 'gram'],
+                    ['nama' => 'Diameter', 'nilai' => '8', 'satuan' => 'cm'],
+                    ['nama' => 'Warna', 'nilai' => 'Putih', 'satuan' => '-'],
+                    ['nama' => 'Jenis', 'nilai' => 'Keramik', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'box', 'ke' => 12, 'satuan_ke' => 'pcs']
                 ]),
@@ -163,7 +194,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 216,
                 'stok_minimum' => 50,
-                'stok_maksimum' => 300
+                'stok_maksimum' => 300,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
 
             // Bahan Paket/Set
@@ -171,13 +206,16 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0007',
                 'nama_bahan' => 'Lanyard Polyester',
                 'keterangan' => 'Lanyard polyester lebar 2cm dengan kaitan besi',
-                'kategori' => 'Bahan Paket/Set',
-                'sub_kategori' => 'Merchandise',
+                'kategori_id' => 16, // Bahan Paket/Set
+                'sub_kategori_id' => 29, // Lanyard Polyester
                 'status_aktif' => true,
-                'satuan_utama' => 'set',
-                'pilihan_warna' => 'custom',
-                'nama_warna_custom' => 'Hitam',
-                'berat' => 20,
+                'satuan_utama_id' => 6, // set
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Berat', 'nilai' => '20', 'satuan' => 'gram'],
+                    ['nama' => 'Lebar', 'nilai' => '2', 'satuan' => 'cm'],
+                    ['nama' => 'Warna', 'nilai' => 'Hitam', 'satuan' => '-'],
+                    ['nama' => 'Jenis', 'nilai' => 'Polyester', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'bundle', 'ke' => 50, 'satuan_ke' => 'set']
                 ]),
@@ -188,7 +226,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 350,
                 'stok_minimum' => 100,
-                'stok_maksimum' => 500
+                'stok_maksimum' => 500,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ],
 
             // Bahan Waktu/Jasa
@@ -196,10 +238,14 @@ class BahanBakuSeeder extends Seeder
                 'kode_bahan' => 'MAT-0008',
                 'nama_bahan' => 'Jasa Desain Grafis',
                 'keterangan' => 'Jasa desain grafis untuk kebutuhan printing',
-                'kategori' => 'Bahan Waktu/Jasa',
-                'sub_kategori' => 'Jasa',
+                'kategori_id' => 17, // Bahan Waktu/Jasa
+                'sub_kategori_id' => 33, // Jasa Desain Grafis
                 'status_aktif' => true,
-                'satuan_utama' => 'jam',
+                'satuan_utama_id' => 7, // jam
+                'detail_spesifikasi_json' => json_encode([
+                    ['nama' => 'Jenis Jasa', 'nilai' => 'Desain Grafis', 'satuan' => '-'],
+                    ['nama' => 'Kategori', 'nilai' => 'Printing', 'satuan' => '-']
+                ]),
                 'konversi_satuan_json' => json_encode([
                     ['dari' => 1, 'satuan_dari' => 'jam', 'ke' => 60, 'satuan_ke' => 'menit']
                 ]),
@@ -210,7 +256,11 @@ class BahanBakuSeeder extends Seeder
                 ]),
                 'stok_saat_ini' => 0,
                 'stok_minimum' => 0,
-                'stok_maksimum' => 0
+                'stok_maksimum' => 0,
+                'foto_pendukung_json' => [],
+                'video_pendukung_json' => [],
+                'dokumen_pendukung_json' => [],
+                'link_pendukung_json' => []
             ]
         ];
 

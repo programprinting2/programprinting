@@ -17,7 +17,7 @@ class MasterBahanbakuController extends Controller
         $query = BahanBaku::query();
 
         // Eager load relasi pemasokUtama dan subKategoriDetail
-        $query->with(['pemasokUtama', 'subKategoriDetail']);
+        $query->with(['pemasokUtama', 'subKategoriDetail', 'kategoriDetail']);
 
         // Pencarian berdasarkan nama, kode, atau kategori
         if ($request->filled('search')) {
@@ -25,10 +25,14 @@ class MasterBahanbakuController extends Controller
             $query->where(function($q) use ($search) {
                 $q->whereRaw('LOWER(nama_bahan) LIKE ?', ['%' . $search . '%'])
                   ->orWhereRaw('LOWER(kode_bahan) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(kategori) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(sub_kategori) LIKE ?', ['%' . $search . '%']);
+                  ->orWhereHas('kategoriDetail', function($subQuery) use ($search) {
+                      $subQuery->whereRaw('LOWER(nama_detail_parameter) LIKE ?', ['%' . $search . '%']);
+                  })
+                  ->orWhereHas('subKategoriDetail', function($subQuery) use ($search) {
+                      $subQuery->whereRaw('LOWER(nama_sub_detail_parameter) LIKE ?', ['%' . $search . '%']);
+                  });
             });
-    }
+        }
 
         // Filter berdasarkan kategori
         if ($request->filled('kategori')) {
@@ -179,17 +183,12 @@ class MasterBahanbakuController extends Controller
                 if ($request->has('konversi_satuan_json')) {
                     $konversiData = json_decode($request->input('konversi_satuan_json'), true);
                     if (json_last_error() === JSON_ERROR_NONE) {
-                        // Konversi format lama ke format baru jika diperlukan
+                        // Validasi dan filter data
                         $konversiData = array_map(function($item) {
-                            if (isset($item['from_value'])) {
-                                return [
-                                    'dari' => $item['from_value'],
-                                    'satuan_dari' => $item['from_unit'],
-                                    'ke' => $item['to_value'],
-                                    'satuan_ke' => $item['to_unit']
-                                ];
-                            }
-                            return $item;
+                            return [
+                                'satuan_dari' => $item['satuan_dari'],
+                                'jumlah' => $item['jumlah']
+                            ];
                         }, $konversiData);
                         $data['konversi_satuan_json'] = $konversiData;
                     } else {
@@ -355,20 +354,15 @@ class MasterBahanbakuController extends Controller
 
         // Memastikan data JSON valid
         try {
-            // Konversi satuan (sama seperti store method)
+            // Konversi satuan
             if ($request->has('konversi_satuan_json')) {
                 $konversiData = json_decode($request->input('konversi_satuan_json'), true);
                 if (json_last_error() === JSON_ERROR_NONE) {
                     $konversiData = array_map(function($item) {
-                        if (isset($item['from_value'])) {
-                            return [
-                                'dari' => $item['from_value'],
-                                'satuan_dari' => $item['from_unit'],
-                                'ke' => $item['to_value'],
-                                'satuan_ke' => $item['to_unit']
-                            ];
-                        }
-                        return $item;
+                        return [
+                            'satuan_dari' => $item['satuan_dari'],
+                            'jumlah' => $item['jumlah']
+                        ];
                     }, $konversiData);
                     $data['konversi_satuan_json'] = $konversiData;
                 } else {
@@ -390,7 +384,7 @@ class MasterBahanbakuController extends Controller
                 $data['detail_spesifikasi_json'] = [];
             }
 
-            // Dokumen pendukung (sama seperti store method)
+            // Dokumen pendukung
             if ($request->has('dokumen_pendukung_json')) {
                 $dokumenData = json_decode($request->input('dokumen_pendukung_json'), true);
                 if (json_last_error() === JSON_ERROR_NONE) {
@@ -563,9 +557,13 @@ class MasterBahanbakuController extends Controller
 
     public function show($id)
     {
-        $bahanbaku = BahanBaku::findOrFail($id);
-        return response()->json($bahanbaku);
+        $bahanbaku = BahanBaku::with('pemasokUtama')->findOrFail($id);
+        $data = $bahanbaku->toArray();
+        $data['pemasok_utama_nama'] = $bahanbaku->pemasokUtama ? $bahanbaku->pemasokUtama->nama : null;
+        $data['pemasok_utama_kode'] = $bahanbaku->pemasokUtama ? $bahanbaku->pemasokUtama->kode_pemasok : null;
+        return response()->json($data);
     }
+
 }
 
 

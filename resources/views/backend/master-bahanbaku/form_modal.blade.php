@@ -17,10 +17,7 @@
               <button class="nav-link" id="spesifikasi-teknis-tab" data-bs-toggle="tab" data-bs-target="#spesifikasi-teknis" type="button" role="tab" aria-controls="spesifikasi-teknis" aria-selected="false"><i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="konversi-satuan-tab" data-bs-toggle="tab" data-bs-target="#konversi-satuan" type="button" role="tab" aria-controls="konversi-satuan" aria-selected="false"><i data-feather="refresh-cw" class="me-1 icon-sm"></i> Konversi Satuan</button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="pemasok-harga-tab" data-bs-toggle="tab" data-bs-target="#pemasok-harga" type="button" role="tab" aria-controls="pemasok-harga" aria-selected="false"><i data-feather="truck" class="me-1 icon-sm"></i> Pemasok & Harga</button>
+              <button class="nav-link" id="konversi-satuan-tab" data-bs-toggle="tab" data-bs-target="#konversi-satuan" type="button" role="tab" aria-controls="konversi-satuan" aria-selected="false"><i data-feather="refresh-cw" class="me-1 icon-sm"></i> Satuan & Harga</button>
             </li>
             <li class="nav-item" role="presentation">
               <button class="nav-link" id="informasi-stok-tab" data-bs-toggle="tab" data-bs-target="#informasi-stok" type="button" role="tab" aria-controls="informasi-stok" aria-selected="false"><i data-feather="box" class="me-1 icon-sm"></i> Informasi Stok</button>
@@ -53,7 +50,7 @@
                       <small class="text-muted">Otomatis menyesuaikan metode perhitungan sesuai kategori</small>
                     </div>
                     <div class="col-md-6">
-                      <label for="subKategori" class="form-label">Sub-Kategori</label>
+                      <label for="subKategori" class="form-label">Sub-Kategori <span class="text-danger">*</span></label>
                       <select class="form-select" id="sub_kategori_id" name="sub_kategori_id">
                         <option value="" selected disabled>Pilih sub-kategori</option>
                         <!-- Options akan diisi dinamis oleh JS, value=id -->
@@ -63,16 +60,16 @@
                   </div>
                     
                   <div class="row mb-3">
-                  <div class="col-md-6">
-                      <label for="satuanUtama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
-                      <select class="form-select" id="satuanUtama" name="satuan_utama_id" required>
-                        <option value="" selected disabled>Pilih satuan</option>
-                        @foreach($satuanList as $satuan)
-                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
-                        @endforeach
-                      </select>
-                      <small class="text-muted">Satuan utama untuk perhitungan stok</small>
+                    <div class="col-md-6">
+                      <label for="pemasokUtama" class="form-label">Pemasok Utama</label>
+                      <div class="input-group">
+                        <input type="text" class="form-control" id="namaPemasokUtama" placeholder="Pilih pemasok..." readonly style="background:#fff;cursor:pointer;">
+                        <input type="hidden" id="pemasokUtamaId" name="pemasok_utama_id">
+                        <button class="btn btn-outline-secondary" type="button" id="btnCariPemasokUtama"><i class="fa fa-search"></i></button>
+                      </div>
+                      <small class="text-muted">Pemasok utama untuk pembelian bahan baku</small>
                     </div>
+
                     <div class="col-md-6">
                       <label for="statusAktif" class="form-label">Status Aktif</label>
                       <select class="form-select" id="statusAktif" name="status_aktif" required>
@@ -130,10 +127,33 @@
             <div class="tab-pane fade" id="konversi-satuan" role="tabpanel" aria-labelledby="konversi-satuan-tab">
               <div class="card mb-0">
                 <div class="card-body">
+
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="satuanUtama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
+                      <select class="form-select" id="satuanUtama" name="satuan_utama_id" required>
+                        <option value="" selected disabled>Pilih satuan</option>
+                        @foreach($satuanList as $satuan)
+                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
+                        @endforeach
+                      </select>
+                      <small class="text-muted">Satuan utama untuk perhitungan stok</small>
+                    </div>
+
+                    <div class="col-md-6">
+                      <label for="hargaTerakhir" class="form-label">Harga Terakhir</label>
+                      <div class="input-group">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text" class="form-control money-format" id="hargaTerakhir" name="harga_terakhir" value="0">
+                        <span class="input-group-text" id="labelSatuanHargaTerakhir"></span>
+                      </div>
+                      <small class="text-muted">Harga beli terakhir dari pemasok utama</small>
+                    </div>
+                  </div>
                   <div class="d-flex justify-content-between align-items-center mb-3">
+                    
                     <div>
                       <h6 class="mb-0">Konversi Satuan</h6>
-                      <p class="text-muted mb-3" style="font-size: 0.85rem;">Konversi satuan membantu perhitungan otomatis antara satuan yang berbeda. Contoh: 1 Rim = 500 Lembar, 1 Roll = 50 Meter</p>
                     </div>
                     <button type="button" class="btn btn-sm btn-primary" id="tambahKonversi"><i data-feather="plus" class="me-1 icon-sm"></i>Tambah Konversi</button>
                   </div>
@@ -144,75 +164,6 @@
                         <i data-feather="refresh-cw" class="icon-lg mb-2"></i><br>Belum ada konversi satuan yang ditambahkan.
                     </div>
                   </div>
-                  <!-- New: Contoh Konversi Satuan -->
-                  <div class="alert alert-info mt-3" role="alert">
-                    <h6 class="alert-heading mb-2">Contoh Konversi Satuan</h6>
-                    <ul class="list-unstyled mb-0" style="font-size: 0.9rem;">
-                      <li>1 Rim = 500 Lembar</li>
-                      <li>1 Roll = 50 Meter</li>
-                      <li>1 Karton = 20 Pack</li>
-                      <li>1 Box = 100 Pcs</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Pemasok & Harga Tab -->
-            <div class="tab-pane fade" id="pemasok-harga" role="tabpanel" aria-labelledby="pemasok-harga-tab">
-              <div class="card mb-0">
-                <div class="card-body">
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="pemasokUtama" class="form-label">Pemasok Utama</label>
-                      <div class="d-flex align-items-center">
-                        <select class="form-select me-2" id="pemasokUtama" name="pemasok_utama_id">
-                          <option value="" selected disabled>Pilih pemasok</option>
-                          @foreach($pemasok as $supplier)
-                            <option value="{{ $supplier->id }}">{{ $supplier->nama }}</option>
-                          @endforeach
-                        </select>
-                      </div>
-                      <small class="text-muted">Pemasok utama untuk pembelian bahan baku</small>
-                    </div>
-                    <div class="col-md-6">
-                      <label for="hargaTerakhir" class="form-label">Harga Terakhir</label>
-                      <div class="input-group">
-                        <span class="input-group-text">Rp</span>
-                        <input type="text" class="form-control money-format" id="hargaTerakhir" name="harga_terakhir" value="0">
-                      </div>
-                      <small class="text-muted">Harga beli terakhir dari pemasok utama</small>
-                    </div>
-                  </div>
-                  <!-- <div class="row mb-3">
-                    <div class="col-md-12">
-                      <label class="form-label">Histori Harga</label>
-                      <p class="text-muted mb-3" style="font-size: 0.85rem;">Catatan perubahan harga dari waktu ke waktu</p>
-                      <div class="table-responsive">
-                        <table class="table table-bordered">
-                          <thead>
-                            <tr>
-                              <th>Tanggal</th>
-                              <th>Harga</th>
-                              <th>Pemasok</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            <tr>
-                              <td>2024-05-01</td>
-                              <td>Rp 15.000</td>
-                              <td>PT Kertas Nusantara</td>
-                            </tr>
-                            <tr>
-                              <td>2024-04-15</td>
-                              <td>Rp 14.500</td>
-                              <td>PT Kertas Nusantara</td>
-                            </tr>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div> -->
                 </div>
               </div>
             </div>
@@ -421,3 +372,47 @@
   </script>
   <script src="{{ asset('js/bahanbaku/add-modal.js') }}"></script>
 @endpush 
+
+@push('custom-scripts')
+  <script>
+    // Event listener untuk perubahan kategori
+    $(document).ready(function() {
+  
+      // Inisialisasi awal
+       updateSubKategoriOptions($('#kategori_utama').val());
+          
+      $('#kategori_utama').on('change', function() {
+        const selectedKategoriId = $(this).val();
+        
+        updateSubKategoriOptions(selectedKategoriId);
+      });
+
+
+    });
+  </script>
+  <!-- {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}} -->
+@endpush
+
+@push('custom-scripts')
+@include('backend.general-form.cari-pemasok', [
+  'modalId' => 'modalCariPemasokBahanBaku',
+  'inputId' => 'searchPemasokBahanBaku',
+  'tableId' => 'tabelCariPemasokBahanBaku',
+  'paginationId' => 'paginationCariPemasokBahanBaku',
+  'clearBtnId' => 'clearSearchPemasokBahanBaku',
+])
+<script>
+$(function() {
+  $('#btnCariPemasokUtama, #namaPemasokUtama').on('click', function() {
+    $('#modalCariPemasokBahanBaku').modal('show');
+  });
+  window.addEventListener('pemasokDipilih', function(e) {
+    if (!$('#modalCariPemasokBahanBaku').hasClass('show')) return;
+    const data = e.detail;
+    $('#namaPemasokUtama').val(data.nama + (data.kode ? ' ['+data.kode+']' : ''));
+    $('#pemasokUtamaId').val(data.id);
+    $('#modalCariPemasokBahanBaku').modal('hide');
+  });
+});
+</script>
+@endpush

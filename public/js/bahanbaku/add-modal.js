@@ -41,7 +41,7 @@ $(document).ready(function() {
 
     $('#statusStokText').text(statusText);
     $('#stokProgressBar').css('width', `${progressBarWidth}%`).removeClass('bg-primary bg-danger bg-success').addClass(progressBarClass);
-    $('#stokSummary').text(`${stokSaatIni} / ${stokMaksimum} ${satuanUtama ? satuanUtama.charAt(0).toUpperCase() + satuanUtama.slice(1) : 'Unit'}`);
+    $('#stokSummary').text(`${stokSaatIni} / ${stokMaksimum} Unit`);
     $('#stokAlert').removeClass('d-none').addClass(stokAlertClass);
 
     // Update Estimasi Nilai Stok
@@ -97,14 +97,43 @@ $(document).ready(function() {
     return html;
   }
 
-  // Fungsi untuk menambahkan baris konversi satuan baru
-  $('#tambahKonversi').on('click', function() {
+  // Fungsi untuk mendapatkan nama satuan utama dari id
+  function getNamaSatuanById(id) {
+    if (!window.satuanList) return '';
+    const satuan = window.satuanList.find(s => s.id == id);
+    return satuan ? satuan.nama_detail_parameter : '';
+  }
+
+  // Fungsi untuk menghitung dan update total harga per baris konversi satuan
+  function updateAddConversionTotals() {
+    const hargaTerakhir = parseFloat($('#hargaTerakhir').val().replace(/\./g, '').replace(/,/g, '')) || 0;
+    $('#conversionUnitsContainer .conversion-row').each(function() {
+      const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
+      const satuanId = $(this).find('select[name*="[satuan_dari]"]').val();
+      let satuanNama = '';
+      if (window.satuanList && satuanId) {
+        const satuan = window.satuanList.find(s => s.id == satuanId);
+        satuanNama = satuan ? satuan.nama_detail_parameter : '';
+      }
+      const total = jumlah * hargaTerakhir;
+      $(this).find('.total-konversi-harga').val(total.toLocaleString('id-ID'));
+      $(this).find('.satuan-total-konversi').text(satuanNama ? '/' + satuanNama : '');
+    });
+  }
+
+  // Tambahkan pemanggilan updateAddConversionTotals pada event yang relevan
+  $(document).on('input', '#hargaTerakhir', updateAddConversionTotals);
+  $(document).on('input', '#conversionUnitsContainer .jumlah-konversi', updateAddConversionTotals);
+  $(document).on('change', '#conversionUnitsContainer select[name*="[satuan_dari]"]', updateAddConversionTotals);
+
+  // Modifikasi pembuatan baris konversi satuan agar ada kolom total
+  // Pada event tambah konversi
+  $('#tambahKonversi').off('click').on('click', function() {
+    const satuanUtamaId = $('#satuanUtama').val();
+    const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
     const optionsHtml = getSatuanOptionsFromList();
     const newRow = `
       <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][dari]" value="1" min="0">
-        </div>
         <div class="col-md-3">
           <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
             ${optionsHtml}
@@ -113,22 +142,38 @@ $(document).ready(function() {
         <div class="col-auto">
           <span>=</span>
         </div>
-        <div class="col-md-2">
-          <input type="number" class="form-control form-control-sm" name="konversi_satuan_json[][ke]" value="1" min="0">
+        <div class="col-md-4">
+          <div class="input-group">
+            <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01">
+            <span class="input-group-text">${satuanUtamaNama}</span>
+          </div>
         </div>
-        <div class="col-md-3">
-          <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_ke]">
-            ${optionsHtml}
-          </select>
-        </div>
-        <div class="col-auto">
+        <div class="col-auto d-flex align-items-center gap-4">
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input type="text" class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" value="0" readonly disabled>
+            <span class="input-group-text satuan-total-konversi"></span>
+          </div>
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
         </div>
       </div>
     `;
     $('#conversionUnitsContainer').append(newRow);
-    feather.replace(); // Re-initialize feather icons for new elements
+    feather.replace();
+    updateAddConversionTotals();
     updateNoConversionMessage();
+  });
+
+  // Update label satuan pada seluruh baris konversi jika satuan utama berubah
+  $('#satuanUtama').on('change', function() {
+    const satuanUtamaId = $(this).val();
+    const satuanUtamaNama = getNamaSatuanById(satuanUtamaId);
+    $('#conversionUnitsContainer .conversion-row .input-group .input-group-text').each(function(idx, el) {
+      if ($(el).prev('input.jumlah-konversi').length > 0) {
+        $(el).text(satuanUtamaNama);
+      }
+    });
+    updateAddConversionTotals();
   });
 
   // Event listener untuk menghapus baris konversi
@@ -154,22 +199,39 @@ $(document).ready(function() {
     // Persiapkan data konversi satuan
     const konversiRows = [];
     $('.conversion-row').each(function() {
-      const dari = $(this).find('input[name*="[dari]"]').val();
       const satuanDari = $(this).find('select[name*="[satuan_dari]"]').val();
-      const ke = $(this).find('input[name*="[ke]"]').val();
-      const satuanKe = $(this).find('select[name*="[satuan_ke]"]').val();
-
-      if (dari && satuanDari && ke && satuanKe) {
+      const jumlah = $(this).find('input[name*="[jumlah]"]').val();
+      if (satuanDari && jumlah) {
         konversiRows.push({
-          dari: parseFloat(dari),
           satuan_dari: satuanDari,
-          ke: parseFloat(ke),
-          satuan_ke: satuanKe
+          jumlah: parseFloat(jumlah)
         });
       }
     });
-
-    // Set konversi satuan sebagai JSON string dengan format yang diinginkan
+    // Tambahkan baris default satuan utama ke satuan utama (jumlah 1) di urutan pertama jika belum ada
+    const satuanUtamaId = $('#satuanUtama').val();
+    if (satuanUtamaId) {
+      // Cek apakah sudah ada baris default
+      const sudahAda = konversiRows.some(row => String(row.satuan_dari) === String(satuanUtamaId) && Number(row.jumlah) === 1);
+      if (!sudahAda) {
+        // Hapus baris lain yang satuan_dari sama dan jumlah 1 (jika ada duplikat manual)
+        const tanpaDuplikat = konversiRows.filter(row => !(String(row.satuan_dari) === String(satuanUtamaId) && Number(row.jumlah) === 1));
+        konversiRows.length = 0;
+        konversiRows.push({ satuan_dari: satuanUtamaId, jumlah: 1 }, ...tanpaDuplikat);
+      } else {
+        // Pastikan baris default ada di urutan pertama
+        const urutanBaru = [];
+        konversiRows.forEach(row => {
+          if (String(row.satuan_dari) === String(satuanUtamaId) && Number(row.jumlah) === 1) {
+            urutanBaru.unshift(row);
+          } else {
+            urutanBaru.push(row);
+          }
+        });
+        konversiRows.length = 0;
+        konversiRows.push(...urutanBaru);
+      }
+    }
     formData.set('konversi_satuan_json', JSON.stringify(konversiRows));
 
     // Set status_aktif dari dropdown
@@ -639,4 +701,16 @@ $(document).ready(function() {
   $('#mediaPreviewModal').on('hidden.bs.modal', function() {
     $('#mediaPreviewModalBody').html('');
   });
+
+  function updateLabelSatuanHargaTerakhir() {
+    const satuanUtamaId = $('#satuanUtama').val();
+    let satuanNama = '';
+    if (window.satuanList && satuanUtamaId) {
+      const satuan = window.satuanList.find(s => s.id == satuanUtamaId);
+      satuanNama = satuan ? '/' + satuan.nama_detail_parameter : '';
+    }
+    $('#labelSatuanHargaTerakhir').text(satuanNama);
+  }
+  $('#satuanUtama').on('change', updateLabelSatuanHargaTerakhir);
+  $('#addMaterialModal').on('shown.bs.modal', updateLabelSatuanHargaTerakhir);
 }); 

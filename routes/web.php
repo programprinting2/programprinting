@@ -23,7 +23,9 @@ use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
 use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
-use App\Http\Controllers\SubDetailParameterController;
+use App\Http\Controllers\MasterProdukController;
+use App\Http\Controllers\CariController;
+
 
 Route::get('/', function () {
     return view('dashboard');
@@ -121,12 +123,35 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.karyawan.update',
         'destroy' => 'backend.karyawan.destroy',
     ]);
+
+    // Produk Resource Routes
+    Route::resource('master-produk', MasterProdukController::class)->names([
+        'index' => 'backend.master-produk.index',
+        'create' => 'backend.master-produk.create',
+        'store' => 'backend.master-produk.store',
+        'show' => 'backend.master-produk.show',
+        'edit' => 'backend.master-produk.edit',
+        'update' => 'backend.master-produk.update',
+        'destroy' => 'backend.master-produk.destroy',
+    ]);
+    
+    // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
+    Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
+    Route::get('/cari-pemasok', [CariController::class, 'cariPemasok'])->name('backend.cari-pemasok');
+
 });
 
 Route::group(['prefix' => 'pembelian'], function () {
-    Route::get('/', [PembelianController::class, 'index'])->name('pembelian.index');
-    Route::get('/create', [PembelianController::class, 'create'])->name('pembelian.create');
-    Route::post('/create', [PembelianController::class, 'store'])->name('pembelian.store');
+    // Pembelian Resource Routes
+    Route::resource('/', PembelianController::class)->names([
+        'index' => 'pembelian.index',
+        'create' => 'pembelian.create',
+        'store' => 'pembelian.store',
+        'show' => 'pembelian.show',
+        'edit' => 'pembelian.edit',
+        'update' => 'pembelian.update',
+        'destroy' => 'pembelian.destroy',
+    ])->parameters(['' => 'kode_pembelian']);
 });
 
 Route::group(['prefix' => 'spk'], function () {
