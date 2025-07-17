@@ -25,6 +25,8 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PemasokController;
 use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\CariController;
+use App\Http\Controllers\GudangController;
+use App\Http\Controllers\RakController;
 
 
 Route::get('/', function () {
@@ -138,6 +140,29 @@ Route::group(['prefix' => 'backend'], function () {
     // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
     Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
     Route::get('/cari-pemasok', [CariController::class, 'cariPemasok'])->name('backend.cari-pemasok');
+
+    // Master Gudang Resource Routes
+    Route::resource('master-gudang', GudangController::class)->names([
+        'index' => 'backend.master-gudang.index',
+        'create' => 'backend.master-gudang.create',
+        'store' => 'backend.master-gudang.store',
+        'show' => 'backend.master-gudang.show',
+        'edit' => 'backend.master-gudang.edit',
+        'update' => 'backend.master-gudang.update',
+        'destroy' => 'backend.master-gudang.destroy',
+    ]);
+
+    // Master Rak Resource Routes
+    Route::resource('master-rak', RakController::class)->names([
+        'index' => 'backend.master-rak.index',
+        'create' => 'backend.master-rak.create',
+        'store' => 'backend.master-rak.store',
+        'show' => 'backend.master-rak.show',
+        'edit' => 'backend.master-rak.edit',
+        'update' => 'backend.master-rak.update',
+        'destroy' => 'backend.master-rak.destroy',
+    ]);
+
 
 });
 

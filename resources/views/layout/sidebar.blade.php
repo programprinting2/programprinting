@@ -58,6 +58,10 @@
               <a href="{{ url('/backend/master-produk') }}"
                 class="nav-link {{ active_class(['backend/master-produk']) }}">Produk</a>
             </li>
+            <li class="nav-item">
+              <a href="{{ url('/backend/master-gudang') }}"
+                class="nav-link {{ active_class(['backend/master-gudang', 'backend/master-rak']) }}">Gudang</a>
+            </li>
           </ul>
         </div>
       </li>
