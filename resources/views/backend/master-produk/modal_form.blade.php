@@ -17,35 +17,23 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-deskripsidanmedia" data-bs-toggle="tab" data-bs-target="#kontak"
-                                type="button" role="tab">
-                                <i data-feather="phone" class="me-1 icon-sm"></i> Deskripsi & Media
-                            </button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-alamat" data-bs-toggle="tab" data-bs-target="#alamat"
+                            <button class="nav-link" id="tab-alamat" data-bs-toggle="tab" data-bs-target="#harga"
                                 type="button" role="tab">
                                 <i data-feather="map-pin" class="me-1 icon-sm"></i> Harga
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-penjualan" data-bs-toggle="tab" data-bs-target="#penjualan"
+                            <button class="nav-link" id="tab-alur-produksi" data-bs-toggle="tab" data-bs-target="#alur-produksi"
                                 type="button" role="tab">
                                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Alur Produksi
                             </button>
                         </li>
-                      
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-lain-lain" data-bs-toggle="tab" data-bs-target="#lain-lain"
+                            <button class="nav-link" id="tab-media-dokumen" data-bs-toggle="tab" data-bs-target="#media-dokumen"
                                 type="button" role="tab">
-                                <i data-feather="more-horizontal" class="me-1 icon-sm"></i> Lain-lain
+                                <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
                             </button>
                         </li>
-
-                        <li class="nav-item" role="presentation">
-              <button class="nav-link" id="media-dokumen-tab" data-bs-toggle="tab" data-bs-target="#media-dokumen" type="button" role="tab" aria-controls="media-dokumen" aria-selected="false"><i data-feather="file-text" class="me-1 icon-sm"></i> Media & Dokumen</button>
-            </li>
-
                     </ul>
 
                     <div class="tab-content" id="ProdukTabContent">
@@ -55,19 +43,24 @@
                             <div class="card-body">
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="nama_produk" class="form-label">Nama Produk *</label>
+                                        <label for="nama_produk" class="form-label">Nama Produk<span class="text-danger"> *</span></label>
                                         <input type="text" class="form-control" id="nama_produk" name="nama_produk" placeholder="Nama produk" required>
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="kode_produk" class="form-label">Kode Produk *</label>
-                                        <input type="text" class="form-control" id="kode_produk" name="kode_produk" placeholder="Kode produk" required>
+                                        <label for="satuan" class="form-label">Satuan <span class="text-danger"> *</span></label>
+                                        <select class="form-select" id="satuanBarang" name="satuan_id" required>
+                                            <option value="" selected disabled>Pilih satuan</option>
+                                            @foreach($satuanList as $detail)
+                                                <option value="{{ $detail->id }}">{{ $detail->nama_detail_parameter }}</option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="kategori_utama" class="form-label">Kategori Utama*</label>
+                                        <label for="kategori_utama" class="form-label">Kategori Utama <span class="text-danger"> *</span></label>
                                         <div class="input-group">
-                                            <select class="form-select" id="kategori_utama" name="kategori_utama" required>
+                                            <select class="form-select" id="kategori_utama" name="kategori_utama_id" required>
                                                  <option value="" selected disabled>Pilih Kategori Utama</option>
                                                 @foreach($kategoriProdukList as $kategori)
                                                     <option value="{{ $kategori->id }}">{{ $kategori->nama_detail_parameter }}</option>
@@ -80,7 +73,7 @@
                                         </div>
                                     </div>
                                     <div class="col-md-6">
-                                    <label for="subKategori" class="form-label">Sub-Kategori</label>
+                                    <label for="subKategori" class="form-label">Sub-Kategori <span class="text-danger"> *</span></label>
                                     <select class="form-select" id="sub_kategori_id_produk" name="sub_kategori_id">
                                         <option value="" selected disabled>Pilih sub-kategori</option>
                                         <!-- Options akan diisi dinamis oleh JS, value=id -->
@@ -90,13 +83,17 @@
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="satuan" class="form-label">Satuan *</label>
-                                        <select class="form-select" id="satuanBarang" name="satuanBarang" required>
-                                            <option value="" selected disabled>Pilih satuan</option>
-                                            @foreach($satuanList as $detail)
-                                                <option value="{{ $detail->id }}">{{ $detail->nama_detail_parameter }}</option>
-                                            @endforeach
-                                        </select>
+                                        <label class="form-label">Dimensi</label>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <input type="number" class="form-control" id="lebar" name="lebar" min="0" value="0" placeholder="Lebar (cm)">
+                                                <small class="text-muted">Lebar (cm)</small>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <input type="number" class="form-control" id="panjang" name="panjang" min="0" value="0" placeholder="Panjang (cm)">
+                                                <small class="text-muted">Panjang (cm)</small>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label">Metode Penjualan</label>
@@ -117,28 +114,24 @@
                                         </div>
                                     </div>
                                 </div>
+                               
+                                    
+                                
                                 <div class="row mb-3">
-                                    <label class="form-label">Dimensi</label>
-                                    <div class="col-md-3">
-                                        <input type="number" class="form-control" id="lebar" name="lebar" min="0" value="0" placeholder="Lebar (cm)">
-                                        <small class="text-muted">Lebar (cm)</small>
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="number" class="form-control" id="panjang" name="panjang" min="0" value="0" placeholder="Panjang (cm)">
-                                        <small class="text-muted">Panjang (cm)</small>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="minimal_order" class="form-label">Minimal Order *</label>
-                                        <input type="number" class="form-control" id="minimal_order" name="minimal_order" min="1" value="1" required>
-                                        <small class="text-muted">Jumlah pemesanan minimal</small>
-                                    </div>
+                                    <!-- HIDDEN INPUT UNTUK JSON -->
+                                    <input type="hidden" name="bahan_baku_json" id="bahan_baku_json">
+                                    <input type="hidden" name="harga_bertingkat_json" id="harga_bertingkat_json">
+                                    <input type="hidden" name="harga_reseller_json" id="harga_reseller_json">
+                                    <input type="hidden" name="foto_pendukung_json" id="foto_pendukung_json">
+                                    <input type="hidden" name="video_pendukung_json" id="video_pendukung_json">
+                                    <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
+                                    <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-4">
                                         <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="status_aktif" name="status_aktif" checked>
+                                            <input type="hidden" name="status_aktif" value="0">
+                                            <input class="form-check-input" type="checkbox" id="status_aktif" name="status_aktif" value="1" checked>
                                             <label class="form-check-label" for="status_aktif">Status Aktif</label>
                                             <div><small class="text-muted">Produk akan tampil di daftar produk aktif</small></div>
                                         </div>
@@ -151,46 +144,46 @@
 
                     
                         <!-- Deskripsi & Media -->
-                        <div class="tab-pane fade" id="kontak" role="tabpanel">
+                        <!-- <div class="tab-pane fade" id="kontak" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <!-- Deskripsi Produk -->
-                                    <div class="mb-3">
+                                    <!-- <div class="mb-3">
                                         <label for="deskripsi_produk" class="form-label fw-semibold">Deskripsi Produk</label>
                                         <textarea class="form-control" id="deskripsi_produk" name="deskripsi_produk" rows="3" placeholder="Deskripsi detail tentang produk"></textarea>
                                         <small class="text-muted">Jelaskan produk secara detail termasuk fitur dan manfaatnya</small>
-                                    </div>
+                                    </div> -->
                                     <!-- Media & Dokumen -->
-                                    <div class="border rounded p-3 mb-3">
+                                    <!-- <div class="border rounded p-3 mb-3">
                                         <div class="fw-semibold mb-2">Media & Dokumen</div>
-                                        <div class="row g-3">
+                                        <div class="row g-3"> -->
                                             <!-- Gambar Produk -->
-                                            <div class="col-md-6">
+                                            <!-- <div class="col-md-6">
                                                 <label class="form-label">Gambar Produk</label>
                                                 <div class="border rounded d-flex flex-column align-items-center justify-content-center py-4 mb-2" style="min-height: 120px;">
                                                     <i data-feather="image" class="mb-2" style="width:32px;height:32px;"></i>
                                                     <input type="file" class="form-control mb-2" id="gambar_produk" name="gambar_produk[]" accept=".jpg,.jpeg,.png,.webp" multiple style="max-width: 220px;">
                                                     <small class="text-muted">Format: JPG, PNG, WebP (Maks. 5MB)</small>
                                                 </div>
-                                            </div>
+                                            </div> -->
                                             <!-- Dokumen Pendukung -->
-                                            <div class="col-md-6">
+                                            <!-- <div class="col-md-6">
                                                 <label class="form-label">Dokumen Pendukung</label>
                                                 <div class="border rounded d-flex flex-column align-items-center justify-content-center py-4 mb-2" style="min-height: 120px;">
                                                     <i data-feather="file-text" class="mb-2" style="width:32px;height:32px;"></i>
                                                     <input type="file" class="form-control mb-2" id="dokumen_produk" name="dokumen_produk[]" accept=".pdf,.doc,.docx,.xls,.xlsx" multiple style="max-width: 220px;">
                                                     <small class="text-muted">Format: PDF, DOC, XLS (Maks. 10MB)</small>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-3">
+                                            </div> -->
+                                        <!-- </div>
+                                        <div class="row mt-3"> -->
                                             <!-- URL Thumbnail -->
-                                            <div class="col-md-6">
+                                            <!-- <div class="col-md-6">
                                                 <label for="url_thumbnail" class="form-label">URL Thumbnail</label>
                                                 <input type="text" class="form-control" id="url_thumbnail" name="url_thumbnail" placeholder="URL thumbnail produk">
-                                            </div>
+                                            </div> -->
                                             <!-- Dokumen Terunggah -->
-                                            <div class="col-md-6">
+                                            <!-- <div class="col-md-6">
                                                 <label class="form-label">Dokumen Terunggah</label>
                                                 <div class="border rounded p-2" style="min-height: 48px;">
                                                     <div class="d-flex align-items-center mb-1">
@@ -204,11 +197,11 @@
                                                         <button type="button" class="btn btn-link text-danger p-0 ms-2" title="Hapus"><i data-feather="trash-2" style="width:16px;height:16px;"></i></button>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                                            </div> -->
+                                        <!-- </div>
+                                    </div> -->
                                     <!-- SEO & Pengaturan Online -->
-                                    <div class="border rounded p-3">
+                                    <!-- <div class="border rounded p-3">
                                         <div class="fw-semibold mb-2">SEO & Pengaturan Online</div>
                                         <div class="mb-3">
                                             <label for="meta_title" class="form-label">Meta Title</label>
@@ -220,13 +213,13 @@
                                             <textarea class="form-control" id="meta_description" name="meta_description" rows="2" placeholder="Deskripsi untuk SEO"></textarea>
                                             <small class="text-muted">Deskripsi singkat yang akan muncul di hasil pencarian</small>
                                         </div>
-                                    </div>
-                                </div>
+                                    </div> -->
+                                <!-- </div>
                             </div>
-                        </div>
+                        </div>  -->
                         
                         <!-- Harga -->
-                        <div class="tab-pane fade" id="alamat" role="tabpanel">
+                        <div class="tab-pane fade" id="harga" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <!-- Tab Harga: Modal & Harga Jual -->
@@ -323,23 +316,8 @@
                                                 </div>
                                             </div>
                                         </div>
-                                        <!-- Tab Harga Jual -->
+                                        <!-- Tab Harga Jual Dinamis -->
                                         <div class="tab-pane fade" id="harga-jual-tab-pane" role="tabpanel">
-                                            <!-- Modal Dasar Produksi -->
-                                            <div class="alert alert-success d-flex align-items-center mb-4" role="alert">
-                                                <div>
-                                                    <div class="fw-semibold mb-1">
-                                                        <i data-feather="dollar-sign" class="me-2"></i>
-                                                        Modal Dasar Produksi
-                                                    </div>
-                                                    <div class="small text-muted">
-                                                        Total Modal Keseluruhan
-                                                        <span class="ms-2">4 komponen</span>
-                                                    </div>
-                                                    <div class="fs-4 fw-bold text-success mt-1">Rp 165.000 <span class="fs-6 fw-normal text-muted">Base cost</span></div>
-                                                </div>
-                                            </div>
-                                            <!-- Harga Umum (Bertingkat) -->
                                             <div class="card mb-3 border-2 border-primary-subtle" style="background: #f8f5ff;">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -348,10 +326,10 @@
                                                             <span class="fw-semibold">Harga Umum (Bertingkat)</span>
                                                             <div class="small text-muted">Atur harga berdasarkan quantity minimum</div>
                                                         </div>
-                                                        <button type="button" class="btn btn-sm btn-outline-primary">+ Tambah Tingkat</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahHargaBertingkat">+ Tambah Tingkat</button>
                                                     </div>
                                                     <div class="table-responsive">
-                                                        <table class="table table-bordered align-middle mb-0">
+                                                        <table class="table table-bordered align-middle mb-0" id="tabelHargaBertingkat">
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>Min. Qty</th>
@@ -363,28 +341,12 @@
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                <tr>
-                                                                    <td><input type="number" class="form-control" value="1" min="1"></td>
-                                                                    <td><input type="number" class="form-control" value="5" min="1"></td>
-                                                                    <td><input type="text" class="form-control money-format" value="214500"></td>
-                                                                    <td class="text-success fw-semibold">Rp 49.500</td>
-                                                                    <td class="text-success fw-semibold">30%</td>
-                                                                    <td><button type="button" class="btn btn-link text-danger p-0"><i data-feather="trash-2"></i></button></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td><input type="number" class="form-control" value="6" min="1"></td>
-                                                                    <td><input type="number" class="form-control" value="20" min="1"></td>
-                                                                    <td><input type="text" class="form-control money-format" value="206250"></td>
-                                                                    <td class="text-success fw-semibold">Rp 41.250</td>
-                                                                    <td class="text-success fw-semibold">25%</td>
-                                                                    <td><button type="button" class="btn btn-link text-danger p-0"><i data-feather="trash-2"></i></button></td>
-                                                                </tr>
+                                                                <!-- Baris harga bertingkat akan diisi dinamis oleh JS -->
                                                             </tbody>
                                                         </table>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <!-- Harga Reseller (Bertingkat) -->
                                             <div class="card mb-3 border-2 border-warning-subtle" style="background: #fffbe7;">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
@@ -393,10 +355,10 @@
                                                             <span class="fw-semibold">Harga Reseller (Bertingkat)</span>
                                                             <div class="small text-muted">Harga khusus untuk partner reseller</div>
                                                         </div>
-                                                        <button type="button" class="btn btn-sm btn-outline-warning">+ Tambah Tingkat</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-warning" id="btnTambahHargaReseller">+ Tambah Tingkat</button>
                                                     </div>
                                                     <div class="table-responsive">
-                                                        <table class="table table-bordered align-middle mb-0">
+                                                        <table class="table table-bordered align-middle mb-0" id="tabelHargaReseller">
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>Min. Qty</th>
@@ -408,22 +370,7 @@
                                                                 </tr>
                                                             </thead>
                                                             <tbody>
-                                                                <tr>
-                                                                    <td><input type="number" class="form-control" value="1" min="1"></td>
-                                                                    <td><input type="number" class="form-control" value="10" min="1"></td>
-                                                                    <td><input type="text" class="form-control money-format" value="198000"></td>
-                                                                    <td class="text-success fw-semibold">Rp 33.000</td>
-                                                                    <td class="text-success fw-semibold">20%</td>
-                                                                    <td><button type="button" class="btn btn-link text-danger p-0"><i data-feather="trash-2"></i></button></td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td><input type="number" class="form-control" value="11" min="1"></td>
-                                                                    <td><input type="number" class="form-control" value="50" min="1"></td>
-                                                                    <td><input type="text" class="form-control money-format" value="189750"></td>
-                                                                    <td class="text-success fw-semibold">Rp 24.750</td>
-                                                                    <td class="text-success fw-semibold">15%</td>
-                                                                    <td><button type="button" class="btn btn-link text-danger p-0"><i data-feather="trash-2"></i></button></td>
-                                                                </tr>
+                                                                <!-- Baris harga reseller akan diisi dinamis oleh JS -->
                                                             </tbody>
                                                         </table>
                                                     </div>
@@ -437,7 +384,7 @@
                        
                         <!-- alur produksi -->
                         <!-- Alur Produksi -->
-                        <div class="tab-pane fade" id="penjualan" role="tabpanel">
+                        <div class="tab-pane fade" id="alur-produksi" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <div class="mb-3">
@@ -453,12 +400,6 @@
                                     </div>
                                     <div id="daftarMesin">
                                         <!-- Mesin akan ditambahkan secara dinamis di sini -->
-                                    </div>
-                                    <div class="alert alert-info d-flex align-items-center mt-3" role="alert">
-                                        <i data-feather="info" class="me-2"></i>
-                                        <div>
-                                            Langkah-langkah produksi akan disimpan sebagai JSON dan digunakan untuk pelacakan produksi. Seleksi mesin akan memengaruhi biaya produksi dan perhitungan waktu.
-                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -526,36 +467,8 @@
                                     <!-- Input file dokumen pendukung (hidden) -->
                                     <input type="file" class="d-none" id="dokumenPendukungInput" name="dokumen_pendukung_new[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
                                 </div>
-                            </div>
-
-                            <!-- Link Pendukung -->
-                            <div class="card mt-3 mb-0">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <h6 class="mb-0">Link Pendukung</h6>
-                                    </div>
-                                    <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan link pendukung seperti Google Drive, YouTube, atau website lain yang relevan.</p>
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-md-6">
-                                            <input type="url" class="form-control" id="inputLinkPendukung" placeholder="https://contoh.com/link-pendukung">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <input type="text" class="form-control" id="inputKeteranganLinkPendukung" placeholder="Keterangan (opsional)">
-                                        </div>
-                                        <div class="col-md-2">
-                                            <button type="button" class="btn btn-outline-primary w-100" id="tambahLinkPendukung"><i data-feather="plus" class="icon-sm me-1"></i>Tambah Link</button>
-                                        </div>
-                                    </div>
-                                    <ul class="list-group" id="daftarLinkPendukung">
-                                        <!-- Daftar link akan muncul di sini -->
-                                    </ul>
-                                </div>
-                            </div>
-                            
+                            </div>        
                         </div>
-
-                        
-
                         @push('custom-scripts')
                         <script>
                         let mesinIndex = 0;
@@ -631,9 +544,9 @@
                                 <tr data-id="${data.id}">
                                     <td>${data.nama}<input type="hidden" name="bahan_baku_id[]" value="${data.id}"></td>
                                     <td>${data.satuan}</td>
-                                    <td><input type="number" class="form-control form-control-sm harga-bahan" name="harga_bahan[]" value="${data.harga}" min="0"></td>
+                                    <td class="text-end">Rp ${data.harga.toLocaleString('id-ID')}<input type="hidden" name="harga_bahan[]" value="${data.harga}"></td>
                                     <td><input type="number" class="form-control form-control-sm jumlah-bahan" name="jumlah_bahan[]" value="1" min="1"></td>
-                                    <td class="total-bahan">Rp ${data.harga}</td>
+                                    <td class="total-bahan text-success fw-semibold text-end">Rp ${data.harga}</td>
                                     <td><button type="button" class="btn btn-danger btn-xs btn-hapus-bahan"><i data-feather="trash-2" class="icon-sm"></i></button></td>
                                 </tr>
                             `;
@@ -644,13 +557,13 @@
                             hitungTotalModalBahan();
                         });
 
-                        // Hitung total saat harga/jumlah berubah
-                        $(document).on('input', '.harga-bahan, .jumlah-bahan', function() {
+                        // Hitung total saat jumlah berubah
+                        $(document).on('input', '.jumlah-bahan', function() {
                             const row = $(this).closest('tr');
-                            const harga = parseInt(row.find('.harga-bahan').val()) || 0;
+                            const harga = parseInt(row.find('input[name="harga_bahan[]"]').val()) || 0;
                             const jumlah = parseInt(row.find('.jumlah-bahan').val()) || 0;
                             const total = harga * jumlah;
-                            row.find('.total-bahan').text('Rp ' + total.toLocaleString('id-ID'));
+                            row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
                             hitungTotalModalBahan();
                         });
 
@@ -664,7 +577,7 @@
                         function hitungTotalModalBahan() {
                             let total = 0;
                             $('#tabelBahanBaku tbody tr').each(function() {
-                                const harga = parseInt($(this).find('.harga-bahan').val()) || 0;
+                                const harga = parseInt($(this).find('input[name="harga_bahan[]"]').val()) || 0;
                                 const jumlah = parseInt($(this).find('.jumlah-bahan').val()) || 0;
                                 total += harga * jumlah;
                             });

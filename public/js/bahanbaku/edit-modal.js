@@ -40,10 +40,6 @@ function updateEditStokInfo() {
   $('#editStokProgressBar').css('width', `${progressBarWidth}%`).removeClass('bg-primary bg-danger bg-success').addClass(progressBarClass);
   $('#editStokSummary').text(`${stokSaatIni} / ${stokMaksimum} Unit`);
   $('#editStokAlert').removeClass('d-none').addClass(stokAlertClass);
-
-  // Update Estimasi Nilai Stok
-  const totalNilaiStok = stokSaatIni * hargaTerakhir;
-  $('#editTotalNilaiStok').text(`Rp ${totalNilaiStok.toLocaleString('id-ID')}`);
 }
 
 // Arrays untuk menyimpan file yang dipilih (baru dan yang sudah ada)
@@ -905,6 +901,8 @@ $(document).ready(function() {
     const formData = new FormData(this);
     // Panggil fungsi prepareFormData untuk memproses data sebelum dikirim
     prepareFormData(formData);
+    // Tambahkan CSRF token ke FormData agar tidak terjadi CSRF token mismatch
+    formData.append('_token', $('meta[name="csrf-token"]').attr('content'));
 
     $.ajax({
       url: $('#editForm').attr('action'),

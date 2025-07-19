@@ -67,83 +67,67 @@
                         <table class="table">
                             <thead>
                                 <tr>
-                                    <th>Kode</th>
-                                    <th>Nama</th>
+                                    <th>Kode Produk</th>
+                                    <th>Nama Produk</th>
                                     <th>Kategori</th>
                                     <th>Sub Kategori</th>
+                                    <th>Satuan</th>
+                                    <th>Metode Penjualan</th>
+                                    <th>Lebar (cm)</th>
+                                    <th>Panjang (cm)</th>
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {{-- @forelse ($pemasok as $p)
+                                @forelse ($produk as $p)
                                     <tr>
-                                        <td>{{ $p->kode_pemasok }}</td>
-                                        <td>{{ $p->nama }}</td>
+                                        <td>{{ $p->kode_produk }}</td>
+                                        <td>{{ $p->nama_produk }}</td>
+                                        <td>{{ $p->kategoriUtama->nama_detail_parameter ?? '-' }}</td>
+                                        <td>{{ $p->subKategori->nama_sub_detail_parameter ?? '-' }}</td>
+                                        <td>{{ $p->satuan->nama_detail_parameter ?? '-' }}</td>
+                                        <td>{{ $p->metode_penjualan == 'm2' ? 'm2' : 'Meter Lari' }}</td>
+                                        <td>{{ $p->lebar }}</td>
+                                        <td>{{ $p->panjang }}</td>
                                         <td>
-                                            <div>
-                                                {{ $p->no_telp }}<br>
-                                                <small class="text-muted">{{ $p->email }}</small>
-                                            </div>
-                                        </td>
-                                        <td>
-                                            @if($p->alamat && is_array($p->alamat) && isset($p->alamat[$p->alamat_utama]))
-                                                {{ $p->alamat[$p->alamat_utama]['alamat'] }}
-                                                @if($p->alamat[$p->alamat_utama]['kota'])
-                                                    <br><small class="text-muted">{{ $p->alamat[$p->alamat_utama]['kota'] }}</small>
-                                                @endif
-                                            @else
-                                                <span class="text-muted">-</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <span class="badge {{ $p->status ? 'bg-success' : 'bg-danger' }}">
-                                                {{ $p->status ? 'Aktif' : 'Tidak Aktif' }}
+                                            <span class="badge {{ $p->status_aktif ? 'bg-success' : 'bg-danger' }}">
+                                                {{ $p->status_aktif ? 'Aktif' : 'Tidak Aktif' }}
                                             </span>
                                         </td>
                                         <td>
-                                            <div class="btn-group gap-1" role="group">
-                                                <button type="button" class="btn btn-warning btn-xs rounded"
-                                                    onclick="editPemasok({{ $p->id }})">
+                                            <button type="button" class="btn btn-warning btn-xs rounded btn-edit-produk" data-id="{{ $p->id }}">
                                                     <i class="link-icon icon-sm" data-feather="edit"></i>
                                                 </button>
-                                                <button type="button" class="btn btn-danger btn-xs rounded btn-delete-pemasok"
-                                                    data-id="{{ $p->id }}" data-nama="{{ $p->nama }}">
+                                            <button type="button" class="btn btn-danger btn-xs rounded btn-delete-produk" data-id="{{ $p->id }}" data-nama="{{ $p->nama_produk }}">
                                                     <i class="link-icon icon-sm" data-feather="trash"></i>
                                                 </button>
-                                                <form id="formDeletePemasok{{ $p->id }}"
-                                                    action="{{ route('backend.pemasok.destroy', $p->id) }}" method="POST"
-                                                    style="display: none;">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                </form>
-                                            </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td colspan="7" class="text-center">
+                                        <td colspan="10" class="text-center">
                                             @if(request()->has('search') || request()->has('status'))
-                                                Tidak ada data pemasok yang ditemukan dengan filter yang dipilih.
+                                                Tidak ada data produk yang ditemukan dengan filter yang dipilih.
                                                 <br>
-                                                <a href="{{ route('backend.pemasok.index') }}" class="btn btn-sm btn-primary mt-2">
+                                                <a href="{{ route('backend.master-produk.index') }}" class="btn btn-sm btn-primary mt-2">
                                                     <i data-feather="refresh-cw"></i> Reset Filter
                                                 </a>
                                             @else
-                                                Belum ada data pemasok yang tersedia.
+                                                Belum ada data produk yang tersedia.
                                             @endif
                                         </td>
                                     </tr>
-                                @endforelse --}}
+                                @endforelse
                             </tbody>
                         </table>
                         <div class="d-flex justify-content-between align-items-center mt-3">
-                            {{-- <div>
-                                Menampilkan {{ $pemasok->firstItem() ?? 0 }} - {{ $pemasok->lastItem() ?? 0 }} dari {{ $pemasok->total() }} data pemasok
-                            </div>
+                            <p class="text-muted">
+                                Menampilkan {{ $produk->firstItem() ?? 0 }} - {{ $produk->lastItem() ?? 0 }} dari {{ $produk->total() }} data produk
+                            </p>
                             <div>
-                                {{ $pemasok->appends(request()->query())->links('pagination::bootstrap-4') }}
-                            </div> --}}
+                                {{ $produk->appends(request()->query())->links('pagination::bootstrap-4') }}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -153,7 +137,6 @@
 
 @include('backend.master-produk.modal_form')    
 @include('backend.master-produk.modal_edit')
-{{-- @include('backend.general-form.cari-bahanbaku') --}}
 @endsection
 
 @push('plugin-scripts')
@@ -168,5 +151,63 @@
   <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <script src="{{ asset('js/master-produk/produk-helper.js') }}"></script>
-   {{-- <script src="{{ asset('js/master-produk/add-modal.js') }}"></script> --}}
+  <script src="{{ asset('js/master-produk/edit-modal.js') }}"></script>
+  <script src="{{ asset('js/master-produk/add-modal.js') }}"></script>
+  <script>
+    $(document).on('click', '.btn-delete-produk', function(e) {
+      e.preventDefault();
+      let id = $(this).data('id');
+      let nama = $(this).data('nama');
+      let deleteUrl = `/backend/master-produk/${id}`;
+      Swal.fire({
+        title: 'Hapus Data Produk?',
+        text: `Anda akan menghapus data produk "${nama}". Data yang sudah dihapus tidak dapat dikembalikan.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Ya, Hapus!',
+        cancelButtonText: 'Batal'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: deleteUrl,
+            type: 'POST',
+            data: {
+              _method: 'DELETE',
+              _token: '{{ csrf_token() }}'
+            },
+            success: function(response) {
+              if (response.success) {
+                Swal.fire({
+                  icon: 'success',
+                  title: 'Berhasil!',
+                  text: response.message,
+                  showConfirmButton: false,
+                  timer: 1500
+                }).then(() => {
+                  $(`tr:has(button[data-id="${id}"])`).fadeOut(300, function() {
+                    $(this).remove();
+                  });
+                });
+              } else {
+                Swal.fire(
+                  'Gagal!',
+                  response.message || 'Terjadi kesalahan saat menghapus data',
+                  'error'
+                );
+              }
+            },
+            error: function(xhr) {
+              Swal.fire(
+                'Error!',
+                xhr.responseJSON?.message || 'Terjadi kesalahan saat menghapus data',
+                'error'
+              );
+            }
+          });
+        }
+      });
+    });
+  </script>
 @endpush
