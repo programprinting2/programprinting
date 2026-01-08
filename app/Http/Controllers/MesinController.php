@@ -2,21 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\MasterMesin;
-use App\Services\CloudinaryService;
+use App\Services\SupabaseStorageService; 
 use App\Models\MasterParameter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Cloudinary\Cloudinary;
+use Illuminate\Support\Facades\Log; 
 
 class MesinController extends Controller
 {
-    protected $cloudinaryService;
+    protected $supabaseStorageService; // ✅ Ganti nama service
     
-    public function __construct(CloudinaryService $cloudinaryService)
+    public function __construct(SupabaseStorageService $supabaseStorageService)
     {
-        $this->cloudinaryService = $cloudinaryService;
+        $this->supabaseStorageService = $supabaseStorageService;
     }
     
     /**
@@ -32,7 +31,6 @@ class MesinController extends Controller
         if ($request->has('search')) {
             $search = trim($request->search);
             if (!empty($search)) {
-                // Bersihkan karakter khusus dan konversi ke lowercase
                 $search = strtolower($search);
                 $search = preg_replace('/[^a-z0-9\s]/', '', $search);
                 
@@ -64,7 +62,6 @@ class MesinController extends Controller
         // Ambil data dengan pagination
         $mesin = $query->latest()->paginate(10);
 
-        // Jika request AJAX, kembalikan view partial
         if ($request->ajax()) {
             return response()->json([
                 'html' => view('backend.master-mesin.partials.card-view', compact('mesin'))->render(),
@@ -177,12 +174,14 @@ class MesinController extends Controller
             
             $mesin->catatan_tambahan = $request->catatan_tambahan;
             
-            // Upload gambar jika ada
             if ($request->hasFile('gambar')) {
-                // Upload ke Cloudinary dan simpan public_id
-                $publicId = $this->cloudinaryService->upload($request->file('gambar'), 'mesin');
-                if ($publicId) {
-                    $mesin->cloudinary_public_id = $publicId;
+                Log::info('Uploading gambar mesin to Supabase Storage');
+                $uploadedPath = $this->supabaseStorageService->upload($request->file('gambar'), 'mesin/foto');
+                if ($uploadedPath) {
+                    $mesin->supabase_path = $uploadedPath;
+                    Log::info('Gambar mesin berhasil diupload', ['path' => $uploadedPath]);
+                } else {
+                    Log::error('Gagal upload gambar mesin ke Supabase Storage');
                 }
             }
             
@@ -210,7 +209,10 @@ class MesinController extends Controller
                 ->route('backend.master-mesin.index')
                 ->with('success', 'Mesin berhasil ditambahkan');
         } catch (\Exception $e) {
-
+            Log::error('Error creating mesin', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             
             if ($request->ajax()) {
                 return response()->json([
@@ -234,6 +236,11 @@ class MesinController extends Controller
     public function show($id)
     {
         $mesin = MasterMesin::findOrFail($id);
+        
+        if ($mesin->supabase_path) {
+            $mesin->gambar_url = $this->supabaseStorageService->getUrl($mesin->supabase_path);
+        }
+        
         return view('backend.master-mesin-detail', compact('mesin'));
     }
 
@@ -246,6 +253,11 @@ class MesinController extends Controller
     public function edit($id)
     {
         $mesin = MasterMesin::findOrFail($id);
+        
+        if ($mesin->gambar_path) {
+            $mesin->gambar_url = $this->supabaseStorageService->getUrl($mesin->supabase_path);
+        }
+        
         $master_tipe_mesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
         $tipe_mesin = $master_tipe_mesin ? $master_tipe_mesin->details()->where('aktif', 1)->get() : collect();
         $param_mode_warna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
@@ -282,7 +294,6 @@ class MesinController extends Controller
                 'tanggal_pembelian' => 'nullable|date',
                 'harga_pembelian' => ['nullable', function($attribute, $value, $fail) {
                     if ($value !== null) {
-                        // Hapus semua titik dan koma dari nilai
                         $cleanValue = str_replace(['.', ','], '', $value);
                         if (!is_numeric($cleanValue)) {
                             $fail('Format harga pembelian tidak valid.');
@@ -347,7 +358,7 @@ class MesinController extends Controller
             $mesin->nomor_seri = $request->nomor_seri;
             $mesin->status = $request->status;
             $mesin->tanggal_pembelian = $request->tanggal_pembelian;
-            // Bersihkan format harga pembelian sebelum disimpan
+            
             if ($request->harga_pembelian !== null) {
                 $mesin->harga_pembelian = str_replace(['.', ','], '', $request->harga_pembelian);
             } else {
@@ -361,23 +372,29 @@ class MesinController extends Controller
             $mesin->detail_mesin = $detailMesin;
             $mesin->biaya_perhitungan_profil = $biayaPerhitunganProfil;
             
-            // Handle gambar jika ada
             if ($request->hasFile('gambar')) {
+                Log::info('Updating gambar mesin to Supabase Storage');
+                
                 // Hapus gambar lama jika ada
-                if ($mesin->cloudinary_public_id) {
-                    $this->cloudinaryService->delete($mesin->cloudinary_public_id);
+                if ($mesin->supabase_path) {
+                    Log::info('Deleting old gambar mesin', ['path' => $mesin->supabase_path]);
+                    $this->supabaseStorageService->delete($mesin->supabase_path);
                 }
                 
                 // Upload gambar baru
-                $publicId = $this->cloudinaryService->upload($request->file('gambar'), 'mesin');
-                if ($publicId) {
-                    $mesin->cloudinary_public_id = $publicId;
+                $uploadedPath = $this->supabaseStorageService->upload($request->file('gambar'), 'mesin/foto');
+                if ($uploadedPath) {
+                    $mesin->supabase_path = $uploadedPath;
+                    Log::info('Gambar mesin berhasil diupload', ['path' => $uploadedPath]);
+                } else {
+                    Log::error('Gagal upload gambar mesin ke Supabase Storage');
                 }
             } elseif ($request->has('hapus_gambar') && $request->hapus_gambar == '1') {
-                // Hapus gambar jika checkbox dicentang
-                if ($mesin->cloudinary_public_id) {
-                    $this->cloudinaryService->delete($mesin->cloudinary_public_id);
-                    $mesin->cloudinary_public_id = null;
+                Log::info('Deleting gambar mesin from Supabase Storage');
+                if ($mesin->supabase_path) {
+                    $this->supabaseStorageService->delete($mesin->supabase_path);
+                    $mesin->supabase_path = null;
+                    Log::info('Gambar mesin berhasil dihapus');
                 }
             }
             
@@ -389,6 +406,12 @@ class MesinController extends Controller
                 'message' => 'Data mesin berhasil diperbarui'
             ]);
         } catch (\Exception $e) {
+            Log::error('Error updating mesin', [
+                'mesin_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return response()->json([
                 'success' => false,
                 'message' => 'Terjadi kesalahan saat memperbarui data mesin: ' . $e->getMessage()
@@ -407,9 +430,9 @@ class MesinController extends Controller
         try {
             $mesin = MasterMesin::findOrFail($id);
             
-            // Hapus gambar dari Cloudinary jika ada
-            if ($mesin->cloudinary_public_id) {
-                $this->cloudinaryService->delete($mesin->cloudinary_public_id);
+            if ($mesin->supabase_path) {
+                Log::info('Deleting gambar mesin before destroying record', ['path' => $mesin->supabase_path]);
+                $this->supabaseStorageService->delete($mesin->supabase_path);
             }
             
             $mesin->delete();
@@ -417,6 +440,12 @@ class MesinController extends Controller
             return redirect()->route('backend.master-mesin.index')
                 ->with('success', 'Mesin berhasil dihapus.');
         } catch (\Exception $e) {
+            Log::error('Error deleting mesin', [
+                'mesin_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
             return redirect()->back()
                 ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
         }

@@ -285,15 +285,16 @@
                                                     <table class="table table-bordered align-middle mb-0" id="tabelParameterModal">
                                                         <thead class="table-light">
                                                             <tr>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">NAMA</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">DESKRIPSI</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">STATUS</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">AKSI</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Parameter</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Harga</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jumlah</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Total</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="4" class="text-center text-muted">Pilih kategori parameter</td>
+                                                                <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -582,6 +583,18 @@
                                 total += harga * jumlah;
                             });
                             $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
+                            $('#totalBahanBakuText').text('Rp ' + total.toLocaleString('id-ID'));
+                            hitungTotalModalKeseluruhan();
+                        }
+
+                        // Hitung total modal keseluruhan
+                        function hitungTotalModalKeseluruhan() {
+                            const totalBahan = parseInt($('#totalModalBahan').text().replace(/[^\d]/g, '')) || 0;
+                            const totalParameter = parseInt($('#totalParameterText').text().replace(/[^\d]/g, '')) || 0;
+                            const total = totalBahan + totalParameter;
+
+                            $('#totalModalKeseluruhan').text('Rp ' + total.toLocaleString('id-ID'));
+                            $('#totalItemModal').text(($('#tabelBahanBaku tbody tr[data-id]').length + $('#tabelParameterModal tbody tr[data-id]').length) + ' item');
                         }
                         </script>
                         @endpush
@@ -603,4 +616,11 @@
   'tableId' => 'tabelCariBahanBakuProduk',
   'paginationId' => 'paginationBahanBakuProduk',
   'clearBtnId' => 'clearSearchBahanBakuProduk',
+])
+@include('backend.general-form.cari-mesin', [
+  'modalId' => 'modalCariMesinProdukTambah',
+  'inputId' => 'searchMesinProdukTambah',
+  'tableId' => 'tabelCariMesinProdukTambah',
+  'paginationId' => 'paginationCariMesinProdukTambah',
+  'clearBtnId' => 'clearSearchMesinProdukTambah',
 ])

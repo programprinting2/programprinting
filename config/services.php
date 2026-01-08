@@ -39,4 +39,12 @@ return [
         'folder' => env('CLOUDINARY_FOLDER', 'mesin'),
     ],
 
+    'supabase' => [
+        'url' => env('SUPABASE_URL'),
+        'key' => env('SUPABASE_KEY'),
+        // 'secret' => env('SUPABASE_SECRET'),
+        'bucket' => env('SUPABASE_BUCKET'),
+        'region' => env('SUPABASE_REGION', 'ap-southeast-1'),
+    ],
+
 ];

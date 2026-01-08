@@ -2,45 +2,45 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Karyawan;
+use App\Exceptions\KaryawanNotFoundException;
+use App\Exceptions\InvalidKaryawanDataException;
+use App\Http\Requests\StoreKaryawanRequest;
+use App\Http\Requests\UpdateKaryawanRequest;
+use App\Services\KaryawanService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Haruncpi\LaravelIdGenerator\IdGenerator;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class KaryawanController extends Controller
 {
-    public function index(Request $request)
+    public function __construct(
+        private KaryawanService $karyawanService
+    ) {}
+
+    public function index(Request $request): View
     {
-        $query = Karyawan::query();
+        try {
+            $filters = [
+                'search' => $request->input('search'),
+                'status' => $request->input('status'),
+            ];
 
-        // Pencarian berdasarkan nama, posisi, atau departemen
-        if ($request->filled('search')) {
-            $search = strtolower($request->search);
-            $query->where(function($q) use ($search) {
-                $q->whereRaw('LOWER(nama_lengkap) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(posisi) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(departemen) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(id_karyawan) LIKE ?', ['%' . $search . '%']);
-            });
+            $karyawan = $this->karyawanService->getPaginatedKaryawan(10, $filters);
+
+            if ($request->has('search')) {
+                $karyawan->appends(['search' => $request->search]);
+            }
+            if ($request->has('status')) {
+                $karyawan->appends(['status' => $request->status]);
+            }
+
+            return view('backend.karyawan.index', compact('karyawan'));
+        } catch (\Exception $e) {
+            Log::error('Error loading Karyawan index', ['error' => $e->getMessage()]);
+            return view('backend.karyawan.index', [
+                'karyawan' => collect()->paginate()
+            ])->with('error', 'Gagal memuat data karyawan');
         }
-
-        // Filter berdasarkan status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Pagination dengan 10 item per halaman
-        $karyawan = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        // Tambahkan parameter pencarian ke pagination
-        if ($request->has('search')) {
-            $karyawan->appends(['search' => $request->search]);
-        }
-        if ($request->has('status')) {
-            $karyawan->appends(['status' => $request->status]);
-        }
-
-        return view('backend.karyawan.index', compact('karyawan'));
     }
 
     public function create()
@@ -53,139 +53,126 @@ class KaryawanController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(StoreKaryawanRequest $request)
     {
-        $validator = Validator::make($request->all(), [
-            'nama_lengkap' => 'required|string|max:255',
-            'posisi' => 'required|string|max:255',
-            'departemen' => 'required|string|max:255',
-            'tanggal_masuk' => 'required|date',
-            'tanggal_lahir' => 'nullable|date',
-            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
-            'status_pernikahan' => 'nullable|in:Belum Menikah,Menikah,Cerai',
-            'nomor_telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'gaji_pokok' => 'nullable|integer|min:0',
-            'status' => 'required|in:Aktif,Tidak Aktif',
-            'alamat' => 'nullable|array',
-            'rekening' => 'nullable|array',
-            'alamat_utama' => 'nullable|integer',
-            'rekening_utama' => 'nullable|integer',
-            'npwp' => 'nullable|string|max:255',
-            'status_pajak' => 'nullable|string|max:255',
-            'tarif_pajak' => 'nullable|integer|min:0|max:100',
-            'estimasi_hari_kerja' => 'nullable|integer|min:0|max:31',
-            'jam_kerja_per_hari' => 'nullable|integer|min:0|max:24',
-            'komponen_gaji' => 'nullable|array'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $id_karyawan = IdGenerator::generate([
-            'table' => 'karyawan',
-            'field' => 'id_karyawan',
-            'length' => 9,
-            'prefix' => 'EMP-'
-        ]);
-
-        $data = $request->all();
-        $data['id_karyawan'] = $id_karyawan;
-        
-        // Memastikan data JSON valid
-        $data['alamat'] = $request->input('alamat') ? json_decode(json_encode($request->input('alamat')), true) : [];
-        $data['rekening'] = $request->input('rekening') ? json_decode(json_encode($request->input('rekening')), true) : [];
-        $data['komponen_gaji'] = $request->input('komponen_gaji') ? json_decode(json_encode($request->input('komponen_gaji')), true) : [];
-        
-        $data['alamat_utama'] = $request->input('alamat_utama');
-        $data['rekening_utama'] = $request->input('rekening_utama');
-
         try {
-            Karyawan::create($data);
-            return response()->json(['success' => true, 'message' => 'Data karyawan berhasil ditambahkan']);
+            $data = $request->validated();
+            $karyawan = $this->karyawanService->createKaryawan($data);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data karyawan berhasil ditambahkan'
+            ]);
+        } catch (InvalidKaryawanDataException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Gagal menambahkan data karyawan: ' . $e->getMessage()], 500);
+            Log::error('Unexpected error creating Karyawan', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
+            ], 500);
         }
     }
 
-    public function edit($id)
+    public function edit(int $id): View
     {
-        $karyawan = Karyawan::findOrFail($id);
-        return view('backend.karyawan.form', [
-            'karyawan' => $karyawan,
-            'title' => 'Edit Karyawan',
-            'method' => 'PUT',
-            'action' => route('backend.karyawan.update', $karyawan->id)
-        ]);
-    }
-
-    public function update(Request $request, $id)
-    {
-        $karyawan = Karyawan::findOrFail($id);
-        
-        $validator = Validator::make($request->all(), [
-            'nama_lengkap' => 'required|string|max:255',
-            'posisi' => 'required|string|max:255',
-            'departemen' => 'required|string|max:255',
-            'tanggal_masuk' => 'required|date',
-            'tanggal_lahir' => 'nullable|date',
-            'jenis_kelamin' => 'nullable|in:Laki-laki,Perempuan',
-            'status_pernikahan' => 'nullable|in:Belum Menikah,Menikah,Cerai',
-            'nomor_telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:255',
-            'gaji_pokok' => 'nullable|integer|min:0',
-            'status' => 'required|in:Aktif,Tidak Aktif',
-            'alamat' => 'nullable|array',
-            'rekening' => 'nullable|array',
-            'alamat_utama' => 'nullable|integer',
-            'rekening_utama' => 'nullable|integer',
-            'npwp' => 'nullable|string|max:255',
-            'status_pajak' => 'nullable|string|max:255',
-            'tarif_pajak' => 'nullable|integer|min:0|max:100',
-            'estimasi_hari_kerja' => 'nullable|integer|min:0|max:31',
-            'jam_kerja_per_hari' => 'nullable|integer|min:0|max:24',
-            'komponen_gaji' => 'nullable|array'
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['errors' => $validator->errors()], 422);
-        }
-
-        $data = $request->all();
-        
-        // Memastikan data JSON valid
-        $data['alamat'] = $request->input('alamat') ? json_decode(json_encode($request->input('alamat')), true) : [];
-        $data['rekening'] = $request->input('rekening') ? json_decode(json_encode($request->input('rekening')), true) : [];
-        $data['komponen_gaji'] = $request->input('komponen_gaji') ? json_decode(json_encode($request->input('komponen_gaji')), true) : [];
-        
-        $data['alamat_utama'] = $request->input('alamat_utama');
-        $data['rekening_utama'] = $request->input('rekening_utama');
-
         try {
-            $karyawan->update($data);
-            return response()->json(['success' => true, 'message' => 'Data karyawan berhasil diperbarui']);
+            $karyawan = $this->karyawanService->getKaryawan($id);
+            return view('backend.karyawan.form', [
+                'karyawan' => $karyawan,
+                'title' => 'Edit Karyawan',
+                'method' => 'PUT',
+                'action' => route('backend.karyawan.update', $karyawan->id)
+            ]);
+        } catch (KaryawanNotFoundException $e) {
+            return redirect()->route('backend.karyawan.index')
+                ->with('error', $e->getMessage());
         } catch (\Exception $e) {
-            return response()->json(['success' => false, 'message' => 'Gagal memperbarui data karyawan: ' . $e->getMessage()], 500);
+            Log::error('Error loading Karyawan edit form', [
+                'karyawan_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->route('backend.karyawan.index')
+                ->with('error', 'Gagal memuat form edit karyawan');
         }
     }
 
-    public function destroy($id)
+    public function update(UpdateKaryawanRequest $request, int $id)
     {
-        $karyawan = Karyawan::findOrFail($id);
-        $karyawan->delete();
-
-        return redirect()
-            ->route('backend.karyawan.index')
-            ->with('success', 'Data karyawan berhasil dihapus');
+        try {
+            $data = $request->validated();
+            $this->karyawanService->updateKaryawan($id, $data);
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Data karyawan berhasil diperbarui'
+            ]);
+        } catch (KaryawanNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 404);
+        } catch (InvalidKaryawanDataException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Unexpected error updating Karyawan', [
+                'karyawan_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
+            ], 500);
+        }
     }
 
-    /**
-     * Get karyawan data for API
-     */
-    public function show($id)
+    public function destroy(int $id)
     {
-        $karyawan = Karyawan::findOrFail($id);
-        return response()->json($karyawan);
+        try {
+            $this->karyawanService->deleteKaryawan($id);
+            return redirect()
+                ->route('backend.karyawan.index')
+                ->with('success', 'Data karyawan berhasil dihapus');
+        } catch (KaryawanNotFoundException $e) {
+            return redirect()->route('backend.karyawan.index')
+                ->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error deleting Karyawan', [
+                'karyawan_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return redirect()->route('backend.karyawan.index')
+                ->with('error', 'Gagal menghapus karyawan');
+        }
+    }
+
+    public function show(int $id)
+    {
+        try {
+            $karyawan = $this->karyawanService->getKaryawan($id);
+            return response()->json($karyawan);
+        } catch (KaryawanNotFoundException $e) {
+            return response()->json([
+                'error' => $e->getMessage()
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error showing Karyawan', [
+                'karyawan_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json([
+                'error' => 'Terjadi kesalahan saat mengambil data karyawan'
+            ], 500);
+        }
     }
 }

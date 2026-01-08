@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Services\CloudinaryService;
+use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -38,6 +38,7 @@ class MasterMesin extends Model
         'detail_mesin',
         'catatan_tambahan',
         'cloudinary_public_id',
+        'supabase_path',
         'harga_tinta_per_liter',
         'konsumsi_tinta_per_m2',
         'biaya_perhitungan_profil',
@@ -84,45 +85,53 @@ class MasterMesin extends Model
     }
 
     /**
-     * Get the image URL dari Cloudinary public_id
+     * Get the image URL dari Supabase Storage
      * 
      * @return string|null
      */
     public function getImageUrlAttribute()
     {
-        if (!$this->cloudinary_public_id) {
+        // Prioritize supabase_path over cloudinary_public_id for backward compatibility
+        if ($this->supabase_path) {
+            return App::make(SupabaseStorageService::class)->getUrl($this->supabase_path);
+        }
+        
+        // Fallback to cloudinary if exists (for migration period)
+        if ($this->cloudinary_public_id) {
+            // You can keep CloudinaryService for backward compatibility or remove it
+            // For now, return null to encourage migration to Supabase
             return null;
         }
         
-        return App::make(CloudinaryService::class)->getImageUrl($this->cloudinary_public_id);
+        return null;
     }
     
     /**
-     * Get the thumbnail image URL (100x100)
+     * Get the thumbnail image URL
      * 
      * @return string|null
      */
     public function getThumbnailUrlAttribute()
     {
-        if (!$this->cloudinary_public_id) {
-            return null;
+        if ($this->supabase_path) {
+            return App::make(SupabaseStorageService::class)->getUrl($this->supabase_path, 'thumbnail');
         }
         
-        return App::make(CloudinaryService::class)->getImageUrl($this->cloudinary_public_id, 'thumbnail');
+        return null;
     }
     
     /**
-     * Get the medium-sized image URL (500px width)
+     * Get the medium-sized image URL
      * 
      * @return string|null
      */
     public function getMediumUrlAttribute()
     {
-        if (!$this->cloudinary_public_id) {
-            return null;
+        if ($this->supabase_path) {
+            return App::make(SupabaseStorageService::class)->getUrl($this->supabase_path, 'medium');
         }
         
-        return App::make(CloudinaryService::class)->getImageUrl($this->cloudinary_public_id, 'medium');
+        return null;
     }
 
     /**

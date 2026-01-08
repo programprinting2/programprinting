@@ -210,7 +210,7 @@
                                         </div>
                                         <small class="text-muted d-block mt-2">
                                             <i data-feather="cloud" class="icon-sm me-1"></i>
-                                            Gambar akan diupload dan dioptimasi menggunakan Cloudinary
+                                            Gambar akan diupload menggunakan Supabase Storage
                                         </small>
                                     </div>
                                 </div>

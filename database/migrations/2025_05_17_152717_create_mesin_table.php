@@ -35,7 +35,8 @@ return new class extends Migration
             // Catatan
             $table->text('catatan_tambahan')->nullable();
             
-            $table->string('cloudinary_public_id')->nullable();
+            // $table->string('cloudinary_public_id')->nullable();
+            $table->string('supabase_path')->nullable();
 
             // Biaya Tinta
             $table->decimal('harga_tinta_per_liter', 15, 2)->nullable()->after('catatan_tambahan');

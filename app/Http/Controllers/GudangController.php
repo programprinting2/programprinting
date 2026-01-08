@@ -2,53 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Gudang;
-use Illuminate\Http\Request;
-use Haruncpi\LaravelIdGenerator\IdGenerator;
+use App\Exceptions\GudangNotFoundException;
+use App\Exceptions\InvalidGudangDataException;
+use App\Http\Requests\StoreGudangRequest;
+use App\Http\Requests\UpdateGudangRequest;
 use App\Models\Rak;
+use App\Services\GudangService;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class GudangController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index(Request $request)
+    public function __construct(
+        private GudangService $gudangService
+    ) {}
+
+    public function index(Request $request): View
     {
-        $query = Gudang::query()->withCount('rak');
+        try {
+            $filters = [
+                'search' => $request->input('search'),
+                'status' => $request->input('status'),
+            ];
 
-        // Pencarian berdasarkan kode, nama gudang, manager, atau alamat
-        if ($request->filled('search')) {
-            $search = strtolower($request->search);
-            $query->where(function($q) use ($search) {
-                $q->whereRaw('LOWER(kode_gudang) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(nama_gudang) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(manager) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(alamat) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(kota) LIKE ?', ['%' . $search . '%'])
-                  ->orWhereRaw('LOWER(provinsi) LIKE ?', ['%' . $search . '%']);
-            });
+            $gudang = $this->gudangService->getPaginatedGudang(10, $filters);
+
+            if ($request->has('search')) {
+                $gudang->appends(['search' => $request->search]);
+            }
+            if ($request->has('status')) {
+                $gudang->appends(['status' => $request->status]);
+            }
+
+            $totalRak = Rak::count();
+            return view('backend.master-gudang.index', compact('gudang', 'totalRak'));
+        } catch (\Exception $e) {
+            Log::error('Error loading Gudang index', ['error' => $e->getMessage()]);
+            return view('backend.master-gudang.index', [
+                'gudang' => collect()->paginate(),
+                'totalRak' => 0
+            ])->with('error', 'Gagal memuat data gudang');
         }
-
-        // Filter berdasarkan status
-        if ($request->filled('status')) {
-            $query->where('status', $request->status);
-        }
-
-        // Pagination dengan 10 item per halaman
-        $gudang = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        // Tambahkan parameter pencarian ke pagination
-        if ($request->has('search')) {
-            $gudang->appends(['search' => $request->search]);
-        }
-        if ($request->has('status')) {
-            $gudang->appends(['status' => $request->status]);
-        }
-
-        $totalRak = Rak::count();
-        return view('backend.master-gudang.index', compact('gudang', 'totalRak'));
     }
 
     /**
@@ -67,119 +62,97 @@ class GudangController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreGudangRequest $request)
     {
-        $validated = $request->validate([
-            'nama_gudang' => 'required|string|max:100',
-            'manager' => 'required|string|max:100',
-            'kapasitas' => 'required|integer|min:0',
-            'status' => 'required|in:Aktif,Tidak Aktif',
-            'deskripsi' => 'nullable|string',
-            'alamat' => 'required|string',
-            'kota' => 'required|string|max:50',
-            'provinsi' => 'required|string|max:50',
-            'kode_pos' => 'required|string|max:10',
-            'no_telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-        ]);
-        
         try {
-            $validated['kode_gudang'] = IdGenerator::generate([
-                'table' => 'gudang',
-                'field' => 'kode_gudang',
-                'length' => 7,
-                'prefix' => 'WH-'
-            ]);
-            
-            Gudang::create($validated);
+            $gudang = $this->gudangService->createGudang($request->validated());
             
             return response()->json([
                 'success' => true,
                 'message' => 'Gudang berhasil ditambahkan.'
             ]);
-        } catch (\Exception $e) {
+        } catch (InvalidGudangDataException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal menambahkan gudang: ' . $e->getMessage()
+                'message' => $e->getMessage()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Unexpected error creating Gudang', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
             ], 500);
         }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Gudang  $gudang
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Gudang $gudang)
+    public function show(\App\Models\Gudang $gudang): View
     {
         return view('gudang.show', compact('gudang'));
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Gudang  $gudang
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Gudang $gudang)
+    public function edit(\App\Models\Gudang $gudang)
     {
-        return response()->json([
-            'success' => true,
-            'data' => $gudang
-        ]);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Gudang  $gudang
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        $gudang = Gudang::findOrFail($id);
-        
-        $validated = $request->validate([
-            'nama_gudang' => 'required|string|max:100',
-            'manager' => 'required|string|max:100',
-            'kapasitas' => 'required|integer|min:0',
-            'status' => 'required|in:Aktif,Tidak Aktif',
-            'deskripsi' => 'nullable|string',
-            'alamat' => 'required|string',
-            'kota' => 'required|string|max:50',
-            'provinsi' => 'required|string|max:50',
-            'kode_pos' => 'required|string|max:10',
-            'no_telepon' => 'nullable|string|max:20',
-            'email' => 'nullable|email|max:100',
-        ]);
-        
         try {
-            $gudang->update($validated);
+            $gudang = $this->gudangService->getGudang($gudang->id);
             return response()->json([
                 'success' => true,
-                'message' => 'Gudang berhasil diperbarui.'
+                'data' => $gudang
             ]);
-        } catch (\Exception $e) {
+        } catch (GudangNotFoundException $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui gudang: ' . $e->getMessage()
+                'message' => $e->getMessage()
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error loading Gudang edit', [
+                'gudang_id' => $gudang->id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal memuat data gudang'
             ], 500);
         }
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
+    public function update(UpdateGudangRequest $request, int $id)
     {
         try {
-            $gudang = Gudang::findOrFail($id);
-            $gudang->delete();
+            $this->gudangService->updateGudang($id, $request->validated());
+            return response()->json([
+                'success' => true,
+                'message' => 'Gudang berhasil diperbarui.'
+            ]);
+        } catch (GudangNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 404);
+        } catch (InvalidGudangDataException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+        } catch (\Exception $e) {
+            Log::error('Unexpected error updating Gudang', [
+                'gudang_id' => $id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
+            ], 500);
+        }
+    }
+
+    public function destroy(int $id)
+    {
+        try {
+            $this->gudangService->deleteGudang($id);
             
             if (request()->ajax()) {
                 return response()->json([
@@ -188,16 +161,32 @@ class GudangController extends Controller
                 ]);
             }
             
-            return redirect()->route('backend.master-gudang.index')->with('success', 'Gudang berhasil dihapus.');
-        } catch (\Exception $e) {
+            return redirect()->route('backend.master-gudang.index')
+                ->with('success', 'Gudang berhasil dihapus.');
+        } catch (GudangNotFoundException $e) {
             if (request()->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Gagal menghapus data gudang: ' . $e->getMessage()
+                    'message' => $e->getMessage()
+                ], 404);
+            }
+            return redirect()->route('backend.master-gudang.index')
+                ->with('error', $e->getMessage());
+        } catch (\Exception $e) {
+            Log::error('Error deleting Gudang', [
+                'gudang_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            
+            if (request()->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menghapus data gudang'
                 ], 500);
             }
             
-            return redirect()->route('backend.master-gudang.index')->with('error', 'Gagal menghapus gudang.');
+            return redirect()->route('backend.master-gudang.index')
+                ->with('error', 'Gagal menghapus gudang.');
         }
     }
 }

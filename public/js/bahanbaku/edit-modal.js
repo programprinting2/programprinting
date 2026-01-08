@@ -47,6 +47,14 @@ let selectedEditPhotos = [];
 let selectedEditVideos = [];
 let selectedEditDocuments = [];
 
+// Helper function untuk generate Supabase URL
+function generateSupabaseUrl(path) {
+  if (!path || path.startsWith('http')) {
+    return path;
+  }
+  return `https://qwvqaxqhvcchrfegdjwo.supabase.co/storage/v1/object/public/qdesign-public/${path}`;
+}
+
 // Tambahkan array global untuk dokumen lama
 let dokumenLamaEdit = [];
 let fotoLamaEdit = [];
@@ -62,16 +70,18 @@ function renderEditPhotosPreview() {
   
   // Foto lama
   if (fotoLamaEdit.length > 0) {
-    fotoLamaEdit.forEach((url, index) => {
+    fotoLamaEdit.forEach((path, index) => {
+      const fullUrl = generateSupabaseUrl(path);
+
       const previewItem = `
         <div class="col-md-4 col-lg-3 col-xl-2 position-relative mb-2">
           <div class="card border-0 preview-card">
-            <img src="${url}" class="card-img-top img-fluid rounded" style="height: 100px; object-fit: cover;" alt="foto lama">
+            <img src="${fullUrl}" class="card-img-top img-fluid rounded" style="height: 100px; object-fit: cover;" alt="foto lama" onerror="this.src='/images/placeholder-image.png'">
             <button type="button" class="btn btn-danger btn-sm position-absolute top-0 end-0 m-1 delete-foto-lama" data-index="${index}" style="--bs-btn-padding-y: .15rem; --bs-btn-padding-x: .4rem; --bs-btn-font-size: .75rem;">
               <i data-feather="x" class="icon-sm"></i>
             </button>
             <div class="card-body p-1 text-truncate" style="font-size: 0.75rem;">
-              ${url.split('/').pop()}
+              ${path.split('/').pop()}
             </div>
           </div>
         </div>
@@ -370,13 +380,15 @@ function loadBahanBakuData(id) {
     // Tampilkan dokumen lama (dari database)
     if (dokumenLamaEdit && dokumenLamaEdit.length > 0) {
       dokumenLamaEdit.forEach((doc, index) => {
+        const downloadUrl = generateSupabaseUrl(doc.path);
+
         const docRow = `
           <tr>
               <td>${doc.nama ? doc.nama : ''}</td>
               <td>${doc.tipe ? doc.tipe : ''}</td>
               <td>${doc.ukuran ? (parseInt(doc.ukuran)/1024).toFixed(1) + ' KB' : ''}</td>
               <td>
-                <a href="${doc.path ? doc.path : '#'}" class="btn btn-sm btn-info me-1" target="_blank" ${doc.path ? '' : 'disabled'} title="Lihat/Download"><i data-feather="download" class="icon-sm"></i></a>
+                <a href="${downloadUrl}" class="btn btn-sm btn-info me-1" target="_blank" ${downloadUrl && downloadUrl !== '#' ? '' : 'disabled'} title="Lihat/Download"><i data-feather="download" class="icon-sm"></i></a>
                 <button type="button" class="btn btn-danger btn-sm delete-dokumen-row" data-index="${index}" data-lama="1"><i data-feather="trash" class="icon-sm"></i></button>
               </td>
           </tr>

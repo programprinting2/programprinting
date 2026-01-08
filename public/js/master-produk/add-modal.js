@@ -22,6 +22,43 @@ $(function() {
     updateSubKategoriOptions($('#kategori_utama').val(), '#sub_kategori_id_produk');
   });
 
+  // === PARAMETER MESIN (TAMBAH) ===
+  // Handler tombol tambah parameter (khusus parameter modal)
+  $(document).off('click', '#btnTambahParameter').on('click', '#btnTambahParameter', function(e) {
+    e.preventDefault();
+    if ($('#modalCariMesinProdukTambah').length) {
+      var modalMesin = new bootstrap.Modal(document.getElementById('modalCariMesinProdukTambah'), {
+        backdrop: 'static',
+        keyboard: false,
+        focus: true
+      });
+      modalMesin.show();
+      setTimeout(function() {
+        if ($('#tambahProduk').hasClass('show')) {
+          $('body').addClass('modal-open');
+        }
+      }, 200);
+    }
+  });
+
+  // Handler tombol tambah bahan baku (modal create)
+  $(document).off('click', '#btnTambahBahan').on('click', '#btnTambahBahan', function(e) {
+    e.preventDefault();
+    if ($('#modalCariBahanBakuProduk').length) {
+      var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBakuProduk'), {
+        backdrop: 'static',
+        keyboard: false,
+        focus: true
+      });
+      modalBahan.show();
+      setTimeout(function() {
+        if ($('#tambahProduk').hasClass('show')) {
+          $('body').addClass('modal-open');
+        }
+      }, 200);
+    }
+  });
+
   // === HARGA BERTINGKAT & RESELLER ===
   let hargaBertingkatList = [];
   let hargaResellerList = [];
@@ -181,6 +218,20 @@ $(function() {
     $('#alur_produksi_json').val(JSON.stringify(alurArr));
     $('#harga_bertingkat_json').val(JSON.stringify(hargaBertingkatList));
     $('#harga_reseller_json').val(JSON.stringify(hargaResellerList));
+
+    // Serialisasi parameter mesin (hanya yang dipilih, ringkas)
+    const paramArr = parameterMesinList.map(row => {
+      const param = row.opsi[row.selected];
+      return {
+        mesin_id: row.mesin_id,
+        nama_parameter: param.nama,
+        harga: param.total,
+        jumlah: row.jumlah,
+        total: param.total * row.jumlah
+      };
+    });
+    $('#parameter_modal_json').val(JSON.stringify(paramArr));
+
     var form = $(this)[0];
     var formData = new FormData(form);
     selectedPhotos.forEach(file => {

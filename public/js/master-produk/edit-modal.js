@@ -240,6 +240,93 @@ $(function() {
     feather.replace();
   }
 
+  // === PARAMETER MESIN (EDIT) ===
+  // Handler tombol tambah parameter
+  $(document).off('click', '#editBtnTambahParameter').on('click', '#editBtnTambahParameter', function(e) {
+    e.preventDefault();
+    window.editParameterMesinContext = 'parameter';
+    if ($('#modalCariMesinProdukEdit').length) {
+      var modalMesin = new bootstrap.Modal(document.getElementById('modalCariMesinProdukEdit'), {
+        backdrop: 'static',
+        keyboard: false,
+        focus: true
+      });
+      modalMesin.show();
+      setTimeout(function() {
+        if ($('#editProdukModal').hasClass('show')) {
+          $('body').addClass('modal-open');
+        }
+      }, 200);
+    }
+  });
+  // Fungsi update total modal keseluruhan (EDIT)
+  function updateTotalModalKeseluruhanEdit() {
+    // Total Bahan Baku
+    let totalBahan = editBahanBakuList.reduce((sum, row) => sum + ((row.harga || 0) * (row.jumlah || 1)), 0);
+    // Total Parameter Mesin
+    let totalParam = 0;
+    if (typeof editParameterMesinList !== 'undefined') {
+      editParameterMesinList.forEach(row => {
+        const param = row.opsi[row.selected];
+        totalParam += (param.total || 0) * (row.jumlah || 1);
+      });
+    }
+    // Update DOM
+    $('#editTotalBahanBakuText').text('Rp ' + totalBahan.toLocaleString('id-ID'));
+    $('#editTotalParameterText').text('Rp ' + totalParam.toLocaleString('id-ID'));
+    $('#editTotalModalKeseluruhan').text('Rp ' + (totalBahan + totalParam).toLocaleString('id-ID'));
+    // Update total modal bahan
+    $('#editTotalModalBahan').text('Rp ' + totalBahan.toLocaleString('id-ID'));
+    // Update jumlah item
+    updateTotalItemModalEdit();
+    // Update profit di tabel harga bertingkat & reseller secara realtime
+    renderEditHargaBertingkat();
+    renderEditHargaReseller();
+  }
+
+  // Fungsi untuk update jumlah item (bahan baku + parameter) - EDIT
+  function updateTotalItemModalEdit() {
+    const totalBahanBaku = editBahanBakuList.length;
+    const totalParameter = typeof editParameterMesinList !== 'undefined' ? editParameterMesinList.length : 0;
+    const totalItem = totalBahanBaku + totalParameter;
+    $('#editTotalItemModal').text(totalItem + ' item');
+  }
+
+  // Panggil updateTotalModalKeseluruhanEdit di semua event relevan (EDIT)
+  // Parameter mesin
+  $(document).on('input', '.edit-jumlah-param', function() { 
+    updateTotalModalKeseluruhanEdit(); 
+    updateTotalItemModalEdit();
+  });
+  $(document).on('change', '.edit-param-dropdown', function() { 
+    updateTotalModalKeseluruhanEdit(); 
+    updateTotalItemModalEdit();
+  });
+  $(document).on('click', '.btn-hapus-edit-param', function() { 
+    setTimeout(() => {
+      updateTotalModalKeseluruhanEdit();
+      updateTotalItemModalEdit();
+    }, 10); 
+  });
+
+  // Fungsi untuk re-index mesin-item setelah ada yang dihapus (edit)
+  function reindexEditMesinItems() {
+    $('.mesin-item').each(function(i) {
+      $(this).attr('data-index', i);
+      $(this).find('.fw-semibold').text('Mesin ' + (i + 1));
+      $(this).find('.nama-mesin-input').attr('name', `edit_alur_produksi[${i}][nama_mesin]`);
+      $(this).find('input[name^="edit_alur_produksi"][name$="[estimasi_waktu]"]').attr('name', `edit_alur_produksi[${i}][estimasi_waktu]`);
+      $(this).find('textarea[name^="edit_alur_produksi"][name$="[catatan]"]').attr('name', `edit_alur_produksi[${i}][catatan]`);
+    });
+  }
+
+  // Handler hapus mesin-item (edit)
+  $(document).on('click', '.btnHapusEditMesin', function() {
+    $(this).closest('.mesin-item').remove();
+    reindexEditMesinItems();
+    feather.replace();
+  });
+
   // === HARGA BERTINGKAT & RESELLER (EDIT) ===
   let editHargaBertingkatList = [];
   let editHargaResellerList = [];
@@ -514,9 +601,7 @@ $(function() {
     selectedDocuments.forEach(file => {
       formData.append('dokumen_pendukung_new[]', file);
     });
-    formData.append('deleted_photo_indexes', JSON.stringify(deletedPhotoIndexes));
-    formData.append('deleted_video_indexes', JSON.stringify(deletedVideoIndexes));
-    formData.append('deleted_document_indexes', JSON.stringify(deletedDocumentIndexes));
+  
     const id = $('#edit_produk_id').val();
     $.ajax({
       url: '/backend/master-produk/' + id,

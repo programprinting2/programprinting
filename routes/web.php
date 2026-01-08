@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MasterParameterController;
 use App\Http\Controllers\MasterBahanbakuController;
 use App\Http\Controllers\PembelianController;
-use App\Http\Controllers\ProdukController;
+// use App\Http\Controllers\ProdukController;
 use App\Http\Controllers\SPKController;
 use App\Http\Controllers\KasirController;
 use App\Http\Controllers\KaryawanController;
@@ -140,6 +140,10 @@ Route::group(['prefix' => 'backend'], function () {
     // 'CariBahanBaku' => 'backend.master-produk.CariBahanBaku',
     Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
     Route::get('/cari-pemasok', [CariController::class, 'cariPemasok'])->name('backend.cari-pemasok');
+    Route::get('/cari-mesin', [CariController::class, 'cariMesin'])->name('backend.cari-mesin');
+    Route::get('/cari-pelanggan', [CariController::class, 'cariPelanggan'])->name('backend.cari-pelanggan');
+    Route::get('/cari-karyawan', [CariController::class, 'cariKaryawan'])->name('backend.cari-karyawan');
+    Route::get('/cari-parameter', [CariController::class, 'cariParameter'])->name('backend.cari-parameter');
 
     // Master Gudang Resource Routes
     Route::resource('master-gudang', GudangController::class)->names([
@@ -180,14 +184,20 @@ Route::group(['prefix' => 'pembelian'], function () {
 });
 
 Route::group(['prefix' => 'spk'], function () {
-    Route::get('/', [SPKController::class, 'index'])->name('spk.index');
-    Route::get('/create', [SpkController::class, 'create'])->name('spk.create');
-    // Route::post('/', [SpkController::class, 'store'])->name('spk.store');
+    Route::resource('/', SPKController::class)->names([
+        'index' => 'spk.index',
+        'create' => 'spk.create',
+        'store' => 'spk.store',
+        'show' => 'spk.show',
+        'edit' => 'spk.edit',
+        'update' => 'spk.update',
+        'destroy' => 'spk.destroy',
+    ]);
 });
 
-Route::group(['prefix' => 'produk'], function () {
-    Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
-});
+// Route::group(['prefix' => 'produk'], function () {
+//     Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
+// });
 
 Route::group(['prefix' => 'kasir'], function () {
     Route::get('/', [KasirController::class, 'index'])->name('kasir.index');
@@ -400,6 +410,66 @@ Route::group(['prefix' => 'error'], function () {
 Route::get('/clear-cache', function () {
     Artisan::call('cache:clear');
     return "Cache is cleared";
+});
+
+// TEST ROUTE UNTUK SUPABASE UPLOAD
+Route::get('/test-supabase', function () {
+    $service = app(\App\Services\SupabaseStorageService::class);
+
+    // Test konfigurasi
+    $configured = $service->isConfigured();
+
+    $result = [
+        'configured' => $configured,
+        'service' => 'Laravel Http Client',
+        'bucket' => 'print'
+    ];
+
+    if (!$configured) {
+        $result['error'] = 'Configuration incomplete';
+        return response()->json($result, 400);
+    }
+
+    try {
+        // Test upload file dummy
+        $dummyContent = 'Test file content ' . now();
+        $tempFile = tmpfile();
+        fwrite($tempFile, $dummyContent);
+        $tempPath = stream_get_meta_data($tempFile)['uri'];
+
+        $uploadedFile = new \Illuminate\Http\UploadedFile(
+            $tempPath,
+            'test.txt',
+            'text/plain',
+            null,
+            true
+        );
+
+        $uploadResult = $service->upload($uploadedFile, 'test');
+        $result['upload_result'] = $uploadResult;
+
+        // Test URL generation
+        if ($uploadResult) {
+            $url = $service->getUrl($uploadResult);
+            $result['url'] = $url;
+
+            // Test file existence
+            $exists = $service->exists($uploadResult);
+            $result['file_exists'] = $exists;
+
+            // Cleanup
+            $deleted = $service->delete($uploadResult);
+            $result['cleanup_success'] = $deleted;
+        }
+
+        fclose($tempFile);
+
+    } catch (\Exception $e) {
+        $result['error'] = $e->getMessage();
+        return response()->json($result, 500);
+    }
+
+    return response()->json($result);
 });
 
 

@@ -119,6 +119,9 @@
                     <input type="hidden" name="video_pendukung_json" id="edit_video_pendukung_json">
                     <input type="hidden" name="dokumen_pendukung_json" id="edit_dokumen_pendukung_json">
                     <input type="hidden" name="alur_produksi_json" id="edit_alur_produksi_json">
+                    <input type="hidden" name="foto_pendukung_existing_json" id="edit_foto_pendukung_existing_json">
+                    <input type="hidden" name="video_pendukung_existing_json" id="edit_video_pendukung_existing_json">
+                    <input type="hidden" name="dokumen_pendukung_existing_json" id="edit_dokumen_pendukung_existing_json">
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-4">
@@ -194,15 +197,17 @@
                           <table class="table table-bordered align-middle mb-0" id="editTabelParameterModal">
                             <thead class="table-light">
                               <tr>
-                                <th>NAMA</th>
-                                <th>DESKRIPSI</th>
-                                <th>STATUS</th>
-                                <th>AKSI</th>
+                                <th>Nama Mesin</th>
+                                <th>Nama Parameter</th>
+                                <th>Harga</th>
+                                <th>Jumlah</th>
+                                <th>Total</th>
+                                <th>Aksi</th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr>
-                                <td colspan="4" class="text-center text-muted">Pilih kategori parameter</td>
+                                <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
                               </tr>
                             </tbody>
                           </table>
@@ -405,4 +410,12 @@
   'tableId' => 'tabelCariBahanBakuProdukEdit',
   'paginationId' => 'paginationBahanBakuProdukEdit',
   'clearBtnId' => 'clearSearchBahanBakuProdukEdit',
+])
+<!-- Modal Cari Mesin untuk Edit -->
+@include('backend.general-form.cari-mesin', [
+  'modalId' => 'modalCariMesinProdukEdit',
+  'inputId' => 'searchMesinProdukEdit',
+  'tableId' => 'tabelCariMesinProdukEdit',
+  'paginationId' => 'paginationCariMesinProdukEdit',
+  'clearBtnId' => 'clearSearchMesinProdukEdit',
 ]) 

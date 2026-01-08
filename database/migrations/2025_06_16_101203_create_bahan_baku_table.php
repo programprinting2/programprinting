@@ -21,9 +21,11 @@ return new class extends Migration
             $table->json('detail_spesifikasi_json');
             // $table->string('kategori')->nullable();
             // $table->string('sub_kategori')->nullable();
+            $table->unsignedBigInteger('kategori_id')->nullable();
             $table->unsignedBigInteger('sub_kategori_id')->nullable();
             $table->boolean('status_aktif')->default(true);
-            $table->string('satuan_utama')->nullable();
+            // $table->string('satuan_utama')->nullable();
+            $table->unsignedBigInteger('satuan_utama_id')->nullable();
             // $table->string('pilihan_warna')->nullable();
             // $table->string('nama_warna_custom')->nullable();
             // $table->decimal('berat', 10, 2)->nullable();
@@ -43,12 +45,12 @@ return new class extends Migration
             $table->json('video_pendukung_json')->nullable();
             $table->json('dokumen_pendukung_json')->nullable();
             $table->json('link_pendukung_json')->nullable();
-            // $table->unsignedBigInteger('kategori_id')->nullable()->after('kode_bahan');
             
             $table->softDeletes();
             $table->timestamps();
 
             $table->foreign('pemasok_utama_id')->references('id')->on('pemasok')->onDelete('set null');
+            $table->foreign('satuan_utama_id')->references('id')->on('detail_parameters')->onDelete('set null');
             $table->foreign('sub_kategori_id')->references('id')->on('sub_detail_parameter')->onDelete('set null');
             $table->foreign('kategori_id')->references('id')->on('detail_parameters')->onDelete('set null');
         });
