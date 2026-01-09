@@ -43,6 +43,7 @@ class UpdateMesinRequest extends FormRequest
             'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
             'detail_mesin_json' => 'required|json',
             'biaya_perhitungan_profil_json' => 'required|json',
+            'hapus_gambar' => 'nullable|boolean',
         ];
     }
 

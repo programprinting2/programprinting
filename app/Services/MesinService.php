@@ -227,10 +227,8 @@ class MesinService
     {
         // If new gambar uploaded
         if ($gambar) {
-            // Delete old gambar
-            if ($mesin->supabase_path) {
-                $this->storageService->delete($mesin->supabase_path);
-            }
+            // Delete old gambar 
+            $this->deleteExistingGambar($mesin);
 
             // Upload new gambar
             return $this->handleGambarUpload($data, $gambar, 'mesin');
@@ -238,13 +236,50 @@ class MesinService
 
         // If delete gambar flag is set
         if (isset($data['hapus_gambar']) && $data['hapus_gambar']) {
-            if ($mesin->supabase_path) {
-                $this->storageService->delete($mesin->supabase_path);
-                $data['supabase_path'] = null;
-            }
+            // Delete existing gambar 
+            $this->deleteExistingGambar($mesin);
+            
+            // Clear both fields 
+            $data['supabase_path'] = null;
+            // $data['cloudinary_public_id'] = null;
+            
+            Log::info('Gambar mesin deleted via checkbox', ['mesin_id' => $mesin->id]);
         }
 
         return $data;
+    }
+
+    /**
+     * Delete existing gambar
+     */
+    private function deleteExistingGambar(MasterMesin $mesin): void
+    {
+        // Delete from Supabase 
+        if ($mesin->supabase_path) {
+            $this->storageService->delete($mesin->supabase_path);
+            Log::info('Deleted gambar from Supabase', [
+                'mesin_id' => $mesin->id,
+                'path' => $mesin->supabase_path
+            ]);
+        }
+
+        // Delete from Cloudinary
+        // if ($mesin->cloudinary_public_id) {
+        //     try {
+        //         // Uncomment if you still have CloudinaryService
+        //         // App::make(CloudinaryService::class)->delete($mesin->cloudinary_public_id);
+        //         Log::info('Found old Cloudinary image, manual cleanup needed', [
+        //             'mesin_id' => $mesin->id,
+        //             'cloudinary_id' => $mesin->cloudinary_public_id
+        //         ]);
+        //     } catch (\Exception $e) {
+        //         Log::warning('Could not delete from Cloudinary', [
+        //             'mesin_id' => $mesin->id,
+        //             'cloudinary_id' => $mesin->cloudinary_public_id,
+        //             'error' => $e->getMessage()
+        //         ]);
+        //     }
+        // }
     }
 
     /**

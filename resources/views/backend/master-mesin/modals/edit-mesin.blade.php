@@ -232,8 +232,8 @@
                                 <input type="file" class="form-control" id="edit_gambar{{ $item->id }}" name="gambar" accept="image/*" onchange="previewImage(this, 'preview-edit-gambar{{ $item->id }}')">
                                         <small class="text-muted">Format: JPG, PNG, JPEG. Maksimal 5MB</small>
                                 <div class="mt-2">
-                                            @if($item->imageUrl)
-                                                <img id="preview-edit-gambar{{ $item->id }}" src="{{ $item->imageUrl }}" alt="Gambar Mesin" style="max-width: 200px;" class="img-thumbnail">
+                                    @if($item->imageUrl)
+                                        <img id="preview-edit-gambar{{ $item->id }}" src="{{ $item->imageUrl }}" alt="Gambar Mesin" style="max-width: 200px;" class="img-thumbnail">
                                         <div class="form-check mt-2">
                                             <input class="form-check-input" type="checkbox" id="hapus_gambar{{ $item->id }}" name="hapus_gambar" value="1">
                                             <label class="form-check-label text-danger" for="hapus_gambar{{ $item->id }}">

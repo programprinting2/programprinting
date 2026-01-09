@@ -178,6 +178,7 @@ class MesinController extends Controller
     {
         try {
             $data = $request->validated();
+            $data['hapus_gambar'] = $request->input('hapus_gambar', false);
             $gambar = $request->file('gambar');
 
             $mesin = $this->mesinService->updateMesin($id, $data, $gambar);
