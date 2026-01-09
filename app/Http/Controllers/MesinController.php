@@ -2,452 +2,250 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MasterMesin;
-use App\Services\SupabaseStorageService; 
+use App\Exceptions\MesinNotFoundException;
+use App\Exceptions\InvalidMesinDataException;
+use App\Http\Requests\StoreMesinRequest;
+use App\Http\Requests\UpdateMesinRequest;
 use App\Models\MasterParameter;
+use App\Services\MesinService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Log; 
+use Illuminate\View\View;
+use Illuminate\Support\Facades\Log;
 
 class MesinController extends Controller
 {
-    protected $supabaseStorageService; // ✅ Ganti nama service
-    
-    public function __construct(SupabaseStorageService $supabaseStorageService)
-    {
-        $this->supabaseStorageService = $supabaseStorageService;
-    }
-    
+    public function __construct(
+        private MesinService $mesinService
+    ) {}
+
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index(Request $request)
+    public function index(Request $request): View|JsonResponse
     {
-        $query = MasterMesin::query();
+        try {
+            $filters = [
+                'search' => $request->input('search'),
+                'type' => $request->input('type'),
+                'status' => $request->input('status'),
+            ];
 
-        // Filter berdasarkan pencarian
-        if ($request->has('search')) {
-            $search = trim($request->search);
-            if (!empty($search)) {
-                $search = strtolower($search);
-                $search = preg_replace('/[^a-z0-9\s]/', '', $search);
-                
-                $query->where(function($q) use ($search) {
-                    $q->whereRaw('LOWER(nama_mesin) LIKE ?', ['%' . $search . '%'])
-                      ->orWhereRaw('LOWER(merek) LIKE ?', ['%' . $search . '%'])
-                      ->orWhereRaw('LOWER(model) LIKE ?', ['%' . $search . '%'])
-                      ->orWhereRaw('LOWER(nomor_seri) LIKE ?', ['%' . $search . '%']);
-                });
+            $mesin = $this->mesinService->getPaginatedMesin(10, $filters);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'html' => view('backend.master-mesin.partials.card-view', compact('mesin'))->render(),
+                    'table_html' => view('backend.master-mesin.partials.table-view', compact('mesin'))->render(),
+                    'pagination' => [
+                        'total' => $mesin->total(),
+                        'per_page' => $mesin->perPage(),
+                        'current_page' => $mesin->currentPage(),
+                        'last_page' => $mesin->lastPage(),
+                    ],
+                    'total_count' => $mesin->total()
+                ]);
             }
-        }
 
-        // Filter berdasarkan tipe mesin
-        if ($request->has('type') && $request->type !== 'semua') {
-            $type = trim($request->type);
-            if (!empty($type)) {
-                $query->where('tipe_mesin', $type);
-            }
-        }
+            // Dropdown data
+            $masterTipeMesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
+            $tipe_mesin = $masterTipeMesin ? $masterTipeMesin->details()->where('aktif', 1)->get() : collect();
 
-        // Filter berdasarkan status
-        if ($request->has('status') && $request->status !== 'semua') {
-            $status = trim($request->status);
-            if (!empty($status) && in_array($status, ['Aktif', 'Maintenance', 'Rusak', 'Tidak Aktif'])) {
-                $query->where('status', $status);
-            }
-        }
+            return view('backend.master-mesin.index', compact('mesin', 'tipe_mesin'));
 
-        // Ambil data dengan pagination
-        $mesin = $query->latest()->paginate(10);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'html' => view('backend.master-mesin.partials.card-view', compact('mesin'))->render(),
-                'table_html' => view('backend.master-mesin.partials.table-view', compact('mesin'))->render(),
-                'pagination' => [
-                    'total' => $mesin->total(),
-                    'per_page' => $mesin->perPage(),
-                    'current_page' => $mesin->currentPage(),
-                    'last_page' => $mesin->lastPage(),
-                ],
-                'total_count' => $mesin->total()
+        } catch (\Exception $e) {
+            Log::error('Error in mesin index', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
             ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan saat memuat data mesin'
+                ], 500);
+            }
+
+            return redirect()->back()->with('error', 'Terjadi kesalahan sistem');
         }
-
-        // Ambil data untuk dropdown filter
-        $master_tipe_mesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
-        $tipe_mesin = $master_tipe_mesin ? $master_tipe_mesin->details()->where('aktif', 1)->get() : collect();
-        $param_mode_warna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
-        $mode_warna_options = $param_mode_warna ? $param_mode_warna->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
-
-        return view('backend.master-mesin.index', compact('mesin', 'tipe_mesin', 'mode_warna_options'));
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
-        $master_tipe_mesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
-        $tipe_mesin = $master_tipe_mesin ? $master_tipe_mesin->details()->where('aktif', 1)->get() : collect();
-        $param_mode_warna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
-        $mode_warna_options = $param_mode_warna ? $param_mode_warna->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
-        return view('backend.master-mesin-form', compact('tipe_mesin', 'mode_warna_options'));
+        $masterTipeMesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
+        $tipeMesin = $masterTipeMesin ? $masterTipeMesin->details()->where('aktif', 1)->get() : collect();
+        $paramModeWarna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
+        $modeWarnaOptions = $paramModeWarna ? $paramModeWarna->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
+
+        return view('backend.master-mesin-form', compact('tipeMesin', 'modeWarnaOptions'));
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(StoreMesinRequest $request): JsonResponse|RedirectResponse
     {
-        // Ambil daftar tipe mesin yang valid dari database
-        $master_tipe_mesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
-        $valid_tipe_mesin = $master_tipe_mesin ? $master_tipe_mesin->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
-        
-        $validator = Validator::make($request->all(), [
-            'nama_mesin' => 'required|string|max:255',
-            'tipe_mesin' => ['required', 'string', 'max:255', function($attribute, $value, $fail) use ($valid_tipe_mesin) {
-                if (!in_array($value, $valid_tipe_mesin)) {
-                    $fail('Tipe mesin yang dipilih tidak valid.');
-                }
-            }],
-            'merek' => 'nullable|string|max:255',
-            'model' => 'nullable|string|max:255',
-            'nomor_seri' => 'nullable|string|max:255',
-            'status' => 'required|in:Aktif,Maintenance,Rusak,Tidak Aktif',
-            'tanggal_pembelian' => 'nullable|date',
-            'harga_pembelian' => ['nullable', function($attribute, $value, $fail) {
-                if ($value !== null) {
-                    // Hapus semua titik dan koma dari nilai
-                    $cleanValue = str_replace(['.', ','], '', $value);
-                    if (!is_numeric($cleanValue)) {
-                        $fail('Format harga pembelian tidak valid.');
-                    }
-                }
-            }],
-            'deskripsi' => 'nullable|string|max:1000',
-            'lebar_media_maksimum' => 'nullable|numeric|min:0',
-            'detail_mesin_json' => 'nullable|json',
-            'catatan_tambahan' => 'nullable|string|max:1000',
-            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5048',
-            'harga_tinta_per_liter' => 'nullable|numeric|min:0',
-            'konsumsi_tinta_per_m2' => 'nullable|numeric|min:0',
-            'biaya_perhitungan_profil_json' => 'nullable|json',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json(['success' => false, 'errors' => $validator->errors()], 422);
-        }
-
         try {
-            $mesin = new MasterMesin();
-            $mesin->nama_mesin = $request->nama_mesin;
-            $mesin->tipe_mesin = $request->tipe_mesin;
-            $mesin->merek = $request->merek;
-            $mesin->model = $request->model;
-            $mesin->nomor_seri = $request->nomor_seri;
-            $mesin->status = $request->status;
-            $mesin->tanggal_pembelian = $request->tanggal_pembelian;
-            // Bersihkan format harga pembelian sebelum disimpan
-            if ($request->harga_pembelian !== null) {
-                $mesin->harga_pembelian = str_replace(['.', ','], '', $request->harga_pembelian);
-            } else {
-                $mesin->harga_pembelian = null;
-            }
-            // $mesin->lebar_media_maksimum = $request->lebar_media_maksimum;
-            $mesin->deskripsi = $request->deskripsi;
-            
-            // Handling detail_mesin
-            if ($request->has('detail_mesin_json')) {
-                $detailMesin = json_decode($request->detail_mesin_json, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $mesin->detail_mesin = $detailMesin;
-                }
-            }
-            
-            $mesin->catatan_tambahan = $request->catatan_tambahan;
-            
-            if ($request->hasFile('gambar')) {
-                Log::info('Uploading gambar mesin to Supabase Storage');
-                $uploadedPath = $this->supabaseStorageService->upload($request->file('gambar'), 'mesin/foto');
-                if ($uploadedPath) {
-                    $mesin->supabase_path = $uploadedPath;
-                    Log::info('Gambar mesin berhasil diupload', ['path' => $uploadedPath]);
-                } else {
-                    Log::error('Gagal upload gambar mesin ke Supabase Storage');
-                }
-            }
-            
-            $mesin->harga_tinta_per_liter = $request->harga_tinta_per_liter;
-            $mesin->konsumsi_tinta_per_m2 = $request->konsumsi_tinta_per_m2;
-            
-            // Handling biaya_perhitungan_profil
-            if ($request->has('biaya_perhitungan_profil_json')) {
-                $biayaProfil = json_decode($request->biaya_perhitungan_profil_json, true);
-                if (json_last_error() === JSON_ERROR_NONE) {
-                    $mesin->biaya_perhitungan_profil = $biayaProfil;
-                }
-            }
-            
-            $mesin->save();
+            $data = $request->validated();
+            $gambar = $request->file('gambar');
+
+            $mesin = $this->mesinService->createMesin($data, $gambar);
 
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Mesin berhasil ditambahkan'
+                    'message' => 'Mesin berhasil ditambahkan',
+                    'mesin' => $mesin
                 ]);
             }
 
             return redirect()
                 ->route('backend.master-mesin.index')
                 ->with('success', 'Mesin berhasil ditambahkan');
-        } catch (\Exception $e) {
-            Log::error('Error creating mesin', [
-                'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
-            ]);
-            
+
+        } catch (InvalidMesinDataException $e) {
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Terjadi kesalahan: ' . $e->getMessage()
+                    'message' => $e->getMessage()
+                ], 422);
+            }
+            return redirect()->back()->withInput()->with('error', $e->getMessage());
+
+        } catch (\Exception $e) {
+            Log::error('Unexpected error creating mesin', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
                 ], 500);
             }
 
-            return redirect()
-                ->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+            return redirect()->back()->withInput()->with('error', 'Terjadi kesalahan sistem');
         }
     }
 
     /**
      * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(int $id): View
     {
-        $mesin = MasterMesin::findOrFail($id);
-        
-        if ($mesin->supabase_path) {
-            $mesin->gambar_url = $this->supabaseStorageService->getUrl($mesin->supabase_path);
+        try {
+            $mesin = $this->mesinService->getMesin($id);
+            return view('backend.master-mesin-detail', compact('mesin'));
+
+        } catch (MesinNotFoundException $e) {
+            return redirect()
+                ->route('backend.master-mesin.index')
+                ->with('error', $e->getMessage());
         }
-        
-        return view('backend.master-mesin-detail', compact('mesin'));
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(int $id): View
     {
-        $mesin = MasterMesin::findOrFail($id);
-        
-        if ($mesin->gambar_path) {
-            $mesin->gambar_url = $this->supabaseStorageService->getUrl($mesin->supabase_path);
+        try {
+            $mesin = $this->mesinService->getMesin($id);
+
+            $masterTipeMesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
+            $tipeMesin = $masterTipeMesin ? $masterTipeMesin->details()->where('aktif', 1)->get() : collect();
+            $paramModeWarna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
+            $modeWarnaOptions = $paramModeWarna ? $paramModeWarna->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
+
+            return view('backend.master-mesin-form', compact('mesin', 'tipeMesin', 'modeWarnaOptions'));
+
+        } catch (MesinNotFoundException $e) {
+            return redirect()
+                ->route('backend.master-mesin.index')
+                ->with('error', $e->getMessage());
         }
-        
-        $master_tipe_mesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
-        $tipe_mesin = $master_tipe_mesin ? $master_tipe_mesin->details()->where('aktif', 1)->get() : collect();
-        $param_mode_warna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
-        $mode_warna_options = $param_mode_warna ? $param_mode_warna->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
-        return view('backend.master-mesin-form', compact('mesin', 'tipe_mesin', 'mode_warna_options'));
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(UpdateMesinRequest $request, int $id): JsonResponse
     {
         try {
-            // Ambil daftar tipe mesin yang valid dari database
-            $master_tipe_mesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
-            $valid_tipe_mesin = $master_tipe_mesin ? $master_tipe_mesin->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
-            
-            // Validasi input
-            $validator = Validator::make($request->all(), [
-                'nama_mesin' => 'required|string|max:255',
-                'tipe_mesin' => ['required', 'string', 'max:255', function($attribute, $value, $fail) use ($valid_tipe_mesin) {
-                    if (!in_array($value, $valid_tipe_mesin)) {
-                        $fail('Tipe mesin yang dipilih tidak valid.');
-                    }
-                }],
-                'merek' => 'nullable|string|max:255',
-                'model' => 'nullable|string|max:255',
-                'nomor_seri' => 'nullable|string|max:255',
-                'status' => 'required|string|in:Aktif,Maintenance,Rusak,Tidak Aktif',
-                'tanggal_pembelian' => 'nullable|date',
-                'harga_pembelian' => ['nullable', function($attribute, $value, $fail) {
-                    if ($value !== null) {
-                        $cleanValue = str_replace(['.', ','], '', $value);
-                        if (!is_numeric($cleanValue)) {
-                            $fail('Format harga pembelian tidak valid.');
-                        }
-                    }
-                }],
-                'lebar_media_maksimum' => 'nullable|numeric|min:0',
-                'deskripsi' => 'nullable|string',
-                'catatan_tambahan' => 'nullable|string',
-                'gambar' => 'nullable|image|mimes:jpeg,png,jpg|max:5120',
-                'detail_mesin_json' => 'required|json',
-                'biaya_perhitungan_profil_json' => 'required|json',
-            ]);
+            $data = $request->validated();
+            $gambar = $request->file('gambar');
 
-            if ($validator->fails()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Validasi gagal',
-                    'errors' => $validator->errors()
-                ], 422);
-            }
-
-            // Decode JSON data
-            $detailMesin = json_decode($request->detail_mesin_json, true);
-            $biayaPerhitunganProfil = json_decode($request->biaya_perhitungan_profil_json, true);
-
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Format JSON tidak valid'
-                ], 422);
-            }
-
-            // Validasi struktur data JSON
-            if (!is_array($detailMesin) || !is_array($biayaPerhitunganProfil)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Format data tidak valid'
-                ], 422);
-            }
-
-            // Validasi tambahan untuk tipe perhitungan per_waktu
-            foreach ($biayaPerhitunganProfil as $profil) {
-                if ($profil['tipe'] === 'per_waktu') {
-                    if (!isset($profil['settings']['biaya_per_menit']) || $profil['settings']['biaya_per_menit'] <= 0) {
-                        return response()->json([
-                            'success' => false,
-                            'message' => 'Biaya per menit harus lebih besar dari 0 untuk tipe perhitungan per waktu'
-                        ], 422);
-                    }
-                }
-            }
-
-            // Cari mesin yang akan diupdate
-            $mesin = MasterMesin::findOrFail($id);
-
-            // Update data dasar
-            $mesin->nama_mesin = $request->nama_mesin;
-            $mesin->tipe_mesin = $request->tipe_mesin;
-            $mesin->merek = $request->merek;
-            $mesin->model = $request->model;
-            $mesin->nomor_seri = $request->nomor_seri;
-            $mesin->status = $request->status;
-            $mesin->tanggal_pembelian = $request->tanggal_pembelian;
-            
-            if ($request->harga_pembelian !== null) {
-                $mesin->harga_pembelian = str_replace(['.', ','], '', $request->harga_pembelian);
-            } else {
-                $mesin->harga_pembelian = null;
-            }
-            $mesin->lebar_media_maksimum = $request->lebar_media_maksimum;
-            $mesin->deskripsi = $request->deskripsi;
-            $mesin->catatan_tambahan = $request->catatan_tambahan;
-            
-            // Update detail_mesin dengan data baru
-            $mesin->detail_mesin = $detailMesin;
-            $mesin->biaya_perhitungan_profil = $biayaPerhitunganProfil;
-            
-            if ($request->hasFile('gambar')) {
-                Log::info('Updating gambar mesin to Supabase Storage');
-                
-                // Hapus gambar lama jika ada
-                if ($mesin->supabase_path) {
-                    Log::info('Deleting old gambar mesin', ['path' => $mesin->supabase_path]);
-                    $this->supabaseStorageService->delete($mesin->supabase_path);
-                }
-                
-                // Upload gambar baru
-                $uploadedPath = $this->supabaseStorageService->upload($request->file('gambar'), 'mesin/foto');
-                if ($uploadedPath) {
-                    $mesin->supabase_path = $uploadedPath;
-                    Log::info('Gambar mesin berhasil diupload', ['path' => $uploadedPath]);
-                } else {
-                    Log::error('Gagal upload gambar mesin ke Supabase Storage');
-                }
-            } elseif ($request->has('hapus_gambar') && $request->hapus_gambar == '1') {
-                Log::info('Deleting gambar mesin from Supabase Storage');
-                if ($mesin->supabase_path) {
-                    $this->supabaseStorageService->delete($mesin->supabase_path);
-                    $mesin->supabase_path = null;
-                    Log::info('Gambar mesin berhasil dihapus');
-                }
-            }
-            
-            // Simpan perubahan
-            $mesin->save();
+            $mesin = $this->mesinService->updateMesin($id, $data, $gambar);
 
             return response()->json([
                 'success' => true,
-                'message' => 'Data mesin berhasil diperbarui'
+                'message' => 'Data mesin berhasil diperbarui',
+                'mesin' => $mesin
             ]);
+
+        } catch (MesinNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 404);
+
+        } catch (InvalidMesinDataException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+
         } catch (\Exception $e) {
-            Log::error('Error updating mesin', [
+            Log::error('Unexpected error updating mesin', [
                 'mesin_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
+
             return response()->json([
                 'success' => false,
-                'message' => 'Terjadi kesalahan saat memperbarui data mesin: ' . $e->getMessage()
+                'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
             ], 500);
         }
     }
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(int $id): RedirectResponse
     {
         try {
-            $mesin = MasterMesin::findOrFail($id);
-            
-            if ($mesin->supabase_path) {
-                Log::info('Deleting gambar mesin before destroying record', ['path' => $mesin->supabase_path]);
-                $this->supabaseStorageService->delete($mesin->supabase_path);
-            }
-            
-            $mesin->delete();
+            $this->mesinService->deleteMesin($id);
 
-            return redirect()->route('backend.master-mesin.index')
-                ->with('success', 'Mesin berhasil dihapus.');
+            return redirect()
+                ->route('backend.master-mesin.index')
+                ->with('success', 'Mesin berhasil dihapus');
+
+        } catch (MesinNotFoundException $e) {
+            return redirect()
+                ->route('backend.master-mesin.index')
+                ->with('error', $e->getMessage());
+
+        } catch (InvalidMesinDataException $e) {
+            return redirect()
+                ->route('backend.master-mesin.index')
+                ->with('error', $e->getMessage());
+
         } catch (\Exception $e) {
-            Log::error('Error deleting mesin', [
+            Log::error('Unexpected error deleting mesin', [
                 'mesin_id' => $id,
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()
             ]);
-            
-            return redirect()->back()
-                ->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
+
+            return redirect()
+                ->route('backend.master-mesin.index')
+                ->with('error', 'Terjadi kesalahan sistem');
         }
     }
 }

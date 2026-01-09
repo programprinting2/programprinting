@@ -28,6 +28,7 @@ class StoreMesinRequest extends FormRequest
             'model' => 'nullable|string|max:255',
             'nomor_seri' => 'nullable|string|max:255',
             'status' => 'required|in:Aktif,Maintenance,Rusak,Tidak Aktif',
+            'gambar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
             'tanggal_pembelian' => 'nullable|date',
             'harga_pembelian' => ['nullable', function($attribute, $value, $fail) {
                 if ($value !== null) {

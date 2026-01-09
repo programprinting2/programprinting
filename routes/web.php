@@ -412,66 +412,6 @@ Route::get('/clear-cache', function () {
     return "Cache is cleared";
 });
 
-// TEST ROUTE UNTUK SUPABASE UPLOAD
-Route::get('/test-supabase', function () {
-    $service = app(\App\Services\SupabaseStorageService::class);
-
-    // Test konfigurasi
-    $configured = $service->isConfigured();
-
-    $result = [
-        'configured' => $configured,
-        'service' => 'Laravel Http Client',
-        'bucket' => 'print'
-    ];
-
-    if (!$configured) {
-        $result['error'] = 'Configuration incomplete';
-        return response()->json($result, 400);
-    }
-
-    try {
-        // Test upload file dummy
-        $dummyContent = 'Test file content ' . now();
-        $tempFile = tmpfile();
-        fwrite($tempFile, $dummyContent);
-        $tempPath = stream_get_meta_data($tempFile)['uri'];
-
-        $uploadedFile = new \Illuminate\Http\UploadedFile(
-            $tempPath,
-            'test.txt',
-            'text/plain',
-            null,
-            true
-        );
-
-        $uploadResult = $service->upload($uploadedFile, 'test');
-        $result['upload_result'] = $uploadResult;
-
-        // Test URL generation
-        if ($uploadResult) {
-            $url = $service->getUrl($uploadResult);
-            $result['url'] = $url;
-
-            // Test file existence
-            $exists = $service->exists($uploadResult);
-            $result['file_exists'] = $exists;
-
-            // Cleanup
-            $deleted = $service->delete($uploadResult);
-            $result['cleanup_success'] = $deleted;
-        }
-
-        fclose($tempFile);
-
-    } catch (\Exception $e) {
-        $result['error'] = $e->getMessage();
-        return response()->json($result, 500);
-    }
-
-    return response()->json($result);
-});
-
 
 // 404 for undefined routes
 Route::any('/{page?}', function () {

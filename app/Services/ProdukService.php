@@ -17,7 +17,8 @@ class ProdukService
     public function __construct(
         private ProdukRepositoryInterface $produkRepository,
         private SupabaseStorageService $storageService
-    ) {}
+    ) {
+    }
 
     public function createProduk(array $data, array $files = []): Produk
     {
@@ -27,13 +28,14 @@ class ProdukService
             DB::beginTransaction();
 
             $data['kode_produk'] = $this->generateKodeProduk();
-            
+
             // Process JSON fields
             $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
             $data['harga_bertingkat_json'] = $this->processJsonField($data['harga_bertingkat_json'] ?? null);
             $data['harga_reseller_json'] = $this->processJsonField($data['harga_reseller_json'] ?? null);
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
-            
+            $data['parameter_modal_json'] = $this->processJsonField($data['parameter_modal_json'] ?? null);
+
             // Process file uploads - menggunakan method yang mengembalikan URL
             $data['foto_pendukung_json'] = $this->uploadFilesWithUrl(
                 $files['foto_pendukung_new'] ?? [],
@@ -87,23 +89,24 @@ class ProdukService
             $data['harga_bertingkat_json'] = $this->processJsonField($data['harga_bertingkat_json'] ?? null);
             $data['harga_reseller_json'] = $this->processJsonField($data['harga_reseller_json'] ?? null);
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
+            $data['parameter_modal_json'] = $this->processJsonField($data['parameter_modal_json'] ?? null);
             // $data['dokumen_pendukung_json'] = $this->processJsonField($data['dokumen_pendukung_json'] ?? null);
 
             // Handle existing files
             $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);
             $existingVideo = $this->processExistingFiles($data['video_pendukung_existing_json'] ?? null);
             $existingDokumen = $this->processExistingFiles($data['dokumen_pendukung_existing_json'] ?? null);
-            
+
             // Upload new files
             $newFoto = $this->uploadFilesWithUrl($files['foto_pendukung_new'] ?? [], 'produk/foto');
             $newVideo = $this->uploadFilesWithUrl($files['video_pendukung_new'] ?? [], 'produk/video');
             $newDokumen = $this->uploadDocumentsWithUrl($files['dokumen_pendukung_new'] ?? [], 'produk/dokumen');
-            
+
             // Merge existing and new files
             $data['foto_pendukung_json'] = array_merge($existingFoto, $newFoto);
             $data['video_pendukung_json'] = array_merge($existingVideo, $newVideo);
             $data['dokumen_pendukung_json'] = array_merge($existingDokumen, $newDokumen);
-            
+
             // For documents, replace if new ones are uploaded
             // if (!empty($newDokumen)) {
             //     // Delete old documents
@@ -150,7 +153,7 @@ class ProdukService
             $this->deleteProdukFiles($produk);
 
             $result = $this->produkRepository->delete($id);
-            
+
             Log::info('Produk deleted successfully', ['produk_id' => $id]);
             return $result;
         } catch (\Exception $e) {
@@ -330,11 +333,11 @@ class ProdukService
                     if ($url) {
                         $uploadedDocs[] = [
                             'nama' => $file->getClientOriginalName(),
-                            'path' => $path, 
-                            'url' => $url, 
+                            'path' => $path,
+                            'url' => $url,
                             'ukuran' => $file->getSize(),
                             'tipe' => $file->getClientMimeType(),
-                            'jenis' => $file->getClientMimeType(), 
+                            'jenis' => $file->getClientMimeType(),
                         ];
                     } else {
                         // FALLBACK: Jika URL gagal, simpan dengan path

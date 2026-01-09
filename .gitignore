@@ -12,4 +12,6 @@ npm-debug.log
 yarn-error.log
 composer.lock
 /.cursor
+/.vscode
+/.clinerules
 boost.json

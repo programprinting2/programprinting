@@ -91,16 +91,9 @@ class MasterMesin extends Model
      */
     public function getImageUrlAttribute()
     {
-        // Prioritize supabase_path over cloudinary_public_id for backward compatibility
+        // Prioritize supabase_path 
         if ($this->supabase_path) {
             return App::make(SupabaseStorageService::class)->getUrl($this->supabase_path);
-        }
-        
-        // Fallback to cloudinary if exists (for migration period)
-        if ($this->cloudinary_public_id) {
-            // You can keep CloudinaryService for backward compatibility or remove it
-            // For now, return null to encourage migration to Supabase
-            return null;
         }
         
         return null;

@@ -122,6 +122,7 @@
                     <input type="hidden" name="foto_pendukung_existing_json" id="edit_foto_pendukung_existing_json">
                     <input type="hidden" name="video_pendukung_existing_json" id="edit_video_pendukung_existing_json">
                     <input type="hidden" name="dokumen_pendukung_existing_json" id="edit_dokumen_pendukung_existing_json">
+                    <input type="hidden" name="parameter_modal_json" id="edit_parameter_modal_json">
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-4">

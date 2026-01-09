@@ -29,6 +29,7 @@ class StoreProdukRequest extends FormRequest
             'video_pendukung_new.*' => 'nullable|file|mimes:mp4,avi,mpeg,quicktime|mimetypes:video/mp4,video/avi,video/mpeg,video/quicktime|max:20480',
             'dokumen_pendukung_new.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,txt,csv,jpg,jpeg,png,gif|max:10240',
             'alur_produksi_json' => 'nullable|json',
+            'parameter_modal_json' => 'nullable|json',
         ];
     }
 

@@ -126,6 +126,7 @@
                                     <input type="hidden" name="video_pendukung_json" id="video_pendukung_json">
                                     <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
                                     <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
+                                    <input type="hidden" name="parameter_modal_json" id="parameter_modal_json">
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-4">
@@ -285,6 +286,7 @@
                                                     <table class="table table-bordered align-middle mb-0" id="tabelParameterModal">
                                                         <thead class="table-light">
                                                             <tr>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Mesin</th>
                                                                 <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Parameter</th>
                                                                 <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Harga</th>
                                                                 <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jumlah</th>
@@ -294,7 +296,7 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
+                                                                <td colspan="6" class="text-center text-muted">Pilih kategori parameter</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

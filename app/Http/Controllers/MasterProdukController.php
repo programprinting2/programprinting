@@ -8,6 +8,7 @@ use App\Http\Requests\StoreProdukRequest;
 use App\Http\Requests\UpdateProdukRequest;
 use App\Models\MasterParameter;
 use App\Models\SubDetailParameter;
+use App\Models\MasterMesin;
 use App\Services\ProdukService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -40,8 +41,10 @@ class MasterProdukController extends Controller
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
             $satuanList = \App\Services\ParameterService::getParameterDetails('SATUAN');
+            // Ambil data master mesin untuk window.masterMesinList
+            $masterMesinList = MasterMesin::select('id', 'nama_mesin', 'tipe_mesin', 'biaya_perhitungan_profil')->get();
             
-            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList'));
+            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'masterMesinList'));
         } catch (\Exception $e) {
             Log::error('Error loading Produk index', ['error' => $e->getMessage()]);
             return view('backend.master-produk.index', [

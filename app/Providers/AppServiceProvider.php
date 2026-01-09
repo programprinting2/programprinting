@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\CloudinaryService;
+// use App\Services\CloudinaryService;
 use App\Services\SupabaseStorageService;
 use Illuminate\Support\ServiceProvider;
 
@@ -15,9 +15,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(CloudinaryService::class, function ($app) {
-            return new CloudinaryService();
-        });
+        // $this->app->singleton(CloudinaryService::class, function ($app) {
+        //     return new CloudinaryService();
+        // });
 
         $this->app->singleton(SupabaseStorageService::class, function ($app) {
             return new SupabaseStorageService();

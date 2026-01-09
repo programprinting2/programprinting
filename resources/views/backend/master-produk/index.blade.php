@@ -147,6 +147,7 @@
   <script>
     window.subKategoriList = @json($subKategoriList ?? []);
     window.kategoriList = @json($kategoriList ?? []);
+    window.masterMesinList = @json($masterMesinList ?? []);
   </script>
   <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
