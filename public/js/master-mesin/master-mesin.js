@@ -1066,10 +1066,12 @@ function collectProfileData(containerId) {
         }
 
         if (nama && tipe) {
+            const result = calculateProfileTotal($(this));
             profiles.push({ 
                 nama: nama, 
                 tipe: tipe, 
-                settings: settings 
+                settings: settings,
+                total: result.total
             });
         }
     });
@@ -1335,7 +1337,7 @@ function calculateProfileTotal(profileItem) {
     }
 
     // Tambahkan biaya tambahan
-    profileItem.find('.profile-biaya-item').each(function() {
+    profileItem.find(`.profile-tipe-settings[data-tipe="${tipe}"] .profile-biaya-item`).each(function() {
         const biayaNilai = parseFloat($(this).find('.profile-biaya-nilai').val()) || 0;
         totalBiaya += biayaNilai;
     });

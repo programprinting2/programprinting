@@ -49,7 +49,7 @@
                                 </select>
                             </div>
                             <div class="col-md-3">
-                                <a href="{{ route('backend.pemasok.index') }}" class="btn btn-outline-secondary w-100">
+                                <a href="{{ route('backend.master-produk.index') }}" class="btn btn-outline-secondary w-100">
                                     <i data-feather="refresh-cw" class="icon-sm me-1"></i> Reset
                                 </a>
                             </div>
