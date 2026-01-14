@@ -35,6 +35,7 @@ class ProdukService
             $data['harga_reseller_json'] = $this->processJsonField($data['harga_reseller_json'] ?? null);
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
             $data['parameter_modal_json'] = $this->processJsonField($data['parameter_modal_json'] ?? null);
+            $data['spesifikasi_teknis_json'] = $this->processJsonField($data['spesifikasi_teknis_json'] ?? null);
 
             // Process file uploads - menggunakan method yang mengembalikan URL
             $data['foto_pendukung_json'] = $this->uploadFilesWithUrl(
@@ -91,6 +92,7 @@ class ProdukService
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
             $data['parameter_modal_json'] = $this->processJsonField($data['parameter_modal_json'] ?? null);
             // $data['dokumen_pendukung_json'] = $this->processJsonField($data['dokumen_pendukung_json'] ?? null);
+            $data['spesifikasi_teknis_json'] = $this->processJsonField($data['spesifikasi_teknis_json'] ?? null);
 
             // Handle existing files
             $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);
@@ -121,6 +123,14 @@ class ProdukService
             //     }
             //     $data['dokumen_pendukung_json'] = $newDokumen;
             // }
+
+            Log::info('DEBUG UPDATE PRODUK - Data diterima:', [
+                'produk_id' => $id,
+                'all_data_keys' => array_keys($data),
+                'spesifikasi_teknis_json' => $data['spesifikasi_teknis_json'] ?? 'NOT_SET',
+                'spesifikasi_teknis_json_type' => gettype($data['spesifikasi_teknis_json'] ?? null),
+                'raw_request_data' => $data
+            ]);
 
             $this->produkRepository->update($id, $data);
 

@@ -34,6 +34,12 @@
                                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
                             </button>
                         </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-spesifikasi-teknis" data-bs-toggle="tab" data-bs-target="#spesifikasi-teknis"
+                                type="button" role="tab">
+                                <i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis
+                            </button>
+                        </li>
                     </ul>
 
                     <div class="tab-content" id="ProdukTabContent">
@@ -384,7 +390,6 @@
                             </div>
                         </div>
                        
-                        <!-- alur produksi -->
                         <!-- Alur Produksi -->
                         <div class="tab-pane fade" id="alur-produksi" role="tabpanel">
                             <div class="card mb-0">
@@ -470,6 +475,40 @@
                                     <input type="file" class="d-none" id="dokumenPendukungInput" name="dokumen_pendukung_new[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
                                 </div>
                             </div>        
+                        </div>
+
+                        <!-- Spesifikasi Teknis -->
+                        <div class="tab-pane fade" id="spesifikasi-teknis" role="tabpanel">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                                        <i data-feather="info" class="me-2"></i>
+                                        <div>
+                                            <strong>Petunjuk:</strong>
+                                            <ul class="mb-0">
+                                                <li>Tambahkan spesifikasi teknis sesuai kebutuhan produk</li>
+                                                <li>Contoh: Dimensi, Berat, Warna, Material, dll</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="card mb-3">
+                                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0">Spesifikasi Teknis</h6>
+                                            <button type="button" class="btn btn-outline-primary btn-sm" id="tambah_spesifikasi_produk">
+                                                <i data-feather="plus" class="icon-sm"></i> Tambah Spesifikasi
+                                            </button>
+                                        </div>
+                                        <div class="card-body">
+                                            <div id="spesifikasi_produk_container">
+                                                <div class="text-muted text-center py-3" id="no_spesifikasi_message">
+                                                    Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
+                                                </div>
+                                            </div>
+                                            <input type="hidden" name="spesifikasi_teknis_json" id="spesifikasi_teknis_json" value="[]">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         @push('custom-scripts')
                         <script>

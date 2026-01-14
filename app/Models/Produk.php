@@ -29,6 +29,7 @@ class Produk extends Model
         'dokumen_pendukung_json',
         'alur_produksi_json',
         'parameter_modal_json',
+        'spesifikasi_teknis_json',
     ];
 
     protected $casts = [
@@ -40,6 +41,7 @@ class Produk extends Model
         'dokumen_pendukung_json' => 'array',
         'alur_produksi_json' => 'array',
         'parameter_modal_json' => 'array',
+        'spesifikasi_teknis_json' => 'array',
         'status_aktif' => 'boolean',
     ];
 

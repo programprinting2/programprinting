@@ -30,6 +30,7 @@ class StoreProdukRequest extends FormRequest
             'dokumen_pendukung_new.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,txt,csv,jpg,jpeg,png,gif|max:10240',
             'alur_produksi_json' => 'nullable|json',
             'parameter_modal_json' => 'nullable|json',
+            'spesifikasi_teknis_json' => 'nullable|json',
         ];
     }
 

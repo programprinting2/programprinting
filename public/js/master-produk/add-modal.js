@@ -48,6 +48,7 @@ $(function () {
         renderAlurProduksi();
         renderTabelBahanBaku();
         renderParameterMesinTable();
+        renderSpesifikasiTeknis();
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
     });
@@ -61,6 +62,7 @@ $(function () {
         renderTabelBahanBaku();
         renderParameterMesinTable();
         renderAlurProduksi();
+        renderSpesifikasiTeknis();
         // Pastikan event listener terdaftar saat modal dibuka
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
         window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
@@ -940,6 +942,16 @@ $(function () {
                 };
             });
             $("#parameter_modal_json").val(JSON.stringify(paramArr));
+            const spesifikasiArr = [];
+            $('#spesifikasi_produk_container .spesifikasi-item').each(function() {
+                const nama = $(this).find('input[name="spesifikasi_nama[]"]').val();
+                const nilai = $(this).find('input[name="spesifikasi_nilai[]"]').val();
+                const satuan = $(this).find('input[name="spesifikasi_satuan[]"]').val();
+                if (nama && nilai) {
+                    spesifikasiArr.push({nama, nilai, satuan});
+                }
+            });
+            $("#spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));  
             $("#lebar").val(parseInt($("#lebar").val()) || 0);
             $("#panjang").val(parseInt($("#panjang").val()) || 0);
 
@@ -1181,5 +1193,66 @@ $(function () {
         const indexToDelete = $(this).data("index");
         selectedDocuments.splice(indexToDelete, 1);
         renderDocumentsPreview();
+    });
+
+    // === Spesifikasi Teknis Dinamis (Tambah Produk) 
+    function renderSpesifikasiTeknis() {
+        const container = $('#spesifikasi_produk_container');
+        container.empty();
+        if (window.spesifikasiTeknis && window.spesifikasiTeknis.length === 0) {
+            container.append('<div class="text-muted text-center py-3" id="no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
+            return;
+        }
+        
+        // Render existing items
+        if (window.spesifikasiTeknis) {
+            window.spesifikasiTeknis.forEach((item, idx) => {
+                container.append(`
+                    <div class="row mb-2 spesifikasi-item align-items-center">
+                        <div class="col-md-4 mb-1">
+                            <input type="text" class="form-control form-control-sm" 
+                                name="spesifikasi_nama[]" placeholder="Nama Spesifikasi" 
+                                value="${item.nama || ''}">
+                        </div>
+                        <div class="col-md-4 mb-1">
+                            <input type="text" class="form-control form-control-sm" 
+                                name="spesifikasi_nilai[]" placeholder="Nilai" 
+                                value="${item.nilai || ''}">
+                        </div>
+                        <div class="col-md-3 mb-1">
+                            <input type="text" class="form-control form-control-sm" 
+                                name="spesifikasi_satuan[]" placeholder="Satuan" 
+                                value="${item.satuan || ''}">
+                        </div>
+                        <div class="col-md-1 mb-1 text-end">
+                            <button type="button" class="btn btn-outline-danger btn-sm remove-spesifikasi">
+                                <i data-feather="trash-2" class="icon-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                `);
+            });
+        }
+        feather.replace();
+    }
+
+    window.spesifikasiTeknis = [];
+
+    // Event handler untuk tombol tambah spesifikasi
+    $('#tambah_spesifikasi_produk').on('click', function() {
+        window.spesifikasiTeknis.push({nama:'', nilai:'', satuan:''});
+        renderSpesifikasiTeknis();
+    });
+
+    // Event handler untuk tombol hapus spesifikasi
+    $(document).on('click', '.remove-spesifikasi', function() {
+        $(this).closest('.spesifikasi-item').remove();
+    });
+
+    // Reset saat modal ditutup
+    $('#tambahProduk').on('hidden.bs.modal', function() {
+        window.spesifikasiTeknis = [];
+        renderSpesifikasiTeknis();
+        $('#spesifikasi_teknis_json').val('[]');
     });
 });
