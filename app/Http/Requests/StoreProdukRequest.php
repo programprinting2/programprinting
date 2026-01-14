@@ -21,6 +21,7 @@ class StoreProdukRequest extends FormRequest
             'metode_penjualan' => 'required|in:m2,meter_lari',
             'lebar' => 'nullable|integer|min:0',
             'panjang' => 'nullable|integer|min:0',
+            'jenis_produk' => 'required|in:produk,jasa',
             'status_aktif' => 'required|boolean',
             'bahan_baku_json' => 'nullable|json',
             'harga_bertingkat_json' => 'nullable|json',
@@ -46,11 +47,3 @@ class StoreProdukRequest extends FormRequest
         ];
     }
 }
-
-
-
-
-
-
-
-

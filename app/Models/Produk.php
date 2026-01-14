@@ -21,6 +21,7 @@ class Produk extends Model
         'lebar',
         'panjang',
         'status_aktif',
+        'jenis_produk',
         'bahan_baku_json',
         'harga_bertingkat_json',
         'harga_reseller_json',

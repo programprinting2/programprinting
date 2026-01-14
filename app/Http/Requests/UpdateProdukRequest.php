@@ -21,6 +21,7 @@ class UpdateProdukRequest extends FormRequest
             'metode_penjualan' => 'required|in:m2,meter_lari',
             'lebar' => 'nullable|integer|min:0',
             'panjang' => 'nullable|integer|min:0',
+            'jenis_produk' => 'required|in:produk,jasa',
             'status_aktif' => 'required|boolean',
             'bahan_baku_json' => 'nullable|json',
             'harga_bertingkat_json' => 'nullable|json',
@@ -30,7 +31,7 @@ class UpdateProdukRequest extends FormRequest
             'dokumen_pendukung_new.*' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx,ppt,pptx,zip,rar,txt,csv,jpg,jpeg,png,gif|max:10240',
             'alur_produksi_json' => 'nullable|json',
             'parameter_modal_json' => 'nullable|json',
-            'spesifikasi_teknis_json' => 'nullable|json', 
+            'spesifikasi_teknis_json' => 'nullable|json',
         ];
     }
 

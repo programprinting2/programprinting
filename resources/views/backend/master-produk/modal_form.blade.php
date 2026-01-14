@@ -17,8 +17,8 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-spesifikasi-teknis" data-bs-toggle="tab" data-bs-target="#spesifikasi-teknis"
-                                type="button" role="tab">
+                            <button class="nav-link" id="tab-spesifikasi-teknis" data-bs-toggle="tab"
+                                data-bs-target="#spesifikasi-teknis" type="button" role="tab">
                                 <i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis
                             </button>
                         </li>
@@ -29,14 +29,14 @@
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-alur-produksi" data-bs-toggle="tab" data-bs-target="#alur-produksi"
-                                type="button" role="tab">
+                            <button class="nav-link" id="tab-alur-produksi" data-bs-toggle="tab"
+                                data-bs-target="#alur-produksi" type="button" role="tab">
                                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Alur Produksi
                             </button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="tab-media-dokumen" data-bs-toggle="tab" data-bs-target="#media-dokumen"
-                                type="button" role="tab">
+                            <button class="nav-link" id="tab-media-dokumen" data-bs-toggle="tab"
+                                data-bs-target="#media-dokumen" type="button" role="tab">
                                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
                             </button>
                         </li>
@@ -46,125 +46,152 @@
                         <!-- Detail Produk -->
                         <div class="tab-pane fade show active" id="umum" role="tabpanel">
                             <div class="card mb-0">
-                            <div class="card-body">
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="nama_produk" class="form-label">Nama Produk<span class="text-danger"> *</span></label>
-                                        <input type="text" class="form-control" id="nama_produk" name="nama_produk" placeholder="Nama produk" required>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label for="satuan" class="form-label">Satuan <span class="text-danger"> *</span></label>
-                                        <select class="form-select" id="satuanBarang" name="satuan_id" required>
-                                            <option value="" selected disabled>Pilih satuan</option>
-                                            @foreach($satuanList as $detail)
-                                                <option value="{{ $detail->id }}">{{ $detail->nama_detail_parameter }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label for="kategori_utama" class="form-label">Kategori Utama <span class="text-danger"> *</span></label>
-                                        <div class="input-group">
-                                            <select class="form-select" id="kategori_utama" name="kategori_utama_id" required>
-                                                 <option value="" selected disabled>Pilih Kategori Utama</option>
-                                                @foreach($kategoriProdukList as $kategori)
-                                                    <option value="{{ $kategori->id }}">{{ $kategori->nama_detail_parameter }}</option>
-                                                @endforeach
-                                                {{-- @else
-                                                    <option value="">Tidak ada data kategori utama</option>
-                                                @endif --}}
+                                <div class="card-body">
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <label for="nama_produk" class="form-label">Nama Produk<span
+                                                    class="text-danger"> *</span></label>
+                                            <input type="text" class="form-control" id="nama_produk" name="nama_produk"
+                                                placeholder="Nama produk" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="jenis_produk" class="form-label">Jenis Produk <span
+                                                    class="text-danger"> *</span></label>
+                                            <select class="form-select" id="jenis_produk" name="jenis_produk" required>
+                                                <option value="" selected disabled>Pilih Jenis Produk</option>
+                                                <option value="produk">Produk</option>
+                                                <option value="jasa">Jasa</option>
                                             </select>
-                                            
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label for="satuan" class="form-label">Satuan <span class="text-danger">
+                                                    *</span></label>
+                                            <select class="form-select" id="satuanBarang" name="satuan_id" required>
+                                                <option value="" selected disabled>Pilih satuan</option>
+                                                @foreach($satuanList as $detail)
+                                                    <option value="{{ $detail->id }}">{{ $detail->nama_detail_parameter }}
+                                                    </option>
+                                                @endforeach
+                                            </select>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                    <label for="subKategori" class="form-label">Sub-Kategori <span class="text-danger"> *</span></label>
-                                    <select class="form-select" id="sub_kategori_id_produk" name="sub_kategori_id">
-                                        <option value="" selected disabled>Pilih sub-kategori</option>
-                                        <!-- Options akan diisi dinamis oleh JS, value=id -->
-                                    </select>
-                                    <small class="text-muted">Pengelompokan lebih detail dalam kategori yang sama</small>
-                                    </div>
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Dimensi</label>
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <input type="number" class="form-control" id="lebar" name="lebar" min="0" value="0" placeholder="Lebar (cm)">
-                                                <small class="text-muted">Lebar (cm)</small>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="kategori_utama" class="form-label">Kategori Utama <span
+                                                    class="text-danger"> *</span></label>
+                                            <div class="input-group">
+                                                <select class="form-select" id="kategori_utama" name="kategori_utama_id"
+                                                    required>
+                                                    <option value="" selected disabled>Pilih Kategori Utama</option>
+                                                    @foreach($kategoriProdukList as $kategori)
+                                                        <option value="{{ $kategori->id }}">
+                                                            {{ $kategori->nama_detail_parameter }}</option>
+                                                    @endforeach
+                                                    {{-- @else
+                                                    <option value="">Tidak ada data kategori utama</option>
+                                                    @endif --}}
+                                                </select>
+
                                             </div>
-                                            <div class="col-md-6">
-                                                <input type="number" class="form-control" id="panjang" name="panjang" min="0" value="0" placeholder="Panjang (cm)">
-                                                <small class="text-muted">Panjang (cm)</small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="subKategori" class="form-label">Sub-Kategori <span
+                                                    class="text-danger"> *</span></label>
+                                            <select class="form-select" id="sub_kategori_id_produk"
+                                                name="sub_kategori_id">
+                                                <option value="" selected disabled>Pilih sub-kategori</option>
+                                                <!-- Options akan diisi dinamis oleh JS, value=id -->
+                                            </select>
+                                            <small class="text-muted">Pengelompokan lebih detail dalam kategori yang
+                                                sama</small>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Dimensi</label>
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <input type="number" class="form-control" id="lebar" name="lebar"
+                                                        min="0" value="0" placeholder="Lebar (cm)">
+                                                    <small class="text-muted">Lebar (cm)</small>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <input type="number" class="form-control" id="panjang"
+                                                        name="panjang" min="0" value="0" placeholder="Panjang (cm)">
+                                                    <small class="text-muted">Panjang (cm)</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Metode Penjualan</label>
+                                            <div class="card p-2">
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="metode_penjualan"
+                                                        id="jual_per_m2" value="m2" checked>
+                                                    <label class="form-check-label" for="jual_per_m2">
+                                                        Dijual per m<sup>2</sup>
+                                                    </label>
+                                                </div>
+                                                <div class="form-check">
+                                                    <input class="form-check-input" type="radio" name="metode_penjualan"
+                                                        id="jual_per_meter_lari" value="meter_lari">
+                                                    <label class="form-check-label" for="jual_per_meter_lari">
+                                                        Dijual per meter lari
+                                                    </label>
+                                                </div>
+                                                <small class="text-muted">Produk dijual berdasarkan luas total (panjang
+                                                    × lebar)</small>
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Metode Penjualan</label>
-                                        <div class="card p-2">
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="metode_penjualan" id="jual_per_m2" value="m2" checked>
-                                                <label class="form-check-label" for="jual_per_m2">
-                                                    Dijual per m<sup>2</sup>
-                                                </label>
+
+
+
+                                    <div class="row mb-3">
+                                        <!-- HIDDEN INPUT UNTUK JSON -->
+                                        <input type="hidden" name="bahan_baku_json" id="bahan_baku_json">
+                                        <input type="hidden" name="harga_bertingkat_json" id="harga_bertingkat_json">
+                                        <input type="hidden" name="harga_reseller_json" id="harga_reseller_json">
+                                        <input type="hidden" name="foto_pendukung_json" id="foto_pendukung_json">
+                                        <input type="hidden" name="video_pendukung_json" id="video_pendukung_json">
+                                        <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
+                                        <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
+                                    </div>
+                                    <div class="row mb-3">
+                                        <div class="col-md-4">
+                                            <div class="form-check form-switch">
+                                                <input type="hidden" name="status_aktif" value="0">
+                                                <input class="form-check-input" type="checkbox" id="status_aktif"
+                                                    name="status_aktif" value="1" checked>
+                                                <label class="form-check-label" for="status_aktif">Status Aktif</label>
+                                                <div><small class="text-muted">Produk akan tampil di daftar produk
+                                                        aktif</small></div>
                                             </div>
-                                            <div class="form-check">
-                                                <input class="form-check-input" type="radio" name="metode_penjualan" id="jual_per_meter_lari" value="meter_lari">
-                                                <label class="form-check-label" for="jual_per_meter_lari">
-                                                    Dijual per meter lari
-                                                </label>
-                                            </div>
-                                            <small class="text-muted">Produk dijual berdasarkan luas total (panjang × lebar)</small>
                                         </div>
+
                                     </div>
                                 </div>
-                               
-                                    
-                                
-                                <div class="row mb-3">
-                                    <!-- HIDDEN INPUT UNTUK JSON -->
-                                    <input type="hidden" name="bahan_baku_json" id="bahan_baku_json">
-                                    <input type="hidden" name="harga_bertingkat_json" id="harga_bertingkat_json">
-                                    <input type="hidden" name="harga_reseller_json" id="harga_reseller_json">
-                                    <input type="hidden" name="foto_pendukung_json" id="foto_pendukung_json">
-                                    <input type="hidden" name="video_pendukung_json" id="video_pendukung_json">
-                                    <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
-                                    <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
-                                </div>
-                                <div class="row mb-3">
-                                    <div class="col-md-4">
-                                        <div class="form-check form-switch">
-                                            <input type="hidden" name="status_aktif" value="0">
-                                            <input class="form-check-input" type="checkbox" id="status_aktif" name="status_aktif" value="1" checked>
-                                            <label class="form-check-label" for="status_aktif">Status Aktif</label>
-                                            <div><small class="text-muted">Produk akan tampil di daftar produk aktif</small></div>
-                                        </div>
-                                    </div>
-                                   
-                                </div>
-                            </div>
                             </div>
                         </div>
 
-                    
+
                         <!-- Deskripsi & Media -->
                         <!-- <div class="tab-pane fade" id="kontak" role="tabpanel">
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <!-- Deskripsi Produk -->
-                                    <!-- <div class="mb-3">
+                        <!-- <div class="mb-3">
                                         <label for="deskripsi_produk" class="form-label fw-semibold">Deskripsi Produk</label>
                                         <textarea class="form-control" id="deskripsi_produk" name="deskripsi_produk" rows="3" placeholder="Deskripsi detail tentang produk"></textarea>
                                         <small class="text-muted">Jelaskan produk secara detail termasuk fitur dan manfaatnya</small>
                                     </div> -->
-                                    <!-- Media & Dokumen -->
-                                    <!-- <div class="border rounded p-3 mb-3">
+                        <!-- Media & Dokumen -->
+                        <!-- <div class="border rounded p-3 mb-3">
                                         <div class="fw-semibold mb-2">Media & Dokumen</div>
                                         <div class="row g-3"> -->
-                                            <!-- Gambar Produk -->
-                                            <!-- <div class="col-md-6">
+                        <!-- Gambar Produk -->
+                        <!-- <div class="col-md-6">
                                                 <label class="form-label">Gambar Produk</label>
                                                 <div class="border rounded d-flex flex-column align-items-center justify-content-center py-4 mb-2" style="min-height: 120px;">
                                                     <i data-feather="image" class="mb-2" style="width:32px;height:32px;"></i>
@@ -172,8 +199,8 @@
                                                     <small class="text-muted">Format: JPG, PNG, WebP (Maks. 5MB)</small>
                                                 </div>
                                             </div> -->
-                                            <!-- Dokumen Pendukung -->
-                                            <!-- <div class="col-md-6">
+                        <!-- Dokumen Pendukung -->
+                        <!-- <div class="col-md-6">
                                                 <label class="form-label">Dokumen Pendukung</label>
                                                 <div class="border rounded d-flex flex-column align-items-center justify-content-center py-4 mb-2" style="min-height: 120px;">
                                                     <i data-feather="file-text" class="mb-2" style="width:32px;height:32px;"></i>
@@ -181,15 +208,15 @@
                                                     <small class="text-muted">Format: PDF, DOC, XLS (Maks. 10MB)</small>
                                                 </div>
                                             </div> -->
-                                        <!-- </div>
+                        <!-- </div>
                                         <div class="row mt-3"> -->
-                                            <!-- URL Thumbnail -->
-                                            <!-- <div class="col-md-6">
+                        <!-- URL Thumbnail -->
+                        <!-- <div class="col-md-6">
                                                 <label for="url_thumbnail" class="form-label">URL Thumbnail</label>
                                                 <input type="text" class="form-control" id="url_thumbnail" name="url_thumbnail" placeholder="URL thumbnail produk">
                                             </div> -->
-                                            <!-- Dokumen Terunggah -->
-                                            <!-- <div class="col-md-6">
+                        <!-- Dokumen Terunggah -->
+                        <!-- <div class="col-md-6">
                                                 <label class="form-label">Dokumen Terunggah</label>
                                                 <div class="border rounded p-2" style="min-height: 48px;">
                                                     <div class="d-flex align-items-center mb-1">
@@ -204,10 +231,10 @@
                                                     </div>
                                                 </div>
                                             </div> -->
-                                        <!-- </div>
+                        <!-- </div>
                                     </div> -->
-                                    <!-- SEO & Pengaturan Online -->
-                                    <!-- <div class="border rounded p-3">
+                        <!-- SEO & Pengaturan Online -->
+                        <!-- <div class="border rounded p-3">
                                         <div class="fw-semibold mb-2">SEO & Pengaturan Online</div>
                                         <div class="mb-3">
                                             <label for="meta_title" class="form-label">Meta Title</label>
@@ -220,10 +247,10 @@
                                             <small class="text-muted">Deskripsi singkat yang akan muncul di hasil pencarian</small>
                                         </div>
                                     </div> -->
-                                <!-- </div>
+                        <!-- </div>
                             </div>
                         </div>  -->
-                        
+
                         <!-- Harga -->
                         <div class="tab-pane fade" id="harga" role="tabpanel">
                             <div class="card mb-0">
@@ -231,33 +258,37 @@
                                     <!-- Tab Harga: Modal & Harga Jual -->
                                     <ul class="nav nav-tabs nav-tabs-line mb-3" id="lineTab" role="tablist">
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link active" id="modal-tab" data-bs-toggle="tab" data-bs-target="#modal-tab-pane" type="button" role="tab">
+                                            <button class="nav-link active" id="modal-tab" data-bs-toggle="tab"
+                                                data-bs-target="#modal-tab-pane" type="button" role="tab">
                                                 Modal
                                             </button>
                                         </li>
                                         <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="harga-jual-tab" data-bs-toggle="tab" data-bs-target="#harga-jual-tab-pane" type="button" role="tab">
+                                            <button class="nav-link" id="harga-jual-tab" data-bs-toggle="tab"
+                                                data-bs-target="#harga-jual-tab-pane" type="button" role="tab">
                                                 Harga Jual
                                             </button>
                                         </li>
                                     </ul>
                                     <div class="tab-content" id="hargaTabContent">
                                         <!-- Total Modal Keseluruhan -->
-                                            <div class="alert alert-primary d-flex align-items-center mb-3" role="alert">
-                                                <div>
-                                                    <div class="fw-semibold mb-1">
-                                                        <i data-feather="info" class="me-2"></i>
-                                                        Total Modal Keseluruhan
-                                                        <span class="badge bg-light text-primary ms-2" id="totalItemModal">0 item</span>
-                                                    </div>
-                                                    <div class="fs-4 fw-bold" id="totalModalKeseluruhan">Rp 0</div>
-                                                    <div class="small text-muted mt-1">
-                                                        Bahan Baku: <span id="totalBahanBakuText" class="fw-bold">Rp 0</span>
-                                                        &nbsp;|&nbsp;
-                                                        Parameter: <span id="totalParameterText" class="fw-bold">Rp 0</span>
-                                                    </div>
+                                        <div class="alert alert-primary d-flex align-items-center mb-3" role="alert">
+                                            <div>
+                                                <div class="fw-semibold mb-1">
+                                                    <i data-feather="info" class="me-2"></i>
+                                                    Total Modal Keseluruhan
+                                                    <span class="badge bg-light text-primary ms-2" id="totalItemModal">0
+                                                        item</span>
+                                                </div>
+                                                <div class="fs-4 fw-bold" id="totalModalKeseluruhan">Rp 0</div>
+                                                <div class="small text-muted mt-1">
+                                                    Bahan Baku: <span id="totalBahanBakuText" class="fw-bold">Rp
+                                                        0</span>
+                                                    &nbsp;|&nbsp;
+                                                    Parameter: <span id="totalParameterText" class="fw-bold">Rp 0</span>
                                                 </div>
                                             </div>
+                                        </div>
                                         <!-- Tab Modal -->
                                         <div class="tab-pane fade show active" id="modal-tab-pane" role="tabpanel">
                                             <!-- Bahan Baku -->
@@ -265,31 +296,48 @@
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="fw-semibold">Bahan Baku</div>
                                                     <!-- Tombol + Tambah Bahan -->
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahBahan">
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        id="btnTambahBahan">
                                                         + Tambah Bahan
                                                     </button>
                                                 </div>
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered align-middle mb-0" id="tabelBahanBaku">
+                                                    <table class="table table-bordered align-middle mb-0"
+                                                        id="tabelBahanBaku">
                                                         <thead class="table-light">
                                                             <tr>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Bahan</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Satuan</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Harga</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jumlah</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Total</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Aksi</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Nama Bahan</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Satuan</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Harga</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Jumlah</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Total</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="6" class="text-center text-muted">Belum ada bahan baku ditambahkan</td>
+                                                                <td colspan="6" class="text-center text-muted">Belum ada
+                                                                    bahan baku ditambahkan</td>
                                                             </tr>
                                                         </tbody>
                                                         <tfoot>
                                                             <tr>
-                                                                <td colspan="4" class="text-end fw-bold">Total Modal Bahan:</td>
-                                                                <td colspan="2" class="fw-bold" id="totalModalBahan">Rp 0</td>
+                                                                <td colspan="4" class="text-end fw-bold">Total Modal
+                                                                    Bahan:</td>
+                                                                <td colspan="2" class="fw-bold" id="totalModalBahan">Rp
+                                                                    0</td>
                                                             </tr>
                                                         </tfoot>
                                                     </table>
@@ -299,25 +347,40 @@
                                             <div class="mb-4">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="fw-semibold">Parameter Modal</div>
-                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahParameter" >
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        id="btnTambahParameter">
                                                         + Tambah Parameter
                                                     </button>
                                                 </div>
                                                 <div class="table-responsive">
-                                                    <table class="table table-bordered align-middle mb-0" id="tabelParameterModal">
+                                                    <table class="table table-bordered align-middle mb-0"
+                                                        id="tabelParameterModal">
                                                         <thead class="table-light">
                                                             <tr>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Mesin</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Parameter</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Harga</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jumlah</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Total</th>
-                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Aksi</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Nama Mesin</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Nama Parameter</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Harga</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Jumlah</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Total</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Aksi</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
+                                                                <td colspan="5" class="text-center text-muted">Pilih
+                                                                    kategori parameter</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -326,18 +389,22 @@
                                         </div>
                                         <!-- Tab Harga Jual Dinamis -->
                                         <div class="tab-pane fade" id="harga-jual-tab-pane" role="tabpanel">
-                                            <div class="card mb-3 border-2 border-primary-subtle" style="background: #f8f5ff;">
+                                            <div class="card mb-3 border-2 border-primary-subtle"
+                                                style="background: #f8f5ff;">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <div>
                                                             <i data-feather="tag" class="me-2 text-primary"></i>
                                                             <span class="fw-semibold">Harga Umum (Bertingkat)</span>
-                                                            <div class="small text-muted">Atur harga berdasarkan quantity minimum</div>
+                                                            <div class="small text-muted">Atur harga berdasarkan
+                                                                quantity minimum</div>
                                                         </div>
-                                                        <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahHargaBertingkat">+ Tambah Tingkat</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-primary"
+                                                            id="btnTambahHargaBertingkat">+ Tambah Tingkat</button>
                                                     </div>
                                                     <div class="table-responsive">
-                                                        <table class="table table-bordered align-middle mb-0" id="tabelHargaBertingkat">
+                                                        <table class="table table-bordered align-middle mb-0"
+                                                            id="tabelHargaBertingkat">
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>Min. Qty</th>
@@ -355,18 +422,22 @@
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="card mb-3 border-2 border-warning-subtle" style="background: #fffbe7;">
+                                            <div class="card mb-3 border-2 border-warning-subtle"
+                                                style="background: #fffbe7;">
                                                 <div class="card-body">
                                                     <div class="d-flex justify-content-between align-items-center mb-2">
                                                         <div>
                                                             <i data-feather="users" class="me-2 text-warning"></i>
                                                             <span class="fw-semibold">Harga Reseller (Bertingkat)</span>
-                                                            <div class="small text-muted">Harga khusus untuk partner reseller</div>
+                                                            <div class="small text-muted">Harga khusus untuk partner
+                                                                reseller</div>
                                                         </div>
-                                                        <button type="button" class="btn btn-sm btn-outline-warning" id="btnTambahHargaReseller">+ Tambah Tingkat</button>
+                                                        <button type="button" class="btn btn-sm btn-outline-warning"
+                                                            id="btnTambahHargaReseller">+ Tambah Tingkat</button>
                                                     </div>
                                                     <div class="table-responsive">
-                                                        <table class="table table-bordered align-middle mb-0" id="tabelHargaReseller">
+                                                        <table class="table table-bordered align-middle mb-0"
+                                                            id="tabelHargaReseller">
                                                             <thead class="table-light">
                                                                 <tr>
                                                                     <th>Min. Qty</th>
@@ -389,7 +460,7 @@
                                 </div>
                             </div>
                         </div>
-                       
+
                         <!-- Alur Produksi -->
                         <div class="tab-pane fade" id="alur-produksi" role="tabpanel">
                             <div class="card mb-0">
@@ -398,9 +469,11 @@
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div>
                                                 <span class="fw-semibold">Alur Produksi</span>
-                                                <div class="small text-muted">Tentukan mesin yang digunakan untuk memproduksi item ini</div>
+                                                <div class="small text-muted">Tentukan mesin yang digunakan untuk
+                                                    memproduksi item ini</div>
                                             </div>
-                                            <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahMesin">
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                id="btnTambahMesin">
                                                 + Tambah Mesin
                                             </button>
                                         </div>
@@ -412,24 +485,29 @@
                             </div>
                         </div>
 
-                         <!-- Media & Dokumen Tab -->
-                        <div class="tab-pane fade" id="media-dokumen" role="tabpanel" aria-labelledby="media-dokumen-tab">
+                        <!-- Media & Dokumen Tab -->
+                        <div class="tab-pane fade" id="media-dokumen" role="tabpanel"
+                            aria-labelledby="media-dokumen-tab">
                             <div class="card mb-3">
                                 <div class="card-body">
                                     <h6 class="mb-3">Media (Foto & Video)</h6>
-                                    <div class="dropzone-area-media mb-3 text-center p-4 border-2 border-dashed rounded bg-light position-relative" id="mediaDropzoneArea" style="cursor:pointer;">
-                                        <input type="file" class="d-none" id="mediaPendukungInput" name="media_pendukung_new[]" multiple accept="image/*,video/*">
+                                    <div class="dropzone-area-media mb-3 text-center p-4 border-2 border-dashed rounded bg-light position-relative"
+                                        id="mediaDropzoneArea" style="cursor:pointer;">
+                                        <input type="file" class="d-none" id="mediaPendukungInput"
+                                            name="media_pendukung_new[]" multiple accept="image/*,video/*">
                                         <div class="dz-message text-muted">
                                             <i data-feather="upload-cloud" class="icon-lg mb-2"></i><br>
                                             <span>Seret & lepas foto/video di sini atau klik untuk memilih file</span>
-                                            <div style="font-size:0.85rem;">Maksimal 10 file, format gambar/video didukung</div>
+                                            <div style="font-size:0.85rem;">Maksimal 10 file, format gambar/video
+                                                didukung</div>
                                         </div>
                                     </div>
                                     <div class="row g-2 mb-2">
                                         <div class="col-12 mb-1 text-start"><strong>Foto</strong></div>
                                         <div class="col-12" id="fotoPendukungPreview">
                                             <div class="text-muted text-center" id="noFotoMessage">
-                                            <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang ditambahkan.
+                                                <i data-feather="image" class="icon-lg mb-2"></i><br>Belum ada foto yang
+                                                ditambahkan.
                                             </div>
                                         </div>
                                     </div>
@@ -437,7 +515,8 @@
                                         <div class="col-12 mb-1 text-start"><strong>Video</strong></div>
                                         <div class="col-12" id="videoPendukungPreview">
                                             <div class="text-muted text-center" id="noVideoMessage">
-                                            <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video yang ditambahkan.
+                                                <i data-feather="video" class="icon-lg mb-2"></i><br>Belum ada video
+                                                yang ditambahkan.
                                             </div>
                                         </div>
                                     </div>
@@ -448,9 +527,11 @@
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-3">
                                         <h6 class="mb-0">Dokumen Pendukung</h6>
-                                        <button type="button" class="btn btn-sm btn-primary" id="tambahDokumen"><i data-feather="plus" class="me-1 icon-sm"></i> Tambah Dokumen</button>
+                                        <button type="button" class="btn btn-sm btn-primary" id="tambahDokumen"><i
+                                                data-feather="plus" class="me-1 icon-sm"></i> Tambah Dokumen</button>
                                     </div>
-                                    <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan dokumen pendukung seperti spesifikasi teknis, sertifikat, atau laporan uji.</p>
+                                    <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan dokumen pendukung
+                                        seperti spesifikasi teknis, sertifikat, atau laporan uji.</p>
                                     <div class="table-responsive">
                                         <table class="table table-bordered mb-0" id="dokumenPendukungTable">
                                             <thead>
@@ -465,16 +546,19 @@
                                                 <!-- Document rows will be added here -->
                                                 <tr id="noDokumenMessage">
                                                     <td colspan="5" class="text-center text-muted py-4">
-                                                        <i data-feather="file-text" class="icon-lg mb-2"></i><br>Belum ada dokumen yang ditambahkan.
+                                                        <i data-feather="file-text" class="icon-lg mb-2"></i><br>Belum
+                                                        ada dokumen yang ditambahkan.
                                                     </td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <!-- Input file dokumen pendukung (hidden) -->
-                                    <input type="file" class="d-none" id="dokumenPendukungInput" name="dokumen_pendukung_new[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
+                                    <input type="file" class="d-none" id="dokumenPendukungInput"
+                                        name="dokumen_pendukung_new[]" multiple
+                                        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
                                 </div>
-                            </div>        
+                            </div>
                         </div>
 
                         <!-- Spesifikasi Teknis -->
@@ -492,139 +576,143 @@
                                         </div>
                                     </div>
                                     <div class="card mb-3">
-                                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                        <div
+                                            class="card-header bg-light d-flex justify-content-between align-items-center">
                                             <h6 class="mb-0">Spesifikasi Teknis</h6>
-                                            <button type="button" class="btn btn-outline-primary btn-sm" id="tambah_spesifikasi_produk">
+                                            <button type="button" class="btn btn-outline-primary btn-sm"
+                                                id="tambah_spesifikasi_produk">
                                                 <i data-feather="plus" class="icon-sm"></i> Tambah Spesifikasi
                                             </button>
                                         </div>
                                         <div class="card-body">
                                             <div id="spesifikasi_produk_container">
                                                 <div class="text-muted text-center py-3" id="no_spesifikasi_message">
-                                                    Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
+                                                    Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk
+                                                    menambahkan.
                                                 </div>
                                             </div>
-                                            <input type="hidden" name="spesifikasi_teknis_json" id="spesifikasi_teknis_json" value="[]">
+                                            <input type="hidden" name="spesifikasi_teknis_json"
+                                                id="spesifikasi_teknis_json" value="[]">
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         @push('custom-scripts')
-                        <script>
-                        let mesinIndex = 0;
+                            <script>
+                                let mesinIndex = 0;
 
-                        function mesinTemplate(index = 0, data = {}) {
-                            return `
-                            <div class="border rounded mb-3 p-3 position-relative mesin-item" data-index="${index}">
-                                <button type="button" class="btn btn-link text-danger position-absolute top-0 end-0 mt-2 me-2 btnHapusMesin" title="Hapus Mesin"><i data-feather="trash-2"></i></button>
-                                <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
-                                <div class="row mb-2">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Nama Mesin</label>
-                                        <input type="text" class="form-control" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ''}" placeholder="Nama mesin" required>
-                                        <small class="text-muted">Tipe: <span>${data.tipe_mesin || 'Tidak diketahui'}</span></small>
+                                function mesinTemplate(index = 0, data = {}) {
+                                    return `
+                                <div class="border rounded mb-3 p-3 position-relative mesin-item" data-index="${index}">
+                                    <button type="button" class="btn btn-link text-danger position-absolute top-0 end-0 mt-2 me-2 btnHapusMesin" title="Hapus Mesin"><i data-feather="trash-2"></i></button>
+                                    <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
+                                    <div class="row mb-2">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Nama Mesin</label>
+                                            <input type="text" class="form-control" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ''}" placeholder="Nama mesin" required>
+                                            <small class="text-muted">Tipe: <span>${data.tipe_mesin || 'Tidak diketahui'}</span></small>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Estimasi Waktu (menit)</label>
+                                            <input type="number" class="form-control" name="alur_produksi[${index}][estimasi_waktu]" value="${data.estimasi_waktu || ''}" min="0" placeholder="Estimasi waktu" required>
+                                        </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Estimasi Waktu (menit)</label>
-                                        <input type="number" class="form-control" name="alur_produksi[${index}][estimasi_waktu]" value="${data.estimasi_waktu || ''}" min="0" placeholder="Estimasi waktu" required>
+                                    <div class="mb-2">
+                                        <label class="form-label">Catatan</label>
+                                        <textarea class="form-control" name="alur_produksi[${index}][catatan]" rows="2" placeholder="Catatan proses">${data.catatan || ''}</textarea>
                                     </div>
                                 </div>
-                                <div class="mb-2">
-                                    <label class="form-label">Catatan</label>
-                                    <textarea class="form-control" name="alur_produksi[${index}][catatan]" rows="2" placeholder="Catatan proses">${data.catatan || ''}</textarea>
-                                </div>
-                            </div>
-                            `;
-                        }
-
-                        function refreshFeather() {
-                            if (typeof feather !== 'undefined') {
-                                feather.replace();
-                            }
-                        }
-
-                        $(document).on('click', '#btnTambahMesin', function() {
-                            $('#daftarMesin').append(mesinTemplate(mesinIndex));
-                            mesinIndex++;
-                            refreshFeather();
-                        });
-
-                        $(document).on('click', '.btnHapusMesin', function() {
-                            $(this).closest('.mesin-item').remove();
-                            refreshFeather();
-                        });
-
-                        // Optional: Tambahkan mesin default jika diperlukan
-                        // $('#btnTambahMesin').trigger('click');
-
-                        $(document).on('click', '#btnTambahBahan', function() {
-                            var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBakuProduk'), {
-                                backdrop: 'static',
-                                keyboard: false,
-                                focus: true
-                            });
-                            modalBahan.show();
-                            setTimeout(function() {
-                                if ($('#tambahProduk').hasClass('show')) {
-                                    $('body').addClass('modal-open');
+                                `;
                                 }
-                            }, 200);
-                        });
 
-                        window.addEventListener('bahanBakuDipilih', function(e) {
-                            if (!$('#modalCariBahanBakuProduk').hasClass('show')) return;
-                            const data = e.detail;
-                            // Cek duplikat
-                            if ($('#tabelBahanBaku tbody tr[data-id="'+data.id+'"]').length > 0) {
-                                Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
-                                return;
-                            }
-                            // Tambahkan baris ke tabelBahanBaku
-                            let row = `
-                                <tr data-id="${data.id}">
-                                    <td>${data.nama}<input type="hidden" name="bahan_baku_id[]" value="${data.id}"></td>
-                                    <td>${data.satuan}</td>
-                                    <td class="text-end">Rp ${data.harga.toLocaleString('id-ID')}<input type="hidden" name="harga_bahan[]" value="${data.harga}"></td>
-                                    <td><input type="number" class="form-control form-control-sm jumlah-bahan" name="jumlah_bahan[]" value="1" min="1"></td>
-                                    <td class="total-bahan text-success fw-semibold text-end">Rp ${data.harga}</td>
-                                    <td><button type="button" class="btn btn-danger btn-xs btn-hapus-bahan"><i data-feather="trash-2" class="icon-sm"></i></button></td>
-                                </tr>
-                            `;
-                            // Hapus pesan kosong jika ada
-                            $('#tabelBahanBaku tbody .text-muted').remove();
-                            $('#tabelBahanBaku tbody').append(row);
-                            if (typeof feather !== 'undefined') feather.replace();
-                            hitungTotalModalBahan();
-                        });
+                                function refreshFeather() {
+                                    if (typeof feather !== 'undefined') {
+                                        feather.replace();
+                                    }
+                                }
 
-                        // Hitung total saat jumlah berubah
-                        $(document).on('input', '.jumlah-bahan', function() {
-                            const row = $(this).closest('tr');
-                            const harga = parseInt(row.find('input[name="harga_bahan[]"]').val()) || 0;
-                            const jumlah = parseInt(row.find('.jumlah-bahan').val()) || 0;
-                            const total = harga * jumlah;
-                            row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
-                            hitungTotalModalBahan();
-                        });
+                                $(document).on('click', '#btnTambahMesin', function () {
+                                    $('#daftarMesin').append(mesinTemplate(mesinIndex));
+                                    mesinIndex++;
+                                    refreshFeather();
+                                });
 
-                        // Hapus baris bahan baku
-                        $(document).on('click', '.btn-hapus-bahan', function() {
-                            $(this).closest('tr').remove();
-                            hitungTotalModalBahan();
-                        });
+                                $(document).on('click', '.btnHapusMesin', function () {
+                                    $(this).closest('.mesin-item').remove();
+                                    refreshFeather();
+                                });
 
-                        // Hitung total semua bahan
-                        function hitungTotalModalBahan() {
-                            let total = 0;
-                            $('#tabelBahanBaku tbody tr').each(function() {
-                                const harga = parseInt($(this).find('input[name="harga_bahan[]"]').val()) || 0;
-                                const jumlah = parseInt($(this).find('.jumlah-bahan').val()) || 0;
-                                total += harga * jumlah;
-                            });
-                            $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
-                        }
-                        </script>
+                                // Optional: Tambahkan mesin default jika diperlukan
+                                // $('#btnTambahMesin').trigger('click');
+
+                                $(document).on('click', '#btnTambahBahan', function () {
+                                    var modalBahan = new bootstrap.Modal(document.getElementById('modalCariBahanBakuProduk'), {
+                                        backdrop: 'static',
+                                        keyboard: false,
+                                        focus: true
+                                    });
+                                    modalBahan.show();
+                                    setTimeout(function () {
+                                        if ($('#tambahProduk').hasClass('show')) {
+                                            $('body').addClass('modal-open');
+                                        }
+                                    }, 200);
+                                });
+
+                                window.addEventListener('bahanBakuDipilih', function (e) {
+                                    if (!$('#modalCariBahanBakuProduk').hasClass('show')) return;
+                                    const data = e.detail;
+                                    // Cek duplikat
+                                    if ($('#tabelBahanBaku tbody tr[data-id="' + data.id + '"]').length > 0) {
+                                        Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
+                                        return;
+                                    }
+                                    // Tambahkan baris ke tabelBahanBaku
+                                    let row = `
+                                    <tr data-id="${data.id}">
+                                        <td>${data.nama}<input type="hidden" name="bahan_baku_id[]" value="${data.id}"></td>
+                                        <td>${data.satuan}</td>
+                                        <td class="text-end">Rp ${data.harga.toLocaleString('id-ID')}<input type="hidden" name="harga_bahan[]" value="${data.harga}"></td>
+                                        <td><input type="number" class="form-control form-control-sm jumlah-bahan" name="jumlah_bahan[]" value="1" min="1"></td>
+                                        <td class="total-bahan text-success fw-semibold text-end">Rp ${data.harga}</td>
+                                        <td><button type="button" class="btn btn-danger btn-xs btn-hapus-bahan"><i data-feather="trash-2" class="icon-sm"></i></button></td>
+                                    </tr>
+                                `;
+                                    // Hapus pesan kosong jika ada
+                                    $('#tabelBahanBaku tbody .text-muted').remove();
+                                    $('#tabelBahanBaku tbody').append(row);
+                                    if (typeof feather !== 'undefined') feather.replace();
+                                    hitungTotalModalBahan();
+                                });
+
+                                // Hitung total saat jumlah berubah
+                                $(document).on('input', '.jumlah-bahan', function () {
+                                    const row = $(this).closest('tr');
+                                    const harga = parseInt(row.find('input[name="harga_bahan[]"]').val()) || 0;
+                                    const jumlah = parseInt(row.find('.jumlah-bahan').val()) || 0;
+                                    const total = harga * jumlah;
+                                    row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
+                                    hitungTotalModalBahan();
+                                });
+
+                                // Hapus baris bahan baku
+                                $(document).on('click', '.btn-hapus-bahan', function () {
+                                    $(this).closest('tr').remove();
+                                    hitungTotalModalBahan();
+                                });
+
+                                // Hitung total semua bahan
+                                function hitungTotalModalBahan() {
+                                    let total = 0;
+                                    $('#tabelBahanBaku tbody tr').each(function () {
+                                        const harga = parseInt($(this).find('input[name="harga_bahan[]"]').val()) || 0;
+                                        const jumlah = parseInt($(this).find('.jumlah-bahan').val()) || 0;
+                                        total += harga * jumlah;
+                                    });
+                                    $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
+                                }
+                            </script>
                         @endpush
                     </div>
 
@@ -639,25 +727,25 @@
 </div>
 
 @include('backend.general-form.cari-bahanbaku', [
-  'modalId' => 'modalCariBahanBakuProduk',
-  'inputId' => 'searchBahanBakuProduk',
-  'tableId' => 'tabelCariBahanBakuProduk',
-  'paginationId' => 'paginationBahanBakuProduk',
-  'clearBtnId' => 'clearSearchBahanBakuProduk',
+    'modalId' => 'modalCariBahanBakuProduk',
+    'inputId' => 'searchBahanBakuProduk',
+    'tableId' => 'tabelCariBahanBakuProduk',
+    'paginationId' => 'paginationBahanBakuProduk',
+    'clearBtnId' => 'clearSearchBahanBakuProduk',
 ])
 
 @include('backend.general-form.cari-parameter', [
-  'modalId' => 'modalCariParameterProduk',
-  'inputId' => 'searchParameterProduk',
-  'tableId' => 'tabelCariParameterProduk',
-  'paginationId' => 'paginationParameterProduk',
-  'clearBtnId' => 'clearSearchParameterProduk',
+    'modalId' => 'modalCariParameterProduk',
+    'inputId' => 'searchParameterProduk',
+    'tableId' => 'tabelCariParameterProduk',
+    'paginationId' => 'paginationParameterProduk',
+    'clearBtnId' => 'clearSearchParameterProduk',
 ])
 
 @include('backend.general-form.cari-mesin', [
-  'modalId' => 'modalCariMesinProdukTambah',
-  'inputId' => 'searchMesinProdukTambah',
-  'tableId' => 'tabelCariMesinProdukTambah',
-  'paginationId' => 'paginationMesinProdukTambah',
-  'clearBtnId' => 'clearSearchMesinProdukTambah',
+    'modalId' => 'modalCariMesinProdukTambah',
+    'inputId' => 'searchMesinProdukTambah',
+    'tableId' => 'tabelCariMesinProdukTambah',
+    'paginationId' => 'paginationMesinProdukTambah',
+    'clearBtnId' => 'clearSearchMesinProdukTambah',
 ])

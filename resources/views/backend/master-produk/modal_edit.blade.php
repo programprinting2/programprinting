@@ -13,27 +13,32 @@
         <div class="modal-body">
           <ul class="nav nav-tabs mb-3" id="EditProdukTabs" role="tablist">
             <li class="nav-item" role="presentation">
-              <button class="nav-link active" id="edit-tab-umum" data-bs-toggle="tab" data-bs-target="#edit-umum" type="button" role="tab">
+              <button class="nav-link active" id="edit-tab-umum" data-bs-toggle="tab" data-bs-target="#edit-umum"
+                type="button" role="tab">
                 <i data-feather="user" class="me-1 icon-sm"></i> Detail Produk
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-tab-spesifikasi-teknis" data-bs-toggle="tab" data-bs-target="#edit-spesifikasi-teknis" type="button" role="tab">
-                  <i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis
+              <button class="nav-link" id="edit-tab-spesifikasi-teknis" data-bs-toggle="tab"
+                data-bs-target="#edit-spesifikasi-teknis" type="button" role="tab">
+                <i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-tab-harga" data-bs-toggle="tab" data-bs-target="#edit-harga" type="button" role="tab">
+              <button class="nav-link" id="edit-tab-harga" data-bs-toggle="tab" data-bs-target="#edit-harga"
+                type="button" role="tab">
                 <i data-feather="map-pin" class="me-1 icon-sm"></i> Harga
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-tab-alur-produksi" data-bs-toggle="tab" data-bs-target="#edit-alur-produksi" type="button" role="tab">
+              <button class="nav-link" id="edit-tab-alur-produksi" data-bs-toggle="tab"
+                data-bs-target="#edit-alur-produksi" type="button" role="tab">
                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Alur Produksi
               </button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-tab-media-dokumen" data-bs-toggle="tab" data-bs-target="#edit-media-dokumen" type="button" role="tab">
+              <button class="nav-link" id="edit-tab-media-dokumen" data-bs-toggle="tab"
+                data-bs-target="#edit-media-dokumen" type="button" role="tab">
                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
               </button>
             </li>
@@ -44,18 +49,30 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label for="edit_nama_produk" class="form-label">Nama Produk <span class="text-danger"> *</span></label>
+                    <div class="col-md-4">
+                      <label for="edit_nama_produk" class="form-label">Nama Produk <span class="text-danger">
+                          *</span></label>
                       <input type="text" class="form-control" id="edit_nama_produk" name="nama_produk" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                      <label for="edit_jenis_produk" class="form-label">Jenis Produk <span class="text-danger">
+                          *</span></label>
+                      <select class="form-select" id="edit_jenis_produk" name="jenis_produk" required>
+                        <option value="" selected disabled>Pilih Jenis Produk</option>
+                        <option value="produk">Produk</option>
+                        <option value="jasa">Jasa</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
                       <label for="edit_kode_produk" class="form-label">Kode Produk</label>
                       <input type="text" class="form-control" id="edit_kode_produk" name="kode_produk" readonly>
                     </div>
                   </div>
+
                   <div class="row mb-3">
                     <div class="col-md-6">
-                      <label for="edit_kategori_utama" class="form-label">Kategori Utama <span class="text-danger"> *</span></label>
+                      <label for="edit_kategori_utama" class="form-label">Kategori Utama <span class="text-danger">
+                          *</span></label>
                       <div class="input-group">
                         <select class="form-select" id="edit_kategori_utama" name="kategori_utama_id" required>
                           <option value="" selected disabled>Pilih Kategori Utama</option>
@@ -76,7 +93,8 @@
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-6">
-                      <label for="edit_satuanBarang" class="form-label">Satuan<span class="text-danger"> *</span></label>
+                      <label for="edit_satuanBarang" class="form-label">Satuan<span class="text-danger">
+                          *</span></label>
                       <select class="form-select" id="edit_satuanBarang" name="satuan_id" required>
                         <option value="" selected disabled>Pilih satuan</option>
                         @foreach($satuanList as $detail)
@@ -88,11 +106,13 @@
                       <label class="form-label">Dimensi</label>
                       <div class="row">
                         <div class="col-md-6">
-                          <input type="number" class="form-control" id="edit_lebar" name="lebar" min="0" placeholder="Lebar (cm)">
+                          <input type="number" class="form-control" id="edit_lebar" name="lebar" min="0"
+                            placeholder="Lebar (cm)">
                           <small class="text-muted">Lebar (cm)</small>
                         </div>
                         <div class="col-md-6">
-                          <input type="number" class="form-control" id="edit_panjang" name="panjang" min="0" placeholder="Panjang (cm)">
+                          <input type="number" class="form-control" id="edit_panjang" name="panjang" min="0"
+                            placeholder="Panjang (cm)">
                           <small class="text-muted">Panjang (cm)</small>
                         </div>
                       </div>
@@ -100,20 +120,22 @@
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">Metode Penjualan</label>
-                        <div class="card p-2">
-                          <div class="form-check">
-                            <input class="form-check-input" type="radio" name="metode_penjualan" id="edit_jual_per_m2" value="m2">
-                            <label class="form-check-label" for="edit_jual_per_m2">Dijual per m<sup>2</sup></label>
-                          </div>
-                          <div class="form-check">
-                            <input class="form-check-input" type="radio" name="metode_penjualan" id="edit_jual_per_meter_lari" value="meter_lari">
-                            <label class="form-check-label" for="edit_jual_per_meter_lari">Dijual per meter lari</label>
-                          </div>
-                          <small class="text-muted">Produk dijual berdasarkan luas total (panjang × lebar)</small>
+                      <label class="form-label">Metode Penjualan</label>
+                      <div class="card p-2">
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="metode_penjualan" id="edit_jual_per_m2"
+                            value="m2">
+                          <label class="form-check-label" for="edit_jual_per_m2">Dijual per m<sup>2</sup></label>
                         </div>
+                        <div class="form-check">
+                          <input class="form-check-input" type="radio" name="metode_penjualan"
+                            id="edit_jual_per_meter_lari" value="meter_lari">
+                          <label class="form-check-label" for="edit_jual_per_meter_lari">Dijual per meter lari</label>
+                        </div>
+                        <small class="text-muted">Produk dijual berdasarkan luas total (panjang × lebar)</small>
                       </div>
-                    
+                    </div>
+
                   </div>
                   <div class="row mb-3">
                     <!-- HIDDEN INPUT UNTUK JSON -->
@@ -126,14 +148,16 @@
                     <input type="hidden" name="alur_produksi_json" id="edit_alur_produksi_json">
                     <input type="hidden" name="foto_pendukung_existing_json" id="edit_foto_pendukung_existing_json">
                     <input type="hidden" name="video_pendukung_existing_json" id="edit_video_pendukung_existing_json">
-                    <input type="hidden" name="dokumen_pendukung_existing_json" id="edit_dokumen_pendukung_existing_json">
+                    <input type="hidden" name="dokumen_pendukung_existing_json"
+                      id="edit_dokumen_pendukung_existing_json">
                     <input type="hidden" name="parameter_modal_json" id="edit_parameter_modal_json">
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-4">
                       <div class="form-check form-switch">
                         <input type="hidden" name="status_aktif" value="0">
-                        <input class="form-check-input" type="checkbox" id="edit_status_aktif" name="status_aktif" value="1">
+                        <input class="form-check-input" type="checkbox" id="edit_status_aktif" name="status_aktif"
+                          value="1">
                         <label class="form-check-label" for="edit_status_aktif">Status Aktif</label>
                         <div><small class="text-muted">Produk akan tampil di daftar produk aktif</small></div>
                       </div>
@@ -148,29 +172,31 @@
                 <div class="card-body">
                   <ul class="nav nav-tabs nav-tabs-line mb-3" id="editLineTab" role="tablist">
                     <li class="nav-item" role="presentation">
-                      <button class="nav-link active" id="edit-modal-tab" data-bs-toggle="tab" data-bs-target="#edit-modal-tab-pane" type="button" role="tab">Modal</button>
+                      <button class="nav-link active" id="edit-modal-tab" data-bs-toggle="tab"
+                        data-bs-target="#edit-modal-tab-pane" type="button" role="tab">Modal</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                      <button class="nav-link" id="edit-harga-jual-tab" data-bs-toggle="tab" data-bs-target="#edit-harga-jual-tab-pane" type="button" role="tab">Harga Jual</button>
+                      <button class="nav-link" id="edit-harga-jual-tab" data-bs-toggle="tab"
+                        data-bs-target="#edit-harga-jual-tab-pane" type="button" role="tab">Harga Jual</button>
                     </li>
                   </ul>
                   <div class="tab-content" id="editHargaTabContent">
                     <!-- Total Modal Keseluruhan -->
                     <div class="alert alert-primary d-flex align-items-center mb-3" role="alert">
-                        <div>
-                          <div class="fw-semibold mb-1">
-                            <i data-feather="info" class="me-2"></i>
-                            Total Modal Keseluruhan
-                            <span class="badge bg-light text-primary ms-2" id="editTotalItemModal">0 item</span>
-                          </div>
-                          <div class="fs-4 fw-bold" id="editTotalModalKeseluruhan">Rp 0</div>
-                          <div class="small text-muted mt-1">
-                            Bahan Baku: <span id="editTotalBahanBakuText" class="fw-bold">Rp 0</span>
-                            &nbsp;|&nbsp;
-                            Parameter: <span id="editTotalParameterText" class="fw-bold">Rp 0</span>
-                          </div>
+                      <div>
+                        <div class="fw-semibold mb-1">
+                          <i data-feather="info" class="me-2"></i>
+                          Total Modal Keseluruhan
+                          <span class="badge bg-light text-primary ms-2" id="editTotalItemModal">0 item</span>
                         </div>
-                    </div> 
+                        <div class="fs-4 fw-bold" id="editTotalModalKeseluruhan">Rp 0</div>
+                        <div class="small text-muted mt-1">
+                          Bahan Baku: <span id="editTotalBahanBakuText" class="fw-bold">Rp 0</span>
+                          &nbsp;|&nbsp;
+                          Parameter: <span id="editTotalParameterText" class="fw-bold">Rp 0</span>
+                        </div>
+                      </div>
+                    </div>
                     <!-- Tab Modal -->
                     <div class="tab-pane fade show active" id="edit-modal-tab-pane" role="tabpanel">
                       <!-- Bahan Baku -->
@@ -235,7 +261,7 @@
                           </table>
                         </div>
                       </div>
-                      
+
                     </div>
                     <!-- Tab Harga Jual Dinamis -->
                     <div class="tab-pane fade" id="edit-harga-jual-tab-pane" role="tabpanel">
@@ -247,7 +273,8 @@
                               <span class="fw-semibold">Harga Umum (Bertingkat)</span>
                               <div class="small text-muted">Atur harga berdasarkan quantity minimum</div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="editBtnTambahHargaBertingkat">+ Tambah Tingkat</button>
+                            <button type="button" class="btn btn-sm btn-outline-primary"
+                              id="editBtnTambahHargaBertingkat">+ Tambah Tingkat</button>
                           </div>
                           <div class="table-responsive">
                             <table class="table table-bordered align-middle mb-0" id="editTabelHargaBertingkat">
@@ -276,7 +303,8 @@
                               <span class="fw-semibold">Harga Reseller (Bertingkat)</span>
                               <div class="small text-muted">Harga khusus untuk partner reseller</div>
                             </div>
-                            <button type="button" class="btn btn-sm btn-outline-warning" id="editBtnTambahHargaReseller">+ Tambah Tingkat</button>
+                            <button type="button" class="btn btn-sm btn-outline-warning"
+                              id="editBtnTambahHargaReseller">+ Tambah Tingkat</button>
                           </div>
                           <div class="table-responsive">
                             <table class="table table-bordered align-middle mb-0" id="editTabelHargaReseller">
@@ -328,8 +356,11 @@
               <div class="card mb-3">
                 <div class="card-body">
                   <h6 class="mb-3">Media (Foto & Video)</h6>
-                  <div class="dropzone-area-media mb-3 text-center p-4 border-2 border-dashed rounded bg-light position-relative" id="editMediaDropzoneArea" style="cursor:pointer;">
-                    <input type="file" class="d-none" id="editMediaPendukungInput" name="media_pendukung_new[]" multiple accept="image/*,video/*">
+                  <div
+                    class="dropzone-area-media mb-3 text-center p-4 border-2 border-dashed rounded bg-light position-relative"
+                    id="editMediaDropzoneArea" style="cursor:pointer;">
+                    <input type="file" class="d-none" id="editMediaPendukungInput" name="media_pendukung_new[]" multiple
+                      accept="image/*,video/*">
                     <div class="dz-message text-muted">
                       <i data-feather="upload-cloud" class="icon-lg mb-2"></i><br>
                       <span>Seret & lepas foto/video di sini atau klik untuk memilih file</span>
@@ -358,9 +389,11 @@
                 <div class="card-body">
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <h6 class="mb-0">Dokumen Pendukung</h6>
-                    <button type="button" class="btn btn-sm btn-primary" id="editTambahDokumen"><i data-feather="plus" class="me-1 icon-sm"></i> Tambah Dokumen</button>
+                    <button type="button" class="btn btn-sm btn-primary" id="editTambahDokumen"><i data-feather="plus"
+                        class="me-1 icon-sm"></i> Tambah Dokumen</button>
                   </div>
-                  <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan dokumen pendukung seperti spesifikasi teknis, sertifikat, atau laporan uji.</p>
+                  <p class="text-muted mb-3" style="font-size: 0.85rem;">Tambahkan dokumen pendukung seperti spesifikasi
+                    teknis, sertifikat, atau laporan uji.</p>
                   <div class="table-responsive">
                     <table class="table table-bordered mb-0" id="editDokumenPendukungTable">
                       <thead>
@@ -380,43 +413,44 @@
                       </tbody>
                     </table>
                   </div>
-                  <input type="file" class="d-none" id="editDokumenPendukungInput" name="dokumen_pendukung_new[]" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
+                  <input type="file" class="d-none" id="editDokumenPendukungInput" name="dokumen_pendukung_new[]"
+                    multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.zip,.rar,.txt,.csv,.jpg,.jpeg,.png,.gif">
                 </div>
               </div>
             </div>
 
             <!-- Tab Spesifikasi Teknis -->
             <div class="tab-pane fade" id="edit-spesifikasi-teknis" role="tabpanel">
-                <div class="card mb-0">
-                    <div class="card-body">
-                        <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
-                            <i data-feather="info" class="me-2"></i>
-                            <div>
-                                <strong>Petunjuk:</strong>
-                                <ul class="mb-0">
-                                    <li>Tambahkan spesifikasi teknis sesuai kebutuhan produk</li>
-                                    <li>Contoh: Dimensi, Berat, Warna, Material, dll</li>
-                                </ul>
-                            </div>
-                        </div>
-                        <div class="card mb-3">
-                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                                <h6 class="mb-0">Spesifikasi Teknis</h6>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="edit_tambah_spesifikasi_produk">
-                                    <i data-feather="plus" class="icon-sm"></i> Tambah Spesifikasi
-                                </button>
-                            </div>
-                            <div class="card-body">
-                                <div id="edit_spesifikasi_produk_container">
-                                    <div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">
-                                        Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
-                                    </div>
-                                </div>
-                                <input type="hidden" name="spesifikasi_teknis_json" id="edit_spesifikasi_teknis_json" value="[]">
-                            </div>
-                        </div>
+              <div class="card mb-0">
+                <div class="card-body">
+                  <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
+                    <i data-feather="info" class="me-2"></i>
+                    <div>
+                      <strong>Petunjuk:</strong>
+                      <ul class="mb-0">
+                        <li>Tambahkan spesifikasi teknis sesuai kebutuhan produk</li>
+                        <li>Contoh: Dimensi, Berat, Warna, Material, dll</li>
+                      </ul>
                     </div>
+                  </div>
+                  <div class="card mb-3">
+                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                      <h6 class="mb-0">Spesifikasi Teknis</h6>
+                      <button type="button" class="btn btn-outline-primary btn-sm" id="edit_tambah_spesifikasi_produk">
+                        <i data-feather="plus" class="icon-sm"></i> Tambah Spesifikasi
+                      </button>
+                    </div>
+                    <div class="card-body">
+                      <div id="edit_spesifikasi_produk_container">
+                        <div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">
+                          Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.
+                        </div>
+                      </div>
+                      <input type="hidden" name="spesifikasi_teknis_json" id="edit_spesifikasi_teknis_json" value="[]">
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
           </div>
         </div>
@@ -427,10 +461,11 @@
       </form>
     </div>
   </div>
-</div> 
+</div>
 
 <!-- Modal Preview Media (Foto/Video) -->
-<div class="modal fade" id="editMediaPreviewModal" tabindex="-1" aria-labelledby="editMediaPreviewModalLabel" aria-hidden="true">
+<div class="modal fade" id="editMediaPreviewModal" tabindex="-1" aria-labelledby="editMediaPreviewModalLabel"
+  aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
@@ -442,7 +477,7 @@
       </div>
     </div>
   </div>
-</div> 
+</div>
 
 <!-- Modal Cari Bahan Baku untuk Edit -->
 @include('backend.general-form.cari-bahanbaku', [
@@ -459,4 +494,4 @@
   'tableId' => 'tabelCariMesinProdukEdit',
   'paginationId' => 'paginationCariMesinProdukEdit',
   'clearBtnId' => 'clearSearchMesinProdukEdit',
-]) 
+])
