@@ -209,12 +209,7 @@ $(function () {
 
     // Helper function untuk menutup modal cari mesin
     function closeModalCariMesinTambah() {
-        const modal = bootstrap.Modal.getInstance(
-            document.getElementById("modalCariMesinProdukTambah")
-        );
-        if (modal) {
-            modal.hide();
-        }
+        $("#modalCariMesinProdukTambah").modal('hide');
     }
 
     // Named function untuk handle mesinDipilih - mencegah duplicate listener
@@ -462,7 +457,10 @@ $(function () {
         );
         $("#totalModalBahan").text("Rp " + totalBahan.toLocaleString("id-ID"));
         updateTotalItemModal();
-    }
+
+        renderHargaBertingkat();
+        renderHargaReseller();
+    }   
 
     // Jumlah item total
     function updateTotalItemModal() {
@@ -561,15 +559,11 @@ $(function () {
         isModalForParameter = false;
 
         // Buka modal cari mesin
-        var modalMesin = new bootstrap.Modal(
-            document.getElementById("modalCariMesinProdukTambah"),
-            {
-                backdrop: "static",
-                keyboard: false,
-                focus: true,
-            }
-        );
-        modalMesin.show();
+        $("#modalCariMesinProdukTambah").modal({
+            backdrop: "static",
+            keyboard: false,
+            focus: true
+        });
 
         // Tambahkan class stack untuk modal
         setTimeout(function () {
@@ -692,7 +686,7 @@ $(function () {
         hargaBertingkatList.forEach((row, idx) => {
             const profitRp =
                 row.harga -
-                (parseInt($("#totalModalBahan").text().replace(/[^\d]/g, "")) ||
+                (parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
                     0);
             const profitPersen =
                 row.harga > 0 ? ((profitRp / row.harga) * 100).toFixed(1) : 0;
@@ -734,7 +728,7 @@ $(function () {
         hargaResellerList.forEach((row, idx) => {
             const profitRp =
                 row.harga -
-                (parseInt($("#totalModalBahan").text().replace(/[^\d]/g, "")) ||
+                (parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
                     0);
             const profitPersen =
                 row.harga > 0 ? ((profitRp / row.harga) * 100).toFixed(1) : 0;
@@ -841,9 +835,9 @@ $(function () {
     });
 
     function updateProfitCalculation(tableSelector, idx, rowData) {
-        const totalModalBahan =
-            parseInt($("#totalModalBahan").text().replace(/[^\d]/g, "")) || 0;
-        const profitRp = rowData.harga - totalModalBahan;
+        const totalModalKeseluruhan =
+            parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, "")) || 0;
+        const profitRp = rowData.harga - totalModalKeseluruhan;
         const profitPersen =
             rowData.harga > 0
                 ? ((profitRp / rowData.harga) * 100).toFixed(1)

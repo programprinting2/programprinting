@@ -150,6 +150,22 @@
                     </li>
                   </ul>
                   <div class="tab-content" id="editHargaTabContent">
+                    <!-- Total Modal Keseluruhan -->
+                    <div class="alert alert-primary d-flex align-items-center mb-3" role="alert">
+                        <div>
+                          <div class="fw-semibold mb-1">
+                            <i data-feather="info" class="me-2"></i>
+                            Total Modal Keseluruhan
+                            <span class="badge bg-light text-primary ms-2" id="editTotalItemModal">0 item</span>
+                          </div>
+                          <div class="fs-4 fw-bold" id="editTotalModalKeseluruhan">Rp 0</div>
+                          <div class="small text-muted mt-1">
+                            Bahan Baku: <span id="editTotalBahanBakuText" class="fw-bold">Rp 0</span>
+                            &nbsp;|&nbsp;
+                            Parameter: <span id="editTotalParameterText" class="fw-bold">Rp 0</span>
+                          </div>
+                        </div>
+                    </div> 
                     <!-- Tab Modal -->
                     <div class="tab-pane fade show active" id="edit-modal-tab-pane" role="tabpanel">
                       <!-- Bahan Baku -->
@@ -214,22 +230,7 @@
                           </table>
                         </div>
                       </div>
-                      <!-- Total Modal Keseluruhan -->
-                      <div class="alert alert-primary d-flex align-items-center mb-0" role="alert">
-                        <div>
-                          <div class="fw-semibold mb-1">
-                            <i data-feather="info" class="me-2"></i>
-                            Total Modal Keseluruhan
-                            <span class="badge bg-light text-primary ms-2" id="editTotalItemModal">0 item</span>
-                          </div>
-                          <div class="fs-4 fw-bold" id="editTotalModalKeseluruhan">Rp 0</div>
-                          <div class="small text-muted mt-1">
-                            Bahan Baku: <span id="editTotalBahanBakuText" class="fw-bold">Rp 0</span>
-                            &nbsp;|&nbsp;
-                            Parameter: <span id="editTotalParameterText" class="fw-bold">Rp 0</span>
-                          </div>
-                        </div>
-                      </div>
+                      
                     </div>
                     <!-- Tab Harga Jual Dinamis -->
                     <div class="tab-pane fade" id="edit-harga-jual-tab-pane" role="tabpanel">

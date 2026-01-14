@@ -730,7 +730,7 @@ $(function () {
             const profitRp =
                 row.harga -
                 (parseInt(
-                    $("#editTotalModalBahan").text().replace(/[^\d]/g, "")
+                    $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")
                 ) || 0);
             const profitPersen =
                 row.harga > 0 ? ((profitRp / row.harga) * 100).toFixed(1) : 0;
@@ -767,7 +767,7 @@ $(function () {
             const profitRp =
                 row.harga -
                 (parseInt(
-                    $("#editTotalModalBahan").text().replace(/[^\d]/g, "")
+                    $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")
                 ) || 0);
             const profitPersen =
                 row.harga > 0 ? ((profitRp / row.harga) * 100).toFixed(1) : 0;
@@ -874,10 +874,10 @@ $(function () {
     });
 
     function updateEditProfitCalculation(tableSelector, idx, rowData) {
-        const totalModalBahan =
-            parseInt($("#editTotalModalBahan").text().replace(/[^\d]/g, "")) ||
+        const totalModalKeseluruhan =
+            parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
             0;
-        const profitRp = rowData.harga - totalModalBahan;
+        const profitRp = rowData.harga - totalModalKeseluruhan;
         const profitPersen =
             rowData.harga > 0
                 ? ((profitRp / rowData.harga) * 100).toFixed(1)
@@ -1091,7 +1091,8 @@ $(function () {
                     "id-ID"
                 )}</span>`
             );
-        hitungTotalModalBahanEdit();
+        // hitungTotalModalBahanEdit();
+        updateTotalModalKeseluruhanEdit();
     });
 
     $(document).on("blur", ".jumlah_bahan_edit", function () {

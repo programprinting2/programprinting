@@ -126,7 +126,6 @@
                                     <input type="hidden" name="video_pendukung_json" id="video_pendukung_json">
                                     <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
                                     <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
-                                    <input type="hidden" name="parameter_modal_json" id="parameter_modal_json">
                                 </div>
                                 <div class="row mb-3">
                                     <div class="col-md-4">
@@ -237,6 +236,22 @@
                                         </li>
                                     </ul>
                                     <div class="tab-content" id="hargaTabContent">
+                                        <!-- Total Modal Keseluruhan -->
+                                            <div class="alert alert-primary d-flex align-items-center mb-3" role="alert">
+                                                <div>
+                                                    <div class="fw-semibold mb-1">
+                                                        <i data-feather="info" class="me-2"></i>
+                                                        Total Modal Keseluruhan
+                                                        <span class="badge bg-light text-primary ms-2" id="totalItemModal">0 item</span>
+                                                    </div>
+                                                    <div class="fs-4 fw-bold" id="totalModalKeseluruhan">Rp 0</div>
+                                                    <div class="small text-muted mt-1">
+                                                        Bahan Baku: <span id="totalBahanBakuText" class="fw-bold">Rp 0</span>
+                                                        &nbsp;|&nbsp;
+                                                        Parameter: <span id="totalParameterText" class="fw-bold">Rp 0</span>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         <!-- Tab Modal -->
                                         <div class="tab-pane fade show active" id="modal-tab-pane" role="tabpanel">
                                             <!-- Bahan Baku -->
@@ -296,26 +311,10 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="6" class="text-center text-muted">Pilih kategori parameter</td>
+                                                                <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
-                                                </div>
-                                            </div>
-                                            <!-- Total Modal Keseluruhan -->
-                                            <div class="alert alert-primary d-flex align-items-center mb-0" role="alert">
-                                                <div>
-                                                    <div class="fw-semibold mb-1">
-                                                        <i data-feather="info" class="me-2"></i>
-                                                        Total Modal Keseluruhan
-                                                        <span class="badge bg-light text-primary ms-2" id="totalItemModal">0 item</span>
-                                                    </div>
-                                                    <div class="fs-4 fw-bold" id="totalModalKeseluruhan">Rp 0</div>
-                                                    <div class="small text-muted mt-1">
-                                                        Bahan Baku: <span id="totalBahanBakuText" class="fw-bold">Rp 0</span>
-                                                        &nbsp;|&nbsp;
-                                                        Parameter: <span id="totalParameterText" class="fw-bold">Rp 0</span>
-                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -585,18 +584,6 @@
                                 total += harga * jumlah;
                             });
                             $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
-                            $('#totalBahanBakuText').text('Rp ' + total.toLocaleString('id-ID'));
-                            hitungTotalModalKeseluruhan();
-                        }
-
-                        // Hitung total modal keseluruhan
-                        function hitungTotalModalKeseluruhan() {
-                            const totalBahan = parseInt($('#totalModalBahan').text().replace(/[^\d]/g, '')) || 0;
-                            const totalParameter = parseInt($('#totalParameterText').text().replace(/[^\d]/g, '')) || 0;
-                            const total = totalBahan + totalParameter;
-
-                            $('#totalModalKeseluruhan').text('Rp ' + total.toLocaleString('id-ID'));
-                            $('#totalItemModal').text(($('#tabelBahanBaku tbody tr[data-id]').length + $('#tabelParameterModal tbody tr[data-id]').length) + ' item');
                         }
                         </script>
                         @endpush
@@ -619,10 +606,19 @@
   'paginationId' => 'paginationBahanBakuProduk',
   'clearBtnId' => 'clearSearchBahanBakuProduk',
 ])
+
+@include('backend.general-form.cari-parameter', [
+  'modalId' => 'modalCariParameterProduk',
+  'inputId' => 'searchParameterProduk',
+  'tableId' => 'tabelCariParameterProduk',
+  'paginationId' => 'paginationParameterProduk',
+  'clearBtnId' => 'clearSearchParameterProduk',
+])
+
 @include('backend.general-form.cari-mesin', [
   'modalId' => 'modalCariMesinProdukTambah',
   'inputId' => 'searchMesinProdukTambah',
   'tableId' => 'tabelCariMesinProdukTambah',
-  'paginationId' => 'paginationCariMesinProdukTambah',
+  'paginationId' => 'paginationMesinProdukTambah',
   'clearBtnId' => 'clearSearchMesinProdukTambah',
 ])
