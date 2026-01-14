@@ -1237,6 +1237,95 @@ $(function () {
             updateEditProfitCalculation("#editTabelHargaReseller", idx, row);
         });
     }
+
+    // === Spesifikasi Teknis Dinamis (Edit Produk) ===
+    $('#edit_tambah_spesifikasi_produk').on('click', function() {
+        tambahEditSpesifikasiBaris('#edit_spesifikasi_produk_container');
+        $('#edit_no_spesifikasi_message').hide();
+    });
+
+    // Fungsi untuk menambah baris spesifikasi edit
+    function tambahEditSpesifikasiBaris(containerId) {
+        var newSpesifikasi = `
+            <div class="row mb-2 edit-spesifikasi-item align-items-center">
+                <div class="col-md-4 mb-1">
+                    <input type="text" class="form-control form-control-sm" 
+                        name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi">
+                </div>
+                <div class="col-md-4 mb-1">
+                    <input type="text" class="form-control form-control-sm" 
+                        name="edit_spesifikasi_nilai[]" placeholder="Nilai">
+                </div>
+                <div class="col-md-3 mb-1">
+                    <input type="text" class="form-control form-control-sm" 
+                        name="edit_spesifikasi_satuan[]" placeholder="Satuan">
+                </div>
+                <div class="col-md-1 mb-1 text-end">
+                    <button type="button" class="btn btn-outline-danger btn-sm edit-remove-spesifikasi">
+                        <i data-feather="trash-2" class="icon-sm"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        $(containerId).append(newSpesifikasi);
+        feather.replace();
+    }
+
+    // Event handler untuk tombol hapus spesifikasi edit
+    $(document).on('click', '.edit-remove-spesifikasi', function() {
+        $(this).closest('.edit-spesifikasi-item').remove();
+        
+        // Cek apakah masih ada spesifikasi yang tersisa
+        var container = $('#edit_spesifikasi_produk_container');
+        if (container.find('.edit-spesifikasi-item').length === 0) {
+            $('#edit_no_spesifikasi_message').show();
+        }
+    });
+
+    // Fungsi untuk memuat spesifikasi teknis dari data produk yang akan diedit
+    function loadEditSpesifikasiTeknis(spesifikasiJson = []) {
+        const spesifikasiData = Array.isArray(spesifikasiJson) ? spesifikasiJson : [];
+        
+        // Render existing spesifikasi dari data yang dimuat
+        const container = $('#edit_spesifikasi_produk_container');
+        container.empty();
+        
+        if (spesifikasiData.length === 0) {
+            container.append('<div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
+            return;
+        }
+        
+        spesifikasiData.forEach((item) => {
+            var existingSpesifikasi = `
+                <div class="row mb-2 edit-spesifikasi-item align-items-center">
+                    <div class="col-md-4 mb-1">
+                        <input type="text" class="form-control form-control-sm" 
+                            name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi" 
+                            value="${item.nama || ''}">
+                    </div>
+                    <div class="col-md-4 mb-1">
+                        <input type="text" class="form-control form-control-sm" 
+                            name="edit_spesifikasi_nilai[]" placeholder="Nilai" 
+                            value="${item.nilai || ''}">
+                    </div>
+                    <div class="col-md-3 mb-1">
+                        <input type="text" class="form-control form-control-sm" 
+                            name="edit_spesifikasi_satuan[]" placeholder="Satuan" 
+                            value="${item.satuan || ''}">
+                    </div>
+                    <div class="col-md-1 mb-1 text-end">
+                        <button type="button" class="btn btn-outline-danger btn-sm edit-remove-spesifikasi">
+                            <i data-feather="trash-2" class="icon-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            container.append(existingSpesifikasi);
+        });
+        
+        feather.replace();
+    }
+
     $("#editProdukForm")
         .off("submit")
         .on("submit", function (e) {
@@ -1437,79 +1526,4 @@ $(function () {
             renderDocumentsPreview();
         }
     });
-
-        // === Spesifikasi Teknis Dinamis (Edit Produk) ===
-        function renderEditSpesifikasiTeknis() {
-            const container = $('#edit_spesifikasi_produk_container');
-            container.empty();
-            if (window.editSpesifikasiTeknis && window.editSpesifikasiTeknis.length === 0) {
-                container.append('<div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
-                return;
-            }
-            
-            // Render existing items
-            if (window.editSpesifikasiTeknis) {
-                window.editSpesifikasiTeknis.forEach((item, idx) => {
-                    container.append(`
-                        <div class="row mb-2 edit-spesifikasi-item align-items-center">
-                            <div class="col-md-4 mb-1">
-                                <input type="text" class="form-control form-control-sm" 
-                                    name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi" 
-                                    value="${item.nama || ''}">
-                            </div>
-                            <div class="col-md-4 mb-1">
-                                <input type="text" class="form-control form-control-sm" 
-                                    name="edit_spesifikasi_nilai[]" placeholder="Nilai" 
-                                    value="${item.nilai || ''}">
-                            </div>
-                            <div class="col-md-3 mb-1">
-                                <input type="text" class="form-control form-control-sm" 
-                                    name="edit_spesifikasi_satuan[]" placeholder="Satuan" 
-                                    value="${item.satuan || ''}">
-                            </div>
-                            <div class="col-md-1 mb-1 text-end">
-                                <button type="button" class="btn btn-outline-danger btn-sm edit-remove-spesifikasi">
-                                    <i data-feather="trash-2" class="icon-sm"></i>
-                                </button>
-                            </div>
-                        </div>
-                    `);
-                });
-            }
-            feather.replace();
-        }
-
-        window.editSpesifikasiTeknis = [];
-
-        // Event handler untuk tombol tambah spesifikasi di edit modal
-        $('#edit_tambah_spesifikasi_produk').on('click', function() {
-            window.editSpesifikasiTeknis.push({nama:'', nilai:'', satuan:''});
-            renderEditSpesifikasiTeknis();
-        });
-
-        // Event handler untuk tombol hapus spesifikasi di edit modal
-        $(document).on('click', '.edit-remove-spesifikasi', function() {
-            $(this).closest('.edit-spesifikasi-item').remove();
-        });
-
-        // Reset spesifikasi saat edit modal ditutup
-        $('#editProdukModal').on('hidden.bs.modal', function() {
-            window.editSpesifikasiTeknis = [];
-            renderEditSpesifikasiTeknis();
-            $('#edit_spesifikasi_teknis_json').val('[]');
-        });
-
-        // Fungsi untuk memuat spesifikasi teknis dari data produk yang akan diedit
-        function loadEditSpesifikasiTeknis(spesifikasiJson = []) {
-            try {
-                const spesifikasiData = Array.isArray(spesifikasiJson) ? spesifikasiJson : [];
-                window.editSpesifikasiTeknis = spesifikasiData;
-                renderEditSpesifikasiTeknis();
-            } catch (error) {
-                console.error('Error loading spesifikasi data:', error);
-                window.editSpesifikasiTeknis = [];
-                renderEditSpesifikasiTeknis();
-            }
-        }
-
 });

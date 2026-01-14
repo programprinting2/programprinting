@@ -443,23 +443,9 @@ function loadBahanBakuData(id) {
     }) : [];
     renderEditLinkPendukung();
 
-    // === Spesifikasi Teknis Dinamis (Edit) ===
-    renderEditSpesifikasiTeknis();
-    loadEditSpesifikasiTeknis(data.detail_spesifikasi_json);
-  });
-}
+    loadEditSpesifikasiBahanBaku('#edit_detail_spesifikasi_container', data.detail_spesifikasi_json);
 
-// Fungsi untuk memisahkan file ke foto/video
-function handleEditMediaFiles(files) {
-  Array.from(files).forEach(file => {
-    if (file.type.startsWith('image/')) {
-      selectedEditPhotos.push(file);
-    } else if (file.type.startsWith('video/')) {
-      selectedEditVideos.push(file);
-    }
   });
-  renderEditPhotosPreview();
-  renderEditVideosPreview();
 }
 
 // Event handler drag-and-drop area
@@ -771,62 +757,121 @@ function prepareFormData(formData) {
   return formData;
 }
 
-// === Spesifikasi Teknis Dinamis (Edit) ===
-function renderEditSpesifikasiTeknis() {
-  const container = $('#edit_detail_spesifikasi_container');
-  container.empty();
-  if (window.editDetailSpesifikasi.length === 0) {
-    container.append('<div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
-    return;
-  }
-  window.editDetailSpesifikasi.forEach((item, idx) => {
-    container.append(`
-      <div class="row mb-2 detail-item align-items-center">
-        <div class="col-md-4 mb-1"><input type="text" class="form-control form-control-sm" name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi" value="${item.nama || ''}"></div>
-        <div class="col-md-4 mb-1"><input type="text" class="form-control form-control-sm" name="edit_spesifikasi_nilai[]" placeholder="Nilai" value="${item.nilai || ''}"></div>
-        <div class="col-md-3 mb-1"><input type="text" class="form-control form-control-sm" name="edit_spesifikasi_satuan[]" placeholder="Satuan" value="${item.satuan || ''}"></div>
-        <div class="col-md-1 mb-1 text-end"><button type="button" class="btn btn-outline-danger btn-sm remove-edit-detail-spesifikasi" data-index="${idx}"><i data-feather="trash-2" class="icon-sm"></i></button></div>
-      </div>
-    `);
-  });
-  feather.replace();
-}
-window.editDetailSpesifikasi = [];
-$('#edit_tambah_detail_spesifikasi').on('click', function() {
-  window.editDetailSpesifikasi.push({nama:'',nilai:'',satuan:''});
-  renderEditSpesifikasiTeknis();
-});
-$(document).on('click', '.remove-edit-detail-spesifikasi', function() {
-  const idx = $(this).data('index');
-  window.editDetailSpesifikasi.splice(idx, 1);
-  renderEditSpesifikasiTeknis();
-});
-// Saat load data edit, isi field dinamis dari JSON
-function loadEditSpesifikasiTeknis(json) {
-  window.editDetailSpesifikasi = Array.isArray(json) ? [...json] : [];
-  renderEditSpesifikasiTeknis();
-}
 // Serialisasi ke hidden sebelum submit
 $('#editForm').on('submit', function() {
-  // ... existing code ...
   // Ambil data dari form dinamis
   const spesifikasiArr = [];
   $('#edit_detail_spesifikasi_container .detail-item').each(function() {
-    const nama = $(this).find('input[name="edit_spesifikasi_nama[]"]').val();
-    const nilai = $(this).find('input[name="edit_spesifikasi_nilai[]"]').val();
-    const satuan = $(this).find('input[name="edit_spesifikasi_satuan[]"]').val();
-    if (nama && nilai) {
-      spesifikasiArr.push({nama, nilai, satuan});
-    }
+      const nama = $(this).find('input[name="edit_spesifikasi_nama[]"]').val();
+      const nilai = $(this).find('input[name="edit_spesifikasi_nilai[]"]').val();
+      const satuan = $(this).find('input[name="edit_spesifikasi_satuan[]"]').val();
+      if (nama && nilai) {
+          spesifikasiArr.push({nama, nilai, satuan});
+      }
   });
+
   $('#edit_detail_spesifikasi_json').val(JSON.stringify(spesifikasiArr));
-  // ... existing code ...
 });
 // Reset saat modal ditutup
 $('#editModal').on('hidden.bs.modal', function () {
   window.editDetailSpesifikasi = [];
-  renderEditSpesifikasiTeknis();
 });
+
+// === Spesifikasi Teknis Dinamis (Edit Bahan Baku) ===
+$('#edit_tambah_detail_spesifikasi').on('click', function() {
+  tambahEditSpesifikasiBahanBaku('#edit_detail_spesifikasi_container');
+  $('#edit_no_spesifikasi_message').hide();
+});
+
+// Fungsi untuk menambah baris spesifikasi edit bahan baku
+function tambahEditSpesifikasiBahanBaku(containerId) {
+  var newSpesifikasi = `
+      <div class="row mb-2 detail-item align-items-center">
+          <div class="col-md-4 mb-1">
+              <input type="text" class="form-control form-control-sm" 
+                     name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi">
+          </div>
+          <div class="col-md-4 mb-1">
+              <input type="text" class="form-control form-control-sm" 
+                     name="edit_spesifikasi_nilai[]" placeholder="Nilai">
+          </div>
+          <div class="col-md-3 mb-1">
+              <input type="text" class="form-control form-control-sm" 
+                     name="edit_spesifikasi_satuan[]" placeholder="Satuan">
+          </div>
+          <div class="col-md-1 mb-1 text-end">
+              <button type="button" class="btn btn-outline-danger btn-sm remove-edit-detail-spesifikasi">
+                  <i data-feather="trash-2" class="icon-sm"></i>
+              </button>
+          </div>
+      </div>
+  `;
+  $(containerId).append(newSpesifikasi);
+  feather.replace();
+}
+
+// Event handler untuk tombol hapus spesifikasi edit bahan baku
+$(document).on('click', '.remove-edit-detail-spesifikasi', function() {
+  $(this).closest('.detail-item').remove();
+  
+  // Cek container dan tampilkan pesan kosong jika perlu
+  var container = $(this).closest('#edit_detail_spesifikasi_container, [id^="edit_detail_spesifikasi_container"]');
+  if (container.find('.detail-item').length === 0) {
+      if (container.attr('id') === 'edit_detail_spesifikasi_container') {
+          $('#edit_no_spesifikasi_message').show();
+      } else {
+          var id = container.attr('id').replace('edit_detail_spesifikasi_container', '');
+          $('#edit_no_spesifikasi_message' + id).show();
+      }
+  }
+});
+
+// Fungsi untuk memuat spesifikasi teknis dari data bahan baku yang akan diedit
+function loadEditSpesifikasiBahanBaku(containerId, spesifikasiData = []) {
+  const container = $(containerId);
+  container.empty();
+  
+  if (!Array.isArray(spesifikasiData) || spesifikasiData.length === 0) {
+      var messageId = containerId.replace('#edit_detail_spesifikasi_container', '#edit_no_spesifikasi_message');
+      if (messageId === '#edit_no_spesifikasi_message') {
+          $('#edit_no_spesifikasi_message').show();
+      } else {
+          var id = containerId.replace('#edit_detail_spesifikasi_container', '');
+          $('#edit_no_spesifikasi_message' + id).show();
+      }
+      return;
+  }
+  
+  spesifikasiData.forEach((item) => {
+      var existingSpesifikasi = `
+          <div class="row mb-2 detail-item align-items-center">
+              <div class="col-md-4 mb-1">
+                  <input type="text" class="form-control form-control-sm" 
+                         name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi" 
+                         value="${item.nama || ''}">
+              </div>
+              <div class="col-md-4 mb-1">
+                  <input type="text" class="form-control form-control-sm" 
+                         name="edit_spesifikasi_nilai[]" placeholder="Nilai" 
+                         value="${item.nilai || ''}">
+              </div>
+              <div class="col-md-3 mb-1">
+                  <input type="text" class="form-control form-control-sm" 
+                         name="edit_spesifikasi_satuan[]" placeholder="Satuan" 
+                         value="${item.satuan || ''}">
+              </div>
+              <div class="col-md-1 mb-1 text-end">
+                  <button type="button" class="btn btn-outline-danger btn-sm remove-edit-detail-spesifikasi">
+                      <i data-feather="trash-2" class="icon-sm"></i>
+                  </button>
+              </div>
+          </div>
+      `;
+      container.append(existingSpesifikasi);
+  });
+  
+  feather.replace();
+}
 
 // Fungsi untuk generate <option> satuan dari window.satuanList
 function getSatuanOptionsFromList() {

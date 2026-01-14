@@ -18,6 +18,11 @@
               </button>
             </li>
             <li class="nav-item" role="presentation">
+              <button class="nav-link" id="edit-tab-spesifikasi-teknis" data-bs-toggle="tab" data-bs-target="#edit-spesifikasi-teknis" type="button" role="tab">
+                  <i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
               <button class="nav-link" id="edit-tab-harga" data-bs-toggle="tab" data-bs-target="#edit-harga" type="button" role="tab">
                 <i data-feather="map-pin" class="me-1 icon-sm"></i> Harga
               </button>
@@ -30,11 +35,6 @@
             <li class="nav-item" role="presentation">
               <button class="nav-link" id="edit-tab-media-dokumen" data-bs-toggle="tab" data-bs-target="#edit-media-dokumen" type="button" role="tab">
                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button class="nav-link" id="edit-tab-spesifikasi-teknis" data-bs-toggle="tab" data-bs-target="#edit-spesifikasi-teknis" type="button" role="tab">
-                  <i data-feather="tool" class="me-1 icon-sm"></i> Spesifikasi Teknis
               </button>
             </li>
           </ul>

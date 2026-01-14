@@ -619,56 +619,49 @@ $(document).ready(function() {
   // Panggil renderLinkPendukung saat dokumen siap
   renderLinkPendukung();
 
-  // === Spesifikasi Teknis Dinamis (Tambah) ===
-  function renderSpesifikasiTeknis() {
-    const container = $('#detail_spesifikasi_container');
-    container.empty();
-    if (window.detailSpesifikasi.length === 0) {
-      container.append('<div class="text-muted text-center py-3" id="no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
-      return;
-    }
-    window.detailSpesifikasi.forEach((item, idx) => {
-      container.append(`
-        <div class="row mb-2 detail-item align-items-center">
-          <div class="col-md-4 mb-1"><input type="text" class="form-control form-control-sm spesifikasi-nama" data-index="${idx}" name="spesifikasi_nama[]" placeholder="Nama Spesifikasi" value="${item.nama || ''}"></div>
-          <div class="col-md-4 mb-1"><input type="text" class="form-control form-control-sm spesifikasi-nilai" data-index="${idx}" name="spesifikasi_nilai[]" placeholder="Nilai" value="${item.nilai || ''}"></div>
-          <div class="col-md-3 mb-1"><input type="text" class="form-control form-control-sm spesifikasi-satuan" data-index="${idx}" name="spesifikasi_satuan[]" placeholder="Satuan" value="${item.satuan || ''}"></div>
-          <div class="col-md-1 mb-1 text-end"><button type="button" class="btn btn-outline-danger btn-sm remove-detail-spesifikasi" data-index="${idx}"><i data-feather="trash-2" class="icon-sm"></i></button></div>
-        </div>
-      `);
-    });
-    feather.replace();
-    // Tambahkan event handler input agar array sinkron
-    container.find('.spesifikasi-nama').on('input', function() {
-      const idx = $(this).data('index');
-      window.detailSpesifikasi[idx].nama = $(this).val();
-    });
-    container.find('.spesifikasi-nilai').on('input', function() {
-      const idx = $(this).data('index');
-      window.detailSpesifikasi[idx].nilai = $(this).val();
-    });
-    container.find('.spesifikasi-satuan').on('input', function() {
-      const idx = $(this).data('index');
-      window.detailSpesifikasi[idx].satuan = $(this).val();
-    });
-  }
-  window.detailSpesifikasi = [];
+  // === Spesifikasi Teknis Dinamis (Tambah Bahan Baku) - Simplified Approach ===
   $('#tambah_detail_spesifikasi').on('click', function() {
-    window.detailSpesifikasi.push({nama:'',nilai:'',satuan:''});
-    renderSpesifikasiTeknis();
+    tambahSpesifikasiBahanBaku('#detail_spesifikasi_container');
+    $('#no_spesifikasi_message').hide();
   });
+
+  // Fungsi untuk menambah baris spesifikasi bahan baku
+  function tambahSpesifikasiBahanBaku(containerId) {
+    var newSpesifikasi = `
+        <div class="row mb-2 detail-item align-items-center">
+            <div class="col-md-4 mb-1">
+                <input type="text" class="form-control form-control-sm" 
+                      name="spesifikasi_nama[]" placeholder="Nama Spesifikasi">
+            </div>
+            <div class="col-md-4 mb-1">
+                <input type="text" class="form-control form-control-sm" 
+                      name="spesifikasi_nilai[]" placeholder="Nilai">
+            </div>
+            <div class="col-md-3 mb-1">
+                <input type="text" class="form-control form-control-sm" 
+                      name="spesifikasi_satuan[]" placeholder="Satuan">
+            </div>
+            <div class="col-md-1 mb-1 text-end">
+                <button type="button" class="btn btn-outline-danger btn-sm remove-detail-spesifikasi">
+                    <i data-feather="trash-2" class="icon-sm"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    $(containerId).append(newSpesifikasi);
+    feather.replace();
+  }
+
+  // Event handler untuk tombol hapus spesifikasi bahan baku
   $(document).on('click', '.remove-detail-spesifikasi', function() {
-    const idx = $(this).data('index');
-    window.detailSpesifikasi.splice(idx, 1);
-    renderSpesifikasiTeknis();
+    $(this).closest('.detail-item').remove();
+    
+    // Cek apakah masih ada spesifikasi yang tersisa
+    var container = $('#detail_spesifikasi_container');
+    if (container.find('.detail-item').length === 0) {
+        $('#no_spesifikasi_message').show();
+    }
   });
-  // Reset saat modal ditutup
-  $('#addMaterialModal').on('hidden.bs.modal', function () {
-    window.detailSpesifikasi = [];
-    renderSpesifikasiTeknis();
-  });
-  // Inisialisasi awal
-  renderSpesifikasiTeknis();
 
   // Event handler klik pada thumbnail foto di preview
   $(document).on('click', '#fotoPendukungPreview img', function(e) {

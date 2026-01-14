@@ -48,7 +48,6 @@ $(function () {
         renderAlurProduksi();
         renderTabelBahanBaku();
         renderParameterMesinTable();
-        renderSpesifikasiTeknis();
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
     });
@@ -62,7 +61,6 @@ $(function () {
         renderTabelBahanBaku();
         renderParameterMesinTable();
         renderAlurProduksi();
-        renderSpesifikasiTeknis();
         // Pastikan event listener terdaftar saat modal dibuka
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
         window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
@@ -860,6 +858,50 @@ $(function () {
             );
     }
 
+    // === Spesifikasi Teknis Dinamis (Tambah Produk) 
+    $('#tambah_spesifikasi_produk').on('click', function() {
+        tambahSpesifikasiBaris('#spesifikasi_produk_container');
+        $('#no_spesifikasi_message').hide();
+    });
+
+    // Fungsi untuk menambah baris spesifikasi
+    function tambahSpesifikasiBaris(containerId) {
+        var newSpesifikasi = `
+            <div class="row mb-2 spesifikasi-item align-items-center">
+                <div class="col-md-4 mb-1">
+                    <input type="text" class="form-control form-control-sm" 
+                        name="spesifikasi_nama[]" placeholder="Nama Spesifikasi">
+                </div>
+                <div class="col-md-4 mb-1">
+                    <input type="text" class="form-control form-control-sm" 
+                        name="spesifikasi_nilai[]" placeholder="Nilai">
+                </div>
+                <div class="col-md-3 mb-1">
+                    <input type="text" class="form-control form-control-sm" 
+                        name="spesifikasi_satuan[]" placeholder="Satuan">
+                </div>
+                <div class="col-md-1 mb-1 text-end">
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-spesifikasi">
+                        <i data-feather="trash-2" class="icon-sm"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+        $(containerId).append(newSpesifikasi);
+        feather.replace();
+    }
+
+    // Event handler untuk tombol hapus spesifikasi
+    $(document).on('click', '.remove-spesifikasi', function() {
+        $(this).closest('.spesifikasi-item').remove();
+        
+        // Cek apakah masih ada spesifikasi yang tersisa
+        var container = $('#spesifikasi_produk_container');
+        if (container.find('.spesifikasi-item').length === 0) {
+            $('#no_spesifikasi_message').show();
+        }
+    });
+
     // Handler submit tambah produk
     $("#formProduk")
         .off("submit")
@@ -1193,66 +1235,5 @@ $(function () {
         const indexToDelete = $(this).data("index");
         selectedDocuments.splice(indexToDelete, 1);
         renderDocumentsPreview();
-    });
-
-    // === Spesifikasi Teknis Dinamis (Tambah Produk) 
-    function renderSpesifikasiTeknis() {
-        const container = $('#spesifikasi_produk_container');
-        container.empty();
-        if (window.spesifikasiTeknis && window.spesifikasiTeknis.length === 0) {
-            container.append('<div class="text-muted text-center py-3" id="no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
-            return;
-        }
-        
-        // Render existing items
-        if (window.spesifikasiTeknis) {
-            window.spesifikasiTeknis.forEach((item, idx) => {
-                container.append(`
-                    <div class="row mb-2 spesifikasi-item align-items-center">
-                        <div class="col-md-4 mb-1">
-                            <input type="text" class="form-control form-control-sm" 
-                                name="spesifikasi_nama[]" placeholder="Nama Spesifikasi" 
-                                value="${item.nama || ''}">
-                        </div>
-                        <div class="col-md-4 mb-1">
-                            <input type="text" class="form-control form-control-sm" 
-                                name="spesifikasi_nilai[]" placeholder="Nilai" 
-                                value="${item.nilai || ''}">
-                        </div>
-                        <div class="col-md-3 mb-1">
-                            <input type="text" class="form-control form-control-sm" 
-                                name="spesifikasi_satuan[]" placeholder="Satuan" 
-                                value="${item.satuan || ''}">
-                        </div>
-                        <div class="col-md-1 mb-1 text-end">
-                            <button type="button" class="btn btn-outline-danger btn-sm remove-spesifikasi">
-                                <i data-feather="trash-2" class="icon-sm"></i>
-                            </button>
-                        </div>
-                    </div>
-                `);
-            });
-        }
-        feather.replace();
-    }
-
-    window.spesifikasiTeknis = [];
-
-    // Event handler untuk tombol tambah spesifikasi
-    $('#tambah_spesifikasi_produk').on('click', function() {
-        window.spesifikasiTeknis.push({nama:'', nilai:'', satuan:''});
-        renderSpesifikasiTeknis();
-    });
-
-    // Event handler untuk tombol hapus spesifikasi
-    $(document).on('click', '.remove-spesifikasi', function() {
-        $(this).closest('.spesifikasi-item').remove();
-    });
-
-    // Reset saat modal ditutup
-    $('#tambahProduk').on('hidden.bs.modal', function() {
-        window.spesifikasiTeknis = [];
-        renderSpesifikasiTeknis();
-        $('#spesifikasi_teknis_json').val('[]');
     });
 });
