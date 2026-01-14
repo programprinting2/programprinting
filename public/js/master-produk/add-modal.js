@@ -11,6 +11,8 @@ $(function () {
     let selectedDocuments = [];
     let parameterMesinList = [];
     let bahanBakuList = [];
+    let alurProduksiList = [];
+    let isModalForParameter = false;
 
     // Pastikan array tidak ter-reset
     if (
@@ -24,14 +26,44 @@ $(function () {
         bahanBakuList = [];
     }
 
+    if (
+        typeof alurProduksiList === "undefined" ||
+        !Array.isArray(alurProduksiList)
+    ) {
+        alurProduksiList = [];
+    }
+
     // Reset media saat modal tambah ditutup
     $("#tambahProduk").on("hidden.bs.modal", function () {
         selectedPhotos = [];
         selectedVideos = [];
         selectedDocuments = [];
+        parameterMesinList = [];
+        bahanBakuList = [];
+        alurProduksiList = [];
+        isModalForParameter = false;
         renderPhotosPreview();
         renderVideosPreview();
         renderDocumentsPreview();
+        renderAlurProduksi();
+        renderTabelBahanBaku();
+        renderParameterMesinTable();
+        // Cleanup: remove event listener saat modal ditutup
+        window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
+    });
+
+    // Reset data saat modal dibuka
+    $("#tambahProduk").on("show.bs.modal", function () {
+        parameterMesinList = [];
+        bahanBakuList = [];
+        alurProduksiList = [];
+        isModalForParameter = false;
+        renderTabelBahanBaku();
+        renderParameterMesinTable();
+        renderAlurProduksi();
+        // Pastikan event listener terdaftar saat modal dibuka
+        window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
+        window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
     });
 
     // Update sub-kategori saat kategori utama berubah
@@ -175,9 +207,113 @@ $(function () {
 
     // === PARAMETER MESIN (TAMBAH) ===
 
+    // Helper function untuk menutup modal cari mesin
+    function closeModalCariMesinTambah() {
+        const modal = bootstrap.Modal.getInstance(
+            document.getElementById("modalCariMesinProdukTambah")
+        );
+        if (modal) {
+            modal.hide();
+        }
+    }
+
+    // Named function untuk handle mesinDipilih - mencegah duplicate listener
+    function handleMesinDipilihTambah(e) {
+        if (!$("#tambahProduk").hasClass("show") || !$("#modalCariMesinProdukTambah").hasClass("show")) return;
+
+        const data = e.detail;
+
+        if (isModalForParameter) {
+            // Handle untuk parameter mesin
+            if (
+                typeof parameterMesinList === "undefined" ||
+                !Array.isArray(parameterMesinList)
+            ) {
+                parameterMesinList = [];
+            }
+
+            if (parameterMesinList.some((pm) => pm.mesin_id == data.id)) {
+                Swal.fire("Info", "Parameter dari mesin ini sudah ditambahkan.", "info");
+                return;
+            }
+
+            let profil = data.biaya_perhitungan_profil;
+            if (!profil) {
+                Swal.fire("Info", "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.", "info");
+                return;
+            }
+
+            if (typeof profil === "string") {
+                try {
+                    profil = JSON.parse(profil);
+                } catch {
+                    profil = [];
+                }
+            }
+
+            if (!Array.isArray(profil)) profil = [profil];
+            profil = profil.filter(
+                (p) => p && typeof p === "object" && p.nama && p.total != null
+            );
+
+            if (profil.length === 0) {
+                Swal.fire("Info", "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.", "info");
+                return;
+            }
+
+            parameterMesinList.push({
+                mesin_id: data.id,
+                opsi: profil,
+                selected: 0,
+                jumlah: 1,
+            });
+
+            renderParameterMesinTable();
+            updateTotalModalKeseluruhan();
+            updateTotalItemModal();
+            closeModalCariMesinTambah();
+        } else {
+            // Handle untuk alur produksi
+            const index = window.currentMesinIndex;
+
+            if (typeof index === "undefined" || !alurProduksiList[index]) {
+                console.warn("Index mesin tidak valid untuk alur produksi");
+                return;
+            }
+
+            if (alurProduksiList.some((mesin) => mesin.id == data.id)) {
+                Swal.fire("Info", "Mesin ini sudah ditambahkan ke alur produksi.", "info");
+                return;
+            }
+
+            alurProduksiList[index] = {
+                id: data.id,
+                nama_mesin: data.nama,
+                tipe_mesin: data.tipe || "",
+                estimasi_waktu: alurProduksiList[index].estimasi_waktu || "",
+                catatan: alurProduksiList[index].catatan || "",
+            };
+
+            renderAlurProduksi();
+            closeModalCariMesinTambah();
+        }
+    }
+
+    // Remove listener lama sebelum menambahkan yang baru (mencegah duplicate)
+    window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
+    window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
+
     // Tombol + Tambah Parameter (buka modal cari MESIN)
-    $(document).on("click", "#btnTambahParameter", function (e) {
+    $(document).off("click", "#btnTambahParameter").on("click", "#btnTambahParameter", function (e) {
         e.preventDefault();
+        e.stopPropagation();
+
+        // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
+        if ($("#modalCariMesinProdukTambah").hasClass("show")) {
+            return;
+        }
+
+        isModalForParameter = true;
         var modalMesin = new bootstrap.Modal(
             document.getElementById("modalCariMesinProdukTambah"),
             {
@@ -192,72 +328,6 @@ $(function () {
                 $("body").addClass("modal-open");
             }
         }, 200);
-    });
-
-    // Handler mesinDipilih dari modal mesin
-    window.addEventListener("mesinDipilih", function (e) {
-        const data = e.detail;
-
-        // Pastikan array terdefinisi
-        if (
-            typeof parameterMesinList === "undefined" ||
-            !Array.isArray(parameterMesinList)
-        ) {
-            parameterMesinList = [];
-        }
-
-        if (parameterMesinList.some((pm) => pm.mesin_id == data.id)) {
-            Swal.fire(
-                "Info",
-                "Parameter dari mesin ini sudah ditambahkan.",
-                "info"
-            );
-            return;
-        }
-
-        let profil = data.biaya_perhitungan_profil;
-        if (!profil) {
-            Swal.fire(
-                "Info",
-                "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.",
-                "info"
-            );
-            return;
-        }
-
-        if (typeof profil === "string") {
-            try {
-                profil = JSON.parse(profil);
-            } catch {
-                profil = [];
-            }
-        }
-
-        if (!Array.isArray(profil)) profil = [profil];
-
-        profil = profil.filter(
-            (p) => p && typeof p === "object" && p.nama && p.total != null
-        );
-
-        if (profil.length === 0) {
-            Swal.fire(
-                "Info",
-                "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.",
-                "info"
-            );
-            return;
-        }
-
-        parameterMesinList.push({
-            mesin_id: data.id,
-            opsi: profil,
-            selected: 0,
-            jumlah: 1,
-        });
-
-        renderParameterMesinTable();
-        updateTotalModalKeseluruhan();
-        updateTotalItemModal();
     });
 
     // Render tabel parameter modal
@@ -400,6 +470,185 @@ $(function () {
             bahanBakuList.length + parameterMesinList.length + " item"
         );
     }
+
+    // === ALUR PRODUKSI ===
+    function mesinTemplate(index = 0, data = {}) {
+        return `
+        <div class="border rounded mb-3 p-3 position-relative mesin-item" data-index="${index}">
+            <button type="button" class="btn btn-link text-danger position-absolute top-0 end-0 mt-2 me-2 btnHapusMesin" title="Hapus Mesin"><i data-feather="trash-2"></i></button>
+            <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
+            <div class="row mb-2">
+                <div class="col-md-6">
+                    <label class="form-label">Nama Mesin</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control nama-mesin-input" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." readonly>
+                        <input type="hidden" class="mesin-id-input" name="alur_produksi[${index}][mesin_id]" value="${data.id || ""}">
+                        <button type="button" class="btn btn-outline-secondary btn-cari-mesin" title="Cari Mesin"><i class="fa fa-search"></i></button>
+                    </div>
+                    <small class="text-muted">Tipe: <span class="tipe-mesin-span">${
+                        data.tipe_mesin || "Tidak diketahui"
+                    }</span></small>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Estimasi Waktu (menit) <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" name="alur_produksi[${index}][estimasi_waktu]" value="${data.estimasi_waktu || ""}" min="0" placeholder="Estimasi waktu" required>
+                </div>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Catatan</label>
+                <textarea class="form-control" name="alur_produksi[${index}][catatan]" rows="2" placeholder="Catatan proses">${data.catatan || ""}</textarea>
+            </div>
+        </div>
+        `;
+    }
+
+    function renderAlurProduksi() {
+        const container = $("#daftarMesin");
+        container.empty();
+        if (!alurProduksiList || alurProduksiList.length === 0) {
+            container.append(
+                '<div class="text-muted text-center">Belum ada mesin ditambahkan</div>'
+            );
+            return;
+        }
+        alurProduksiList.forEach((row, idx) => {
+            container.append(mesinTemplate(idx, row));
+        });
+        feather.replace();
+    }
+
+    // Handler tombol tambah mesin
+    $(document)
+        .off("click", "#btnTambahMesin")
+        .on("click", "#btnTambahMesin", function () {
+            // Cek apakah ada mesin kosong yang belum diisi
+            const hasEmptyMesin = alurProduksiList.some(
+                (item) => item.id === "" || item.nama_mesin === ""
+            );
+            if (hasEmptyMesin) {
+                Swal.fire(
+                    "Info",
+                    "Silakan isi mesin yang sudah ditambahkan terlebih dahulu.",
+                    "info"
+                );
+                return;
+            }
+            alurProduksiList.push({
+                id: "",
+                nama_mesin: "",
+                tipe_mesin: "",
+                estimasi_waktu: "",
+                catatan: "",
+            });
+            renderAlurProduksi();
+        });
+
+    // Handler klik input nama mesin untuk membuka modal cari mesin
+    $(document).off("click", ".nama-mesin-input, .btn-cari-mesin").on("click", ".nama-mesin-input, .btn-cari-mesin", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
+        if ($("#modalCariMesinProdukTambah").hasClass("show")) {
+            return;
+        }
+
+        const mesinItem = $(this).closest(".mesin-item");
+        const index = mesinItem.data("index");
+
+        // Simpan index mesin yang sedang dipilih
+        window.currentMesinIndex = index;
+        isModalForParameter = false;
+
+        // Buka modal cari mesin
+        var modalMesin = new bootstrap.Modal(
+            document.getElementById("modalCariMesinProdukTambah"),
+            {
+                backdrop: "static",
+                keyboard: false,
+                focus: true,
+            }
+        );
+        modalMesin.show();
+
+        // Tambahkan class stack untuk modal
+        setTimeout(function () {
+            if ($("#tambahProduk").hasClass("show")) {
+                $("body").addClass("modal-open");
+            }
+        }, 200);
+    });
+
+    // Fungsi utilitas untuk mengecek duplikasi mesin
+    function isMesinDuplicate(mesinId, excludeIndex = null) {
+        if (!mesinId) return false;
+        return alurProduksiList.some(
+            (item, idx) =>
+                idx !== excludeIndex && item.id == mesinId && mesinId !== ""
+        );
+    }
+
+    // Handler hapus mesin
+    $(document).on("click", ".btnHapusMesin", function () {
+        const idx = $(this).closest(".mesin-item").data("index");
+        alurProduksiList.splice(idx, 1);
+        renderAlurProduksi();
+    });
+
+    // Handler ketika mesin dipilih dari modal
+    // window.addEventListener("mesinDipilih", function (e) {
+    //     // Pastikan ini dari modal tambah produk
+    //     if (!$("#modalCariMesinProdukTambah").hasClass("show")) return;
+
+    //     const data = e.detail;
+    //     const index = window.currentMesinIndex;
+
+    //     // Cek duplikasi mesin di alur produksi
+    //     if (typeof index !== "undefined" && alurProduksiList[index]) {
+    //         // Cek apakah mesin dengan ID ini sudah ada di alur produksi (kecuali index saat ini)
+    //         if (isMesinDuplicate(data.id, index)) {
+    //             Swal.fire(
+    //                 "Info",
+    //                 "Mesin ini sudah ditambahkan di alur produksi.",
+    //                 "info"
+    //             );
+    //             return;
+    //         }
+
+    //         alurProduksiList[index] = {
+    //             id: data.id,
+    //             nama_mesin: data.nama,
+    //             tipe_mesin: data.tipe || "",
+    //             estimasi_waktu: alurProduksiList[index].estimasi_waktu || "",
+    //             catatan: alurProduksiList[index].catatan || "",
+    //         };
+    //         renderAlurProduksi();
+    //     }
+    // });
+
+    // Sinkronisasi data alur produksi secara real-time
+    $(document).on(
+        "input change",
+        "#daftarMesin .mesin-item input, #daftarMesin .mesin-item textarea",
+        function () {
+            const mesinDiv = $(this).closest(".mesin-item");
+            const idx = mesinDiv.data("index");
+            if (typeof idx === "undefined" || !alurProduksiList[idx]) return;
+
+            alurProduksiList[idx].nama_mesin =
+                mesinDiv.find(".nama-mesin-input").val() || "";
+            alurProduksiList[idx].estimasi_waktu =
+                parseInt(
+                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val()
+                ) || 0;
+            alurProduksiList[idx].catatan =
+                mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
+            alurProduksiList[idx].id =
+                mesinDiv.find(".mesin-id-input").val() || "";
+            alurProduksiList[idx].tipe_mesin =
+                mesinDiv.find(".tipe-mesin-span").text() || "";
+        }
+    );
 
     // === HARGA BERTINGKAT & RESELLER ===
     let hargaBertingkatList = [];
@@ -686,19 +935,19 @@ $(function () {
                 JSON.stringify(hargaBertingkatList)
             );
             $("#harga_reseller_json").val(JSON.stringify(hargaResellerList));
-            const paramArr = parameterMesinList.map(row => {
+            const paramArr = parameterMesinList.map((row) => {
                 const param = row.opsi[row.selected];
                 return {
-                  mesin_id: row.mesin_id,
-                  nama_parameter: param.nama,
-                  harga: param.total,
-                  jumlah: row.jumlah,
-                  total: param.total * row.jumlah
+                    mesin_id: row.mesin_id,
+                    nama_parameter: param.nama,
+                    harga: param.total,
+                    jumlah: row.jumlah,
+                    total: param.total * row.jumlah,
                 };
-              });
+            });
             $("#parameter_modal_json").val(JSON.stringify(paramArr));
             $("#lebar").val(parseInt($("#lebar").val()) || 0);
-            $("#panjang").val(parseInt($("#panjang").val()) || 0);  
+            $("#panjang").val(parseInt($("#panjang").val()) || 0);
 
             var form = $(this)[0];
             var formData = new FormData(form);
