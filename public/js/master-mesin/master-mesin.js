@@ -1019,7 +1019,7 @@ function collectProfileData(containerId) {
                 errorMessage = 'Harga tinta per liter dan konsumsi tinta per m² harus diisi dengan nilai > 0';
             }
         } else if (tipe === 'per_klik') {
-            if (settings.ukuran_kertas !== '' || !settings.mode_warna || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik < 0 || settings.jumlah_klik < 1) {
+            if (settings.ukuran_kertas == '' || settings.mode_warna == '' || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik < 0 || settings.jumlah_klik < 1) {
                 isValid = false;
                 errorMessage = 'Ukuran kertas, mode warna, dimensi kertas, harga per klik, dan jumlah klik harus diisi dengan benar';
             }
