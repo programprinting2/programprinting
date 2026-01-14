@@ -51,8 +51,9 @@ class MesinController extends Controller
             // Dropdown data
             $masterTipeMesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
             $tipe_mesin = $masterTipeMesin ? $masterTipeMesin->details()->where('aktif', 1)->get() : collect();
-
-            return view('backend.master-mesin.index', compact('mesin', 'tipe_mesin'));
+            $paramModeWarna = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
+            $mode_warna_options = $paramModeWarna ? $paramModeWarna->details()->where('aktif', 1)->pluck('nama_detail_parameter')->toArray() : [];
+            return view('backend.master-mesin.index', compact('mesin', 'tipe_mesin', 'mode_warna_options'));
 
         } catch (\Exception $e) {
             Log::error('Error in mesin index', [

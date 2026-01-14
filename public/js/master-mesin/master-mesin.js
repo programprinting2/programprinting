@@ -159,13 +159,25 @@ $(document).ready(function() {
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
         
+        // Validasi biaya produksi 
+        const profileData = collectProfileData('biaya_perhitungan_profil_container');
+        
+        if (profileData.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Biaya Produksi Tidak Lengkap',
+                text: 'Minimal harus ada satu profil biaya produksi yang lengkap dan valid.',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+        
         // Nonaktifkan tombol submit dan simpan teks aslinya
         let submitBtn = $('#submitFormMesin');
         let originalText = submitBtn.html();
         submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
 
         // Kumpulkan data profil biaya dan set ke input hidden SEBELUM FormData diambil
-        const profileData = collectProfileData('biaya_perhitungan_profil_container');
         $('#biaya_perhitungan_profil_json').val(JSON.stringify(profileData));
 
         let formData = new FormData(this);
@@ -203,89 +215,54 @@ $(document).ready(function() {
                 // Aktifkan kembali tombol submit
                 submitBtn.prop('disabled', false).html(originalText);
                 
-                if(xhr.status === 422) {
-                    // Tampilkan error validasi
-                    let errors = xhr.responseJSON.errors;
-                    $.each(errors, function(field, messages) {
-                        let input = $(`[name="${field}"]`);
-                        input.addClass('is-invalid');
-                        
-                        // Tambahkan pesan error
-                        let errorDiv = $('<div>')
-                            .addClass('invalid-feedback')
-                            .text(messages[0]);
-                            
-                        input.after(errorDiv);
-                    });
-                    
-                    // Tampilkan pesan error
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validasi Gagal',
-                        text: 'Silakan periksa kembali data yang Anda masukkan',
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.',
-                    });
+                let errorMessage = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
                 }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: errorMessage,
+                });
             }
         });
     });
     
     // Handler untuk form edit mesin
     $('.btn-submit-edit').click(function(e) {
-        e.preventDefault(); // Prevent default button action
-        
+        e.preventDefault(); 
+
         let id = $(this).data('id');
         let form = $('#formEditMesin' + id);
         let submitBtn = $(this);
         let originalText = submitBtn.html();
-        
+
         // Reset error states
         $('.is-invalid').removeClass('is-invalid');
         $('.invalid-feedback').remove();
+
+        // Validasi biaya produksi - pastikan setidaknya ada satu profil yang valid
+        const profileData = collectProfileData('edit_biaya_perhitungan_profil_container' + id);
         
+        if (profileData.length === 0) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Biaya Produksi Tidak Lengkap',
+                text: 'Minimal harus ada satu profil biaya produksi yang lengkap dan valid.',
+                confirmButtonText: 'OK'
+            });
+            return false;
+        }
+
         // Nonaktifkan tombol submit
         submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
-        
-        // Collect profile data and put into hidden input
-        const profileData = collectProfileData(`edit_biaya_perhitungan_profil_container${id}`);
-        
-        // Pastikan data yang dihapus tidak masuk ke database
-        profileData.forEach(profile => {
-            if (profile.settings && profile.settings.biaya_tambahan_profil) {
-                // Filter out any biaya tambahan that kosong or null
-                profile.settings.biaya_tambahan_profil = profile.settings.biaya_tambahan_profil.filter(biaya => 
-                    biaya && biaya.nama && biaya.nama.trim() !== '' && !isNaN(biaya.nilai)
-                );
-            }
-        });
-        
-        $(`#edit_biaya_perhitungan_profil_json${id}`).val(JSON.stringify(profileData));
-        
-        // Collect detail mesin data
-        const detailMesin = [];
-        $(`#edit_detail_mesin_container${id} .detail-item`).each(function() {
-            const nama = $(this).find('input[name="detail_nama[]"]').val()?.trim();
-            const nilai = $(this).find('input[name="detail_nilai[]"]').val()?.trim();
-            const satuan = $(this).find('input[name="detail_satuan[]"]').val()?.trim();
-            
-            if (nama && nilai) {
-                detailMesin.push({
-                    nama: nama,
-                    nilai: nilai,
-                    satuan: satuan || ''
-                });
-            }
-        });
-        
-        $(`#edit_detail_mesin_json${id}`).val(JSON.stringify(detailMesin));
-        
+
+        // Kumpulkan data profil biaya dan set ke input hidden
+        $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
+
         let formData = new FormData(form[0]);
-        
+
         $.ajax({
             url: form.attr('action'),
             method: 'POST',
@@ -301,7 +278,6 @@ $(document).ready(function() {
                         showConfirmButton: false,
                         timer: 1500
                     }).then(() => {
-                        $('#editMesinModal' + id).modal('hide');
                         location.reload();
                     });
                 } else {
@@ -311,7 +287,7 @@ $(document).ready(function() {
                     Swal.fire({
                         icon: 'error',
                         title: 'Gagal!',
-                        text: res.message || 'Terjadi kesalahan saat memperbarui data',
+                        text: res.message || 'Terjadi kesalahan saat menyimpan data',
                     });
                 }
             },
@@ -319,34 +295,16 @@ $(document).ready(function() {
                 // Aktifkan kembali tombol submit
                 submitBtn.prop('disabled', false).html(originalText);
                 
-                if(xhr.status === 422) {
-                    // Tampilkan error validasi
-                    let errors = xhr.responseJSON.errors;
-                    $.each(errors, function(field, messages) {
-                        let input = $(`[name="${field}"]`);
-                        input.addClass('is-invalid');
-                        
-                        // Tambahkan pesan error
-                        let errorDiv = $('<div>')
-                            .addClass('invalid-feedback')
-                            .text(messages[0]);
-                            
-                        input.after(errorDiv);
-                    });
-                    
-                    // Tampilkan pesan error
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Validasi Gagal',
-                        text: 'Silakan periksa kembali data yang Anda masukkan',
-                    });
-                } else {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error!',
-                        text: 'Terjadi kesalahan saat memperbarui data. Silakan coba lagi.',
-                    });
+                let errorMessage = 'Terjadi kesalahan saat menyimpan data. Silakan coba lagi.';
+                if (xhr.responseJSON && xhr.responseJSON.message) {
+                    errorMessage = xhr.responseJSON.message;
                 }
+                
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error!',
+                    text: errorMessage,
+                });
             }
         });
     });
@@ -1051,18 +1009,50 @@ function collectProfileData(containerId) {
             settings.biaya_tambahan_profil = biayaTambahanProfil;
         }
 
-        // Validasi field wajib untuk per_klik
-        if (tipe === 'per_klik') {
-            if (!settings.ukuran_kertas || !settings.mode_warna || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik <= 0 || settings.jumlah_klik < 1) {
-                return; // skip push jika ada field wajib yang tidak valid
+        // Validasi field wajib untuk semua tipe perhitungan
+        let isValid = true;
+        let errorMessage = '';
+
+        if (tipe === 'per_satuan_area') {
+            if (settings.harga_tinta_per_liter <= 0 || settings.konsumsi_tinta_per_m2 <= 0) {
+                isValid = false;
+                errorMessage = 'Harga tinta per liter dan konsumsi tinta per m² harus diisi dengan nilai > 0';
+            }
+        } else if (tipe === 'per_klik') {
+            if (settings.ukuran_kertas !== '' || !settings.mode_warna || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik < 0 || settings.jumlah_klik < 1) {
+                isValid = false;
+                errorMessage = 'Ukuran kertas, mode warna, dimensi kertas, harga per klik, dan jumlah klik harus diisi dengan benar';
+            }
+        } else if (tipe === 'per_lembar') {
+            if (settings.biaya_per_lembar <= 0) {
+                isValid = false;
+                errorMessage = 'Biaya per lembar harus diisi dengan nilai > 0';
+            }
+        } else if (tipe === 'per_waktu') {
+            if (settings.biaya_per_menit <= 0) {
+                isValid = false;
+                errorMessage = 'Biaya per menit harus diisi dengan nilai > 0';
+            }
+        } else if (tipe === 'per_berat') {
+            if (settings.biaya_per_kg <= 0) {
+                isValid = false;
+                errorMessage = 'Biaya per kilogram harus diisi dengan nilai > 0';
+            }
+        } else if (tipe === 'per_job') {
+            if (settings.biaya_per_job <= 0) {
+                isValid = false;
+                errorMessage = 'Biaya per job harus diisi dengan nilai > 0';
             }
         }
 
-        // Validasi field wajib untuk per_waktu
-        if (tipe === 'per_waktu') {
-            if (settings.biaya_per_menit <= 0) {
-                return; // skip push jika biaya per menit tidak valid
-            }
+        if (!isValid) {
+            // Tampilkan error dan skip push
+            $(this).find('.profile-error-message').remove();
+            $(this).prepend(`<div class="alert alert-danger alert-dismissible fade show profile-error-message" role="alert">
+                <strong>Profil "${nama}" tidak valid:</strong> ${errorMessage}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`);
+            return; 
         }
 
         if (nama && tipe) {

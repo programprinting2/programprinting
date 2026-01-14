@@ -924,7 +924,7 @@ $(function () {
                     }</span></small>
                 </div>
                 <div class="col-md-6">
-                    <label class="form-label">Estimasi Waktu (menit)</label>
+                    <label class="form-label">Estimasi Waktu (menit) <span class="text-danger">*</span></label>
                     <input type="number" class="form-control" name="edit_alur_produksi[${index}][estimasi_waktu]" value="${data.estimasi_waktu || ""}" min="0" placeholder="Estimasi waktu" required>
                 </div>
             </div>
