@@ -395,7 +395,7 @@ $(function () {
                     <td class="harga-param">Rp. ${row.opsi[
                         row.selected
                     ].total.toLocaleString("id-ID")}</td>
-                    <td><input type="number" class="form-control form-control-sm jumlah-param" min="1" value="${
+                    <td><input type="number" class="form-control form-control-sm jumlah-param" min="0" step="0.01" value="${
                         row.jumlah
                     }" data-idx="${idx}"></td>
                     <td class="total-param text-success fw-semibold">Rp ${(
@@ -430,8 +430,8 @@ $(function () {
 
     $(document).on("input", ".jumlah-param", function () {
         const idx = $(this).data("idx");
-        let val = parseInt($(this).val()) || 1;
-        if (val < 1) val = 1;
+        let val = parseFloat($(this).val()) || 0;
+        if (val < 0) val = 1;
 
         // Pastikan array terdefinisi
         if (
