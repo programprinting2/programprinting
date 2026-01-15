@@ -145,6 +145,7 @@
                                         <input type="hidden" name="video_pendukung_json" id="video_pendukung_json">
                                         <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
                                         <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
+                                        <input type="hidden" name="biaya_tambahan_json" id="biaya_tambahan_json" value="">
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-4">
@@ -274,6 +275,8 @@
                                                         0</span>
                                                     &nbsp;|&nbsp;
                                                     Parameter: <span id="totalParameterText" class="fw-bold">Rp 0</span>
+                                                    &nbsp;|&nbsp;
+                                                    Biaya Tambahan: <span id="totalBiayaTambahanText" class="fw-bold">Rp 0</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -369,6 +372,34 @@
                                                             <tr>
                                                                 <td colspan="5" class="text-center text-muted">Pilih
                                                                     kategori parameter</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <!-- Biaya Tambahan -->
+                                            <div class="mb-4">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="fw-semibold">Biaya Tambahan</div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary" id="btnTambahBiayaTambahan">
+                                                        + Tambah Biaya
+                                                    </button>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered align-middle mb-0" id="tabelBiayaTambahan">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Nama Biaya</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Nilai</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>

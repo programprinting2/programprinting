@@ -142,6 +142,7 @@
                     <input type="hidden" name="dokumen_pendukung_existing_json"
                       id="edit_dokumen_pendukung_existing_json">
                     <input type="hidden" name="parameter_modal_json" id="edit_parameter_modal_json">
+                    <input type="hidden" name="biaya_tambahan_json" id="edit_biaya_tambahan_json" value="">
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-4">
@@ -185,6 +186,8 @@
                           Bahan Baku: <span id="editTotalBahanBakuText" class="fw-bold">Rp 0</span>
                           &nbsp;|&nbsp;
                           Parameter: <span id="editTotalParameterText" class="fw-bold">Rp 0</span>
+                          &nbsp;|&nbsp;
+                          Biaya Tambahan: <span id="editTotalBiayaTambahanText" class="fw-bold">Rp 0</span>
                         </div>
                       </div>
                     </div>
@@ -247,6 +250,31 @@
                             <tbody>
                               <tr>
                                 <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <!-- Biaya Tambahan -->
+                      <div class="mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <div class="fw-semibold">Biaya Tambahan</div>
+                          <button type="button" class="btn btn-sm btn-outline-primary" id="editBtnTambahBiayaTambahan">
+                            + Tambah Biaya
+                          </button>
+                        </div>
+                        <div class="table-responsive">
+                          <table class="table table-bordered align-middle mb-0" id="editTabelBiayaTambahan">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Nama Biaya</th>
+                                <th>Nilai</th>
+                                <th>Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td>
                               </tr>
                             </tbody>
                           </table>

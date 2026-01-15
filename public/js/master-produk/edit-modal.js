@@ -146,6 +146,10 @@ $(function () {
                       }))
                     : [];
                 renderEditAlurProduksi();
+                editBiayaTambahanList = Array.isArray(p.biaya_tambahan_json)
+                    ? p.biaya_tambahan_json
+                    : [];
+                renderEditBiayaTambahan();
                 loadEditSpesifikasiTeknis(p.spesifikasi_teknis_json);
                 $("#editProdukModal").modal("show");
             } else {
@@ -649,6 +653,11 @@ $(function () {
                 totalParam += (param.total || 0) * (row.jumlah || 1);
             });
         }
+        let totalBiayaTambahan = 0;
+        $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').each(function() {
+            const nilai = parseFloat($(this).find('.edit-biaya-tambahan-nilai').val()) || 0;
+            totalBiayaTambahan += nilai;
+        });
         // Update DOM
         $("#editTotalBahanBakuText").text(
             "Rp " + totalBahan.toLocaleString("id-ID")
@@ -656,8 +665,11 @@ $(function () {
         $("#editTotalParameterText").text(
             "Rp " + totalParam.toLocaleString("id-ID")
         );
+        $("#editTotalBiayaTambahanText").text(
+            "Rp " + totalBiayaTambahan.toLocaleString("id-ID")
+        );
         $("#editTotalModalKeseluruhan").text(
-            "Rp " + (totalBahan + totalParam).toLocaleString("id-ID")
+            "Rp " + (totalBahan + totalParam + totalBiayaTambahan ).toLocaleString("id-ID")
         );
         // Update total modal bahan
         $("#editTotalModalBahan").text(
@@ -677,7 +689,8 @@ $(function () {
             typeof editParameterMesinList !== "undefined"
                 ? editParameterMesinList.length
                 : 0;
-        const totalItem = totalBahanBaku + totalParameter;
+        const totalBiayaTambahan = $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').length;
+        const totalItem = totalBahanBaku + totalParameter + totalBiayaTambahan;
         $("#editTotalItemModal").text(totalItem + " item");
     }
 
@@ -1364,6 +1377,94 @@ $(function () {
         feather.replace();
     }
 
+    // === BIAYA TAMBAHAN (EDIT PRODUK) ===
+    let editBiayaTambahanList = [];
+
+    // Handler tombol Tambah Biaya (Edit)
+    $(document).on('click', '#editBtnTambahBiayaTambahan', function() {
+        // Cek apakah sudah ada biaya dengan nama yang sama 
+        const existingBiayaNama = new Set();
+        $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').each(function() {
+            const nama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim();
+            if (nama) {
+                existingBiayaNama.add(nama.toLowerCase());
+            }
+        });
+
+        // Hapus row pesan jika ada
+        $('#editTabelBiayaTambahan tbody tr td[colspan="3"]').parent().remove();
+        
+        const biayaHtml = `
+            <tr class="edit-biaya-tambahan-item">
+                <td>
+                    <input type="text" class="form-control form-control-sm edit-biaya-tambahan-nama" 
+                        placeholder="Contoh: Biaya Pengiriman, Biaya Admin">
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Rp</span>
+                        <input type="number" class="form-control edit-biaya-tambahan-nilai" 
+                            placeholder="0" min="0" step="0.01">
+                    </div>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm edit-remove-biaya-tambahan">
+                        <i data-feather="trash-2" class="icon-sm"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        
+        $('#editTabelBiayaTambahan tbody').append(biayaHtml);
+        feather.replace();
+        
+        // Tambahkan validasi untuk mencegah duplikasi nama biaya 
+        $('#editTabelBiayaTambahan .edit-biaya-tambahan-nama').last().on('input', function() {
+            const input = $(this);
+            const nama = input.val()?.trim().toLowerCase();
+            
+            // Cek duplikasi dengan nama biaya yang sudah ada 
+            let isDuplicate = false;
+            $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').not(input.closest('.edit-biaya-tambahan-item')).each(function() {
+                const existingNama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim().toLowerCase();
+                if (existingNama === nama && nama !== '') {
+                    isDuplicate = true;
+                    return false;
+                }
+            });
+            
+            if (isDuplicate) {
+                input.addClass('is-invalid');
+                if (!input.next('.invalid-feedback').length) {
+                    input.after('<div class="invalid-feedback">Nama biaya sudah ada.</div>');
+                }
+            } else {
+                input.removeClass('is-invalid');
+                input.next('.invalid-feedback').remove();
+            }
+        });
+        
+        updateTotalItemModalEdit();
+        updateTotalModalKeseluruhanEdit();
+    });
+
+    // Handler tombol hapus biaya tambahan (Edit)
+    $(document).on('click', '.edit-remove-biaya-tambahan', function() {
+        $(this).closest('.edit-biaya-tambahan-item').remove();
+        
+        if ($('#editTabelBiayaTambahan .edit-biaya-tambahan-item').length === 0) {
+            $('#editTabelBiayaTambahan tbody').append(
+                '<tr><td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td></tr>'
+            );
+        }
+        updateTotalModalKeseluruhanEdit();
+        updateTotalItemModalEdit();
+    });
+
+    $(document).on('input', '.edit-biaya-tambahan-nilai', function() {
+        updateTotalModalKeseluruhanEdit();
+    });
+
     $("#editProdukForm")
         .off("submit")
         .on("submit", function (e) {
@@ -1405,6 +1506,16 @@ $(function () {
                 }
             });
             $("#edit_spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));
+            
+            const editBiayaTambahanArr = [];
+            $('.edit-biaya-tambahan-container .edit-biaya-tambahan-item').each(function() {
+                const nama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim();
+                const nilai = parseFloat($(this).find('.edit-biaya-tambahan-nilai').val()) || 0;
+                if (nama && nilai > 0) {
+                    editBiayaTambahanArr.push({nama, nilai});
+                }
+            });
+            $("#edit_biaya_tambahan_json").val(JSON.stringify(editBiayaTambahanArr));
             // Filter dokumen lama yang tidak dihapus
             const dokumenDipertahankan = existingDocuments.filter(
                 (_, idx) => !deletedDocumentIndexes.includes(idx)
@@ -1564,4 +1675,48 @@ $(function () {
             renderDocumentsPreview();
         }
     });
+
+    // Fungsi untuk render biaya tambahan di edit modal
+    function renderEditBiayaTambahan() {
+        const tbody = $('#editTabelBiayaTambahan tbody');
+        tbody.empty();
+        
+        if (!editBiayaTambahanList || editBiayaTambahanList.length === 0) {
+            tbody.append(`
+                <tr>
+                    <td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td>
+                </tr>
+            `);
+            return;
+        }
+        
+        editBiayaTambahanList.forEach((biaya, idx) => {
+            const biayaHtml = `
+                <tr class="edit-biaya-tambahan-item">
+                    <td>
+                        <input type="text" class="form-control form-control-sm edit-biaya-tambahan-nama" 
+                            placeholder="Contoh: Biaya Pengiriman, Biaya Admin" value="${biaya.nama || ''}">
+                    </td>
+                    <td>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">Rp</span>
+                            <input type="number" class="form-control edit-biaya-tambahan-nilai" 
+                                placeholder="0" min="0" step="0.01" value="${biaya.nilai || 0}">
+                        </div>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-outline-danger btn-sm edit-remove-biaya-tambahan">
+                            <i data-feather="trash-2" class="icon-sm"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+            tbody.append(biayaHtml);
+        });
+        
+        feather.replace();
+
+        updateTotalModalKeseluruhanEdit();
+        updateTotalItemModalEdit();
+    }
 });

@@ -483,14 +483,23 @@ $(function () {
             return sum + (param.total || 0) * (row.jumlah || 1);
         }, 0);
 
+        let totalBiayaTambahan = 0;
+        $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
+            const nilai = parseFloat($(this).find('.biaya-tambahan-nilai').val()) || 0;
+            totalBiayaTambahan += nilai;
+        });
+
         $("#totalBahanBakuText").text(
             "Rp " + totalBahan.toLocaleString("id-ID")
         );
         $("#totalParameterText").text(
             "Rp " + totalParam.toLocaleString("id-ID")
         );
+        $("#totalBiayaTambahanText").text(
+            "Rp " + totalBiayaTambahan.toLocaleString("id-ID")
+        );
         $("#totalModalKeseluruhan").text(
-            "Rp " + (totalBahan + totalParam).toLocaleString("id-ID")
+            "Rp " + (totalBahan + totalParam + totalBiayaTambahan).toLocaleString("id-ID")
         );
         $("#totalModalBahan").text("Rp " + totalBahan.toLocaleString("id-ID"));
         updateTotalItemModal();
@@ -501,8 +510,12 @@ $(function () {
 
     // Jumlah item total
     function updateTotalItemModal() {
+        const totalBahanBaku = bahanBakuList.length;
+        const totalParameter = parameterMesinList.length;
+        const totalBiayaTambahan = $('#tabelBiayaTambahan .biaya-tambahan-item').length;
+        
         $("#totalItemModal").text(
-            bahanBakuList.length + parameterMesinList.length + " item"
+            (totalBahanBaku + totalParameter + totalBiayaTambahan) + " item"
         );
     }
 
@@ -939,6 +952,93 @@ $(function () {
         }
     });
 
+    // === BIAYA TAMBAHAN (TAMBAH PRODUK) ===
+
+    // Handler tombol Tambah Biaya
+    $(document).on('click', '#btnTambahBiayaTambahan', function() {
+        // Cek apakah sudah ada biaya dengan nama yang sama 
+        const existingBiayaNama = new Set();
+        $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
+            const nama = $(this).find('.biaya-tambahan-nama').val()?.trim();
+            if (nama) {
+                existingBiayaNama.add(nama.toLowerCase());
+            }
+        });
+    
+        // Hapus row pesan jika ada
+        $('#tabelBiayaTambahan tbody tr td[colspan="3"]').parent().remove();
+        
+        const biayaHtml = `
+            <tr class="biaya-tambahan-item">
+                <td>
+                    <input type="text" class="form-control form-control-sm biaya-tambahan-nama" 
+                        placeholder="Contoh: Biaya Pengiriman, Biaya Admin">
+                </td>
+                <td>
+                    <div class="input-group input-group-sm">
+                        <span class="input-group-text">Rp</span>
+                        <input type="number" class="form-control biaya-tambahan-nilai" 
+                            placeholder="0" min="0" step="0.01">
+                    </div>
+                </td>
+                <td>
+                    <button type="button" class="btn btn-outline-danger btn-sm remove-biaya-tambahan">
+                        <i data-feather="trash-2" class="icon-sm"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+        
+        $('#tabelBiayaTambahan tbody').append(biayaHtml);
+        feather.replace();
+        
+        // Tambahkan validasi untuk mencegah duplikasi nama biaya 
+        $('#tabelBiayaTambahan .biaya-tambahan-nama').last().on('input', function() {
+            const input = $(this);
+            const nama = input.val()?.trim().toLowerCase();
+            
+            // Cek duplikasi dengan nama biaya yang sudah ada 
+            let isDuplicate = false;
+            $('#tabelBiayaTambahan .biaya-tambahan-item').not(input.closest('.biaya-tambahan-item')).each(function() {
+                const existingNama = $(this).find('.biaya-tambahan-nama').val()?.trim().toLowerCase();
+                if (existingNama === nama && nama !== '') {
+                    isDuplicate = true;
+                    return false;
+                }
+            });
+            
+            if (isDuplicate) {
+                input.addClass('is-invalid');
+                if (!input.next('.invalid-feedback').length) {
+                    input.after('<div class="invalid-feedback">Nama biaya sudah ada.</div>');
+                }
+            } else {
+                input.removeClass('is-invalid');
+                input.next('.invalid-feedback').remove();
+            }
+        });
+        
+        updateTotalItemModal();
+        updateTotalModalKeseluruhan();
+    });
+
+    // Handler tombol hapus biaya tambahan
+    $(document).on('click', '.remove-biaya-tambahan', function() {
+        $(this).closest('.biaya-tambahan-item').remove();
+        
+        if ($('#tabelBiayaTambahan .biaya-tambahan-item').length === 0) {
+            $('#tabelBiayaTambahan tbody').append(
+                '<tr><td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td></tr>'
+            );
+        }
+        updateTotalModalKeseluruhan();
+        updateTotalItemModal();
+    });
+
+    $(document).on('input', '.biaya-tambahan-nilai', function() {
+        updateTotalModalKeseluruhan();
+    });
+
     // Handler submit tambah produk
     $("#formProduk")
         .off("submit")
@@ -1031,6 +1131,15 @@ $(function () {
                 }
             });
             $("#spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));  
+            const biayaTambahanArr = [];
+            $('.biaya-tambahan-container .biaya-tambahan-item').each(function() {
+                const nama = $(this).find('.biaya-tambahan-nama').val()?.trim();
+                const nilai = parseFloat($(this).find('.biaya-tambahan-nilai').val()) || 0;
+                if (nama && nilai > 0) {
+                    biayaTambahanArr.push({nama, nilai});
+                }
+            });
+            $("#biaya_tambahan_json").val(JSON.stringify(biayaTambahanArr));
             $("#lebar").val(parseInt($("#lebar").val()) || 0);
             $("#panjang").val(parseInt($("#panjang").val()) || 0);
 

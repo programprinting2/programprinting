@@ -36,6 +36,7 @@ class ProdukService
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
             $data['parameter_modal_json'] = $this->processJsonField($data['parameter_modal_json'] ?? null);
             $data['spesifikasi_teknis_json'] = $this->processJsonField($data['spesifikasi_teknis_json'] ?? null);
+            $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
 
             // Process file uploads - menggunakan method yang mengembalikan URL
             $data['foto_pendukung_json'] = $this->uploadFilesWithUrl(
@@ -54,6 +55,8 @@ class ProdukService
             );
 
             $produk = $this->produkRepository->create($data);
+            $totalModal = $this->calculateTotalModalKeseluruhan($data);
+            $produk->update(['total_modal_keseluruhan' => $totalModal]);
 
             DB::commit();
 
@@ -93,6 +96,7 @@ class ProdukService
             $data['parameter_modal_json'] = $this->processJsonField($data['parameter_modal_json'] ?? null);
             // $data['dokumen_pendukung_json'] = $this->processJsonField($data['dokumen_pendukung_json'] ?? null);
             $data['spesifikasi_teknis_json'] = $this->processJsonField($data['spesifikasi_teknis_json'] ?? null);
+            $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
 
             // Handle existing files
             $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);
@@ -133,6 +137,9 @@ class ProdukService
             ]);
 
             $this->produkRepository->update($id, $data);
+
+            $totalModal = $this->calculateTotalModalKeseluruhan($data);
+            $this->produkRepository->update($id, ['total_modal_keseluruhan' => $totalModal]);
 
             DB::commit();
 
@@ -428,6 +435,31 @@ class ProdukService
                 $this->storageService->delete($path);
             }
         }
+    }
+
+    private function calculateTotalModalKeseluruhan(array $data): float
+    {
+        $total = 0;
+
+        // Total bahan baku
+        $bahanBaku = $data['bahan_baku_json'] ?? [];
+        foreach ($bahanBaku as $bahan) {
+            $total += ($bahan['harga'] ?? 0) * ($bahan['jumlah'] ?? 1);
+        }
+
+        // Total parameter modal
+        $parameterModal = $data['parameter_modal_json'] ?? [];
+        foreach ($parameterModal as $param) {
+            $total += ($param['harga'] ?? 0) * ($param['jumlah'] ?? 1);
+        }
+
+        // Total biaya tambahan
+        $biayaTambahan = $data['biaya_tambahan_json'] ?? [];
+        foreach ($biayaTambahan as $biaya) {
+            $total += $biaya['nilai'] ?? 0;
+        }
+
+        return $total;
     }
 }
 

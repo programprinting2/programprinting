@@ -32,6 +32,7 @@ class UpdateProdukRequest extends FormRequest
             'alur_produksi_json' => 'nullable|json',
             'parameter_modal_json' => 'nullable|json',
             'spesifikasi_teknis_json' => 'nullable|json',
+            'biaya_tambahan_json' => 'nullable|json',
         ];
     }
 

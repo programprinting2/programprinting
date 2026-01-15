@@ -31,6 +31,8 @@ class Produk extends Model
         'alur_produksi_json',
         'parameter_modal_json',
         'spesifikasi_teknis_json',
+        'biaya_tambahan_json',           
+        'total_modal_keseluruhan',
     ];
 
     protected $casts = [
@@ -43,7 +45,9 @@ class Produk extends Model
         'alur_produksi_json' => 'array',
         'parameter_modal_json' => 'array',
         'spesifikasi_teknis_json' => 'array',
+        'biaya_tambahan_json' => 'array',
         'status_aktif' => 'boolean',
+        'total_modal_keseluruhan' => 'decimal:2'
     ];
 
     public function kategoriUtama()
