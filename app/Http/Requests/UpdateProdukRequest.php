@@ -18,7 +18,7 @@ class UpdateProdukRequest extends FormRequest
             'kategori_utama_id' => 'required|exists:detail_parameters,id',
             'sub_kategori_id' => 'nullable|exists:sub_detail_parameter,id',
             'satuan_id' => 'required|exists:detail_parameters,id',
-            'metode_penjualan' => 'required|in:m2,meter_lari',
+            'sub_satuan_id' => 'required|exists:sub_detail_parameter,id',
             'lebar' => 'nullable|integer|min:0',
             'panjang' => 'nullable|integer|min:0',
             'jenis_produk' => 'required|in:produk,jasa',
@@ -43,7 +43,6 @@ class UpdateProdukRequest extends FormRequest
             'kategori_utama_id.exists' => 'Kategori utama tidak ditemukan',
             'satuan_id.required' => 'Satuan harus dipilih',
             'satuan_id.exists' => 'Satuan tidak ditemukan',
-            'metode_penjualan.required' => 'Metode penjualan harus dipilih',
         ];
     }
 }

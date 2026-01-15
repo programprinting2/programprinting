@@ -67,13 +67,12 @@ $(function () {
                     p.sub_kategori_id
                 );
                 $("#edit_satuanBarang").val(p.satuan_id);
-                $(
-                    "input[name='metode_penjualan'][value='" +
-                        p.metode_penjualan +
-                        "']"
-                ).prop("checked", true);
+                updateEditDetailSatuanOptions(p.satuan_id, p.sub_satuan_id);
                 $("#edit_lebar").val(p.lebar);
                 $("#edit_panjang").val(p.panjang);
+                setTimeout(() => {
+                    toggleDimensiFieldsEdit(p.satuan_id);
+                }, 100);
                 $("#edit_status_aktif").prop("checked", !!p.status_aktif);
                 $("#edit_jenis_produk").val(p.jenis_produk);
                 $("#edit_bahan_baku_json").val(
@@ -160,6 +159,37 @@ $(function () {
         updateEditSubKategoriOptions(selectedKategoriId);
     });
 
+    $(document).on("change", "#edit_satuanBarang", function () {
+        updateEditDetailSatuanOptions($(this).val());
+        toggleDimensiFieldsEdit($(this).val());
+    });
+
+    // Fungsi untuk toggle field dimensi berdasarkan jenis satuan
+    function toggleDimensiFieldsEdit(selectedSatuanId) {
+        const containerId = '#edit_dimensi_container';
+        const luasId = '#edit_dimensi_luas';
+        const panjangId = '#edit_dimensi_panjang';
+        
+        // Dapatkan nama satuan dari opsi yang dipilih
+        const selectedOption = $('#edit_satuanBarang option:selected');
+        const satuanName = selectedOption.text().trim();
+        
+        if (satuanName === 'SATUAN LUAS') {
+            // Tampilkan kedua field (lebar dan panjang)
+            $(containerId).show();
+            $(luasId).show();
+            $(panjangId).show();
+        } else if (satuanName === 'SATUAN LEBAR') {
+            // Tampilkan hanya field lebar
+            $(containerId).show();
+            $(luasId).show();
+            $(panjangId).hide();
+        } else {
+            // Sembunyikan seluruh field dimensi
+            $(containerId).hide();
+        }
+    }
+
     $("#editProdukModal").on("shown.bs.modal", function () {
         const selectedKategoriOnShow = $("#edit_kategori_utama").val();
         const currentSubKategoriOnShow = $(
@@ -169,6 +199,13 @@ $(function () {
             selectedKategoriOnShow,
             currentSubKategoriOnShow
         );
+        const selectedSatuanOnShow = $("#edit_satuanBarang").val();
+        const currentSubSatuanOnShow = $("#edit_detail_satuan").val();
+        updateEditDetailSatuanOptions(selectedSatuanOnShow, currentSubSatuanOnShow);
+
+        if (selectedSatuanOnShow) {
+            toggleDimensiFieldsEdit(selectedSatuanOnShow);
+        }
     });
 
     // === MEDIA & DOKUMEN (EDIT) ===

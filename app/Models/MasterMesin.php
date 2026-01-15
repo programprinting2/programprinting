@@ -37,7 +37,7 @@ class MasterMesin extends Model
         'lebar_media_maksimum',
         'detail_mesin',
         'catatan_tambahan',
-        'cloudinary_public_id',
+        // 'cloudinary_public_id',
         'supabase_path',
         'harga_tinta_per_liter',
         'konsumsi_tinta_per_m2',

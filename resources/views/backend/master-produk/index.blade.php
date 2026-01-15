@@ -72,7 +72,6 @@
                                     <th>Kategori</th>
                                     <th>Sub Kategori</th>
                                     <th>Satuan</th>
-                                    <th>Metode Penjualan</th>
                                     <th>Lebar (cm)</th>
                                     <th>Panjang (cm)</th>
                                     <th>Status</th>
@@ -86,8 +85,7 @@
                                         <td>{{ $p->nama_produk }}</td>
                                         <td>{{ $p->kategoriUtama->nama_detail_parameter ?? '-' }}</td>
                                         <td>{{ $p->subKategori->nama_sub_detail_parameter ?? '-' }}</td>
-                                        <td>{{ $p->satuan->nama_detail_parameter ?? '-' }}</td>
-                                        <td>{{ $p->metode_penjualan == 'm2' ? 'm2' : 'Meter Lari' }}</td>
+                                        <td>{{ $p->subSatuan->nama_sub_detail_parameter ?? '-' }}</td>
                                         <td>{{ $p->lebar }}</td>
                                         <td>{{ $p->panjang }}</td>
                                         <td>
@@ -148,6 +146,7 @@
     window.subKategoriList = @json($subKategoriList ?? []);
     window.kategoriList = @json($kategoriList ?? []);
     window.masterMesinList = @json($masterMesinList ?? []);
+    window.satuanDetailList = @json($satuanDetailList ?? []);
   </script>
   <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

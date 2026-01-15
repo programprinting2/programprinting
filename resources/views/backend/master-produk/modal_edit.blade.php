@@ -103,39 +103,30 @@
                       </select>
                     </div>
                     <div class="col-md-6">
-                      <label class="form-label">Dimensi</label>
-                      <div class="row">
-                        <div class="col-md-6">
-                          <input type="number" class="form-control" id="edit_lebar" name="lebar" min="0"
-                            placeholder="Lebar (cm)">
-                          <small class="text-muted">Lebar (cm)</small>
-                        </div>
-                        <div class="col-md-6">
-                          <input type="number" class="form-control" id="edit_panjang" name="panjang" min="0"
-                            placeholder="Panjang (cm)">
-                          <small class="text-muted">Panjang (cm)</small>
-                        </div>
-                      </div>
+                      <label for="edit_detail_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>
+                      <select class="form-select" id="edit_detail_satuan" name="sub_satuan_id" required>
+                        <option value="" selected disabled>Pilih detail satuan</option>
+                        <!-- Options akan diisi dinamis oleh JS -->
+                      </select>
+                      <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
                     </div>
-                  </div>
-                  <div class="row mb-3">
-                    <div class="col-md-6">
-                      <label class="form-label">Metode Penjualan</label>
-                      <div class="card p-2">
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="metode_penjualan" id="edit_jual_per_m2"
-                            value="m2">
-                          <label class="form-check-label" for="edit_jual_per_m2">Dijual per m<sup>2</sup></label>
+                    <div id="edit_dimensi_container" class="row mb-3" style="display: none;">
+                        <div class="col-md-6">
+                            <label class="form-label">Dimensi</label>
+                            <div class="row">
+                                <div id="edit_dimensi_luas" class="col-md-6">
+                                    <input type="number" class="form-control" id="edit_lebar" name="lebar" min="0"
+                                        placeholder="Lebar (cm)">
+                                    <small class="text-muted">Lebar</small>
+                                </div>
+                                <div id="edit_dimensi_panjang" class="col-md-6">
+                                    <input type="number" class="form-control" id="edit_panjang" name="panjang" min="0"
+                                        placeholder="Panjang (cm)">
+                                    <small class="text-muted">Panjang</small>
+                                </div>
+                            </div>
                         </div>
-                        <div class="form-check">
-                          <input class="form-check-input" type="radio" name="metode_penjualan"
-                            id="edit_jual_per_meter_lari" value="meter_lari">
-                          <label class="form-check-label" for="edit_jual_per_meter_lari">Dijual per meter lari</label>
-                        </div>
-                        <small class="text-muted">Produk dijual berdasarkan luas total (panjang × lebar)</small>
-                      </div>
                     </div>
-
                   </div>
                   <div class="row mb-3">
                     <!-- HIDDEN INPUT UNTUK JSON -->

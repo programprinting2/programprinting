@@ -40,11 +40,15 @@ class MasterProdukController extends Controller
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
-            $satuanList = \App\Services\ParameterService::getParameterDetails('SATUAN');
+            $satuanList = \App\Services\ParameterService::getParameterDetails('JENIS SATUAN');
+            $satuanDetailList = SubDetailParameter::with('detailParameter')
+                ->where('aktif', 1)
+                ->orderBy('nama_sub_detail_parameter')
+                ->get();
             // Ambil data master mesin untuk window.masterMesinList
             $masterMesinList = MasterMesin::select('id', 'nama_mesin', 'tipe_mesin', 'biaya_perhitungan_profil')->get();
             
-            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'masterMesinList'));
+            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'satuanDetailList','masterMesinList'));
         } catch (\Exception $e) {
             Log::error('Error loading Produk index', ['error' => $e->getMessage()]);
             return view('backend.master-produk.index', [

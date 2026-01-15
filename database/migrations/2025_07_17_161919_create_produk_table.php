@@ -20,7 +20,8 @@ return new class extends Migration
             $table->unsignedBigInteger('kategori_utama_id');
             $table->unsignedBigInteger('sub_kategori_id')->nullable();
             $table->unsignedBigInteger('satuan_id');
-            $table->enum('metode_penjualan', ['m2', 'meter_lari']);
+            $table->unsignedBigInteger('sub_satuan_id')->nullable()->after('satuan_id');
+            // $table->enum('metode_penjualan', ['m2', 'meter_lari']);
             $table->integer('lebar')->default(0);
             $table->integer('panjang')->default(0);
             $table->boolean('status_aktif')->default(true);
@@ -36,6 +37,7 @@ return new class extends Migration
             $table->foreign('kategori_utama_id')->references('id')->on('detail_parameters')->onDelete('restrict');
             $table->foreign('sub_kategori_id')->references('id')->on('sub_detail_parameter')->onDelete('set null');
             $table->foreign('satuan_id')->references('id')->on('detail_parameters')->onDelete('restrict');
+            $table->foreign('sub_satuan_id')->references('id')->on('sub_detail_parameter')->onDelete('set null');
         });
     }
 

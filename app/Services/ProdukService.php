@@ -210,6 +210,19 @@ class ProdukService
         if (empty($data['satuan_id'])) {
             throw new InvalidProdukDataException('Satuan harus dipilih');
         }
+        if (empty($data['sub_satuan_id'])) {
+            throw new InvalidProdukDataException('Detail satuan harus dipilih');
+        }
+        if (!empty($data['satuan_id']) && !empty($data['sub_satuan_id'])) {
+            $subSatuan = \App\Models\SubDetailParameter::where('id', $data['sub_satuan_id'])
+                ->where('detail_parameter_id', $data['satuan_id'])
+                ->where('aktif', 1)
+                ->first();
+            
+            if (!$subSatuan) {
+                throw new InvalidProdukDataException('Detail satuan tidak valid untuk satuan yang dipilih');
+            }
+        }
     }
 
     private function processJsonField(?string $json): array

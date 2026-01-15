@@ -71,12 +71,49 @@ $(function () {
         updateSubKategoriOptions($(this).val(), "#sub_kategori_id_produk");
     });
 
+    $(document).on("change", "#satuanBarang", function () {
+        updateDetailSatuanOptions($(this).val(), "#detail_satuan");
+        toggleDimensiFields($(this).val(), 'add');
+    });
+
+
     $("#tambahProduk").on("shown.bs.modal", function () {
         updateSubKategoriOptions(
             $("#kategori_utama").val(),
             "#sub_kategori_id_produk"
         );
+        updateDetailSatuanOptions($("#satuanBarang").val(), "#detail_satuan");
+        const selectedSatuan = $("#satuanBarang").val();
+        if (selectedSatuan) {
+            toggleDimensiFields(selectedSatuan, 'add');
+        }
     });
+
+    // Fungsi untuk toggle field dimensi
+    function toggleDimensiFields(selectedSatuanId, mode = 'add') {
+        const containerId = mode === 'add' ? '#dimensi_container' : '#edit_dimensi_container';
+        const luasId = mode === 'add' ? '#dimensi_luas' : '#edit_dimensi_luas';
+        const panjangId = mode === 'add' ? '#dimensi_panjang' : '#edit_dimensi_panjang';
+        
+        // Dapatkan nama satuan dari opsi yang dipilih
+        const selectedOption = $(`#${mode === 'add' ? 'satuanBarang' : 'edit_satuanBarang'} option:selected`);
+        const satuanName = selectedOption.text().trim();
+        
+        if (satuanName === 'SATUAN LUAS') {
+            // Tampilkan kedua field
+            $(containerId).show();
+            $(luasId).show();
+            $(panjangId).show();
+        } else if (satuanName === 'SATUAN LEBAR') {
+            // Tampilkan hanya field lebar
+            $(containerId).show();
+            $(luasId).show();
+            $(panjangId).hide();
+        } else {
+            // Sembunyikan seluruh field dimensi
+            $(containerId).hide();
+        }
+    }
 
     // Handler untuk penambahan bahan baku
     window.addEventListener("bahanBakuDipilih", function (e) {

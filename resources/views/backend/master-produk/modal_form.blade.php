@@ -48,13 +48,13 @@
                             <div class="card mb-0">
                                 <div class="card-body">
                                     <div class="row mb-3">
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <label for="nama_produk" class="form-label">Nama Produk<span
                                                     class="text-danger"> *</span></label>
                                             <input type="text" class="form-control" id="nama_produk" name="nama_produk"
                                                 placeholder="Nama produk" required>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <label for="jenis_produk" class="form-label">Jenis Produk <span
                                                     class="text-danger"> *</span></label>
                                             <select class="form-select" id="jenis_produk" name="jenis_produk" required>
@@ -63,8 +63,11 @@
                                                 <option value="jasa">Jasa</option>
                                             </select>
                                         </div>
-                                        <div class="col-md-4">
-                                            <label for="satuan" class="form-label">Satuan <span class="text-danger">
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="satuan" class="form-label">Jenis Satuan <span class="text-danger">
                                                     *</span></label>
                                             <select class="form-select" id="satuanBarang" name="satuan_id" required>
                                                 <option value="" selected disabled>Pilih satuan</option>
@@ -73,6 +76,14 @@
                                                     </option>
                                                 @endforeach
                                             </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="detail_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>
+                                            <select class="form-select" id="detail_satuan" name="sub_satuan_id" required>
+                                                <option value="" selected disabled>Pilih detail satuan</option>
+                                                <!-- Options akan diisi dinamis oleh JS -->
+                                            </select>
+                                            <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
                                         </div>
                                     </div>
 
@@ -107,46 +118,23 @@
                                                 sama</small>
                                         </div>
                                     </div>
-                                    <div class="row mb-3">
+                                    <div id="dimensi_container" class="row mb-3" style="display: none;">
                                         <div class="col-md-6">
                                             <label class="form-label">Dimensi</label>
                                             <div class="row">
-                                                <div class="col-md-6">
+                                                <div id="dimensi_luas" class="col-md-6">
                                                     <input type="number" class="form-control" id="lebar" name="lebar"
                                                         min="0" value="0" placeholder="Lebar (cm)">
-                                                    <small class="text-muted">Lebar (cm)</small>
+                                                    <small class="text-muted">Lebar</small>
                                                 </div>
-                                                <div class="col-md-6">
+                                                <div id="dimensi_panjang" class="col-md-6">
                                                     <input type="number" class="form-control" id="panjang"
                                                         name="panjang" min="0" value="0" placeholder="Panjang (cm)">
-                                                    <small class="text-muted">Panjang (cm)</small>
+                                                    <small class="text-muted">Panjang</small>
                                                 </div>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label">Metode Penjualan</label>
-                                            <div class="card p-2">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="metode_penjualan"
-                                                        id="jual_per_m2" value="m2" checked>
-                                                    <label class="form-check-label" for="jual_per_m2">
-                                                        Dijual per m<sup>2</sup>
-                                                    </label>
-                                                </div>
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="radio" name="metode_penjualan"
-                                                        id="jual_per_meter_lari" value="meter_lari">
-                                                    <label class="form-check-label" for="jual_per_meter_lari">
-                                                        Dijual per meter lari
-                                                    </label>
-                                                </div>
-                                                <small class="text-muted">Produk dijual berdasarkan luas total (panjang
-                                                    × lebar)</small>
                                             </div>
                                         </div>
                                     </div>
-
-
 
                                     <div class="row mb-3">
                                         <!-- HIDDEN INPUT UNTUK JSON -->

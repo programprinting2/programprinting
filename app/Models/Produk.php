@@ -17,7 +17,7 @@ class Produk extends Model
         'kategori_utama_id',
         'sub_kategori_id',
         'satuan_id',
-        'metode_penjualan',
+        'sub_satuan_id',
         'lebar',
         'panjang',
         'status_aktif',
@@ -57,5 +57,9 @@ class Produk extends Model
     public function satuan()
     {
         return $this->belongsTo(\App\Models\DetailParameter::class, 'satuan_id');
+    }
+    public function subSatuan()
+    {
+    return $this->belongsTo(SubDetailParameter::class, 'sub_satuan_id');
     }
 }

@@ -18,12 +18,12 @@ class ProdukRepository implements ProdukRepositoryInterface
 
     public function all(): Collection
     {
-        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan'])->get();
+        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan'])->get();
     }
 
     public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = $this->model->with(['kategoriUtama', 'subKategori', 'satuan']);
+        $query = $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan']);
 
         if (isset($filters['search']) && !empty($filters['search'])) {
             $search = strtolower($filters['search']);
@@ -52,7 +52,7 @@ class ProdukRepository implements ProdukRepositoryInterface
 
     public function findWithRelations(int $id): ?Produk
     {
-        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan'])->find($id);
+        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan'])->find($id);
     }
 
     public function search(string $search): Collection
