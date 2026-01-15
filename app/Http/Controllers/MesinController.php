@@ -250,4 +250,55 @@ class MesinController extends Controller
                 ->with('error', 'Terjadi kesalahan sistem');
         }
     }
+
+    /**
+     * Remove specific biaya tambahan from profile
+     */
+    public function removeBiayaTambahan(Request $request, int $id): JsonResponse
+    {
+        try {
+            $request->validate([
+                'profile_index' => 'required|integer|min:0',
+                'biaya_nama' => 'required|string|max:255'
+            ]);
+
+            $profileIndex = $request->input('profile_index');
+            $biayaNama = trim($request->input('biaya_nama'));
+
+            $mesin = $this->mesinService->removeBiayaTambahan($id, $profileIndex, $biayaNama);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Biaya tambahan berhasil dihapus',
+                'mesin' => $mesin,
+                'biaya_perhitungan_profil' => $mesin->biaya_perhitungan_profil
+            ]);
+
+        } catch (MesinNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 404);
+
+        } catch (InvalidMesinDataException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 422);
+
+        } catch (\Exception $e) {
+            Log::error('Unexpected error removing biaya tambahan', [
+                'mesin_id' => $id,
+                'profile_index' => $request->input('profile_index'),
+                'biaya_nama' => $request->input('biaya_nama'),
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan sistem. Silakan coba lagi.'
+            ], 500);
+        }
+    }
 }

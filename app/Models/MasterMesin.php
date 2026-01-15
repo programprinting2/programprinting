@@ -216,4 +216,35 @@ class MasterMesin extends Model
     {
         return $query->where('status', 'Aktif');
     }
+
+    /**
+     * Remove biaya tambahan from specific profile
+     */
+    public function removeBiayaTambahan(int $profileIndex, string $biayaNama): bool
+    {
+        $biayaNama = trim($biayaNama);
+        $profiles = $this->biaya_perhitungan_profil ?? [];
+
+        if (!isset($profiles[$profileIndex]['settings']['biaya_tambahan_profil'])) {
+            return false;
+        }
+
+        $biayaTambahan = &$profiles[$profileIndex]['settings']['biaya_tambahan_profil'];
+        
+        foreach ($biayaTambahan as $index => $biaya) {
+            if (isset($biaya['nama']) && trim($biaya['nama']) === $biayaNama) {
+                array_splice($biayaTambahan, $index, 1);
+                
+                // Hapus property jika array kosong
+                if (empty($biayaTambahan)) {
+                    unset($profiles[$profileIndex]['settings']['biaya_tambahan_profil']);
+                }
+                
+                $this->biaya_perhitungan_profil = $profiles;
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

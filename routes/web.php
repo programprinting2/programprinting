@@ -61,6 +61,7 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.master-mesin.update',
         'destroy' => 'backend.master-mesin.destroy',
     ]);
+    Route::post('master-mesin/{id}/remove-biaya-tambahan', [MesinController::class, 'removeBiayaTambahan'])->name('backend.master-mesin.remove-biaya-tambahan');
 
     // Pelanggan Resource Routes
     Route::resource('pelanggan', PelangganController::class)->names([

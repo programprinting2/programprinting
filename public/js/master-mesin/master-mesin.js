@@ -259,8 +259,10 @@ $(document).ready(function() {
         submitBtn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Menyimpan...');
 
         // Kumpulkan data profil biaya dan set ke input hidden
-        $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
-
+        // $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
+        if (!$('#edit_biaya_perhitungan_profil_json' + id).data('updated-by-ajax')) {
+            $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
+        }
         let formData = new FormData(form[0]);
 
         $.ajax({
@@ -593,10 +595,13 @@ function createProfileForm() {
 }
 
 // Fungsi untuk membuat form profil baru (untuk edit mesin)
-function createEditProfileForm(mesinId, profileData = null) {
+function createEditProfileForm(mesinId, profileData = null, profileIndex = null) {
     const profileCount = $(`#edit_biaya_perhitungan_profil_container${mesinId} .profile-item`).length;
+    if (profileIndex === null) {
+        profileIndex = $(`#edit_biaya_perhitungan_profil_container${mesinId} .profile-item`).length;
+    }
     const profileHtml = `
-        <div class="profile-item accordion mb-3" id="editAccordionProfile${profileCount}_${mesinId}" data-mesin-id="${mesinId}">
+        <div class="profile-item accordion mb-3" id="editAccordionProfile${profileIndex}_${mesinId}" data-mesin-id="${mesinId}" data-profile-index="${profileIndex}">
             <div class="accordion-item">
                 <h2 class="accordion-header" id="editHeadingProfile${profileCount}_${mesinId}">
                     <button class="accordion-button bg-light collapsed" type="button" data-bs-toggle="collapse" 
@@ -994,13 +999,23 @@ function collectProfileData(containerId) {
             const biayaNama = $(this).find('.profile-biaya-nama').val()?.trim();
             const biayaNilai = parseFloat($(this).find('.profile-biaya-nilai').val()) || 0;
             
-            // Hanya tambahkan jika nama biaya ada, belum ada sebelumnya, dan nilai valid
-            if (biayaNama && !biayaNamaSet.has(biayaNama) && !isNaN(biayaNilai)) {
-                biayaNamaSet.add(biayaNama);
-                biayaTambahanProfil.push({ 
-                    nama: biayaNama, 
-                    nilai: biayaNilai 
-                });
+            // Validasi: nama harus ada, tidak duplikasi, dan nilai valid
+            if (biayaNama) {
+                if (biayaNamaSet.has(biayaNama)) {
+                    // Tampilkan error duplikasi
+                    $(this).find('.profile-biaya-nama').addClass('is-invalid');
+                    $(this).find('.invalid-feedback').remove();
+                    $(this).find('.profile-biaya-nama').after('<div class="invalid-feedback">Nama biaya sudah digunakan dalam profil ini.</div>');
+                    return; 
+                }
+                
+                if (!isNaN(biayaNilai)) {
+                    biayaNamaSet.add(biayaNama);
+                    biayaTambahanProfil.push({ 
+                        nama: biayaNama, 
+                        nilai: biayaNilai 
+                    });
+                }
             }
         });
         
@@ -1155,17 +1170,34 @@ $(document).on('click', '.tambah-profile-biaya', function() {
 $(document).on('click', '.remove-profile-biaya', function() {
     const container = $(this).closest('.profile-biaya-tambahan-container');
     const profileItem = $(this).closest('.profile-item');
-    const namaProfil = profileItem.find('.profile-nama').val() || 'Profil Baru';
+    const mesinId = profileItem.data('mesin-id') || $('input[name="mesin_id"]').val();
+    const profileIndex = profileItem.data('profile-index');
+    const biayaNama = $(this).closest('.profile-biaya-item').find('.profile-biaya-nama').val()?.trim();
     
-    // Hapus elemen biaya
-    $(this).closest('.profile-biaya-item').remove();
-    
-    // Update total di title accordion
-    updateProfileTitle(profileItem, namaProfil);
-    
-    // Show message if no profile costs left in this profile
-    if (container.find('.profile-biaya-item').length === 0) {
-        container.find('.no-profile-biaya-message').show();
+    // Jika dalam mode edit dan ada mesin ID, kirim request ke backend
+    if (mesinId && profileIndex !== undefined && biayaNama) {
+        Swal.fire({
+            title: 'Hapus Biaya Tambahan?',
+            text: `Apakah Anda yakin ingin menghapus biaya tambahan "${biayaNama}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                removeBiayaTambahanFromBackend(mesinId, profileIndex, biayaNama, $(this));
+            }
+        });
+    } else {
+        // Mode tambah baru atau tidak ada data, hapus dari UI saja
+        $(this).closest('.profile-biaya-item').remove();
+        updateProfileTitle(profileItem, profileItem.find('.profile-nama').val() || 'Profil Baru');
+        
+        if (container.find('.profile-biaya-item').length === 0) {
+            container.find('.no-profile-biaya-message').show();
+        }
     }
 });
 
@@ -1209,9 +1241,17 @@ function getSatuanBiaya(tipe) {
 // --- Event Listeners untuk Modal Edit Mesin ---
 
 // Tambah Profil button handler for Edit Modal
+// $(document).on('click', '.tambah-profil-edit', function() {
+//     const mesinId = $(this).data('id');
+//     createEditProfileForm(mesinId);
+// });
 $(document).on('click', '.tambah-profil-edit', function() {
     const mesinId = $(this).data('id');
-    createEditProfileForm(mesinId);
+    const profileIndex = $(`#edit_biaya_perhitungan_profil_container${mesinId} .profile-item`).length;
+    createEditProfileForm(mesinId, null, profileIndex);
+    $(`#edit_no_profil_message${mesinId}`).hide();
+    // Trigger change event untuk mengatur satuan biaya
+    $(`#edit_biaya_perhitungan_profil_container${mesinId} .profile-item:last .profile-tipe-perhitungan`).trigger('change');
 });
 
 // Hapus Profil button handler for Edit Modal
@@ -1254,8 +1294,8 @@ $(document).on('shown.bs.modal', function (e) {
             try {
                 const existingProfiles = JSON.parse(existingProfilesJson);
                 if (existingProfiles && existingProfiles.length > 0) {
-                    existingProfiles.forEach(profile => {
-                        createEditProfileForm(mesinId, profile);
+                    existingProfiles.forEach((profile, index) => {
+                        createEditProfileForm(mesinId, profile, index);
                     });
                     $(`#edit_no_profil_message${mesinId}`).hide();
                 } else {
@@ -1293,6 +1333,82 @@ $(document).on('input', '.profile-item input, .profile-item select', function() 
     const namaProfil = profileItem.find('.profile-nama').val() || 'Profil Baru';
     updateProfileTitle(profileItem, namaProfil);
 });
+
+// Fungsi untuk menghapus biaya tambahan dari backend
+function removeBiayaTambahanFromBackend(mesinId, profileIndex, biayaNama, buttonElement) {
+    const container = buttonElement.closest('.profile-biaya-tambahan-container');
+    const profileItem = buttonElement.closest('.profile-item');
+    
+    // Disable button selama proses
+    buttonElement.prop('disabled', true);
+    const originalText = buttonElement.html();
+    buttonElement.html('<i class="fas fa-spinner fa-spin"></i>');
+    
+    $.ajax({
+        url: `/backend/master-mesin/${mesinId}/remove-biaya-tambahan`,
+        method: 'POST',
+        data: {
+            _token: $('meta[name="csrf-token"]').attr('content'),
+            profile_index: profileIndex,
+            biaya_nama: biayaNama
+        },
+        success: function(response) {
+            if (response.success) {
+                // Hapus dari UI
+                buttonElement.closest('.profile-biaya-item').remove();
+                
+                // Update total di title accordion
+                updateProfileTitle(profileItem, profileItem.find('.profile-nama').val() || 'Profil Baru');
+                
+                // Show message if no profile costs left
+                if (container.find('.profile-biaya-item').length === 0) {
+                    container.find('.no-profile-biaya-message').show();
+                }
+            
+                if (response.mesin && response.mesin.biaya_perhitungan_profil) {
+                    $(`#edit_biaya_perhitungan_profil_json${mesinId}`).val(JSON.stringify(response.mesin.biaya_perhitungan_profil));
+                } else {
+                    console.warn('WARNING: biaya_perhitungan_profil tidak ditemukan di response!');
+                    // Fallback: Update hidden input dengan data dari UI yang sudah terupdate
+                    const updatedProfileData = collectProfileData('edit_biaya_perhitungan_profil_container' + mesinId);
+                    $(`#edit_biaya_perhitungan_profil_json${mesinId}`).val(JSON.stringify(updatedProfileData));
+                }
+                $(`#edit_biaya_perhitungan_profil_json${mesinId}`).data('updated-by-ajax', true);
+                
+                // Tampilkan pesan sukses
+                Swal.fire({
+                    icon:'success',
+                    title:'Berhasil!',
+                    text:'Biaya tambahan berhasil dihapus',
+                    showConfirmButton: false,
+                    timer: 1500
+                })
+            } else {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Gagal!',
+                    text: response.message || 'Gagal menghapus biaya tambahan'
+                });
+            }
+        },
+        error: function(xhr) {
+            let message = 'Terjadi kesalahan saat menghapus biaya tambahan';
+            if (xhr.responseJSON && xhr.responseJSON.message) {
+                message = xhr.responseJSON.message;
+            }
+            Swal.fire({
+                icon: 'error',
+                title: 'Gagal!',
+                text: message
+            });
+        },
+        complete: function() {
+            // Re-enable button
+            buttonElement.prop('disabled', false);
+            buttonElement.html(originalText);
+        }
+    });
+}
 
 // Fungsi untuk menghitung total biaya per profil
 function calculateProfileTotal(profileItem) {
