@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use App\Models\DetailParameter;
 use App\Models\SubDetailParameter;
 use Illuminate\Support\Facades\DB;
+use App\Services\ParameterService;
 
 class MasterParameterController extends Controller
 {
@@ -98,6 +99,7 @@ class MasterParameterController extends Controller
             }
             
             DB::commit();
+            ParameterService::clearCache();
             return response()->json($detail);
         } catch (\Exception $e) {
             DB::rollback();
@@ -164,6 +166,7 @@ class MasterParameterController extends Controller
             }
             
             DB::commit();
+            ParameterService::clearCache();
             return response()->json($detail);
         } catch (\Exception $e) {
             DB::rollback();
@@ -175,6 +178,7 @@ class MasterParameterController extends Controller
     {
         $detail = DetailParameter::findOrFail($detailId);
         $detail->delete();
+        ParameterService::clearCache();
         return response()->json(['success'=>true]);
     }
 
