@@ -1029,7 +1029,7 @@ function collectProfileData(containerId) {
         let errorMessage = '';
 
         if (tipe === 'per_satuan_area') {
-            if (settings.harga_tinta_per_liter <= 0 || settings.konsumsi_tinta_per_m2 <= 0) {
+            if (settings.harga_tinta_per_liter < 0 || settings.konsumsi_tinta_per_m2 < 0) {
                 isValid = false;
                 errorMessage = 'Harga tinta per liter dan konsumsi tinta per m² harus diisi dengan nilai > 0';
             }
