@@ -124,12 +124,12 @@
                                             <div class="row">
                                                 <div id="dimensi_luas" class="col-md-6">
                                                     <input type="number" class="form-control" id="lebar" name="lebar"
-                                                        min="0" value="0" placeholder="Lebar (cm)">
+                                                        min="0" step="0.01" value="0" placeholder="Lebar">
                                                     <small class="text-muted">Lebar</small>
                                                 </div>
                                                 <div id="dimensi_panjang" class="col-md-6">
                                                     <input type="number" class="form-control" id="panjang"
-                                                        name="panjang" min="0" value="0" placeholder="Panjang (cm)">
+                                                        name="panjang" min="0" step="0.01" value="0" placeholder="Panjang">
                                                     <small class="text-muted">Panjang</small>
                                                 </div>
                                             </div>

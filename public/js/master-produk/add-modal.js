@@ -1140,8 +1140,8 @@ $(function () {
                 }
             });
             $("#biaya_tambahan_json").val(JSON.stringify(biayaTambahanArr));
-            $("#lebar").val(parseInt($("#lebar").val()) || 0);
-            $("#panjang").val(parseInt($("#panjang").val()) || 0);
+            $("#lebar").val(parseFloat($("#lebar").val()) || 0);
+            $("#panjang").val(parseFloat($("#panjang").val()) || 0);
 
             var form = $(this)[0];
             var formData = new FormData(form);

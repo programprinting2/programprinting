@@ -28,6 +28,8 @@ class ProdukService
             DB::beginTransaction();
 
             $data['kode_produk'] = $this->generateKodeProduk();
+            $data['lebar'] = $data['lebar'] ?? 0;
+            $data['panjang'] = $data['panjang'] ?? 0;
 
             // Process JSON fields
             $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
@@ -87,6 +89,8 @@ class ProdukService
 
         try {
             DB::beginTransaction();
+            $data['lebar'] = $data['lebar'] ?? 0;
+            $data['panjang'] = $data['panjang'] ?? 0;
 
             // Process JSON fields
             $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
@@ -126,15 +130,7 @@ class ProdukService
             //         }
             //     }
             //     $data['dokumen_pendukung_json'] = $newDokumen;
-            // }
-
-            Log::info('DEBUG UPDATE PRODUK - Data diterima:', [
-                'produk_id' => $id,
-                'all_data_keys' => array_keys($data),
-                'spesifikasi_teknis_json' => $data['spesifikasi_teknis_json'] ?? 'NOT_SET',
-                'spesifikasi_teknis_json_type' => gettype($data['spesifikasi_teknis_json'] ?? null),
-                'raw_request_data' => $data
-            ]);
+            // }f
 
             $this->produkRepository->update($id, $data);
 

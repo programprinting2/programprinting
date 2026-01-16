@@ -115,13 +115,13 @@
                             <label class="form-label">Dimensi</label>
                             <div class="row">
                                 <div id="edit_dimensi_luas" class="col-md-6">
-                                    <input type="number" class="form-control" id="edit_lebar" name="lebar" min="0"
-                                        placeholder="Lebar (cm)">
+                                  <input type="number" class="form-control" id="edit_lebar" name="lebar" 
+                                    min="0" step="0.01" placeholder="Lebar">
                                     <small class="text-muted">Lebar</small>
                                 </div>
                                 <div id="edit_dimensi_panjang" class="col-md-6">
-                                    <input type="number" class="form-control" id="edit_panjang" name="panjang" min="0"
-                                        placeholder="Panjang (cm)">
+                                  <input type="number" class="form-control" id="edit_panjang" name="panjang" 
+                                    min="0" step="0.01" placeholder="Panjang">
                                     <small class="text-muted">Panjang</small>
                                 </div>
                             </div>

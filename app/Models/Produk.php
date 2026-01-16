@@ -47,7 +47,9 @@ class Produk extends Model
         'spesifikasi_teknis_json' => 'array',
         'biaya_tambahan_json' => 'array',
         'status_aktif' => 'boolean',
-        'total_modal_keseluruhan' => 'decimal:2'
+        'total_modal_keseluruhan' => 'decimal:2',
+        'lebar' => 'decimal:2',       
+        'panjang' => 'decimal:2',
     ];
 
     public function kategoriUtama()
