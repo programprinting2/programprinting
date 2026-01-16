@@ -967,7 +967,7 @@ $(function () {
                 <div class="col-md-6">
                     <label class="form-label">Nama Mesin</label>
                     <div class="input-group">
-                        <input type="text" class="form-control nama-mesin-input" name="edit_alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." readonly>
+                        <input type="text" class="form-control nama-mesin-input" name="edit_alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." style="cursor: pointer;">
                         <input type="hidden" class="mesin-id-input" name="edit_alur_produksi[${index}][id]" value="${data.id || ""}">
                         <button type="button" class="btn btn-outline-secondary btn-cari-mesin" title="Cari Mesin"><i class="fa fa-search"></i></button>
                     </div>
@@ -1008,7 +1008,7 @@ $(function () {
         .on("click", ".nama-mesin-input, .btn-cari-mesin", function (e) {
             e.preventDefault();
             e.stopPropagation();
-            // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
+            // Cek apakah modal sudah terbuka
             if ($("#modalCariMesinProdukEdit").hasClass("show")) {
                 return;
             }

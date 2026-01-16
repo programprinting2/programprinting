@@ -529,7 +529,7 @@ $(function () {
                 <div class="col-md-6">
                     <label class="form-label">Nama Mesin</label>
                     <div class="input-group">
-                        <input type="text" class="form-control nama-mesin-input" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." readonly>
+                        <input type="text" class="form-control nama-mesin-input" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." readonly style="cursor: pointer; background-color: #fff;">
                         <input type="hidden" class="mesin-id-input" name="alur_produksi[${index}][mesin_id]" value="${data.id || ""}">
                         <button type="button" class="btn btn-outline-secondary btn-cari-mesin" title="Cari Mesin"><i class="fa fa-search"></i></button>
                     </div>
@@ -609,11 +609,15 @@ $(function () {
         isModalForParameter = false;
 
         // Buka modal cari mesin
-        $("#modalCariMesinProdukTambah").modal({
-            backdrop: "static",
-            keyboard: false,
-            focus: true
-        });
+        var modalMesin = new bootstrap.Modal(
+            document.getElementById("modalCariMesinProdukTambah"),
+            {
+                backdrop: "static",
+                keyboard: false,
+                focus: true,
+            }
+        );
+        modalMesin.show();
 
         // Tambahkan class stack untuk modal
         setTimeout(function () {

@@ -1031,7 +1031,7 @@ function collectProfileData(containerId) {
         if (tipe === 'per_satuan_area') {
             if (settings.harga_tinta_per_liter < 0 || settings.konsumsi_tinta_per_m2 < 0) {
                 isValid = false;
-                errorMessage = 'Harga tinta per liter dan konsumsi tinta per m² harus diisi dengan nilai > 0';
+                errorMessage = 'Harga tinta per liter dan konsumsi tinta per m² harus diisi dengan nilai';
             }
         } else if (tipe === 'per_klik') {
             if (settings.ukuran_kertas == '' || settings.mode_warna == '' || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik < 0 || settings.jumlah_klik < 1) {
