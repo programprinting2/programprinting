@@ -785,14 +785,14 @@ $(function () {
                     $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")
                 ) || 0);
             const profitPersen =
-                row.harga > 0 ? ((profitRp / row.harga) * 100).toFixed(1) : 0;
+                row.harga > 0 ? ((profitRp / parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, ""))) * 100).toFixed(1) : 0;
             tbody.append(` <tr>
                 <td><input type="number" class="form-control form-control-sm min-qty" value="${
                     row.min_qty
-                }" min="1" data-idx="${idx}"></td>
+                }" min="1" step="0.01" data-idx="${idx}"></td>
                 <td><input type="number" class="form-control form-control-sm max-qty" value="${
                     row.max_qty
-                }" min="1" data-idx="${idx}"></td>
+                }" min="1" step="0.01" data-idx="${idx}"></td>
                 <td><input type="text" class="form-control form-control-sm harga money-format" value="${
                     row.harga ? formatRupiahInput(row.harga.toString()) : ""
                 }" min="0" data-idx="${idx}"></td>
@@ -822,14 +822,14 @@ $(function () {
                     $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")
                 ) || 0);
             const profitPersen =
-                row.harga > 0 ? ((profitRp / row.harga) * 100).toFixed(1) : 0;
+                row.harga > 0 ? ((profitRp / parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, ""))) * 100).toFixed(1) : 0;
             tbody.append(` <tr>
                 <td><input type="number" class="form-control form-control-sm min-qty" value="${
                     row.min_qty
-                }" min="1" data-idx="${idx}"></td>
+                }" min="1" step="0.01" data-idx="${idx}"></td>
                 <td><input type="number" class="form-control form-control-sm max-qty" value="${
                     row.max_qty
-                }" min="1" data-idx="${idx}"></td>
+                }" min="1" step="0.01" data-idx="${idx}"></td>
                 <td><input type="text" class="form-control form-control-sm harga money-format" value="${
                     row.harga ? formatRupiahInput(row.harga.toString()) : ""
                 }" min="0" data-idx="${idx}"></td>
@@ -888,7 +888,7 @@ $(function () {
             editHargaBertingkatList[idx][field] =
                 parseInt($(this).val().replace(/\./g, "")) || 0;
         } else {
-            editHargaBertingkatList[idx][field] = parseInt($(this).val()) || 0;
+            editHargaBertingkatList[idx][field] = parseFloat($(this).val()) || 0;
         }
         updateEditProfitCalculation(
             "#editTabelHargaBertingkat",
@@ -912,7 +912,7 @@ $(function () {
             editHargaResellerList[idx][field] =
                 parseInt($(this).val().replace(/\./g, "")) || 0;
         } else {
-            editHargaResellerList[idx][field] = parseInt($(this).val()) || 0;
+            editHargaResellerList[idx][field] = parseFloat($(this).val()) || 0;
         }
         updateEditProfitCalculation(
             "#editTabelHargaReseller",
@@ -930,10 +930,7 @@ $(function () {
             parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
             0;
         const profitRp = rowData.harga - totalModalKeseluruhan;
-        const profitPersen =
-            rowData.harga > 0
-                ? ((profitRp / rowData.harga) * 100).toFixed(1)
-                : 0;
+        const profitPersen = totalModalKeseluruhan > 0 ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1) : 0;
         const row = $(`${tableSelector} tbody tr`).eq(idx);
         row.find("td")
             .eq(3)
