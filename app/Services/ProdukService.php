@@ -32,7 +32,7 @@ class ProdukService
             $data['panjang'] = $data['panjang'] ?? 0;
 
             // Process JSON fields
-            $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
+            // $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
             $data['harga_bertingkat_json'] = $this->processJsonField($data['harga_bertingkat_json'] ?? null);
             $data['harga_reseller_json'] = $this->processJsonField($data['harga_reseller_json'] ?? null);
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
@@ -56,10 +56,18 @@ class ProdukService
                 'produk/dokumen'
             );
 
-            $produk = $this->produkRepository->create($data);
-            $totalModal = $this->calculateTotalModalKeseluruhan($data);
-            $produk->update(['total_modal_keseluruhan' => $totalModal]);
+            if (isset($data['bahan_baku']) && is_array($data['bahan_baku'])) {
+                $bahanBakuData = $data['bahan_baku'];
+            }
 
+            unset($data['bahan_baku']);
+            $produk = $this->produkRepository->create($data);
+
+            // Sync bahan baku ke relational table
+            if (isset($bahanBakuData) && is_array($bahanBakuData)) {
+                $produk->syncBahanBakus($bahanBakuData);
+            }
+            
             DB::commit();
 
             Log::info('Produk created successfully', [
@@ -67,7 +75,7 @@ class ProdukService
                 'kode_produk' => $produk->kode_produk
             ]);
 
-            return $produk;
+            return $produk->load('bahanBakus');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -87,13 +95,15 @@ class ProdukService
             throw new ProdukNotFoundException();
         }
 
+        $this->validateProdukData($data);
+
         try {
             DB::beginTransaction();
             $data['lebar'] = $data['lebar'] ?? 0;
             $data['panjang'] = $data['panjang'] ?? 0;
 
             // Process JSON fields
-            $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
+            // $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
             $data['harga_bertingkat_json'] = $this->processJsonField($data['harga_bertingkat_json'] ?? null);
             $data['harga_reseller_json'] = $this->processJsonField($data['harga_reseller_json'] ?? null);
             $data['alur_produksi_json'] = $this->processJsonField($data['alur_produksi_json'] ?? null);
@@ -103,45 +113,55 @@ class ProdukService
             $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
 
             // Handle existing files
-            $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);
-            $existingVideo = $this->processExistingFiles($data['video_pendukung_existing_json'] ?? null);
-            $existingDokumen = $this->processExistingFiles($data['dokumen_pendukung_existing_json'] ?? null);
+            // $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);
+            // $existingVideo = $this->processExistingFiles($data['video_pendukung_existing_json'] ?? null);
+            // $existingDokumen = $this->processExistingFiles($data['dokumen_pendukung_existing_json'] ?? null);
 
             // Upload new files
-            $newFoto = $this->uploadFilesWithUrl($files['foto_pendukung_new'] ?? [], 'produk/foto');
-            $newVideo = $this->uploadFilesWithUrl($files['video_pendukung_new'] ?? [], 'produk/video');
-            $newDokumen = $this->uploadDocumentsWithUrl($files['dokumen_pendukung_new'] ?? [], 'produk/dokumen');
+            // $newFoto = $this->uploadFilesWithUrl($files['foto_pendukung_new'] ?? [], 'produk/foto');
+            // $newVideo = $this->uploadFilesWithUrl($files['video_pendukung_new'] ?? [], 'produk/video');
+            // $newDokumen = $this->uploadDocumentsWithUrl($files['dokumen_pendukung_new'] ?? [], 'produk/dokumen');
 
             // Merge existing and new files
-            $data['foto_pendukung_json'] = array_merge($existingFoto, $newFoto);
-            $data['video_pendukung_json'] = array_merge($existingVideo, $newVideo);
-            $data['dokumen_pendukung_json'] = array_merge($existingDokumen, $newDokumen);
+            // $data['foto_pendukung_json'] = array_merge($existingFoto, $newFoto);
+            // $data['video_pendukung_json'] = array_merge($existingVideo, $newVideo);
+            // $data['dokumen_pendukung_json'] = array_merge($existingDokumen, $newDokumen);
 
-            // For documents, replace if new ones are uploaded
-            // if (!empty($newDokumen)) {
-            //     // Delete old documents
-            //     $oldDokumen = $produk->dokumen_pendukung_json ?? [];
-            //     foreach ($oldDokumen as $doc) {
-            //         // Handle both 'path' and 'url' keys for backward compatibility
-            //         $path = $doc['path'] ?? $doc['url'] ?? null;
-            //         if ($path) {
-            //             $path = str_replace('/storage/', '', $path);
-            //             $this->storageService->delete($path);
-            //         }
-            //     }
-            //     $data['dokumen_pendukung_json'] = $newDokumen;
-            // }f
+            // Process file uploads jika ada
+            if (!empty($files['foto_pendukung_new'])) {
+                $existingFotos = json_decode($produk->foto_pendukung_json ?? '[]', true);
+                $newFotos = $this->uploadFilesWithUrl($files['foto_pendukung_new'], 'produk/foto');
+                $data['foto_pendukung_json'] = array_merge($existingFotos, $newFotos);
+            }
 
-            $this->produkRepository->update($id, $data);
+            if (!empty($files['video_pendukung_new'])) {
+                $existingVideos = json_decode($produk->video_pendukung_json ?? '[]', true);
+                $newVideos = $this->uploadFilesWithUrl($files['video_pendukung_new'], 'produk/video');
+                $data['video_pendukung_json'] = array_merge($existingVideos, $newVideos);
+            }
 
-            $totalModal = $this->calculateTotalModalKeseluruhan($data);
-            $this->produkRepository->update($id, ['total_modal_keseluruhan' => $totalModal]);
+            if (!empty($files['dokumen_pendukung_new'])) {
+                $existingDokumens = json_decode($produk->dokumen_pendukung_json ?? '[]', true);
+                $newDokumens = $this->uploadFilesWithUrl($files['dokumen_pendukung_new'], 'produk/dokumen');
+                $data['dokumen_pendukung_json'] = array_merge($existingDokumens, $newDokumens);
+            }
+
+            if (isset($data['bahan_baku']) && is_array($data['bahan_baku'])) {
+                $bahanBakuData = $data['bahan_baku'];
+            }
+            
+            unset($data['bahan_baku']); 
+            $produk = $this->produkRepository->update($id, $data);
+
+            if (isset($bahanBakuData) && is_array($bahanBakuData)) {
+                $produk->syncBahanBakus($bahanBakuData);
+            }
 
             DB::commit();
 
             Log::info('Produk updated successfully', ['produk_id' => $id]);
 
-            return $this->produkRepository->find($id);
+            return $produk->load('bahanBakus');
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -224,6 +244,25 @@ class ProdukService
             
             if (!$subSatuan) {
                 throw new InvalidProdukDataException('Detail satuan tidak valid untuk satuan yang dipilih');
+            }
+        }
+        if (isset($data['bahan_baku']) && is_array($data['bahan_baku'])) {
+            if (empty($data['bahan_baku'])) {
+                throw new InvalidProdukDataException('Bahan baku tidak boleh kosong');
+            }
+    
+            foreach ($data['bahan_baku'] as $index => $bahanBaku) {
+                if (!isset($bahanBaku['id']) || !isset($bahanBaku['jumlah']) || !isset($bahanBaku['harga'])) {
+                    throw new InvalidProdukDataException("Bahan baku #{$index}: id, jumlah, dan harga harus diisi");
+                }
+    
+                if ($bahanBaku['jumlah'] <= 0) {
+                    throw new InvalidProdukDataException("Bahan baku #{$index}: jumlah harus lebih dari 0");
+                }
+    
+                if ($bahanBaku['harga'] < 0) {
+                    throw new InvalidProdukDataException("Bahan baku #{$index}: harga tidak boleh negatif");
+                }
             }
         }
     }
@@ -431,31 +470,6 @@ class ProdukService
                 $this->storageService->delete($path);
             }
         }
-    }
-
-    private function calculateTotalModalKeseluruhan(array $data): float
-    {
-        $total = 0;
-
-        // Total bahan baku
-        $bahanBaku = $data['bahan_baku_json'] ?? [];
-        foreach ($bahanBaku as $bahan) {
-            $total += ($bahan['harga'] ?? 0) * ($bahan['jumlah'] ?? 1);
-        }
-
-        // Total parameter modal
-        $parameterModal = $data['parameter_modal_json'] ?? [];
-        foreach ($parameterModal as $param) {
-            $total += ($param['harga'] ?? 0) * ($param['jumlah'] ?? 1);
-        }
-
-        // Total biaya tambahan
-        $biayaTambahan = $data['biaya_tambahan_json'] ?? [];
-        foreach ($biayaTambahan as $biaya) {
-            $total += $biaya['nilai'] ?? 0;
-        }
-
-        return $total;
     }
 }
 

@@ -138,7 +138,7 @@
 
                                     <div class="row mb-3">
                                         <!-- HIDDEN INPUT UNTUK JSON -->
-                                        <input type="hidden" name="bahan_baku_json" id="bahan_baku_json">
+                                        <!-- <input type="hidden" name="bahan_baku_json" id="bahan_baku_json"> -->
                                         <input type="hidden" name="harga_bertingkat_json" id="harga_bertingkat_json">
                                         <input type="hidden" name="harga_reseller_json" id="harga_reseller_json">
                                         <input type="hidden" name="foto_pendukung_json" id="foto_pendukung_json">

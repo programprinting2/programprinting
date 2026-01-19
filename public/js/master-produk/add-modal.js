@@ -333,7 +333,7 @@ $(function () {
 
     // Remove listener lama sebelum menambahkan yang baru (mencegah duplicate)
     window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
-    window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
+    // window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
 
     // Tombol + Tambah Parameter (buka modal cari MESIN)
     $(document).off("click", "#btnTambahParameter").on("click", "#btnTambahParameter", function (e) {
@@ -1048,6 +1048,7 @@ $(function () {
         .off("submit")
         .on("submit", function (e) {
             e.preventDefault();
+            
 
             const submitBtn = $(this).find('button[type="submit"]');
             const originalText = submitBtn.html();
@@ -1056,41 +1057,41 @@ $(function () {
             );
             submitBtn.prop("disabled", true);
 
-            const bahanBakuArr = [];
-            $("#tabelBahanBaku tbody tr").each(function () {
-                if ($(this).find('input[name="bahan_baku_id[]"]').length > 0) {
-                    bahanBakuArr.push({
-                        id: $(this).find('input[name="bahan_baku_id[]"]').val(),
-                        nama: $(this).find("td").eq(0).text().trim(),
-                        satuan: $(this).find("td").eq(1).text().trim(),
-                        harga:
-                            parseInt(
-                                $(this)
-                                    .find('input[name="harga_bahan[]"]')
-                                    .val()
-                            ) || 0,
-                        jumlah:
-                            parseInt(
-                                $(this)
-                                    .find('input[name="jumlah_bahan[]"]')
-                                    .val()
-                            ) || 0,
-                        total:
-                            parseInt(
-                                $(this)
-                                    .find('input[name="harga_bahan[]"]')
-                                    .val()
-                            ) *
-                                parseInt(
-                                    $(this)
-                                        .find('input[name="jumlah_bahan[]"]')
-                                        .val()
-                                ) || 0,
-                    });
-                }
-            });
+            // const bahanBakuArr = [];
+            // $("#tabelBahanBaku tbody tr").each(function () {
+            //     if ($(this).find('input[name="bahan_baku_id[]"]').length > 0) {
+            //         bahanBakuArr.push({
+            //             id: $(this).find('input[name="bahan_baku_id[]"]').val(),
+            //             nama: $(this).find("td").eq(0).text().trim(),
+            //             satuan: $(this).find("td").eq(1).text().trim(),
+            //             harga:
+            //                 parseInt(
+            //                     $(this)
+            //                         .find('input[name="harga_bahan[]"]')
+            //                         .val()
+            //                 ) || 0,
+            //             jumlah:
+            //                 parseInt(
+            //                     $(this)
+            //                         .find('input[name="jumlah_bahan[]"]')
+            //                         .val()
+            //                 ) || 0,
+            //             total:
+            //                 parseInt(
+            //                     $(this)
+            //                         .find('input[name="harga_bahan[]"]')
+            //                         .val()
+            //                 ) *
+            //                     parseInt(
+            //                         $(this)
+            //                             .find('input[name="jumlah_bahan[]"]')
+            //                             .val()
+            //                     ) || 0,
+            //         });
+            //     }
+            // });
 
-            $("#bahan_baku_json").val(JSON.stringify(bahanBakuArr));
+            // $("#bahan_baku_json").val(JSON.stringify(bahanBakuArr));
 
             const alurArr = [];
             $("#daftarMesin .mesin-item").each(function () {
@@ -1113,6 +1114,21 @@ $(function () {
             $("#harga_bertingkat_json").val(
                 JSON.stringify(hargaBertingkatList)
             );
+            const bahanBakuData = [];
+            $("#tabelBahanBaku tbody tr").each(function() {
+                const bahanBakuId = $(this).find('input[name="bahan_baku_id[]"]').val();
+                const jumlah = $(this).find('.jumlah_bahan').val();
+                const harga = $(this).find('input[name="harga_bahan[]"]').val();
+                
+                if (bahanBakuId && jumlah && harga) {
+                    bahanBakuData.push({
+                        id: parseInt(bahanBakuId),
+                        jumlah: parseFloat(jumlah),
+                        harga: parseInt(harga)
+                    });
+                }
+            });
+
             $("#harga_reseller_json").val(JSON.stringify(hargaResellerList));
             const paramArr = parameterMesinList.map((row) => {
                 const param = row.opsi[row.selected];
@@ -1149,6 +1165,11 @@ $(function () {
 
             var form = $(this)[0];
             var formData = new FormData(form);
+            bahanBakuData.forEach((item, index) => {
+                formData.append(`bahan_baku[${index}][id]`, item.id);
+                formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
+                formData.append(`bahan_baku[${index}][harga]`, item.harga);
+            });
 
             selectedPhotos.forEach((file) => {
                 formData.append("foto_pendukung_new[]", file);

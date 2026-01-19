@@ -16,10 +16,12 @@ interface ProdukRepositoryInterface
     public function search(string $search): Collection;
     public function getByStatus(bool $status): Collection;
     public function create(array $data): Produk;
-    public function update(int $id, array $data): bool;
+    public function update(int $id, array $data): Produk;
     public function delete(int $id): bool;
     public function count(): int;
 }
+
+
 
 
 

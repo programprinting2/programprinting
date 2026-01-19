@@ -23,7 +23,10 @@ class UpdateProdukRequest extends FormRequest
             'panjang' => 'nullable|numeric|min:0',
             'jenis_produk' => 'required|in:produk,jasa',
             'status_aktif' => 'required|boolean',
-            'bahan_baku_json' => 'nullable|json',
+            'bahan_baku' => 'required|array|min:1',
+            'bahan_baku.*.id' => 'required|integer|exists:bahan_baku,id',
+            'bahan_baku.*.jumlah' => 'required|numeric|min:0.01',
+            'bahan_baku.*.harga' => 'required|integer|min:0',
             'harga_bertingkat_json' => 'nullable|json',
             'harga_reseller_json' => 'nullable|json',
             'foto_pendukung_new.*' => 'nullable|file|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:5048',
@@ -44,6 +47,15 @@ class UpdateProdukRequest extends FormRequest
             'kategori_utama_id.exists' => 'Kategori utama tidak ditemukan',
             'satuan_id.required' => 'Satuan harus dipilih',
             'satuan_id.exists' => 'Satuan tidak ditemukan',
+            'bahan_baku.required' => 'Bahan baku harus dipilih minimal 1',
+            'bahan_baku.*.id.required' => 'ID bahan baku harus diisi',
+            'bahan_baku.*.id.exists' => 'Bahan baku tidak ditemukan',
+            'bahan_baku.*.jumlah.required' => 'Jumlah bahan baku harus diisi',
+            'bahan_baku.*.jumlah.numeric' => 'Jumlah bahan baku harus berupa angka',
+            'bahan_baku.*.jumlah.min' => 'Jumlah bahan baku minimal 0.01',
+            'bahan_baku.*.harga.required' => 'Harga bahan baku harus diisi',
+            'bahan_baku.*.harga.integer' => 'Harga bahan baku harus berupa angka bulat',
+            'bahan_baku.*.harga.min' => 'Harga bahan baku minimal 0',
         ];
     }
 }

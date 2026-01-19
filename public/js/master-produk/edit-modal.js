@@ -75,9 +75,21 @@ $(function () {
                 }, 100);
                 $("#edit_status_aktif").prop("checked", !!p.status_aktif);
                 $("#edit_jenis_produk").val(p.jenis_produk);
-                $("#edit_bahan_baku_json").val(
-                    JSON.stringify(p.bahan_baku_json || [])
-                );
+                // $("#edit_bahan_baku_json").val(
+                //     JSON.stringify(p.bahan_baku_json || [])
+                // );
+                editBahanBakuList = Array.isArray(p.bahan_bakus)
+                    ? p.bahan_bakus.map(bahanBaku => {
+                        return {
+                            id: bahanBaku.id,
+                            nama: bahanBaku.nama_bahan,
+                            satuan: p.sub_satuan?.nama_sub_detail_parameter || p.satuan?.nama_detail_parameter || '',
+                            harga: bahanBaku.pivot.harga_snapshot,  
+                            jumlah: bahanBaku.pivot.jumlah,         
+                            total: bahanBaku.pivot.harga_snapshot * bahanBaku.pivot.jumlah,
+                        };
+                    })
+                    : [];
                 $("#edit_harga_bertingkat_json").val(
                     JSON.stringify(p.harga_bertingkat_json || [])
                 );
@@ -116,16 +128,6 @@ $(function () {
                 renderPhotosPreview();
                 renderVideosPreview();
                 renderDocumentsPreview();
-                editBahanBakuList = Array.isArray(p.bahan_baku_json)
-                    ? p.bahan_baku_json.map((row) => ({
-                          id: row.id,
-                          nama: row.nama,
-                          satuan: row.satuan,
-                          harga: row.harga,
-                          jumlah: row.jumlah,
-                          total: row.total,
-                      }))
-                    : [];
                 renderEditTabelBahanBaku();
                 hitungTotalModalBahanEdit();
                 editHargaBertingkatList = Array.isArray(p.harga_bertingkat_json)
@@ -1045,12 +1047,6 @@ $(function () {
             renderEditAlurProduksi();
         });
 
-    $(document).on("click", ".btnHapusEditMesin", function () {
-        const idx = $(this).closest(".mesin-item").data("index");
-        editAlurProduksiList.splice(idx, 1);
-        renderEditAlurProduksi();
-    });
-
     // Sinkronisasi data alur produksi (edit) secara real-time
     $(document).on(
         "input change",
@@ -1112,7 +1108,7 @@ $(function () {
             total: data.harga || 0,
         });
         renderEditTabelBahanBaku();
-        hitungTotalModalBahanEdit();
+        updateTotalModalKeseluruhanEdit(); 
     });
 
     $(document).on("click", ".btn-hapus-edit-bahan-baku", function () {
@@ -1149,37 +1145,18 @@ $(function () {
     });
 
     function hitungTotalModalBahanEdit() {
-        let total = 0;
-        editBahanBakuList.forEach((row) => {
-            total += (row.harga || 0) * (row.jumlah || 0);
-        });
+        const total = editBahanBakuList.reduce((sum, item) => {
+            return sum + (item.harga * item.jumlah);
+        }, 0);
+        
         $("#editTotalModalBahan").text("Rp " + total.toLocaleString("id-ID"));
-        editHargaBertingkatList.forEach((row, idx) => {
-            updateEditProfitCalculation("#editTabelHargaBertingkat", idx, row);
-        });
-        editHargaResellerList.forEach((row, idx) => {
-            updateEditProfitCalculation("#editTabelHargaReseller", idx, row);
-        });
+        $("#editTotalModalKeseluruhan").text("Rp " + total.toLocaleString("id-ID"));
+        updateTotalItemModalEdit();
+        
+        // Re-render profit calculations
+        renderEditHargaBertingkat();
+        renderEditHargaReseller();
     }
-
-    // $("#editProdukForm").off("submit");
-    // $(document)
-    //     .off("click", "#editBtnTambahMesin")
-    //     .on("click", "#editBtnTambahMesin", function () {
-    //         editAlurProduksiList.push({
-    //             id: "",
-    //             nama_mesin: "",
-    //             tipe_mesin: "",
-    //             estimasi_waktu: "",
-    //             catatan: "",
-    //         });
-    //         renderEditAlurProduksi();
-    //     });
-    $(document).on("click", ".btnHapusEditMesin", function () {
-        const idx = $(this).closest(".mesin-item").data("index");
-        editAlurProduksiList.splice(idx, 1);
-        renderEditAlurProduksi();
-    });
 
     // Sinkronisasi data alur produksi (edit) secara real-time
     $(document).on(
@@ -1205,86 +1182,6 @@ $(function () {
                 mesinDiv.find(".mesin-id-input").val() || "";
         }
     );
-
-    // === MODAL CARI BAHAN BAKU (EDIT) ===
-    $("#editBtnTambahBahan")
-        .off("click")
-        .on("click", function () {
-            var modalBahan = new bootstrap.Modal(
-                document.getElementById("modalCariBahanBakuProdukEdit"),
-                {
-                    backdrop: "static",
-                    keyboard: false,
-                    focus: true,
-                }
-            );
-            modalBahan.show();
-            setTimeout(function () {
-                if ($("#editProdukModal").hasClass("show")) {
-                    $("body").addClass("modal-open");
-                }
-            }, 200);
-        });
-    window.addEventListener("bahanBakuDipilih", function (e) {
-        if (!$("#modalCariBahanBakuProdukEdit").hasClass("show")) return;
-        const data = e.detail;
-        if (editBahanBakuList.some((item) => item.id == data.id)) {
-            Swal.fire("Info", "Bahan baku sudah ditambahkan.", "info");
-            return;
-        }
-        editBahanBakuList.push({
-            id: data.id,
-            nama: data.nama,
-            satuan: data.satuan,
-            harga: data.harga || 0,
-            jumlah: 1,
-            total: data.harga || 0,
-        });
-        renderEditTabelBahanBaku();
-        hitungTotalModalBahanEdit();
-    });
-    $(document).on("click", ".btn-hapus-edit-bahan-baku", function () {
-        const idx = $(this).data("idx");
-        editBahanBakuList.splice(idx, 1);
-        renderEditTabelBahanBaku();
-        hitungTotalModalBahanEdit();
-    });
-    $(document).on("input", ".jumlah_bahan_edit", function () {
-        const idx = $(this).data("idx");
-        const harga =
-            parseInt($(`input[name="harga_bahan[]"]`).eq(idx).val()) || 0;
-        const jumlah = parseInt($(this).val()) || 0;
-        editBahanBakuList[idx].harga = harga;
-        editBahanBakuList[idx].jumlah = jumlah;
-        editBahanBakuList[idx].total = harga * jumlah;
-        const total = harga * jumlah;
-        $(this)
-            .closest("tr")
-            .find("td")
-            .eq(4)
-            .html(
-                `<span class="text-success fw-semibold text-end">Rp ${total.toLocaleString(
-                    "id-ID"
-                )}</span>`
-            );
-        hitungTotalModalBahanEdit();
-    });
-    $(document).on("blur", ".jumlah_bahan_edit", function () {
-        renderEditTabelBahanBaku();
-    });
-    function hitungTotalModalBahanEdit() {
-        let total = 0;
-        editBahanBakuList.forEach((row) => {
-            total += (row.harga || 0) * (row.jumlah || 0);
-        });
-        $("#editTotalModalBahan").text("Rp " + total.toLocaleString("id-ID"));
-        editHargaBertingkatList.forEach((row, idx) => {
-            updateEditProfitCalculation("#editTabelHargaBertingkat", idx, row);
-        });
-        editHargaResellerList.forEach((row, idx) => {
-            updateEditProfitCalculation("#editTabelHargaReseller", idx, row);
-        });
-    }
 
     // === Spesifikasi Teknis Dinamis (Edit Produk) ===
     $('#edit_tambah_spesifikasi_produk').on('click', function() {
@@ -1472,7 +1369,7 @@ $(function () {
                 '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan...'
             );
             submitBtn.prop("disabled", true);
-            $("#edit_bahan_baku_json").val(JSON.stringify(editBahanBakuList));
+            // $("#edit_bahan_baku_json").val(JSON.stringify(editBahanBakuList));
             $("#edit_alur_produksi_json").val(
                 JSON.stringify(editAlurProduksiList)
             );
@@ -1482,6 +1379,21 @@ $(function () {
             $("#edit_harga_reseller_json").val(
                 JSON.stringify(editHargaResellerList)
             );
+            const bahanBakuData = [];
+            $("#editTabelBahanBaku tbody tr").each(function() {
+                const bahanBakuId = $(this).find('input[name="bahan_baku_id[]"]').val();
+                const jumlah = $(this).find('.jumlah_bahan_edit').val();
+                const harga = $(this).find('input[name="harga_bahan[]"]').val();
+                
+                if (bahanBakuId && jumlah && harga) {
+                    bahanBakuData.push({
+                        id: parseInt(bahanBakuId),
+                        jumlah: parseFloat(jumlah),
+                        harga: parseInt(harga)
+                    });
+                }
+            });
+        
             const paramArr = editParameterMesinList.map((row) => {
                 const param = row.opsi[row.selected];
                 return {
@@ -1523,6 +1435,13 @@ $(function () {
 
             var form = $(this)[0];
             var formData = new FormData(form);
+            formData.append('_method', 'PUT');
+            bahanBakuData.forEach((item, index) => {
+                formData.append(`bahan_baku[${index}][id]`, item.id);
+                formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
+                formData.append(`bahan_baku[${index}][harga]`, item.harga);
+            });
+
             selectedPhotos.forEach((file) => {
                 formData.append("foto_pendukung_new[]", file);
             });
@@ -1542,6 +1461,16 @@ $(function () {
                 contentType: false,
                 success: function (res) {
                     if (res.success) {
+                        if (res.produk && res.produk.total_modal_keseluruhan) {
+                            const totalModal = res.produk.total_modal_keseluruhan;
+                            $("#editTotalModalKeseluruhan").text("Rp " + totalModal.toLocaleString("id-ID"));
+                            $("#editTotalModalBahan").text("Rp " + totalModal.toLocaleString("id-ID"));
+                            updateTotalItemModalEdit();
+                            
+                            // Re-render profit calculations
+                            renderEditHargaBertingkat();
+                            renderEditHargaReseller();
+                        }
                         Swal.fire({
                             title: "Sukses",
                             text: res.message,

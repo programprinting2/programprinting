@@ -206,3 +206,4 @@ function renderPagination(data, search) {
 })();
 </script>
 @endpush
+

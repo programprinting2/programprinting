@@ -52,7 +52,7 @@ class ProdukRepository implements ProdukRepositoryInterface
 
     public function findWithRelations(int $id): ?Produk
     {
-        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan'])->find($id);
+        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan', 'bahanBakus.satuanUtamaDetail'])->find($id);
     }
 
     public function search(string $search): Collection
@@ -74,10 +74,15 @@ class ProdukRepository implements ProdukRepositoryInterface
         return $this->model->create($data);
     }
 
-    public function update(int $id, array $data): bool
+    public function update(int $id, array $data): Produk
     {
         $produk = $this->find($id);
-        return $produk ? $produk->update($data) : false;
+        if (!$produk) {
+            return null;
+        }
+        
+        $produk->update($data);
+        return $produk->fresh();
     }
 
     public function delete(int $id): bool
@@ -91,6 +96,8 @@ class ProdukRepository implements ProdukRepositoryInterface
         return $this->model->count();
     }
 }
+
+
 
 
 

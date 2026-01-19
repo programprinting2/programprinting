@@ -47,3 +47,5 @@ class StoreGudangRequest extends FormRequest
 
 
 
+
+

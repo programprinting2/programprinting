@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Produk extends Model
 {
@@ -22,7 +23,6 @@ class Produk extends Model
         'panjang',
         'status_aktif',
         'jenis_produk',
-        'bahan_baku_json',
         'harga_bertingkat_json',
         'harga_reseller_json',
         'foto_pendukung_json',
@@ -36,7 +36,6 @@ class Produk extends Model
     ];
 
     protected $casts = [
-        'bahan_baku_json' => 'array',
         'harga_bertingkat_json' => 'array',
         'harga_reseller_json' => 'array',
         'foto_pendukung_json' => 'array',
@@ -51,6 +50,84 @@ class Produk extends Model
         'lebar' => 'decimal:2',       
         'panjang' => 'decimal:2',
     ];
+
+    // Relationship dengan bahan baku
+    public function bahanBakus(): BelongsToMany
+    {
+        return $this->belongsToMany(BahanBaku::class, 'produk_bahan_baku')
+            ->withPivot(['jumlah', 'harga_snapshot', 'harga_updated_at'])
+            ->withTimestamps();
+    }
+
+    // Sync bahan baku dari array
+    public function syncBahanBakus(array $bahanBakuData): void
+    {
+        $syncData = [];
+        
+        foreach ($bahanBakuData as $item) {
+            $syncData[$item['id']] = [
+                'jumlah' => $item['jumlah'] ?? 1,
+                'harga_snapshot' => $item['harga'] ?? 0,
+                'harga_updated_at' => now(),
+            ];
+        }
+        
+        $this->bahanBakus()->sync($syncData);
+        $this->updateTotalModal();
+    }
+
+     // Calculate total modal
+     public function calculateTotalModal(): float
+     {
+         return $this->bahanBakus->sum(function ($bahanBaku) {
+             return $bahanBaku->pivot->harga_snapshot * $bahanBaku->pivot->jumlah;
+         });
+     }
+
+    public function updateTotalModal(): void
+    {
+        $this->load('bahanBakus');
+        
+        $total = $this->calculateTotalModal();
+        $this->update(['total_modal_keseluruhan' => $total]);
+    }
+
+    // Check if needs price refresh
+    // public function needsPriceRefresh(): bool
+    // {
+    //     return $this->bahanBakus()
+    //         ->whereColumn('produk_bahan_baku.harga_updated_at', '<', 'bahan_baku.updated_at')
+    //         ->exists();
+    // }
+
+    // // Refresh prices from master
+    // public function refreshBahanBakuPrices(): array
+    // {
+    //     $updatedCount = 0;
+    //     $totalDifference = 0;
+        
+    //     foreach ($this->bahanBakus as $bahanBaku) {
+    //         $currentPrice = $bahanBaku->harga_terakhir;
+    //         $snapshotPrice = $bahanBaku->pivot->harga_snapshot;
+            
+    //         if ($currentPrice != $snapshotPrice) {
+    //             $quantity = $bahanBaku->pivot->jumlah;
+    //             $totalDifference += ($currentPrice - $snapshotPrice) * $quantity;
+                
+    //             $this->bahanBakus()->updateExistingPivot($bahanBaku->id, [
+    //                 'harga_snapshot' => $currentPrice,
+    //                 'harga_updated_at' => now(),
+    //             ]);
+                
+    //             $updatedCount++;
+    //         }
+    //     }
+        
+    //     return [
+    //         'updated_count' => $updatedCount,
+    //         'total_difference' => $totalDifference,
+    //     ];
+    // }
 
     public function kategoriUtama()
     {
