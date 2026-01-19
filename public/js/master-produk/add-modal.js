@@ -1152,7 +1152,7 @@ $(function () {
             });
             $("#spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));  
             const biayaTambahanArr = [];
-            $('.biaya-tambahan-container .biaya-tambahan-item').each(function() {
+            $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
                 const nama = $(this).find('.biaya-tambahan-nama').val()?.trim();
                 const nilai = parseFloat($(this).find('.biaya-tambahan-nilai').val()) || 0;
                 if (nama && nilai > 0) {

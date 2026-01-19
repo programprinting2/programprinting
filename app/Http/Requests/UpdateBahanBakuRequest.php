@@ -18,6 +18,7 @@ class UpdateBahanBakuRequest extends FormRequest
             'kategori_id' => 'required|exists:detail_parameters,id',
             'sub_kategori_id' => 'required|exists:sub_detail_parameter,id',
             'satuan_utama_id' => 'required|exists:detail_parameters,id',
+            'sub_satuan_id' => 'required|exists:sub_detail_parameter,id',
             'status_aktif' => 'required|in:0,1',
             'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
@@ -43,6 +44,8 @@ class UpdateBahanBakuRequest extends FormRequest
         return [
             'nama_bahan.required' => 'Nama bahan harus diisi',
             'kategori_id.required' => 'Kategori harus dipilih',
+            'sub_satuan_id.required' => 'Sub satuan harus dipilih',
+            'sub_satuan_id.exists' => 'Sub satuan tidak ditemukan',
         ];
     }
 }

@@ -1115,13 +1115,13 @@ $(function () {
         const idx = $(this).data("idx");
         editBahanBakuList.splice(idx, 1);
         renderEditTabelBahanBaku();
-        hitungTotalModalBahanEdit();
+        updateTotalModalKeseluruhanEdit(); 
+        updateTotalItemModalEdit();
     });
 
     $(document).on("input", ".jumlah_bahan_edit", function () {
         const idx = $(this).data("idx");
-        const harga =
-            parseInt($(`input[name="harga_bahan[]"]`).eq(idx).val()) || 0;
+        const harga = parseInt($(this).closest("tr").find('input[name="harga_bahan[]"]').val()) || 0;
         const jumlah = parseFloat($(this).val()) || 0;
         editBahanBakuList[idx].harga = harga;
         editBahanBakuList[idx].jumlah = jumlah;
@@ -1382,7 +1382,7 @@ $(function () {
             const bahanBakuData = [];
             $("#editTabelBahanBaku tbody tr").each(function() {
                 const bahanBakuId = $(this).find('input[name="bahan_baku_id[]"]').val();
-                const jumlah = $(this).find('.jumlah_bahan_edit').val();
+                const jumlah = $(this).find('input[name="jumlah_bahan[]"]').val();
                 const harga = $(this).find('input[name="harga_bahan[]"]').val();
                 
                 if (bahanBakuId && jumlah && harga) {
@@ -1417,7 +1417,7 @@ $(function () {
             $("#edit_spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));
             
             const editBiayaTambahanArr = [];
-            $('.edit-biaya-tambahan-container .edit-biaya-tambahan-item').each(function() {
+            $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').each(function() {
                 const nama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim();
                 const nilai = parseFloat($(this).find('.edit-biaya-tambahan-nilai').val()) || 0;
                 if (nama && nilai > 0) {

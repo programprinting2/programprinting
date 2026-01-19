@@ -119,7 +119,7 @@
                 </td>
                 <td>{{ $b->kategoriDetail ? $b->kategoriDetail->nama_detail_parameter : '-' }}</td>
                 <td>{{ $b->subKategoriDetail ? $b->subKategoriDetail->nama_sub_detail_parameter : '-' }}</td>
-                <td>{{ $b->satuanUtamaDetail ? $b->satuanUtamaDetail->nama_detail_parameter : '-' }}</td>
+                <td>{{ $b->subSatuanDetail ? $b->subSatuanDetail->nama_sub_detail_parameter : '-' }}</td>
                 <td>{{ $b->stok_saat_ini }}</td>
                 <td>
                     <div>
@@ -198,6 +198,7 @@
     // window.kategoriList = @json($kategoriList);
     window.subKategoriList = @json($subKategoriList);
     window.satuanList = @json($satuanList);
+    window.subSatuanList = @json($subSatuanList ?? []);
     function updateSubKategoriFilterOptions(selectedKategoriId, selectedSubKategori = null) {
       const subKategoriSelect = $('#sub_kategori_filter');
       subKategoriSelect.empty();

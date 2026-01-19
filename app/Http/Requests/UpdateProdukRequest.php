@@ -47,7 +47,7 @@ class UpdateProdukRequest extends FormRequest
             'kategori_utama_id.exists' => 'Kategori utama tidak ditemukan',
             'satuan_id.required' => 'Satuan harus dipilih',
             'satuan_id.exists' => 'Satuan tidak ditemukan',
-            'bahan_baku.required' => 'Bahan baku harus dipilih minimal 1',
+            // 'bahan_baku.required' => 'Bahan baku harus dipilih minimal 1',
             'bahan_baku.*.id.required' => 'ID bahan baku harus diisi',
             'bahan_baku.*.id.exists' => 'Bahan baku tidak ditemukan',
             'bahan_baku.*.jumlah.required' => 'Jumlah bahan baku harus diisi',

@@ -122,3 +122,38 @@ function updateEditSubKategoriOptions(selectedKategoriId, currentSubKategoriId =
     }
   }
 } 
+
+// Fungsi untuk mengupdate opsi sub-satuan di form modal
+function updateSubSatuanOptions(selectedSatuanId, selector) {
+  const subSatuanSelect = $(selector);
+  subSatuanSelect.empty();
+  subSatuanSelect.prop('disabled', true);
+  subSatuanSelect.append('<option value="" selected disabled>Pilih detail satuan</option>');
+
+  if (selectedSatuanId && window.subSatuanList) {
+    const filtered = window.subSatuanList.filter(sub => sub.detail_parameter_id == selectedSatuanId);
+    filtered.forEach(sub => {
+      subSatuanSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
+    });
+    if (filtered.length > 0) subSatuanSelect.prop('disabled', false);
+  }
+}
+
+// Fungsi untuk mengupdate opsi sub-satuan di edit modal
+function updateEditSubSatuanOptions(selectedSatuanId, currentSubSatuanId = null) {
+  const subSatuanSelect = $('#edit_sub_satuan');
+  subSatuanSelect.empty();
+  subSatuanSelect.prop('disabled', true);
+  subSatuanSelect.append('<option value="" selected disabled>Pilih detail satuan</option>');
+
+  if (selectedSatuanId && window.subSatuanList) {
+    const filtered = window.subSatuanList.filter(sub => sub.detail_parameter_id == selectedSatuanId);
+    filtered.forEach(sub => {
+      subSatuanSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
+    });
+    if (filtered.length > 0) subSatuanSelect.prop('disabled', false);
+    if (currentSubSatuanId) {
+      subSatuanSelect.val(currentSubSatuanId);
+    }
+  }
+}

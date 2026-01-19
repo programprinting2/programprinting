@@ -79,9 +79,25 @@ class Produk extends Model
      // Calculate total modal
      public function calculateTotalModal(): float
      {
-         return $this->bahanBakus->sum(function ($bahanBaku) {
-             return $bahanBaku->pivot->harga_snapshot * $bahanBaku->pivot->jumlah;
-         });
+        $totalBahan = $this->bahanBakus->sum(function ($bahanBaku) {
+            return $bahanBaku->pivot->harga_snapshot * $bahanBaku->pivot->jumlah;
+        });
+
+        $totalParam = 0;
+        if (!empty($this->parameter_modal_json) && is_array($this->parameter_modal_json)) {
+            foreach ($this->parameter_modal_json as $param) {
+                $totalParam += ($param['harga'] ?? 0) * ($param['jumlah'] ?? 1);
+            }
+        }
+    
+        $totalBiayaTambahan = 0;
+        if (!empty($this->biaya_tambahan_json) && is_array($this->biaya_tambahan_json)) {
+            foreach ($this->biaya_tambahan_json as $biaya) {
+                $totalBiayaTambahan += $biaya['nilai'] ?? 0;
+            }
+        }
+    
+        return $totalBahan + $totalParam + $totalBiayaTambahan;
      }
 
     public function updateTotalModal(): void

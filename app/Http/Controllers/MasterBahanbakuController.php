@@ -59,7 +59,7 @@ class MasterBahanbakuController extends Controller
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
-            $satuanMaster = MasterParameter::where('nama_parameter', 'SATUAN')->first();
+            $satuanMaster = MasterParameter::where('nama_parameter', 'JENIS SATUAN')->first();
             $satuanList = [];
             if ($satuanMaster) {
                 $satuanList = \App\Models\DetailParameter::where('master_parameter_id', $satuanMaster->id)
@@ -67,8 +67,15 @@ class MasterBahanbakuController extends Controller
                     ->orderBy('nama_detail_parameter')
                     ->get();
             }
+            $subSatuanList = \App\Models\SubDetailParameter::with('detailParameter')
+                ->whereHas('detailParameter', function($query) use ($satuanMaster) {
+                    $query->where('master_parameter_id', $satuanMaster->id);
+                })
+                ->where('aktif', 1)
+                ->orderBy('nama_sub_detail_parameter')
+                ->get();
 
-            return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'satuanList'));
+            return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'satuanList', 'subSatuanList'));
         } catch (\Exception $e) {
             Log::error('Error loading Bahan Baku index', ['error' => $e->getMessage()]);
             return view('backend.master-bahanbaku.index', [

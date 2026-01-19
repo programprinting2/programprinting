@@ -128,7 +128,7 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <div class="row mb-3">
-                    <div class="col-md-6">
+                    <div class="col-md-4">
                       <label for="edit_satuan_utama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
                       <select class="form-select" id="edit_satuan_utama" name="satuan_utama_id" required>
                         <option value="" selected disabled>Pilih satuan</option>
@@ -137,7 +137,15 @@
                         @endforeach
                       </select>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-4">
+                      <label for="edit_sub_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>
+                      <select class="form-select" id="edit_sub_satuan" name="sub_satuan_id" required>
+                          <option value="" selected disabled>Pilih detail satuan</option>
+                          <!-- Options akan diisi dinamis oleh JS -->
+                      </select>
+                      <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
+                    </div>
+                    <div class="col-md-4">
                       <label class="form-label">Harga Terakhir</label>
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>

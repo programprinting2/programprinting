@@ -18,6 +18,7 @@ class StoreBahanBakuRequest extends FormRequest
             'kategori_id' => 'required|exists:detail_parameters,id',
             'sub_kategori_id' => 'required|exists:sub_detail_parameter,id',
             'satuan_utama_id' => 'required|exists:detail_parameters,id',
+            'sub_satuan_id' => 'required|exists:sub_detail_parameter,id',
             'status_aktif' => 'required|in:0,1',
             'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
@@ -42,8 +43,10 @@ class StoreBahanBakuRequest extends FormRequest
             'kategori_id.exists' => 'Kategori tidak ditemukan',
             'sub_kategori_id.required' => 'Sub kategori harus dipilih',
             'sub_kategori_id.exists' => 'Sub kategori tidak ditemukan',
-            'satuan_utama_id.required' => 'Satuan utama harus dipilih',
-            'satuan_utama_id.exists' => 'Satuan utama tidak ditemukan',
+            'satuan_utama_id.required' => 'Jenis satuan utama harus dipilih',
+            'satuan_utama_id.exists' => 'Jenis satuan utama tidak ditemukan',
+            'sub_satuan_id.required' => 'Sub satuan harus dipilih',
+            'sub_satuan_id.exists' => 'Sub satuan tidak ditemukan',
             'status_aktif.required' => 'Status aktif harus dipilih',
         ];
     }
