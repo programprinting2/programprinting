@@ -1122,7 +1122,7 @@ $(function () {
         const idx = $(this).data("idx");
         const harga =
             parseInt($(`input[name="harga_bahan[]"]`).eq(idx).val()) || 0;
-        const jumlah = parseInt($(this).val()) || 0;
+        const jumlah = parseFloat($(this).val()) || 0;
         editBahanBakuList[idx].harga = harga;
         editBahanBakuList[idx].jumlah = jumlah;
         editBahanBakuList[idx].total = harga * jumlah;
