@@ -39,7 +39,7 @@ $(function () {
             }"></td>
                 <td><input type="number" class="form-control form-control-sm jumlah_bahan_edit" name="jumlah_bahan[]" value="${
                     row.jumlah || 0
-                }" min="0" data-idx="${idx}"></td>
+                }" min="0" step="0.01" data-idx="${idx}"></td>
                 <td class="text-success fw-semibold text-end">Rp ${(
                     row.total || 0
                 ).toLocaleString("id-ID")}</td>
