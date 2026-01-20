@@ -260,9 +260,8 @@ $(document).ready(function() {
 
         // Kumpulkan data profil biaya dan set ke input hidden
         // $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
-        if (!$('#edit_biaya_perhitungan_profil_json' + id).data('updated-by-ajax')) {
-            $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
-        }
+        $('#edit_biaya_perhitungan_profil_json' + id).val(JSON.stringify(profileData));
+        $('#edit_biaya_perhitungan_profil_json' + id).removeData('updated-by-ajax');
         let formData = new FormData(form[0]);
 
         $.ajax({
@@ -1373,7 +1372,7 @@ function removeBiayaTambahanFromBackend(mesinId, profileIndex, biayaNama, button
                     const updatedProfileData = collectProfileData('edit_biaya_perhitungan_profil_container' + mesinId);
                     $(`#edit_biaya_perhitungan_profil_json${mesinId}`).val(JSON.stringify(updatedProfileData));
                 }
-                $(`#edit_biaya_perhitungan_profil_json${mesinId}`).data('updated-by-ajax', true);
+                // $(`#edit_biaya_perhitungan_profil_json${mesinId}`).data('updated-by-ajax', true);
                 
                 // Tampilkan pesan sukses
                 Swal.fire({

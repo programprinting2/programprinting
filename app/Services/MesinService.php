@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\MesinNotFoundException;
 use App\Exceptions\InvalidMesinDataException;
 use App\Models\MasterMesin;
+use App\Jobs\RecalculateProdukModalJob;
 use App\Repositories\Interfaces\MesinRepositoryInterface;
 use App\Services\SupabaseStorageService;
 use Illuminate\Http\UploadedFile;
@@ -67,6 +68,7 @@ class MesinService
     public function updateMesin(int $id, array $data, ?UploadedFile $gambar = null): MasterMesin
     {
         $mesin = $this->mesinRepository->find($id);
+        $oldBiayaProfil = $mesin->biaya_perhitungan_profil;
         if (!$mesin) {
             throw new MesinNotFoundException();
         }
@@ -106,6 +108,8 @@ class MesinService
                 'mesin_id' => $id,
                 'saved_biaya_perhitungan_profil' => $updatedMesin->biaya_perhitungan_profil
             ]);
+           
+            $this->handleCascadeUpdate($updatedMesin, $oldBiayaProfil);
             return $updatedMesin;
             
 
@@ -543,5 +547,55 @@ class MesinService
         // Update total dan satuan di profile
         $profile['total'] = round($totalBiaya, 2); 
     
+    }
+
+    /**
+     * Handle cascade update when mesin biaya changes
+     */
+    private function handleCascadeUpdate(MasterMesin $mesin, array $oldBiayaProfil = null): void
+    {
+        // Check if biaya actually changed
+        $newBiayaProfil = $mesin->biaya_perhitungan_profil ?? [];
+        if ($oldBiayaProfil && !$this->hasBiayaChanged($newBiayaProfil, $oldBiayaProfil)) {
+            return; // No change, skip
+        }
+
+        // Mark produk yang perlu recalc
+        $this->markAffectedProdukForRecalc($mesin->id);
+
+        // Dispatch background job
+        RecalculateProdukModalJob::dispatch($mesin->id);
+
+        Log::info('Mesin biaya updated, cascade update initiated', [
+            'mesin_id' => $mesin->id,
+            'mesin_name' => $mesin->nama_mesin
+        ]);
+    }
+
+    /**
+     * Check if biaya profil has changed
+     */
+    private function hasBiayaChanged(array $newBiaya, array $oldBiaya): bool
+    {
+        return json_encode($newBiaya) !== json_encode($oldBiaya);
+    }
+
+    /**
+     * Mark produk yang menggunakan mesin tertentu untuk recalc
+     */
+    private function markAffectedProdukForRecalc(int $mesinId): int
+    {
+        $affectedCount = DB::update("
+            UPDATE produk 
+            SET needs_recalc = true, updated_at = NOW()
+            WHERE ? = ANY(mesin_ids)
+        ", [$mesinId]);
+
+        Log::info('Marked produk for recalc', [
+            'mesin_id' => $mesinId,
+            'affected_produk_count' => $affectedCount
+        ]);
+
+        return $affectedCount;
     }
 }

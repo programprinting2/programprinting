@@ -247,4 +247,13 @@ class MasterMesin extends Model
 
         return false;
     }
+
+    /**
+     * Check if biaya_perhitungan_profil has changed
+     */
+    public function hasBiayaChanged(array $newBiayaProfil): bool
+    {
+        $currentBiaya = $this->biaya_perhitungan_profil ?? [];
+        return json_encode($currentBiaya) !== json_encode($newBiayaProfil);
+    }
 }

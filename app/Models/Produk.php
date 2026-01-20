@@ -33,6 +33,7 @@ class Produk extends Model
         'spesifikasi_teknis_json',
         'biaya_tambahan_json',           
         'total_modal_keseluruhan',
+        'needs_recalc',
     ];
 
     protected $casts = [
@@ -49,6 +50,8 @@ class Produk extends Model
         'total_modal_keseluruhan' => 'decimal:2',
         'lebar' => 'decimal:2',       
         'panjang' => 'decimal:2',
+        'mesin_ids' => 'array',
+        'needs_recalc' => 'boolean',
     ];
 
     // Relationship dengan bahan baku
@@ -102,6 +105,7 @@ class Produk extends Model
 
     public function updateTotalModal(): void
     {
+        $this->refreshParameterModalPrices();
         $this->load('bahanBakus');
         
         $total = $this->calculateTotalModal();
@@ -160,5 +164,87 @@ class Produk extends Model
     public function subSatuan()
     {
     return $this->belongsTo(SubDetailParameter::class, 'sub_satuan_id');
+    }
+
+    /**
+     * Get mesin IDs dari parameter_modal_json
+     */
+    public function getMesinIdsAttribute()
+    {
+        if (!$this->parameter_modal_json) {
+            return [];
+        }
+
+        $mesinIds = [];
+        foreach ($this->parameter_modal_json as $param) {
+            if (isset($param['mesin_id'])) {
+                $mesinIds[] = (int) $param['mesin_id'];
+            }
+        }
+
+        return array_unique($mesinIds);
+    }
+
+    /**
+     * Refresh harga snapshot di parameter_modal_json dari mesin terkini
+     */
+    public function refreshParameterModalPrices(): void
+    {
+        if (empty($this->parameter_modal_json)) {
+            return;
+        }
+
+        $updatedParams = [];
+        
+        foreach ($this->parameter_modal_json as $param) {
+            $mesinId = $param['mesin_id'] ?? null;
+            $namaParameter = $param['nama_parameter'] ?? '';
+            
+            if (!$mesinId || !$namaParameter) {
+                $updatedParams[] = $param;
+                continue;
+            }
+
+            // Cari mesin dan dapatkan harga terkini
+            $mesin = \App\Models\MasterMesin::find($mesinId);
+            if (!$mesin || empty($mesin->biaya_perhitungan_profil)) {
+                $updatedParams[] = $param;
+                continue;
+            }
+
+            // Cari profile yang sesuai dengan nama_parameter
+            $matchingProfile = null;
+            foreach ($mesin->biaya_perhitungan_profil as $profile) {
+                if (($profile['nama'] ?? '') === $namaParameter) {
+                    $matchingProfile = $profile;
+                    break;
+                }
+            }
+
+            if ($matchingProfile) {
+                // Update harga dan total dengan nilai terkini
+                $param['harga'] = $matchingProfile['total'] ?? $param['harga'];
+                $param['total'] = ($param['harga'] ?? 0) * ($param['jumlah'] ?? 1);
+            }
+
+            $updatedParams[] = $param;
+        }
+
+        // Update parameter_modal_json dengan harga baru
+        $this->update(['parameter_modal_json' => $updatedParams]);
+    }
+
+    /**
+     * Override total_modal_keseluruhan dengan lazy recalc
+     */
+    public function getTotalModalKeseluruhanAttribute()
+    {
+        // Auto recalc jika true
+        if ($this->needs_recalc) {
+            $this->updateTotalModal();
+            $this->update(['needs_recalc' => false]);
+        }
+        
+        return $this->attributes['total_modal_keseluruhan'];
     }
 }

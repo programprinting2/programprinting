@@ -137,7 +137,7 @@ $(function () {
         bahanBakuList.push({
             id: data.id,
             nama: data.nama,
-            satuan: data.satuan,
+            satuan: data.sub_satuan,
             harga: data.harga || 0,
             jumlah: 1,
             total: data.harga || 0,

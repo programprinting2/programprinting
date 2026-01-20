@@ -65,7 +65,8 @@
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Bahan</th>
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Kategori</th>
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Sub-Kategori</th>
-            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Satuan Utama</th>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jenis Satuan</th>
+            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Sub Satuan</th>
           </tr>
         </thead>
         <tbody>
@@ -99,7 +100,7 @@
   const clearBtnId = @json($clearBtnId);
 
 function loadBahanBaku(search = '', page = 1) {
-    $('#' + tableId + ' tbody').html('<tr><td colspan="5" class="text-center">Memuat data...</td></tr>');
+    $('#' + tableId + ' tbody').html('<tr><td colspan="6" class="text-center">Memuat data...</td></tr>');
     $.ajax({
         url: '{{ route('backend.cari-bahanbaku') }}',
         data: { searchBahanBaku: search, page: page },
@@ -111,7 +112,8 @@ function loadBahanBaku(search = '', page = 1) {
                     html += `<tr class="pilih-bahan-baku" 
                         data-id="${item.id}" 
                         data-nama="${item.nama_bahan ?? '-'}" 
-                        data-satuan="${item.satuan_utama ?? '-'}"
+                        data-satuan="${item.jenis_satuan ?? '-'}"
+                        data-sub_satuan="${item.sub_satuan ?? '-'}"
                         data-harga="${item.harga_terakhir ?? 0}"
                         data-kode="${item.kode_bahan ?? '-'}"
                         data-konversi_satuan='${JSON.stringify(item.konversi_satuan ?? [])}'
@@ -120,17 +122,18 @@ function loadBahanBaku(search = '', page = 1) {
                         <td>${item.nama_bahan ?? '-'}</td>
                         <td>${item.kategori ?? '-'}</td>
                         <td>${item.sub_kategori ?? '-'}</td>
-                        <td>${item.satuan_utama ?? '-'}</td>
+                        <td>${item.jenis_satuan ?? '-'}</td>
+                        <td>${item.sub_satuan ?? '-'}</td>
                     </tr>`;
                 });
             } else {
-                html = '<tr><td colspan="5" class="text-center">Tidak ada data</td></tr>';
+                html = '<tr><td colspan="6" class="text-center">Tidak ada data</td></tr>';
             }
             $('#' + tableId + ' tbody').html(html);
             renderPagination(data, search);
         },
         error: function() {
-            $('#' + tableId + ' tbody').html('<tr><td colspan="5" class="text-center">Gagal memuat data</td></tr>');
+            $('#' + tableId + ' tbody').html('<tr><td colspan="6" class="text-center">Gagal memuat data</td></tr>');
             $('#' + paginationId).html('');
         }
     });
@@ -195,7 +198,8 @@ function renderPagination(data, search) {
     const data = {
         id: $(this).data('id'),
         nama: $(this).data('nama'),
-        satuan: $(this).data('satuan'),
+        satuan: $(this).data('sub_satuan'),
+        sub_satuan: $(this).data('sub_satuan'),
         harga: $(this).data('harga') || 0,
         kode: $(this).data('kode') || '-',
         konversi_satuan: $(this).data('konversi_satuan') || []
