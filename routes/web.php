@@ -115,6 +115,8 @@ Route::group(['prefix' => 'backend'], function () {
         'update' => 'backend.master-bahanbaku.update',
         'destroy' => 'backend.master-bahanbaku.destroy',
     ]);
+    Route::get('master-bahanbaku/{id}/produk', [MasterBahanbakuController::class, 'getProdukByBahanBaku'])
+    ->name('backend.master-bahanbaku.produk');
 
     // Karyawan Resource Routes
     Route::resource('karyawan', KaryawanController::class)->names([

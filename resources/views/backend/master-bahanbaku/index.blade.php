@@ -216,6 +216,116 @@
         subKategoriSelect.val(selectedSubKategori);
       }
     }
+    // Fungsi untuk menampilkan produk yang menggunakan bahan baku
+    function showProdukInfo(bahanBakuId, modalType = 'add') {
+        $.ajax({
+            url: `{{ url('backend/master-bahanbaku') }}/${bahanBakuId}/produk`,
+            type: 'GET',
+            success: function(response) {
+                if (response.success) {
+                    let produkHtml = '';
+                    
+                    if (response.produk.length === 0) {
+                        produkHtml = '<p class="text-muted mb-0">Belum ada produk yang menggunakan bahan baku ini.</p>';
+                    } else {
+                        produkHtml = `
+                            <div class="table-responsive">
+                                <table class="table table-sm table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>Kode Produk</th>
+                                            <th>Nama Produk</th>
+                                            <th>Kategori</th>
+                                            <th>Jumlah</th>
+                                            <th>Satuan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                        `;
+                        
+                        response.produk.forEach(function(produk) {
+                            produkHtml += `
+                                <tr>
+                                    <td>${produk.kode}</td>
+                                    <td>${produk.nama}</td>
+                                    <td>${produk.kategori}</td>
+                                    <td>${produk.jumlah}</td>
+                                    <td>${produk.satuan}</td>
+                                </tr>
+                            `;
+                        });
+                        
+                        produkHtml += `
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="mt-2 text-muted small">
+                                Total produk: ${response.total}
+                            </div>
+                        `;
+                    }
+                    
+                    Swal.fire({
+                        title: `Produk Menggunakan ${response.nama_bahan_baku}`,
+                        html: produkHtml,
+                        width: '800px',
+                        showConfirmButton: true,
+                        confirmButtonText: 'Tutup',
+                        confirmButtonColor: '#3085d6'
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: response.message || 'Gagal memuat data produk'
+                    });
+                }
+            },
+            error: function(xhr) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: xhr.responseJSON?.message || 'Terjadi kesalahan saat memuat data produk'
+                });
+            }
+        });
+    }
+
+    // Event handler untuk modal tambah bahan baku
+    $(document).on('click', '#info-harga-terakhir', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        // Untuk modal tambah, kita perlu mendapatkan ID dari input hidden atau logic lain
+        // Karena ini modal tambah, mungkin perlu handle berbeda atau disable sementara
+        Swal.fire({
+            icon: 'info',
+            title: 'Informasi',
+            text: 'Fitur ini hanya tersedia untuk bahan baku yang sudah tersimpan'
+        });
+    });
+
+    // Event handler untuk modal edit bahan baku
+    $(document).on('click', '#edit-info-harga-terakhir', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const bahanBakuId = $('#edit_id').val(); // Pastikan ada input hidden dengan ID
+        if (bahanBakuId) {
+            showProdukInfo(bahanBakuId, 'edit');
+        } else {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Peringatan',
+                text: 'ID bahan baku tidak ditemukan'
+            });
+        }
+    });
+
+    // Initialize tooltips
+    $(document).ready(function() {
+        $('[data-bs-toggle="tooltip"]').tooltip();
+    });
     $(document).ready(function() {
       feather.replace();
       // Inisialisasi format mata uang

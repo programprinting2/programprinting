@@ -150,7 +150,12 @@
                     </div>
 
                     <div class="col-md-4">
-                      <label for="hargaTerakhir" class="form-label">Harga Terakhir</label>
+                      <label for="hargaTerakhir" class="form-label">Harga Terakhir
+                      <button type="button" class="btn btn-sm btn-link p-0 ms-2" id="info-harga-terakhir" 
+                              data-bs-toggle="tooltip" title="Lihat produk yang menggunakan bahan baku ini">
+                        <i class="fas fa-info-circle text-info"></i>
+                      </button>
+                      </label>
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
                         <input type="text" class="form-control money-format" id="hargaTerakhir" name="harga_terakhir" value="0">

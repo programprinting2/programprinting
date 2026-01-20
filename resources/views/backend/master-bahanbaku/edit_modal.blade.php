@@ -146,11 +146,17 @@
                       <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
                     </div>
                     <div class="col-md-4">
-                      <label class="form-label">Harga Terakhir</label>
+                      <label class="form-label">Harga Terakhir 
+                      <button type="button" class="btn btn-sm btn-link p-0 ms-2" id="edit-info-harga-terakhir" 
+                              data-bs-toggle="tooltip" title="Lihat produk yang menggunakan bahan baku ini">
+                        <i class="fas fa-info-circle text-info"></i>
+                      </button>
+                      </label>
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
                         <input type="text" class="form-control money-format" id="edit_harga_terakhir" name="harga_terakhir" value="0">
                         <span class="input-group-text" id="editLabelSatuanHargaTerakhir"></span>
+                        <input type="hidden" id="edit_id" name="id" value="">
                       </div>
                     </div>
                   </div>

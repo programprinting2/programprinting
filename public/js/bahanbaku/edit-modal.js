@@ -283,7 +283,7 @@ $('#editModal').on('hidden.bs.modal', function () {
 function loadBahanBakuData(id) {
   $.get(`/backend/master-bahanbaku/${id}`, function(data) {
     $('#editForm').attr('action', `/backend/master-bahanbaku/${id}`);
-    
+    $('#edit_id').val(data.id);
     // Isi form dengan data
     $('#edit_kode_bahan').val(data.kode_bahan);
     $('#edit_nama_bahan').val(data.nama_bahan);

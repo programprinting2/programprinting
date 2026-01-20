@@ -213,6 +213,48 @@ class MasterBahanbakuController extends Controller
         }
     }
 
+    public function getProdukByBahanBaku(int $id)
+    {
+        try {
+            $bahanBaku = $this->bahanBakuService->getBahanBaku($id);
+            $produks = $bahanBaku->produks()
+                ->select('produk.id', 'produk.nama_produk', 'produk.kode_produk', 'produk.sub_satuan_id', 'produk.sub_kategori_id','produk_bahan_baku.jumlah')
+                ->with(['subSatuan', 'subKategori'])
+                ->get();
+
+            $produkList = $produks->map(function ($produk) {
+                return [
+                    'nama' => $produk->nama_produk,
+                    'kode' => $produk->kode_produk,
+                    'kategori' => $produk->subKategori ? $produk->subKategori->nama_sub_detail_parameter : '-',
+                    'jumlah' => $produk->pivot->jumlah,
+                    'satuan' => $produk->subSatuan ? $produk->subSatuan->nama_sub_detail_parameter : '-'
+                ];
+            });
+
+            return response()->json([
+                'success' => true,
+                'produk' => $produkList,
+                'total' => $produkList->count(),
+                'nama_bahan_baku' => $bahanBaku->nama_bahan
+            ]);
+        } catch (BahanBakuNotFoundException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 404);
+        } catch (\Exception $e) {
+            Log::error('Error getting products by bahan baku', [
+                'bahan_baku_id' => $id,
+                'error' => $e->getMessage()
+            ]);
+            return response()->json([
+                'success' => false,
+                'message' => 'Terjadi kesalahan saat mengambil data produk'
+            ], 500);
+        }
+    }
+
 }
 
 
