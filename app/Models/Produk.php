@@ -302,38 +302,38 @@ class Produk extends Model
                 $oldPrice = $produk->getOriginal('total_modal_keseluruhan');
                 $newPrice = $produk->total_modal_keseluruhan;
                 
-                // Update harga_snapshot di pivot table produk_rakitan
-                $affectedRows = DB::table('produk_rakitan')
-                    ->where('produk_komponen_id', $produk->id)
-                    ->update([
-                        'harga_snapshot' => $newPrice,
-                        'harga_updated_at' => now(),
-                    ]);
-                
-                $affectedProdukRakitanIds = collect();
-                
-                if ($affectedRows > 0) {
-                    // Dapatkan semua produk rakitan yang terpengaruh
-                    $affectedProdukRakitanIds = DB::table('produk_rakitan')
+                if ($oldPrice !== null && $newPrice !== null && $oldPrice != $newPrice) {
+                    $affectedRows = DB::table('produk_rakitan')
                         ->where('produk_komponen_id', $produk->id)
-                        ->pluck('produk_rakitan_id');
+                        ->update([
+                            'harga_snapshot' => $newPrice,
+                            'harga_updated_at' => now(),
+                        ]);
                     
-                    // Update total modal untuk setiap produk rakitan
-                    foreach ($affectedProdukRakitanIds as $produkRakitanId) {
-                        $produkRakitan = Produk::find($produkRakitanId);
-                        if ($produkRakitan && $produkRakitan->jenis_produk === 'rakitan') {
-                            $produkRakitan->updateTotalModal();
+                    $affectedProdukRakitanIds = collect();
+                    
+                    if ($affectedRows > 0) {
+                        $affectedProdukRakitanIds = DB::table('produk_rakitan')
+                            ->where('produk_komponen_id', $produk->id)
+                            ->pluck('produk_rakitan_id');
+                        
+                        foreach ($affectedProdukRakitanIds as $produkRakitanId) {
+                            $produkRakitan = Produk::find($produkRakitanId);
+                            if ($produkRakitan && $produkRakitan->jenis_produk === 'rakitan') {
+                                $produkRakitan->updateTotalModal();
+                            }
                         }
                     }
+                    
+                    \Log::info("Cascade product price update completed", [
+                        'produk' => $produk->nama_produk,
+                        'produk_id' => $produk->id,
+                        'old_price' => $oldPrice,
+                        'new_price' => $newPrice,
+                        'affected_junction_records' => $affectedRows,
+                        'affected_rakitan_products' => $affectedProdukRakitanIds->count(),
+                    ]);
                 }
-                
-                \Log::info("Cascade product price update", [
-                    'produk' => $produk->nama_produk,
-                    'old_price' => $oldPrice,
-                    'new_price' => $newPrice,
-                    'affected_junction_records' => $affectedRows,
-                    'affected_rakitan_products' => $affectedProdukRakitanIds->count(),
-                ]);
             }
         });
     }
