@@ -292,7 +292,7 @@ class Produk extends Model
             $this->update(['needs_recalc' => false]);
         }
         
-        return $this->attributes['total_modal_keseluruhan'];
+        return $this->attributes['total_modal_keseluruhan'] ?? 0;
     }
 
     protected static function booted()
@@ -302,7 +302,15 @@ class Produk extends Model
                 $oldPrice = $produk->getOriginal('total_modal_keseluruhan');
                 $newPrice = $produk->total_modal_keseluruhan;
                 
-                if ($oldPrice !== null && $newPrice !== null && $oldPrice != $newPrice) {
+                if ($oldPrice === null || $oldPrice === 0) {
+                    \Log::info('Skipping cascade update', [
+                        'reason' => $produk->wasRecentlyCreated ? 'new_product' : 'null_or_zero_price',
+                        'produk_id' => $produk->id,
+                    ]);
+                    return;
+                }
+                
+                if ($oldPrice != $newPrice) {
                     $affectedRows = DB::table('produk_rakitan')
                         ->where('produk_komponen_id', $produk->id)
                         ->update([
