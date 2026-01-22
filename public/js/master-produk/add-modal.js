@@ -12,6 +12,7 @@ $(function () {
     let parameterMesinList = [];
     let bahanBakuList = [];
     let alurProduksiList = [];
+    let produkKomponenList = [];
     let isModalForParameter = false;
 
     // Pastikan array tidak ter-reset
@@ -42,14 +43,18 @@ $(function () {
         bahanBakuList = [];
         alurProduksiList = [];
         isModalForParameter = false;
+        // Reset produk komponen list to ensure clean state
+        produkKomponenList = [];
         renderPhotosPreview();
         renderVideosPreview();
         renderDocumentsPreview();
         renderAlurProduksi();
         renderTabelBahanBaku();
         renderParameterMesinTable();
+        renderTabelProdukKomponen();
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
+        window.removeEventListener("produkKomponenDipilih", handleProdukKomponenDipilih);
     });
 
     // Reset data saat modal dibuka
@@ -58,9 +63,12 @@ $(function () {
         bahanBakuList = [];
         alurProduksiList = [];
         isModalForParameter = false;
+        // Reset produk komponen list to avoid false duplicate alerts
+        produkKomponenList = [];
         renderTabelBahanBaku();
         renderParameterMesinTable();
         renderAlurProduksi();
+        renderTabelProdukKomponen();
         // Pastikan event listener terdaftar saat modal dibuka
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
         window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
@@ -73,38 +81,41 @@ $(function () {
 
     $(document).on("change", "#satuanBarang", function () {
         updateDetailSatuanOptions($(this).val(), "#detail_satuan");
-        toggleDimensiFields($(this).val(), 'add');
+        toggleDimensiFields($(this).val(), "add");
     });
-
 
     $("#tambahProduk").on("shown.bs.modal", function () {
         updateSubKategoriOptions(
             $("#kategori_utama").val(),
-            "#sub_kategori_id_produk"
+            "#sub_kategori_id_produk",
         );
         updateDetailSatuanOptions($("#satuanBarang").val(), "#detail_satuan");
         const selectedSatuan = $("#satuanBarang").val();
         if (selectedSatuan) {
-            toggleDimensiFields(selectedSatuan, 'add');
+            toggleDimensiFields(selectedSatuan, "add");
         }
     });
 
     // Fungsi untuk toggle field dimensi
-    function toggleDimensiFields(selectedSatuanId, mode = 'add') {
-        const containerId = mode === 'add' ? '#dimensi_container' : '#edit_dimensi_container';
-        const luasId = mode === 'add' ? '#dimensi_luas' : '#edit_dimensi_luas';
-        const panjangId = mode === 'add' ? '#dimensi_panjang' : '#edit_dimensi_panjang';
-        
+    function toggleDimensiFields(selectedSatuanId, mode = "add") {
+        const containerId =
+            mode === "add" ? "#dimensi_container" : "#edit_dimensi_container";
+        const luasId = mode === "add" ? "#dimensi_luas" : "#edit_dimensi_luas";
+        const panjangId =
+            mode === "add" ? "#dimensi_panjang" : "#edit_dimensi_panjang";
+
         // Dapatkan nama satuan dari opsi yang dipilih
-        const selectedOption = $(`#${mode === 'add' ? 'satuanBarang' : 'edit_satuanBarang'} option:selected`);
+        const selectedOption = $(
+            `#${mode === "add" ? "satuanBarang" : "edit_satuanBarang"} option:selected`,
+        );
         const satuanName = selectedOption.text().trim();
-        
-        if (satuanName === 'SATUAN LUAS') {
+
+        if (satuanName === "SATUAN LUAS") {
             // Tampilkan kedua field
             $(containerId).show();
             $(luasId).show();
             $(panjangId).show();
-        } else if (satuanName === 'SATUAN LEBAR') {
+        } else if (satuanName === "SATUAN LEBAR") {
             // Tampilkan hanya field lebar
             $(containerId).show();
             $(luasId).show();
@@ -158,7 +169,7 @@ $(function () {
 
         if (!bahanBakuList || bahanBakuList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada bahan baku</td></tr>'
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada bahan baku</td></tr>',
             );
             return;
         }
@@ -169,14 +180,14 @@ $(function () {
                     <td>${
                         row.nama || ""
                     }<input type="hidden" name="bahan_baku_id[]" value="${
-                row.id || ""
-            }"></td>
+                        row.id || ""
+                    }"></td>
                     <td>${row.satuan || ""}</td>
                     <td class="text-end">Rp ${(row.harga || 0).toLocaleString(
-                        "id-ID"
+                        "id-ID",
                     )}<input type="hidden" name="harga_bahan[]" value="${
-                row.harga || 0
-            }"></td>
+                        row.harga || 0
+                    }"></td>
                     <td><input type="number" class="form-control form-control-sm jumlah_bahan" name="jumlah_bahan[]" value="${
                         row.jumlah || 0
                     }" min="0" data-idx="${idx}" step="0.01"></td>
@@ -217,8 +228,8 @@ $(function () {
                 .eq(4)
                 .html(
                     `<span class="text-success fw-semibold text-end">Rp ${total.toLocaleString(
-                        "id-ID"
-                    )}</span>`
+                        "id-ID",
+                    )}</span>`,
                 );
             updateTotalModalKeseluruhan();
         }
@@ -246,12 +257,16 @@ $(function () {
 
     // Helper function untuk menutup modal cari mesin
     function closeModalCariMesinTambah() {
-        $("#modalCariMesinProdukTambah").modal('hide');
+        $("#modalCariMesinProdukTambah").modal("hide");
     }
 
     // Named function untuk handle mesinDipilih - mencegah duplicate listener
     function handleMesinDipilihTambah(e) {
-        if (!$("#tambahProduk").hasClass("show") || !$("#modalCariMesinProdukTambah").hasClass("show")) return;
+        if (
+            !$("#tambahProduk").hasClass("show") ||
+            !$("#modalCariMesinProdukTambah").hasClass("show")
+        )
+            return;
 
         const data = e.detail;
 
@@ -265,13 +280,21 @@ $(function () {
             }
 
             if (parameterMesinList.some((pm) => pm.mesin_id == data.id)) {
-                Swal.fire("Info", "Parameter dari mesin ini sudah ditambahkan.", "info");
+                Swal.fire(
+                    "Info",
+                    "Parameter dari mesin ini sudah ditambahkan.",
+                    "info",
+                );
                 return;
             }
 
             let profil = data.biaya_perhitungan_profil;
             if (!profil) {
-                Swal.fire("Info", "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.", "info");
+                Swal.fire(
+                    "Info",
+                    "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.",
+                    "info",
+                );
                 return;
             }
 
@@ -285,11 +308,15 @@ $(function () {
 
             if (!Array.isArray(profil)) profil = [profil];
             profil = profil.filter(
-                (p) => p && typeof p === "object" && p.nama && p.total != null
+                (p) => p && typeof p === "object" && p.nama && p.total != null,
             );
 
             if (profil.length === 0) {
-                Swal.fire("Info", "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.", "info");
+                Swal.fire(
+                    "Info",
+                    "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.",
+                    "info",
+                );
                 return;
             }
 
@@ -314,7 +341,11 @@ $(function () {
             }
 
             if (alurProduksiList.some((mesin) => mesin.id == data.id)) {
-                Swal.fire("Info", "Mesin ini sudah ditambahkan ke alur produksi.", "info");
+                Swal.fire(
+                    "Info",
+                    "Mesin ini sudah ditambahkan ke alur produksi.",
+                    "info",
+                );
                 return;
             }
 
@@ -336,31 +367,33 @@ $(function () {
     // window.addEventListener("mesinDipilih", handleMesinDipilihTambah);
 
     // Tombol + Tambah Parameter (buka modal cari MESIN)
-    $(document).off("click", "#btnTambahParameter").on("click", "#btnTambahParameter", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    $(document)
+        .off("click", "#btnTambahParameter")
+        .on("click", "#btnTambahParameter", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-        // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
-        if ($("#modalCariMesinProdukTambah").hasClass("show")) {
-            return;
-        }
+            // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
+            if ($("#modalCariMesinProdukTambah").hasClass("show")) {
+                return;
+            }
 
-        isModalForParameter = true;
-        var modalMesin = new bootstrap.Modal(
-            document.getElementById("modalCariMesinProdukTambah"),
-            {
-                backdrop: "static",
-                keyboard: false,
-                focus: true,
-            }
-        );
-        modalMesin.show();
-        setTimeout(function () {
-            if ($("#tambahProduk").hasClass("show")) {
-                $("body").addClass("modal-open");
-            }
-        }, 200);
-    });
+            isModalForParameter = true;
+            var modalMesin = new bootstrap.Modal(
+                document.getElementById("modalCariMesinProdukTambah"),
+                {
+                    backdrop: "static",
+                    keyboard: false,
+                    focus: true,
+                },
+            );
+            modalMesin.show();
+            setTimeout(function () {
+                if ($("#tambahProduk").hasClass("show")) {
+                    $("body").addClass("modal-open");
+                }
+            }, 200);
+        });
 
     // Render tabel parameter modal
     function renderParameterMesinTable() {
@@ -369,7 +402,7 @@ $(function () {
 
         if (parameterMesinList.length === 0) {
             tbody.append(
-                '<tr><td colspan="6" class="text-center text-muted">Pilih parameter</td></tr>'
+                '<tr><td colspan="6" class="text-center text-muted">Pilih parameter</td></tr>',
             );
             return;
         }
@@ -386,7 +419,7 @@ $(function () {
                 <tr data-mesin-id="${row.mesin_id}">
                     <td>${
                         window.masterMesinList?.find(
-                            (m) => m.id == row.mesin_id
+                            (m) => m.id == row.mesin_id,
                         )?.nama_mesin || "-"
                     }</td>
                     <td>
@@ -458,64 +491,312 @@ $(function () {
     $(document).on("click", ".btn-hapus-param", function () {
         const mesinId = $(this).closest("tr").data("mesin-id");
         parameterMesinList = parameterMesinList.filter(
-            (row) => row.mesin_id != mesinId
+            (row) => row.mesin_id != mesinId,
         );
         renderParameterMesinTable();
         updateTotalModalKeseluruhan();
         updateTotalItemModal();
     });
 
-    // Perhitungan total seluruh modal
-    function updateTotalModalKeseluruhan() {
-        // Pastikan bahanBakuList dan parameterMesinList terdefinisi
-        if (typeof bahanBakuList === "undefined") bahanBakuList = [];
-        if (typeof parameterMesinList === "undefined") parameterMesinList = [];
+    $(document).on("change", "#jenis_produk", function () {
+        const jenisProduk = $(this).val();
+        toggleRakitanMode(jenisProduk, "add");
+    });
 
-        let totalBahan = bahanBakuList.reduce(
-            (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
-            0
-        );
-        let totalParam = parameterMesinList.reduce((sum, row) => {
-            const param =
-                row.opsi && row.opsi[row.selected]
-                    ? row.opsi[row.selected]
-                    : { total: 0 };
-            return sum + (param.total || 0) * (row.jumlah || 1);
-        }, 0);
+    // Fungsi untuk toggle mode rakitan
+    function toggleRakitanMode(jenisProduk, mode = "add") {
+        const bahanBakuSection =
+            mode === "add" ? "#bahanBakuSection" : "#edit_bahanBakuSection";
+        const produkKomponenSection =
+            mode === "add"
+                ? "#produkKomponenSection"
+                : "#edit_produkKomponenSection";
+        const parameterModalSection =
+            mode === "add"
+                ? "#parameterModalSection"
+                : "#edit_parameterModalSection";
+
+        if (jenisProduk === "rakitan") {
+            $(bahanBakuSection).hide();
+            $(parameterModalSection).hide();
+            $(produkKomponenSection).show();
+            // Reset bahan baku dan load produk komponen
+            if (mode === "add") {
+                bahanBakuList = [];
+                renderTabelBahanBaku();
+            }
+        } else {
+            $(bahanBakuSection).show();
+            $(parameterModalSection).show();
+            $(produkKomponenSection).hide();
+            // Reset produk komponen dan load bahan baku
+            if (mode === "add") {
+                produkKomponenList = [];
+                renderTabelProdukKomponen();
+            }
+        }
+        updateTotalModalKeseluruhan();
+    }
+
+    // Fungsi render tabel produk komponen
+    function renderTabelProdukKomponen() {
+        const tbody = $("#tabelProdukKomponen tbody");
+        tbody.empty();
+
+        if (!produkKomponenList || produkKomponenList.length === 0) {
+            tbody.append(
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada produk komponen</td></tr>',
+            );
+            return;
+        }
+
+        produkKomponenList.forEach((row, idx) => {
+            tbody.append(`
+                <tr>
+                    <td>${row.kode_produk || ""}
+                    <input type="hidden" name="produk_komponen[${idx}][id]" value="${row.id}">
+                    <input type="hidden" name="produk_komponen[${idx}][harga]" value="${row.total_modal_keseluruhan || 0}">
+                    </td>
+                    <td>${row.nama_produk || ""}</td>
+                    <td>Rp ${(row.total_modal_keseluruhan || 0).toLocaleString("id-ID")}</td>
+                    <td><input type="number" class="form-control form-control-sm jumlah-komponen" name="produk_komponen[${idx}][jumlah]" value="${row.jumlah || 1}" min="1" data-idx="${idx}" step="1"></td>
+                    <td class="text-success fw-semibold text-end">Rp ${(row.total || 0).toLocaleString("id-ID")}</td>
+                    <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-komponen" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
+                </tr>
+            `);
+        });
+
+        feather.replace();
+    }
+    function handleProdukKomponenDipilih(e) {
+        if (!$("#tambahProduk").hasClass("show") || 
+            !$("#modalCariProdukRakitanTambah").hasClass("show")) {
+            return;
+        }
+
+        const data = e.detail;
+        if (data.sourceModal !== 'add') {
+            return;
+        }
+    
+        if (
+            typeof produkKomponenList === "undefined" ||
+            !Array.isArray(produkKomponenList)
+        ) {
+            produkKomponenList = [];
+        }
+    
+        if (produkKomponenList.some((item) => item.id === data.id)) {
+            Swal.fire("Info", "Produk komponen sudah ditambahkan.", "info");
+            return;
+        }
+    
+        produkKomponenList.push({
+            id: parseInt(data.id) || 0,
+            kode_produk: data.kode_produk,
+            nama_produk: data.nama_produk,
+            total_modal_keseluruhan: parseFloat(data.total_modal_keseluruhan) || 0,
+            harga: parseFloat(data.total_modal_keseluruhan) || 0,
+            jumlah: 1,
+            total: parseFloat(data.total_modal_keseluruhan) || 0,
+        });
+    
+        renderTabelProdukKomponen();
+        updateTotalModalKeseluruhan();
+        updateTotalItemModal();
+    }
+    window.removeEventListener("produkKomponenDipilih", handleProdukKomponenDipilih);
+    window.addEventListener("produkKomponenDipilih", handleProdukKomponenDipilih);
+
+    $(document).on("input", ".jumlah-komponen", function () {
+        const idx = $(this).data("idx");
+        const harga =
+            parseFloat(produkKomponenList[idx].total_modal_keseluruhan) || 0;
+        const jumlah = parseInt($(this).val()) || 1;
+
+        produkKomponenList[idx].harga = harga;
+        produkKomponenList[idx].jumlah = jumlah;
+        produkKomponenList[idx].total = harga * jumlah;
+
+        $(this)
+            .closest("tr")
+            .find("td")
+            .eq(4)
+            .html(
+                `<span class="text-success fw-semibold text-end">Rp ${produkKomponenList[idx].total.toLocaleString("id-ID")}</span>`,
+            );
+
+        updateTotalModalKeseluruhan();
+    });
+
+    // Handler hapus komponen
+    $(document).on("click", ".btn-hapus-komponen", function () {
+        const idx = $(this).data("idx");
+        produkKomponenList.splice(idx, 1);
+        renderTabelProdukKomponen();
+        updateTotalModalKeseluruhan();
+    });
+
+    function updateTotalModalKeseluruhan() {
+        const jenisProduk = $("#jenis_produk").val();
+        let totalKomponen = 0;
+        let totalBahan = 0;
+        let totalParam = 0;
+
+        if (jenisProduk === "rakitan") {
+            // Hitung dari produk komponen
+            totalKomponen = produkKomponenList.reduce(
+                (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
+                0,
+            );
+        } else {
+            // Hitung dari bahan baku (existing logic)
+            totalBahan = bahanBakuList.reduce(
+                (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
+                0,
+            );
+            totalParam = parameterMesinList.reduce((sum, row) => {
+                const param =
+                    row.opsi && row.opsi[row.selected]
+                        ? row.opsi[row.selected]
+                        : { total: 0 };
+                return sum + (param.total || 0) * (row.jumlah || 1);
+            }, 0);
+        }
 
         let totalBiayaTambahan = 0;
-        $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
-            const nilai = parseFloat($(this).find('.biaya-tambahan-nilai').val()) || 0;
+        $("#tabelBiayaTambahan .biaya-tambahan-item").each(function () {
+            const nilai =
+                parseFloat($(this).find(".biaya-tambahan-nilai").val()) || 0;
             totalBiayaTambahan += nilai;
         });
 
-        $("#totalBahanBakuText").text(
-            "Rp " + totalBahan.toLocaleString("id-ID")
-        );
-        $("#totalParameterText").text(
-            "Rp " + totalParam.toLocaleString("id-ID")
-        );
+        // Update DOM sesuai jenis produk
+        if (jenisProduk === "rakitan") {
+            $("#totalKomponenText").text(
+                "Rp " + totalKomponen.toLocaleString("id-ID"),
+            );
+            $("#totalBahanBakuText").text("Rp 0");
+            $("#totalParameterText").text("Rp 0");
+        } else {
+            $("#totalBahanBakuText").text(
+                "Rp " + totalBahan.toLocaleString("id-ID"),
+            );
+            $("#totalParameterText").text(
+                "Rp " + totalParam.toLocaleString("id-ID"),
+            );
+            $("#totalKomponenText").text("Rp 0");
+        }
+
         $("#totalBiayaTambahanText").text(
-            "Rp " + totalBiayaTambahan.toLocaleString("id-ID")
+            "Rp " + totalBiayaTambahan.toLocaleString("id-ID"),
         );
+
+        const totalKeseluruhan =
+            jenisProduk === "rakitan"
+                ? totalKomponen + totalBiayaTambahan
+                : totalBahan + totalParam + totalBiayaTambahan;
+
         $("#totalModalKeseluruhan").text(
-            "Rp " + (totalBahan + totalParam + totalBiayaTambahan).toLocaleString("id-ID")
+            "Rp " + totalKeseluruhan.toLocaleString("id-ID"),
         );
-        $("#totalModalBahan").text("Rp " + totalBahan.toLocaleString("id-ID"));
-        updateTotalItemModal();
+        $("#totalModalBahan").text(
+            jenisProduk === "rakitan"
+                ? "Rp 0"
+                : "Rp " + totalBahan.toLocaleString("id-ID"),
+        );
 
         renderHargaBertingkat();
         renderHargaReseller();
-    }   
+    }
+
+    // Tombol tambah produk komponen
+    $(document).on("click", "#btnTambahProdukKomponen", function () {
+        if ($("#modalCariProdukRakitanTambah").hasClass("show")) {
+            return;
+        }
+
+        const modalElement = document.getElementById(
+            "modalCariProdukRakitanTambah",
+        );
+        if (!modalElement) {
+            console.error(
+                "Modal element modalCariProdukRakitanTambah not found",
+            );
+            return;
+        }
+
+        try {
+            var modalProduk = new bootstrap.Modal(modalElement, {
+                backdrop: "static",
+                keyboard: false,
+                focus: true,
+            });
+            modalProduk.show();
+        } catch (error) {
+            console.error("Error creating modal:", error);
+            Swal.fire("Error", "Gagal membuka modal pencarian produk", "error");
+        }
+    });
+
+    // Perhitungan total seluruh modal
+    // function updateTotalModalKeseluruhan() {
+    //     // Pastikan bahanBakuList dan parameterMesinList terdefinisi
+    //     if (typeof bahanBakuList === "undefined") bahanBakuList = [];
+    //     if (typeof parameterMesinList === "undefined") parameterMesinList = [];
+
+    //     let totalBahan = bahanBakuList.reduce(
+    //         (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
+    //         0
+    //     );
+    //     let totalParam = parameterMesinList.reduce((sum, row) => {
+    //         const param =
+    //             row.opsi && row.opsi[row.selected]
+    //                 ? row.opsi[row.selected]
+    //                 : { total: 0 };
+    //         return sum + (param.total || 0) * (row.jumlah || 1);
+    //     }, 0);
+
+    //     let totalBiayaTambahan = 0;
+    //     $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
+    //         const nilai = parseFloat($(this).find('.biaya-tambahan-nilai').val()) || 0;
+    //         totalBiayaTambahan += nilai;
+    //     });
+
+    //     $("#totalBahanBakuText").text(
+    //         "Rp " + totalBahan.toLocaleString("id-ID")
+    //     );
+    //     $("#totalParameterText").text(
+    //         "Rp " + totalParam.toLocaleString("id-ID")
+    //     );
+    //     $("#totalBiayaTambahanText").text(
+    //         "Rp " + totalBiayaTambahan.toLocaleString("id-ID")
+    //     );
+    //     $("#totalModalKeseluruhan").text(
+    //         "Rp " + (totalBahan + totalParam + totalBiayaTambahan).toLocaleString("id-ID")
+    //     );
+    //     $("#totalModalBahan").text("Rp " + totalBahan.toLocaleString("id-ID"));
+    //     updateTotalItemModal();
+
+    //     renderHargaBertingkat();
+    //     renderHargaReseller();
+    // }
 
     // Jumlah item total
     function updateTotalItemModal() {
         const totalBahanBaku = bahanBakuList.length;
         const totalParameter = parameterMesinList.length;
-        const totalBiayaTambahan = $('#tabelBiayaTambahan .biaya-tambahan-item').length;
-        
+        const totalBiayaTambahan = $(
+            "#tabelBiayaTambahan .biaya-tambahan-item",
+        ).length;
+        const totalProdukKomponen = produkKomponenList.length;
+
         $("#totalItemModal").text(
-            (totalBahanBaku + totalParameter + totalBiayaTambahan) + " item"
+            totalBahanBaku +
+                totalParameter +
+                totalBiayaTambahan +
+                totalProdukKomponen +
+                " item",
         );
     }
 
@@ -555,7 +836,7 @@ $(function () {
         container.empty();
         if (!alurProduksiList || alurProduksiList.length === 0) {
             container.append(
-                '<div class="text-muted text-center">Belum ada mesin ditambahkan</div>'
+                '<div class="text-muted text-center">Belum ada mesin ditambahkan</div>',
             );
             return;
         }
@@ -571,13 +852,13 @@ $(function () {
         .on("click", "#btnTambahMesin", function () {
             // Cek apakah ada mesin kosong yang belum diisi
             const hasEmptyMesin = alurProduksiList.some(
-                (item) => item.id === "" || item.nama_mesin === ""
+                (item) => item.id === "" || item.nama_mesin === "",
             );
             if (hasEmptyMesin) {
                 Swal.fire(
                     "Info",
                     "Silakan isi mesin yang sudah ditambahkan terlebih dahulu.",
-                    "info"
+                    "info",
                 );
                 return;
             }
@@ -592,47 +873,49 @@ $(function () {
         });
 
     // Handler klik input nama mesin untuk membuka modal cari mesin
-    $(document).off("click", ".nama-mesin-input, .btn-cari-mesin").on("click", ".nama-mesin-input, .btn-cari-mesin", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
+    $(document)
+        .off("click", ".nama-mesin-input, .btn-cari-mesin")
+        .on("click", ".nama-mesin-input, .btn-cari-mesin", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
 
-        // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
-        if ($("#modalCariMesinProdukTambah").hasClass("show")) {
-            return;
-        }
-
-        const mesinItem = $(this).closest(".mesin-item");
-        const index = mesinItem.data("index");
-
-        // Simpan index mesin yang sedang dipilih
-        window.currentMesinIndex = index;
-        isModalForParameter = false;
-
-        // Buka modal cari mesin
-        var modalMesin = new bootstrap.Modal(
-            document.getElementById("modalCariMesinProdukTambah"),
-            {
-                backdrop: "static",
-                keyboard: false,
-                focus: true,
+            // Cek apakah modal sudah terbuka, jika ya jangan buka lagi
+            if ($("#modalCariMesinProdukTambah").hasClass("show")) {
+                return;
             }
-        );
-        modalMesin.show();
 
-        // Tambahkan class stack untuk modal
-        setTimeout(function () {
-            if ($("#tambahProduk").hasClass("show")) {
-                $("body").addClass("modal-open");
-            }
-        }, 200);
-    });
+            const mesinItem = $(this).closest(".mesin-item");
+            const index = mesinItem.data("index");
+
+            // Simpan index mesin yang sedang dipilih
+            window.currentMesinIndex = index;
+            isModalForParameter = false;
+
+            // Buka modal cari mesin
+            var modalMesin = new bootstrap.Modal(
+                document.getElementById("modalCariMesinProdukTambah"),
+                {
+                    backdrop: "static",
+                    keyboard: false,
+                    focus: true,
+                },
+            );
+            modalMesin.show();
+
+            // Tambahkan class stack untuk modal
+            setTimeout(function () {
+                if ($("#tambahProduk").hasClass("show")) {
+                    $("body").addClass("modal-open");
+                }
+            }, 200);
+        });
 
     // Fungsi utilitas untuk mengecek duplikasi mesin
     function isMesinDuplicate(mesinId, excludeIndex = null) {
         if (!mesinId) return false;
         return alurProduksiList.some(
             (item, idx) =>
-                idx !== excludeIndex && item.id == mesinId && mesinId !== ""
+                idx !== excludeIndex && item.id == mesinId && mesinId !== "",
         );
     }
 
@@ -687,7 +970,7 @@ $(function () {
                 mesinDiv.find(".nama-mesin-input").val() || "";
             alurProduksiList[idx].estimasi_waktu =
                 parseInt(
-                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val()
+                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val(),
                 ) || 0;
             alurProduksiList[idx].catatan =
                 mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
@@ -695,7 +978,7 @@ $(function () {
                 mesinDiv.find(".mesin-id-input").val() || "";
             alurProduksiList[idx].tipe_mesin =
                 mesinDiv.find(".tipe-mesin-span").text() || "";
-        }
+        },
     );
 
     // === HARGA BERTINGKAT & RESELLER ===
@@ -732,7 +1015,7 @@ $(function () {
 
         if (hargaBertingkatList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga bertingkat</td></tr>'
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga bertingkat</td></tr>',
             );
             return;
         }
@@ -740,10 +1023,21 @@ $(function () {
         hargaBertingkatList.forEach((row, idx) => {
             const profitRp =
                 row.harga -
-                (parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
-                    0);
+                (parseInt(
+                    $("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""),
+                ) || 0);
             const profitPersen =
-                row.harga > 0 ? ((profitRp / parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""))) * 100).toFixed(1) : 0;
+                row.harga > 0
+                    ? (
+                          (profitRp /
+                              parseInt(
+                                  $("#totalModalKeseluruhan")
+                                      .text()
+                                      .replace(/[^\d]/g, ""),
+                              )) *
+                          100
+                      ).toFixed(1)
+                    : 0;
 
             tbody.append(`
                 <tr>
@@ -757,7 +1051,7 @@ $(function () {
                         row.harga ? formatRupiahInput(row.harga.toString()) : ""
                     }" min="0" data-idx="${idx}"></td>
                     <td class="text-success fw-semibold">Rp ${profitRp.toLocaleString(
-                        "id-ID"
+                        "id-ID",
                     )}</td>
                     <td class="text-success fw-semibold">${profitPersen}%</td>
                     <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-harga-bertingkat" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
@@ -774,7 +1068,7 @@ $(function () {
 
         if (hargaResellerList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga reseller</td></tr>'
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga reseller</td></tr>',
             );
             return;
         }
@@ -782,10 +1076,21 @@ $(function () {
         hargaResellerList.forEach((row, idx) => {
             const profitRp =
                 row.harga -
-                (parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
-                    0);
+                (parseInt(
+                    $("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""),
+                ) || 0);
             const profitPersen =
-                row.harga > 0 ? ((profitRp / parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""))) * 100).toFixed(1) : 0;
+                row.harga > 0
+                    ? (
+                          (profitRp /
+                              parseInt(
+                                  $("#totalModalKeseluruhan")
+                                      .text()
+                                      .replace(/[^\d]/g, ""),
+                              )) *
+                          100
+                      ).toFixed(1)
+                    : 0;
 
             tbody.append(`
                 <tr>
@@ -799,7 +1104,7 @@ $(function () {
                         row.harga ? formatRupiahInput(row.harga.toString()) : ""
                     }" min="0" data-idx="${idx}"></td>
                     <td class="text-success fw-semibold">Rp ${profitRp.toLocaleString(
-                        "id-ID"
+                        "id-ID",
                     )}</td>
                     <td class="text-success fw-semibold">${profitPersen}%</td>
                     <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-harga-reseller" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
@@ -841,8 +1146,8 @@ $(function () {
         const field = $(this).hasClass("min-qty")
             ? "min_qty"
             : $(this).hasClass("max-qty")
-            ? "max_qty"
-            : "harga";
+              ? "max_qty"
+              : "harga";
 
         if (field === "harga") {
             hargaBertingkatList[idx][field] =
@@ -854,7 +1159,7 @@ $(function () {
         updateProfitCalculation(
             "#tabelHargaBertingkat",
             idx,
-            hargaBertingkatList[idx]
+            hargaBertingkatList[idx],
         );
     });
 
@@ -867,8 +1172,8 @@ $(function () {
         const field = $(this).hasClass("min-qty")
             ? "min_qty"
             : $(this).hasClass("max-qty")
-            ? "max_qty"
-            : "harga";
+              ? "max_qty"
+              : "harga";
 
         if (field === "harga") {
             hargaResellerList[idx][field] =
@@ -880,7 +1185,7 @@ $(function () {
         updateProfitCalculation(
             "#tabelHargaReseller",
             idx,
-            hargaResellerList[idx]
+            hargaResellerList[idx],
         );
     });
 
@@ -890,32 +1195,34 @@ $(function () {
 
     function updateProfitCalculation(tableSelector, idx, rowData) {
         const totalModalKeseluruhan =
-            parseInt($("#totalModalKeseluruhan").text().replace(/[^\d]/g, "")) || 0;
+            parseInt(
+                $("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""),
+            ) || 0;
         const profitRp = rowData.harga - totalModalKeseluruhan;
         const profitPersen =
-        totalModalKeseluruhan > 0
-            ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1)
-            : 0;
+            totalModalKeseluruhan > 0
+                ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1)
+                : 0;
 
         const row = $(`${tableSelector} tbody tr`).eq(idx);
         row.find("td")
             .eq(3)
             .html(
                 `<span class="text-success fw-semibold">Rp ${profitRp.toLocaleString(
-                    "id-ID"
-                )}</span>`
+                    "id-ID",
+                )}</span>`,
             );
         row.find("td")
             .eq(4)
             .html(
-                `<span class="text-success fw-semibold">${profitPersen}%</span>`
+                `<span class="text-success fw-semibold">${profitPersen}%</span>`,
             );
     }
 
-    // === Spesifikasi Teknis Dinamis (Tambah Produk) 
-    $('#tambah_spesifikasi_produk').on('click', function() {
-        tambahSpesifikasiBaris('#spesifikasi_produk_container');
-        $('#no_spesifikasi_message').hide();
+    // === Spesifikasi Teknis Dinamis (Tambah Produk)
+    $("#tambah_spesifikasi_produk").on("click", function () {
+        tambahSpesifikasiBaris("#spesifikasi_produk_container");
+        $("#no_spesifikasi_message").hide();
     });
 
     // Fungsi untuk menambah baris spesifikasi
@@ -946,32 +1253,32 @@ $(function () {
     }
 
     // Event handler untuk tombol hapus spesifikasi
-    $(document).on('click', '.remove-spesifikasi', function() {
-        $(this).closest('.spesifikasi-item').remove();
-        
+    $(document).on("click", ".remove-spesifikasi", function () {
+        $(this).closest(".spesifikasi-item").remove();
+
         // Cek apakah masih ada spesifikasi yang tersisa
-        var container = $('#spesifikasi_produk_container');
-        if (container.find('.spesifikasi-item').length === 0) {
-            $('#no_spesifikasi_message').show();
+        var container = $("#spesifikasi_produk_container");
+        if (container.find(".spesifikasi-item").length === 0) {
+            $("#no_spesifikasi_message").show();
         }
     });
 
     // === BIAYA TAMBAHAN (TAMBAH PRODUK) ===
 
     // Handler tombol Tambah Biaya
-    $(document).on('click', '#btnTambahBiayaTambahan', function() {
-        // Cek apakah sudah ada biaya dengan nama yang sama 
+    $(document).on("click", "#btnTambahBiayaTambahan", function () {
+        // Cek apakah sudah ada biaya dengan nama yang sama
         const existingBiayaNama = new Set();
-        $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
-            const nama = $(this).find('.biaya-tambahan-nama').val()?.trim();
+        $("#tabelBiayaTambahan .biaya-tambahan-item").each(function () {
+            const nama = $(this).find(".biaya-tambahan-nama").val()?.trim();
             if (nama) {
                 existingBiayaNama.add(nama.toLowerCase());
             }
         });
-    
+
         // Hapus row pesan jika ada
         $('#tabelBiayaTambahan tbody tr td[colspan="3"]').parent().remove();
-        
+
         const biayaHtml = `
             <tr class="biaya-tambahan-item">
                 <td>
@@ -992,54 +1299,64 @@ $(function () {
                 </td>
             </tr>
         `;
-        
-        $('#tabelBiayaTambahan tbody').append(biayaHtml);
+
+        $("#tabelBiayaTambahan tbody").append(biayaHtml);
         feather.replace();
-        
-        // Tambahkan validasi untuk mencegah duplikasi nama biaya 
-        $('#tabelBiayaTambahan .biaya-tambahan-nama').last().on('input', function() {
-            const input = $(this);
-            const nama = input.val()?.trim().toLowerCase();
-            
-            // Cek duplikasi dengan nama biaya yang sudah ada 
-            let isDuplicate = false;
-            $('#tabelBiayaTambahan .biaya-tambahan-item').not(input.closest('.biaya-tambahan-item')).each(function() {
-                const existingNama = $(this).find('.biaya-tambahan-nama').val()?.trim().toLowerCase();
-                if (existingNama === nama && nama !== '') {
-                    isDuplicate = true;
-                    return false;
+
+        // Tambahkan validasi untuk mencegah duplikasi nama biaya
+        $("#tabelBiayaTambahan .biaya-tambahan-nama")
+            .last()
+            .on("input", function () {
+                const input = $(this);
+                const nama = input.val()?.trim().toLowerCase();
+
+                // Cek duplikasi dengan nama biaya yang sudah ada
+                let isDuplicate = false;
+                $("#tabelBiayaTambahan .biaya-tambahan-item")
+                    .not(input.closest(".biaya-tambahan-item"))
+                    .each(function () {
+                        const existingNama = $(this)
+                            .find(".biaya-tambahan-nama")
+                            .val()
+                            ?.trim()
+                            .toLowerCase();
+                        if (existingNama === nama && nama !== "") {
+                            isDuplicate = true;
+                            return false;
+                        }
+                    });
+
+                if (isDuplicate) {
+                    input.addClass("is-invalid");
+                    if (!input.next(".invalid-feedback").length) {
+                        input.after(
+                            '<div class="invalid-feedback">Nama biaya sudah ada.</div>',
+                        );
+                    }
+                } else {
+                    input.removeClass("is-invalid");
+                    input.next(".invalid-feedback").remove();
                 }
             });
-            
-            if (isDuplicate) {
-                input.addClass('is-invalid');
-                if (!input.next('.invalid-feedback').length) {
-                    input.after('<div class="invalid-feedback">Nama biaya sudah ada.</div>');
-                }
-            } else {
-                input.removeClass('is-invalid');
-                input.next('.invalid-feedback').remove();
-            }
-        });
-        
+
         updateTotalItemModal();
         updateTotalModalKeseluruhan();
     });
 
     // Handler tombol hapus biaya tambahan
-    $(document).on('click', '.remove-biaya-tambahan', function() {
-        $(this).closest('.biaya-tambahan-item').remove();
-        
-        if ($('#tabelBiayaTambahan .biaya-tambahan-item').length === 0) {
-            $('#tabelBiayaTambahan tbody').append(
-                '<tr><td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td></tr>'
+    $(document).on("click", ".remove-biaya-tambahan", function () {
+        $(this).closest(".biaya-tambahan-item").remove();
+
+        if ($("#tabelBiayaTambahan .biaya-tambahan-item").length === 0) {
+            $("#tabelBiayaTambahan tbody").append(
+                '<tr><td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td></tr>',
             );
         }
         updateTotalModalKeseluruhan();
         updateTotalItemModal();
     });
 
-    $(document).on('input', '.biaya-tambahan-nilai', function() {
+    $(document).on("input", ".biaya-tambahan-nilai", function () {
         updateTotalModalKeseluruhan();
     });
 
@@ -1048,12 +1365,11 @@ $(function () {
         .off("submit")
         .on("submit", function (e) {
             e.preventDefault();
-            
 
             const submitBtn = $(this).find('button[type="submit"]');
             const originalText = submitBtn.html();
             submitBtn.html(
-                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan...'
+                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan...',
             );
             submitBtn.prop("disabled", true);
 
@@ -1103,7 +1419,7 @@ $(function () {
                         parseInt(
                             $(this)
                                 .find('input[name*="[estimasi_waktu]"]')
-                                .val()
+                                .val(),
                         ) || 0,
                     catatan:
                         $(this).find('textarea[name*="[catatan]"]').val() || "",
@@ -1112,19 +1428,21 @@ $(function () {
 
             $("#alur_produksi_json").val(JSON.stringify(alurArr));
             $("#harga_bertingkat_json").val(
-                JSON.stringify(hargaBertingkatList)
+                JSON.stringify(hargaBertingkatList),
             );
             const bahanBakuData = [];
-            $("#tabelBahanBaku tbody tr").each(function() {
-                const bahanBakuId = $(this).find('input[name="bahan_baku_id[]"]').val();
-                const jumlah = $(this).find('.jumlah_bahan').val();
+            $("#tabelBahanBaku tbody tr").each(function () {
+                const bahanBakuId = $(this)
+                    .find('input[name="bahan_baku_id[]"]')
+                    .val();
+                const jumlah = $(this).find(".jumlah_bahan").val();
                 const harga = $(this).find('input[name="harga_bahan[]"]').val();
-                
+
                 if (bahanBakuId && jumlah && harga) {
                     bahanBakuData.push({
                         id: parseInt(bahanBakuId),
                         jumlah: parseFloat(jumlah),
-                        harga: parseInt(harga)
+                        harga: parseInt(harga),
                     });
                 }
             });
@@ -1142,21 +1460,31 @@ $(function () {
             });
             $("#parameter_modal_json").val(JSON.stringify(paramArr));
             const spesifikasiArr = [];
-            $('#spesifikasi_produk_container .spesifikasi-item').each(function() {
-                const nama = $(this).find('input[name="spesifikasi_nama[]"]').val();
-                const nilai = $(this).find('input[name="spesifikasi_nilai[]"]').val();
-                const satuan = $(this).find('input[name="spesifikasi_satuan[]"]').val();
-                if (nama && nilai) {
-                    spesifikasiArr.push({nama, nilai, satuan});
-                }
-            });
-            $("#spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));  
+            $("#spesifikasi_produk_container .spesifikasi-item").each(
+                function () {
+                    const nama = $(this)
+                        .find('input[name="spesifikasi_nama[]"]')
+                        .val();
+                    const nilai = $(this)
+                        .find('input[name="spesifikasi_nilai[]"]')
+                        .val();
+                    const satuan = $(this)
+                        .find('input[name="spesifikasi_satuan[]"]')
+                        .val();
+                    if (nama && nilai) {
+                        spesifikasiArr.push({ nama, nilai, satuan });
+                    }
+                },
+            );
+            $("#spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));
             const biayaTambahanArr = [];
-            $('#tabelBiayaTambahan .biaya-tambahan-item').each(function() {
-                const nama = $(this).find('.biaya-tambahan-nama').val()?.trim();
-                const nilai = parseFloat($(this).find('.biaya-tambahan-nilai').val()) || 0;
+            $("#tabelBiayaTambahan .biaya-tambahan-item").each(function () {
+                const nama = $(this).find(".biaya-tambahan-nama").val()?.trim();
+                const nilai =
+                    parseFloat($(this).find(".biaya-tambahan-nilai").val()) ||
+                    0;
                 if (nama && nilai > 0) {
-                    biayaTambahanArr.push({nama, nilai});
+                    biayaTambahanArr.push({ nama, nilai });
                 }
             });
             $("#biaya_tambahan_json").val(JSON.stringify(biayaTambahanArr));
@@ -1165,11 +1493,56 @@ $(function () {
 
             var form = $(this)[0];
             var formData = new FormData(form);
-            bahanBakuData.forEach((item, index) => {
-                formData.append(`bahan_baku[${index}][id]`, item.id);
-                formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
-                formData.append(`bahan_baku[${index}][harga]`, item.harga);
-            });
+            const jenisProduk = $("#jenis_produk").val();
+            if (jenisProduk === "rakitan") {
+                $("#tabelProdukKomponen tbody tr").each(function (index) {
+                    const komponenId = $(this)
+                        .find(
+                            'input[name="produk_komponen[' + index + '][id]"]',
+                        )
+                        .val();
+                    const jumlah = $(this)
+                        .find(
+                            'input[name="produk_komponen[' +
+                                index +
+                                '][jumlah]"]',
+                        )
+                        .val();
+                    const harga = $(this)
+                        .find(
+                            'input[name="produk_komponen[' +
+                                index +
+                                '][harga]"]',
+                        )
+                        .val();
+
+                    if (komponenId && jumlah && harga) {
+                        formData.append(
+                            `produk_komponen[${index}][id]`,
+                            parseInt(komponenId),
+                        );
+                        formData.append(
+                            `produk_komponen[${index}][jumlah]`,
+                            parseInt(jumlah),
+                        );
+                        formData.append(
+                            `produk_komponen[${index}][harga]`,
+                            parseFloat(harga),
+                        );
+                    }
+                });
+
+                // formData.append('produk_komponen', JSON.stringify(produkKomponenData));
+            } else {
+                bahanBakuData.forEach((item, index) => {
+                    formData.append(`bahan_baku[${index}][id]`, item.id);
+                    formData.append(
+                        `bahan_baku[${index}][jumlah]`,
+                        item.jumlah,
+                    );
+                    formData.append(`bahan_baku[${index}][harga]`, item.harga);
+                });
+            }
 
             selectedPhotos.forEach((file) => {
                 formData.append("foto_pendukung_new[]", file);

@@ -61,6 +61,7 @@
                         <option value="" selected disabled>Pilih Jenis Produk</option>
                         <option value="produk">Produk</option>
                         <option value="jasa">Jasa</option>
+                        <option value="rakitan">Rakitan</option>
                       </select>
                     </div>
                     <div class="col-md-4">
@@ -188,13 +189,15 @@
                           Parameter: <span id="editTotalParameterText" class="fw-bold">Rp 0</span>
                           &nbsp;|&nbsp;
                           Biaya Tambahan: <span id="editTotalBiayaTambahanText" class="fw-bold">Rp 0</span>
+                          &nbsp;|&nbsp;
+                          Produk Rakitan: <span id="editTotalKomponenText" class="fw-bold">Rp 0</span>
                         </div>
                       </div>
                     </div>
                     <!-- Tab Modal -->
                     <div class="tab-pane fade show active" id="edit-modal-tab-pane" role="tabpanel">
                       <!-- Bahan Baku -->
-                      <div class="mb-4">
+                      <div class="mb-4" id="editBahanBakuSection">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                           <div class="fw-semibold">Bahan Baku</div>
                           <button type="button" class="btn btn-sm btn-outline-primary" id="editBtnTambahBahan">
@@ -228,7 +231,7 @@
                         </div>
                       </div>
                       <!-- Parameter Modal -->
-                      <div class="mb-4">
+                      <div class="mb-4" id="editParameterModalSection">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                           <div class="fw-semibold">Parameter Modal</div>
                           <button type="button" class="btn btn-sm btn-outline-primary" id="editBtnTambahParameter">
@@ -252,6 +255,40 @@
                                 <td colspan="5" class="text-center text-muted">Pilih kategori parameter</td>
                               </tr>
                             </tbody>
+                          </table>
+                        </div>
+                      </div>
+                      <!-- Produk Rakitan-->
+                      <div class="mb-4" id="editProdukKomponenSection" style="display: none;">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                          <div class="fw-semibold">Produk Rakitan</div>
+                          <button type="button" class="btn btn-sm btn-outline-primary" id="editBtnTambahProdukKomponen">
+                            + Tambah Produk
+                          </button>
+                        </div>
+                        <div class="table-responsive">
+                          <table class="table table-bordered align-middle mb-0" id="editTabelProdukKomponen">
+                            <thead class="table-light">
+                              <tr>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Kode Produk</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Produk</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Modal Produk</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jumlah</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Total</th>
+                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Aksi</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td colspan="6" class="text-center text-muted">Belum ada produk ditambahkan</td>
+                              </tr>
+                            </tbody>
+                            <tfoot>
+                              <tr>
+                                <td colspan="4" class="text-end fw-bold">Total Modal Rakitan:</td>
+                                <td colspan="2" class="fw-bold" id="editTotalModalKomponen">Rp 0</td>
+                              </tr>
+                            </tfoot>
                           </table>
                         </div>
                       </div>
@@ -513,4 +550,12 @@
   'tableId' => 'tabelCariMesinProdukEdit',
   'paginationId' => 'paginationCariMesinProdukEdit',
   'clearBtnId' => 'clearSearchMesinProdukEdit',
+])
+
+@include('backend.general-form.cari-produk', [
+    'modalId' => 'modalCariProdukRakitanEdit',
+    'inputId' => 'searchProdukRakitanEdit',
+    'tableId' => 'tabelCariProdukRakitanEdit',
+    'paginationId' => 'paginationProdukRakitanEdit',
+    'clearBtnId' => 'clearSearchProdukRakitanEdit',
 ])

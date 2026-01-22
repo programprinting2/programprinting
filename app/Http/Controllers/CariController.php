@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\BahanBaku;
 use App\Models\Pemasok;
+use App\Models\Produk; 
 use App\Models\DetailParameter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class CariController extends Controller
 {
@@ -196,6 +198,47 @@ class CariController extends Controller
         });
 
         return response()->json($parameters);
+    }
+
+    public function cariProdukKomponen(Request $request)
+    {
+        $search = $request->input('search');
+        $query = Produk::where('jenis_produk', '!=', 'rakitan')
+                    ->where('status_aktif', true);
+        
+                   
+
+        if ($search) {
+            $search = strtolower($search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(kode_produk) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(nama_produk) LIKE ?', ["%{$search}%"]);
+            });
+        }
+
+        // $query->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan']);
+
+        $produks = $query->orderBy('nama_produk')->paginate(10);
+        \Log::info('CariProdukKomponen Debug', [
+            'search_term' => $search,
+            'total_records' => $produks->total(),
+            'current_page' => $produks->currentPage(),
+            'per_page' => $produks->perPage(),
+            'data_count_in_response' => count($produks->items()),
+            'has_data' => count($produks->items()) > 0
+        ]); 
+
+        $produks->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'kode_produk' => $item->kode_produk,
+                'nama_produk' => $item->nama_produk,
+                'jenis_produk' => $item->jenis_produk,
+                'total_modal_keseluruhan' => $item->total_modal_keseluruhan ?? 0,
+            ];
+        });
+
+        return response()->json($produks);
     }
 }
 

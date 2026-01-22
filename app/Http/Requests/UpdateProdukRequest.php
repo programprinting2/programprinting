@@ -13,7 +13,7 @@ class UpdateProdukRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
+        $rules = [
             'nama_produk' => 'required|string|max:255',
             'kategori_utama_id' => 'required|exists:detail_parameters,id',
             'sub_kategori_id' => 'nullable|exists:sub_detail_parameter,id',
@@ -21,12 +21,12 @@ class UpdateProdukRequest extends FormRequest
             'sub_satuan_id' => 'required|exists:sub_detail_parameter,id',
             'lebar' => 'nullable|numeric|min:0',
             'panjang' => 'nullable|numeric|min:0',
-            'jenis_produk' => 'required|in:produk,jasa',
+            'jenis_produk' => 'required|in:produk,jasa,rakitan',
             'status_aktif' => 'required|boolean',
-            'bahan_baku' => 'required|array|min:1',
-            'bahan_baku.*.id' => 'required|integer|exists:bahan_baku,id',
-            'bahan_baku.*.jumlah' => 'required|numeric|min:0.01',
-            'bahan_baku.*.harga' => 'required|integer|min:0',
+            // 'bahan_baku' => 'required|array|min:1',
+            // 'bahan_baku.*.id' => 'required|integer|exists:bahan_baku,id',
+            // 'bahan_baku.*.jumlah' => 'required|numeric|min:0.01',
+            // 'bahan_baku.*.harga' => 'required|integer|min:0',
             'harga_bertingkat_json' => 'nullable|json',
             'harga_reseller_json' => 'nullable|json',
             'foto_pendukung_new.*' => 'nullable|file|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:5048',
@@ -37,6 +37,18 @@ class UpdateProdukRequest extends FormRequest
             'spesifikasi_teknis_json' => 'nullable|json',
             'biaya_tambahan_json' => 'nullable|json',
         ];
+        if ($this->input('jenis_produk') === 'rakitan') {
+            $rules['produk_komponen'] = 'required|array|min:1';
+            $rules['produk_komponen.*.id'] = 'required|integer|exists:produk,id';
+            $rules['produk_komponen.*.jumlah'] = 'required|integer|min:1';
+            $rules['produk_komponen.*.harga'] = 'required|numeric|min:0';
+        } else {
+            // $rules['bahan_baku'] = 'required|array|min:1';
+            $rules['bahan_baku.*.id'] = 'required|integer|exists:bahan_baku,id';
+            $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0.01';
+            $rules['bahan_baku.*.harga'] = 'required|integer|min:0';
+        }
+        return $rules;
     }
 
     public function messages(): array

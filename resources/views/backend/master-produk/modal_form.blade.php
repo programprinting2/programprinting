@@ -61,6 +61,7 @@
                                                 <option value="" selected disabled>Pilih Jenis Produk</option>
                                                 <option value="produk">Produk</option>
                                                 <option value="jasa">Jasa</option>
+                                                <option value="rakitan">Rakitan</option>
                                             </select>
                                         </div>
                                     </div>
@@ -276,6 +277,8 @@
                                                     &nbsp;|&nbsp;
                                                     Parameter: <span id="totalParameterText" class="fw-bold">Rp 0</span>
                                                     &nbsp;|&nbsp;
+                                                    Produk Rakitan: <span id="totalKomponenText" class="fw-bold">Rp 0</span>
+                                                    &nbsp;|&nbsp;
                                                     Biaya Tambahan: <span id="totalBiayaTambahanText" class="fw-bold">Rp 0</span>
                                                 </div>
                                             </div>
@@ -283,7 +286,7 @@
                                         <!-- Tab Modal -->
                                         <div class="tab-pane fade show active" id="modal-tab-pane" role="tabpanel">
                                             <!-- Bahan Baku -->
-                                            <div class="mb-4">
+                                            <div class="mb-4" id="bahanBakuSection">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="fw-semibold">Bahan Baku</div>
                                                     <!-- Tombol + Tambah Bahan -->
@@ -335,7 +338,7 @@
                                                 </div>
                                             </div>
                                             <!-- Parameter Modal -->
-                                            <div class="mb-4">
+                                            <div class="mb-4" id="parameterModalSection">
                                                 <div class="d-flex justify-content-between align-items-center mb-2">
                                                     <div class="fw-semibold">Parameter Modal</div>
                                                     <button type="button" class="btn btn-sm btn-outline-primary"
@@ -372,6 +375,42 @@
                                                             <tr>
                                                                 <td colspan="5" class="text-center text-muted">Pilih
                                                                     kategori parameter</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                            <!-- Produk Rakitan -->
+                                            <div class="mb-4" id="produkKomponenSection" style="display: none;">
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="fw-semibold">Produk Rakitan</div>
+                                                    <button type="button" class="btn btn-sm btn-outline-primary"
+                                                        id="btnTambahProdukKomponen">
+                                                        + Tambah Produk
+                                                    </button>
+                                                </div>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered align-middle mb-0"
+                                                        id="tabelProdukKomponen">
+                                                        <thead class="table-light">
+                                                            <tr>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Kode Produk</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Nama Produk</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Modal Produk</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Jumlah</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Total</th>
+                                                                <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Aksi</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td colspan="6" class="text-center text-muted">Belum ada produk komponen ditambahkan</td>
                                                             </tr>
                                                         </tbody>
                                                     </table>
@@ -767,4 +806,12 @@
     'tableId' => 'tabelCariMesinProdukTambah',
     'paginationId' => 'paginationMesinProdukTambah',
     'clearBtnId' => 'clearSearchMesinProdukTambah',
+])
+
+@include('backend.general-form.cari-produk', [
+    'modalId' => 'modalCariProdukRakitanTambah',
+    'inputId' => 'searchProdukRakitanTambah',
+    'tableId' => 'tabelCariProdukRakitanTambah',
+    'paginationId' => 'paginationProdukRakitanTambah',
+    'clearBtnId' => 'clearSearchProdukRakitanTambah',
 ])

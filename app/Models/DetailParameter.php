@@ -26,4 +26,9 @@ class DetailParameter extends Model
     {
         return $this->hasMany(SubDetailParameter::class, 'detail_parameter_id');
     }
+    
+    public function masterParameter(): BelongsTo
+    {
+        return $this->belongsTo(MasterParameter::class, 'master_parameter_id');
+    }
 }

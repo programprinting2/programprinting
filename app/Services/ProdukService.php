@@ -60,13 +60,28 @@ class ProdukService
                 $bahanBakuData = $data['bahan_baku'];
             }
 
-            unset($data['bahan_baku']);
+            $produkKomponenData = null;
+            if ($data['jenis_produk'] === 'rakitan' && isset($data['produk_komponen'])) {
+                $produkKomponenData = $data['produk_komponen'];
+                unset($data['produk_komponen']);
+            }
+
+            // Handle bahan baku untuk produk biasa
+            $bahanBakuData = null;
+            if ($data['jenis_produk'] !== 'rakitan' && isset($data['bahan_baku'])) {
+                $bahanBakuData = $data['bahan_baku'];
+                unset($data['bahan_baku']);
+            }
+
+            unset($data['produk_komponen'], $data['bahan_baku']);
             $produk = $this->produkRepository->create($data);
 
-            // Sync bahan baku ke relational table
-            if (isset($bahanBakuData) && is_array($bahanBakuData)) {
+            // Sync relationships berdasarkan jenis produk
+            if ($produk->jenis_produk === 'rakitan' && $produkKomponenData) {
+                $produk->syncProdukKomponen($produkKomponenData);
+            } elseif ($produk->jenis_produk !== 'rakitan' && $bahanBakuData) {
                 $produk->syncBahanBakus($bahanBakuData);
-            }
+            } 
             
             DB::commit();
 
@@ -75,7 +90,7 @@ class ProdukService
                 'kode_produk' => $produk->kode_produk
             ]);
 
-            return $produk->load('bahanBakus');
+            return $produk->load(['bahanBakus', 'produkKomponen']);
 
         } catch (\Exception $e) {
             DB::rollback();
@@ -146,14 +161,24 @@ class ProdukService
                 $data['dokumen_pendukung_json'] = array_merge($existingDokumens, $newDokumens);
             }
 
-            if (isset($data['bahan_baku']) && is_array($data['bahan_baku'])) {
+            $produkKomponenData = null;
+            if ($data['jenis_produk'] === 'rakitan' && isset($data['produk_komponen'])) {
+                $produkKomponenData = $data['produk_komponen'];
+                unset($data['produk_komponen']);
+            }
+
+            $bahanBakuData = null;
+            if ($data['jenis_produk'] !== 'rakitan' && isset($data['bahan_baku'])) {
                 $bahanBakuData = $data['bahan_baku'];
+                unset($data['bahan_baku']);
             }
             
-            unset($data['bahan_baku']); 
+            unset($data['produk_komponen'], $data['bahan_baku']);
             $produk = $this->produkRepository->update($id, $data);
 
-            if (isset($bahanBakuData) && is_array($bahanBakuData)) {
+            if ($produk->jenis_produk === 'rakitan' && $produkKomponenData) {
+                $produk->syncProdukKomponen($produkKomponenData);
+            } elseif ($produk->jenis_produk !== 'rakitan' && $bahanBakuData) {
                 $produk->syncBahanBakus($bahanBakuData);
             }
 
@@ -161,8 +186,8 @@ class ProdukService
 
             Log::info('Produk updated successfully', ['produk_id' => $id]);
 
-            return $produk->load('bahanBakus');
-
+            return $produk->load(['bahanBakus', 'produkKomponen']);
+            
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Failed to update Produk', [

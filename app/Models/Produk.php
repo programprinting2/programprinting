@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Produk extends Model
@@ -62,6 +63,17 @@ class Produk extends Model
             ->withTimestamps();
     }
 
+    public function produkKomponen(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Produk::class, 
+            'produk_rakitan', 
+            'produk_rakitan_id', 
+            'produk_komponen_id'
+        )->withPivot(['jumlah', 'harga_snapshot', 'harga_updated_at'])
+        ->withTimestamps();
+    }
+
     // Sync bahan baku dari array
     public function syncBahanBakus(array $bahanBakuData): void
     {
@@ -79,9 +91,44 @@ class Produk extends Model
         $this->updateTotalModal();
     }
 
+    public function syncProdukKomponen(array $produkKomponenData): void
+    {
+        $syncData = [];
+        
+        foreach ($produkKomponenData as $item) {
+            $produkKomponen = Produk::find($item['id']);
+            if ($produkKomponen) {
+                $syncData[$item['id']] = [
+                    'jumlah' => $item['jumlah'] ?? 1,
+                    'harga_snapshot' => $produkKomponen->total_modal_keseluruhan,
+                    'harga_updated_at' => now(),
+                ];
+            }
+        }
+        
+        $this->produkKomponen()->sync($syncData);
+        $this->updateTotalModal();
+    }
+
      // Calculate total modal
      public function calculateTotalModal(): float
      {
+        if ($this->jenis_produk === 'rakitan') {
+            $totalKomponen = $this->produkKomponen->sum(function ($produkKomponen) {
+                return $produkKomponen->pivot->harga_snapshot * $produkKomponen->pivot->jumlah;
+            });
+            
+            // Biaya tambahan tetap berlaku
+            $totalBiayaTambahan = 0;
+            if (!empty($this->biaya_tambahan_json) && is_array($this->biaya_tambahan_json)) {
+                foreach ($this->biaya_tambahan_json as $biaya) {
+                    $totalBiayaTambahan += $biaya['nilai'] ?? 0;
+                }
+            }
+            
+            return $totalKomponen + $totalBiayaTambahan;
+        }
+
         $totalBahan = $this->bahanBakus->sum(function ($bahanBaku) {
             return $bahanBaku->pivot->harga_snapshot * $bahanBaku->pivot->jumlah;
         });
@@ -246,5 +293,48 @@ class Produk extends Model
         }
         
         return $this->attributes['total_modal_keseluruhan'];
+    }
+
+    protected static function booted()
+    {
+        static::updated(function ($produk) {
+            if ($produk->wasChanged('total_modal_keseluruhan')) {
+                $oldPrice = $produk->getOriginal('total_modal_keseluruhan');
+                $newPrice = $produk->total_modal_keseluruhan;
+                
+                // Update harga_snapshot di pivot table produk_rakitan
+                $affectedRows = DB::table('produk_rakitan')
+                    ->where('produk_komponen_id', $produk->id)
+                    ->update([
+                        'harga_snapshot' => $newPrice,
+                        'harga_updated_at' => now(),
+                    ]);
+                
+                $affectedProdukRakitanIds = collect();
+                
+                if ($affectedRows > 0) {
+                    // Dapatkan semua produk rakitan yang terpengaruh
+                    $affectedProdukRakitanIds = DB::table('produk_rakitan')
+                        ->where('produk_komponen_id', $produk->id)
+                        ->pluck('produk_rakitan_id');
+                    
+                    // Update total modal untuk setiap produk rakitan
+                    foreach ($affectedProdukRakitanIds as $produkRakitanId) {
+                        $produkRakitan = Produk::find($produkRakitanId);
+                        if ($produkRakitan && $produkRakitan->jenis_produk === 'rakitan') {
+                            $produkRakitan->updateTotalModal();
+                        }
+                    }
+                }
+                
+                \Log::info("Cascade product price update", [
+                    'produk' => $produk->nama_produk,
+                    'old_price' => $oldPrice,
+                    'new_price' => $newPrice,
+                    'affected_junction_records' => $affectedRows,
+                    'affected_rakitan_products' => $affectedProdukRakitanIds->count(),
+                ]);
+            }
+        });
     }
 }

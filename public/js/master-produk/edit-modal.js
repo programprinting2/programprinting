@@ -19,7 +19,7 @@ $(function () {
         tbody.empty();
         if (!editBahanBakuList || editBahanBakuList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada bahan baku</td></tr>'
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada bahan baku</td></tr>',
             );
             hitungTotalModalBahanEdit();
             return;
@@ -29,14 +29,14 @@ $(function () {
                 <td>${
                     row.nama || ""
                 }<input type="hidden" name="bahan_baku_id[]" value="${
-                row.id || ""
-            }"></td>
+                    row.id || ""
+                }"></td>
                 <td>${row.satuan || ""}</td>
                 <td class="text-end">Rp ${(row.harga || 0).toLocaleString(
-                    "id-ID"
+                    "id-ID",
                 )}<input type="hidden" name="harga_bahan[]" value="${
-                row.harga || 0
-            }"></td>
+                    row.harga || 0
+                }"></td>
                 <td><input type="number" class="form-control form-control-sm jumlah_bahan_edit" name="jumlah_bahan[]" value="${
                     row.jumlah || 0
                 }" min="0" step="0.01" data-idx="${idx}"></td>
@@ -50,9 +50,148 @@ $(function () {
         hitungTotalModalBahanEdit();
     }
 
+    // === PRODUK KOMPONEN (EDIT) ===
+    let editProdukKomponenList = [];
+
+    function renderEditTabelProdukKomponen() {
+        const tbody = $("#editTabelProdukKomponen tbody");
+        tbody.empty();
+
+        if (!editProdukKomponenList || editProdukKomponenList.length === 0) {
+            tbody.append(
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada produk komponen</td></tr>',
+            );
+            hitungTotalModalKomponenEdit();
+            return;
+        }
+
+        editProdukKomponenList.forEach((row, idx) => {
+            tbody.append(`
+                <tr>
+                    <td>${row.kode_produk || ""}
+                    <input type="hidden" name="produk_komponen[${idx}][id]" value="${row.id}">
+                    <input type="hidden" name="produk_komponen[${idx}][harga]" value="${row.total_modal_keseluruhan || 0}">
+                    </td>
+                    <td>${row.nama_produk || ""}</td>
+                    <td>Rp ${(row.total_modal_keseluruhan || 0).toLocaleString("id-ID")}</td>
+                    <td><input type="number" class="form-control form-control-sm jumlah-komponen-edit" name="produk_komponen[${idx}][jumlah]" value="${row.jumlah || 1}" min="1" data-idx="${idx}" step="1"></td>
+                    <td class="text-success fw-semibold text-end">Rp ${(row.total || 0).toLocaleString("id-ID")}</td>
+                    <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-edit-komponen" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
+                </tr>
+            `);
+        });
+
+        feather.replace();
+        hitungTotalModalKomponenEdit();
+    }
+
+    function hitungTotalModalKomponenEdit() {
+        let total = 0;
+        if (editProdukKomponenList && editProdukKomponenList.length > 0) {
+            total = editProdukKomponenList.reduce((sum, item) => {
+                return sum + (item.total || 0);
+            }, 0);
+        }
+        $("#editTotalModalKomponen").text(
+            `Rp ${total.toLocaleString("id-ID")}`,
+        );
+        $("#editTotalKomponenText").text(`Rp ${total.toLocaleString("id-ID")}`);
+        updateTotalModalKeseluruhanEdit();
+    }
+
+    function toggleEditJenisProduk() {
+        const jenisProduk = $("#edit_jenis_produk").val();
+        const isRakitan = jenisProduk === "rakitan";
+
+        // Toggle visibility sections berdasarkan jenis produk
+        if (isRakitan) {
+            $("#editProdukKomponenSection").show();
+            $("#editBahanBakuSection").hide();
+            $("#editParameterModalSection").hide();
+
+            // Reset bahan baku list
+            editBahanBakuList = [];
+            renderEditTabelBahanBaku();
+        } else {
+            $("#editProdukKomponenSection").hide();
+            $("#editBahanBakuSection").show();
+            $("#editParameterModalSection").show();
+
+            // Reset komponen list
+            editProdukKomponenList.length = 0;
+            renderEditTabelProdukKomponen();
+        }
+
+        updateTotalModalKeseluruhanEdit();
+    }
+
+    $(document).on("change", "#edit_jenis_produk", function () {
+        toggleEditJenisProduk();
+    });
+
+    // Event handler untuk tombol tambah produk
+    $(document).on("click", "#editBtnTambahProdukKomponen", function () {
+        if ($("#modalCariProdukRakitanEdit").hasClass("show")) {
+            return;
+        }
+
+        const modalElement = document.getElementById(
+            "modalCariProdukRakitanEdit",
+        );
+        if (!modalElement) {
+            console.error("Modal element modalCariProdukRakitanEdit not found");
+            return;
+        }
+
+        try {
+            var modalProduk = new bootstrap.Modal(modalElement, {
+                backdrop: "static",
+                keyboard: false,
+                focus: true,
+            });
+            modalProduk.show();
+        } catch (error) {
+            console.error("Error creating modal:", error);
+            Swal.fire("Error", "Gagal membuka modal pencarian produk", "error");
+        }
+    });
+
+    $(document).on("input", ".jumlah-komponen-edit", function () {
+        const idx = $(this).data("idx");
+        const jumlah = parseInt($(this).val()) || 1;
+
+        if (editProdukKomponenList[idx]) {
+            editProdukKomponenList[idx].jumlah = jumlah;
+            editProdukKomponenList[idx].total =
+                jumlah *
+                (editProdukKomponenList[idx].total_modal_keseluruhan || 0);
+            renderEditTabelProdukKomponen();
+        }
+    });
+
+    $(document).on("click", ".btn-hapus-edit-komponen", function () {
+        const idx = $(this).data("idx");
+        Swal.fire({
+            title: 'Apakah Anda yakin?',
+            text: "Apakah Anda yakin ingin menghapus komponen ini?",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Ya, Hapus!',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                editProdukKomponenList.splice(idx, 1);
+                renderEditTabelProdukKomponen();
+            }
+        });
+    });
+
     // Handler tombol edit produk
     $(document).on("click", ".btn-edit-produk", function () {
         const id = $(this).data("id");
+        editProdukKomponenList = [];
         $.get("/backend/master-produk/" + id + "/edit", function (res) {
             if (res.success) {
                 const p = res.produk;
@@ -64,7 +203,7 @@ $(function () {
                     .trigger("change");
                 updateEditSubKategoriOptions(
                     p.kategori_utama_id,
-                    p.sub_kategori_id
+                    p.sub_kategori_id,
                 );
                 $("#edit_satuanBarang").val(p.satuan_id);
                 updateEditDetailSatuanOptions(p.satuan_id, p.sub_satuan_id);
@@ -79,34 +218,55 @@ $(function () {
                 //     JSON.stringify(p.bahan_baku_json || [])
                 // );
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
-                    ? p.bahan_bakus.map(bahanBaku => {
-                        return {
-                            id: bahanBaku.id,
-                            nama: bahanBaku.nama_bahan,
-                            satuan: p.sub_satuan?.nama_sub_detail_parameter || p.satuan?.nama_detail_parameter || '',
-                            harga: bahanBaku.pivot.harga_snapshot,  
-                            jumlah: bahanBaku.pivot.jumlah,         
-                            total: bahanBaku.pivot.harga_snapshot * bahanBaku.pivot.jumlah,
-                        };
-                    })
+                    ? p.bahan_bakus.map((bahanBaku) => {
+                          return {
+                              id: bahanBaku.id,
+                              nama: bahanBaku.nama_bahan,
+                              satuan:
+                                  p.sub_satuan?.nama_sub_detail_parameter ||
+                                  p.satuan?.nama_detail_parameter ||
+                                  "",
+                              harga: bahanBaku.pivot.harga_snapshot,
+                              jumlah: bahanBaku.pivot.jumlah,
+                              total:
+                                  bahanBaku.pivot.harga_snapshot *
+                                  bahanBaku.pivot.jumlah,
+                          };
+                      })
                     : [];
+                    if (!editProdukKomponenList || editProdukKomponenList.length === 0) {
+                        editProdukKomponenList = Array.isArray(p.produk_komponen)
+                            ? p.produk_komponen.map((komponen) => {
+                                return {
+                                    id: komponen.id,
+                                    kode_produk: komponen.kode_produk,
+                                    nama_produk: komponen.nama_produk,
+                                    total_modal_keseluruhan: komponen.total_modal_keseluruhan,
+                                    harga: komponen.total_modal_keseluruhan,
+                                    jumlah: komponen.pivot ? komponen.pivot.jumlah : 1,
+                                    total: (komponen.pivot ? komponen.pivot.jumlah : 1) * komponen.total_modal_keseluruhan,
+                                };
+                            })
+                            : [];
+                    }
+                renderEditTabelProdukKomponen();
                 $("#edit_harga_bertingkat_json").val(
-                    JSON.stringify(p.harga_bertingkat_json || [])
+                    JSON.stringify(p.harga_bertingkat_json || []),
                 );
                 $("#edit_harga_reseller_json").val(
-                    JSON.stringify(p.harga_reseller_json || [])
+                    JSON.stringify(p.harga_reseller_json || []),
                 );
                 $("#edit_foto_pendukung_json").val(
-                    JSON.stringify(p.foto_pendukung_json || [])
+                    JSON.stringify(p.foto_pendukung_json || []),
                 );
                 $("#edit_video_pendukung_json").val(
-                    JSON.stringify(p.video_pendukung_json || [])
+                    JSON.stringify(p.video_pendukung_json || []),
                 );
                 $("#edit_dokumen_pendukung_json").val(
-                    JSON.stringify(p.dokumen_pendukung_json || [])
+                    JSON.stringify(p.dokumen_pendukung_json || []),
                 );
                 $("#edit_alur_produksi_json").val(
-                    JSON.stringify(p.alur_produksi_json || [])
+                    JSON.stringify(p.alur_produksi_json || []),
                 );
                 window.parameterMesinListFromBackend =
                     p.parameter_modal_json || [];
@@ -129,6 +289,7 @@ $(function () {
                 renderVideosPreview();
                 renderDocumentsPreview();
                 renderEditTabelBahanBaku();
+                toggleEditJenisProduk();
                 hitungTotalModalBahanEdit();
                 editHargaBertingkatList = Array.isArray(p.harga_bertingkat_json)
                     ? p.harga_bertingkat_json
@@ -172,20 +333,20 @@ $(function () {
 
     // Fungsi untuk toggle field dimensi berdasarkan jenis satuan
     function toggleDimensiFieldsEdit(selectedSatuanId) {
-        const containerId = '#edit_dimensi_container';
-        const luasId = '#edit_dimensi_luas';
-        const panjangId = '#edit_dimensi_panjang';
-        
+        const containerId = "#edit_dimensi_container";
+        const luasId = "#edit_dimensi_luas";
+        const panjangId = "#edit_dimensi_panjang";
+
         // Dapatkan nama satuan dari opsi yang dipilih
-        const selectedOption = $('#edit_satuanBarang option:selected');
+        const selectedOption = $("#edit_satuanBarang option:selected");
         const satuanName = selectedOption.text().trim();
-        
-        if (satuanName === 'SATUAN LUAS') {
+
+        if (satuanName === "SATUAN LUAS") {
             // Tampilkan kedua field (lebar dan panjang)
             $(containerId).show();
             $(luasId).show();
             $(panjangId).show();
-        } else if (satuanName === 'SATUAN LEBAR') {
+        } else if (satuanName === "SATUAN LEBAR") {
             // Tampilkan hanya field lebar
             $(containerId).show();
             $(luasId).show();
@@ -199,15 +360,18 @@ $(function () {
     $("#editProdukModal").on("shown.bs.modal", function () {
         const selectedKategoriOnShow = $("#edit_kategori_utama").val();
         const currentSubKategoriOnShow = $(
-            "#edit_sub_kategori_id_produk"
+            "#edit_sub_kategori_id_produk",
         ).val();
         updateEditSubKategoriOptions(
             selectedKategoriOnShow,
-            currentSubKategoriOnShow
+            currentSubKategoriOnShow,
         );
         const selectedSatuanOnShow = $("#edit_satuanBarang").val();
         const currentSubSatuanOnShow = $("#edit_detail_satuan").val();
-        updateEditDetailSatuanOptions(selectedSatuanOnShow, currentSubSatuanOnShow);
+        updateEditDetailSatuanOptions(
+            selectedSatuanOnShow,
+            currentSubSatuanOnShow,
+        );
 
         if (selectedSatuanOnShow) {
             toggleDimensiFieldsEdit(selectedSatuanOnShow);
@@ -255,7 +419,7 @@ $(function () {
         });
         if (
             existingPhotos.filter(
-                (_, idx) => !deletedPhotoIndexes.includes(idx)
+                (_, idx) => !deletedPhotoIndexes.includes(idx),
             ).length === 0 &&
             selectedPhotos.length === 0
         ) {
@@ -298,7 +462,7 @@ $(function () {
         });
         if (
             existingVideos.filter(
-                (_, idx) => !deletedVideoIndexes.includes(idx)
+                (_, idx) => !deletedVideoIndexes.includes(idx),
             ).length === 0 &&
             selectedVideos.length === 0
         ) {
@@ -339,7 +503,7 @@ $(function () {
         });
         if (
             existingDocuments.filter(
-                (_, idx) => !deletedDocumentIndexes.includes(idx)
+                (_, idx) => !deletedDocumentIndexes.includes(idx),
             ).length === 0 &&
             selectedDocuments.length === 0
         ) {
@@ -359,19 +523,16 @@ $(function () {
     // Helper function untuk menutup modal cari mesin
     function closeEditModalCariMesin() {
         const modal = bootstrap.Modal.getInstance(
-            document.getElementById("modalCariMesinProdukEdit")
+            document.getElementById("modalCariMesinProdukEdit"),
         );
         if (modal) {
             modal.hide();
         }
     }
 
-    // Named function untuk handle mesinDipilih - mencegah duplicate listener
+    // Named function untuk handle mesinDipilih 
     function handleEditMesinDipilih(e) {
-        if (
-            !$("#editProdukModal").hasClass("show")
-        )
-            return;
+        if (!$("#editProdukModal").hasClass("show")) return;
         const data = e.detail;
         if (isEditModalForParameter) {
             // Handle untuk parameter mesin
@@ -379,7 +540,7 @@ $(function () {
                 Swal.fire(
                     "Info",
                     "Parameter dari mesin ini sudah ditambahkan.",
-                    "info"
+                    "info",
                 );
                 return;
             }
@@ -388,7 +549,7 @@ $(function () {
                 Swal.fire(
                     "Info",
                     "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.",
-                    "info"
+                    "info",
                 );
                 return;
             }
@@ -401,13 +562,13 @@ $(function () {
             }
             if (!Array.isArray(profil)) profil = [profil];
             profil = profil.filter(
-                (p) => p && typeof p === "object" && p.nama && p.total != null
+                (p) => p && typeof p === "object" && p.nama && p.total != null,
             );
             if (profil.length === 0) {
                 Swal.fire(
                     "Info",
                     "Mesin ini tidak memiliki parameter biaya yang dapat dipilih.",
-                    "info"
+                    "info",
                 );
                 return;
             }
@@ -439,7 +600,7 @@ $(function () {
                 Swal.fire(
                     "Info",
                     "Mesin ini sudah ditambahkan di alur produksi.",
-                    "info"
+                    "info",
                 );
                 return;
             }
@@ -465,11 +626,11 @@ $(function () {
             .map((savedItem) => {
                 // Cari mesin berdasarkan mesin_id
                 const mesin = window.masterMesinList?.find(
-                    (m) => m.id == savedItem.mesin_id
+                    (m) => m.id == savedItem.mesin_id,
                 );
                 if (!mesin) {
                     console.warn(
-                        `Mesin dengan ID ${savedItem.mesin_id} tidak ditemukan`
+                        `Mesin dengan ID ${savedItem.mesin_id} tidak ditemukan`,
                     );
                     return null;
                 }
@@ -477,7 +638,7 @@ $(function () {
                 let profil = mesin.biaya_perhitungan_profil;
                 if (!profil) {
                     console.warn(
-                        `Mesin ${mesin.nama_mesin} tidak memiliki parameter biaya`
+                        `Mesin ${mesin.nama_mesin} tidak memiliki parameter biaya`,
                     );
                     return null;
                 }
@@ -492,15 +653,15 @@ $(function () {
                 // Filter parameter yang valid
                 profil = profil.filter(
                     (p) =>
-                        p && typeof p === "object" && p.nama && p.total != null
+                        p && typeof p === "object" && p.nama && p.total != null,
                 );
                 // Cari index parameter yang sesuai dengan nama_parameter yang disimpan
                 const selectedIndex = profil.findIndex(
-                    (p) => p.nama === savedItem.nama_parameter
+                    (p) => p.nama === savedItem.nama_parameter,
                 );
                 if (selectedIndex === -1) {
                     console.warn(
-                        `Parameter "${savedItem.nama_parameter}" tidak ditemukan di mesin ${mesin.nama_mesin}`
+                        `Parameter "${savedItem.nama_parameter}" tidak ditemukan di mesin ${mesin.nama_mesin}`,
                     );
                     return null;
                 }
@@ -517,6 +678,9 @@ $(function () {
 
     // LOAD DATA DARI BACKEND SAAT MODAL EDIT DIBUKA
     $("#editProdukModal").on("show.bs.modal", function () {
+        // if (!editProdukKomponenList || editProdukKomponenList.length === 0) {
+        //     editProdukKomponenList = [];
+        // }
         // Berasal dari backend: window.parameterMesinListFromBackend
         const produkData = window.parameterMesinListFromBackend;
         if (Array.isArray(produkData) && produkData.length > 0) {
@@ -530,12 +694,19 @@ $(function () {
         // Pastikan event listener terdaftar saat modal dibuka
         window.removeEventListener("mesinDipilih", handleEditMesinDipilih);
         window.addEventListener("mesinDipilih", handleEditMesinDipilih);
+
+        window.removeEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih);
+        window.addEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih);
     });
 
     // Cleanup saat modal edit ditutup
     $("#editProdukModal").on("hidden.bs.modal", function () {
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleEditMesinDipilih);
+        window.removeEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih); 
+        
+        editProdukKomponenList = [];
+        renderEditTabelProdukKomponen();
     });
 
     // Tombol + Tambah Parameter (edit)
@@ -555,7 +726,7 @@ $(function () {
                     backdrop: "static",
                     keyboard: false,
                     focus: true,
-                }
+                },
             );
             modalMesin.show();
             setTimeout(function () {
@@ -571,7 +742,7 @@ $(function () {
         tbody.empty();
         if (editParameterMesinList.length === 0) {
             tbody.append(
-                '<tr><td colspan="6" class="text-center text-muted">Pilih parameter</td></tr>'
+                '<tr><td colspan="6" class="text-center text-muted">Pilih parameter</td></tr>',
             );
             return;
         }
@@ -633,7 +804,7 @@ $(function () {
     $(document).on("click", ".btn-hapus-edit-param", function () {
         const mesinId = $(this).closest("tr").data("mesin-id");
         editParameterMesinList = editParameterMesinList.filter(
-            (row) => row.mesin_id != mesinId
+            (row) => row.mesin_id != mesinId,
         );
         renderEditParameterMesinTable();
         updateTotalModalKeseluruhanEdit();
@@ -642,43 +813,89 @@ $(function () {
 
     // Fungsi update total modal keseluruhan (EDIT)
     function updateTotalModalKeseluruhanEdit() {
-        // Total Bahan Baku
-        let totalBahan = editBahanBakuList.reduce(
-            (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
-            0
-        );
-        // Total Parameter Mesin
+        const jenisProduk = $("#edit_jenis_produk").val();
+
+        let totalBahan = 0;
+        let totalKomponen = 0;
         let totalParam = 0;
-        if (typeof editParameterMesinList !== "undefined") {
-            editParameterMesinList.forEach((row) => {
-                const param = row.opsi[row.selected];
-                totalParam += (param.total || 0) * (row.jumlah || 1);
-            });
-        }
         let totalBiayaTambahan = 0;
-        $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').each(function() {
-            const nilai = parseFloat($(this).find('.edit-biaya-tambahan-nilai').val()) || 0;
-            totalBiayaTambahan += nilai;
-        });
-        // Update DOM
+
+        if (jenisProduk === "rakitan") {
+            // Hitung total komponen untuk produk rakitan
+            totalKomponen = editProdukKomponenList.reduce((sum, item) => {
+                return (
+                    sum +
+                    (item.total_modal_keseluruhan || 0) * (item.jumlah || 1)
+                );
+            }, 0);
+
+            // Hitung total parameter mesin (masih bisa ada untuk rakitan)
+            if (typeof editParameterMesinList !== "undefined") {
+                editParameterMesinList.forEach((row) => {
+                    const param =
+                        row.opsi && row.opsi[row.selected]
+                            ? row.opsi[row.selected]
+                            : { total: 0 };
+                    totalParam += (param.total || 0) * (row.jumlah || 1);
+                });
+            }
+        } else {
+            // Hitung total bahan baku untuk produk biasa
+            totalBahan = editBahanBakuList.reduce((sum, row) => {
+                return sum + (row.harga || 0) * (row.jumlah || 1);
+            }, 0);
+
+            // Hitung total parameter mesin
+            if (typeof editParameterMesinList !== "undefined") {
+                editParameterMesinList.forEach((row) => {
+                    const param =
+                        row.opsi && row.opsi[row.selected]
+                            ? row.opsi[row.selected]
+                            : { total: 0 };
+                    totalParam += (param.total || 0) * (row.jumlah || 1);
+                });
+            }
+        }
+
+        // Hitung total biaya tambahan
+        $("#editTabelBiayaTambahan .edit-biaya-tambahan-item").each(
+            function () {
+                const nilai =
+                    parseFloat(
+                        $(this).find(".edit-biaya-tambahan-nilai").val(),
+                    ) || 0;
+                totalBiayaTambahan += nilai;
+            },
+        );
+
+        // Hitung total keseluruhan
+        const totalKeseluruhan =
+            totalBahan + totalKomponen + totalParam + totalBiayaTambahan;
+
         $("#editTotalBahanBakuText").text(
-            "Rp " + totalBahan.toLocaleString("id-ID")
+            `Rp ${totalBahan.toLocaleString("id-ID")}`,
+        );
+        $("#editTotalKomponenText").text(
+            `Rp ${totalKomponen.toLocaleString("id-ID")}`,
         );
         $("#editTotalParameterText").text(
-            "Rp " + totalParam.toLocaleString("id-ID")
+            `Rp ${totalParam.toLocaleString("id-ID")}`,
         );
         $("#editTotalBiayaTambahanText").text(
-            "Rp " + totalBiayaTambahan.toLocaleString("id-ID")
+            `Rp ${totalBiayaTambahan.toLocaleString("id-ID")}`,
         );
         $("#editTotalModalKeseluruhan").text(
-            "Rp " + (totalBahan + totalParam + totalBiayaTambahan ).toLocaleString("id-ID")
+            `Rp ${totalKeseluruhan.toLocaleString("id-ID")}`,
         );
-        // Update total modal bahan
+
+        // Update total modal bahan (untuk backward compatibility)
         $("#editTotalModalBahan").text(
-            "Rp " + totalBahan.toLocaleString("id-ID")
+            `Rp ${totalBahan.toLocaleString("id-ID")}`,
         );
+
         // Update jumlah item
         updateTotalItemModalEdit();
+
         // Update profit di tabel harga bertingkat & reseller secara realtime
         renderEditHargaBertingkat();
         renderEditHargaReseller();
@@ -691,7 +908,9 @@ $(function () {
             typeof editParameterMesinList !== "undefined"
                 ? editParameterMesinList.length
                 : 0;
-        const totalBiayaTambahan = $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').length;
+        const totalBiayaTambahan = $(
+            "#editTabelBiayaTambahan .edit-biaya-tambahan-item",
+        ).length;
         const totalItem = totalBahanBaku + totalParameter + totalBiayaTambahan;
         $("#editTotalItemModal").text(totalItem + " item");
     }
@@ -727,7 +946,7 @@ $(function () {
                 .attr("name", `edit_alur_produksi[${i}][nama_mesin]`);
             $(this)
                 .find(
-                    'input[name^="edit_alur_produksi"][name$="[estimasi_waktu]"]'
+                    'input[name^="edit_alur_produksi"][name$="[estimasi_waktu]"]',
                 )
                 .attr("name", `edit_alur_produksi[${i}][estimasi_waktu]`);
             $(this)
@@ -776,7 +995,7 @@ $(function () {
         tbody.empty();
         if (editHargaBertingkatList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga bertingkat</td></tr>'
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga bertingkat</td></tr>',
             );
             return;
         }
@@ -784,10 +1003,22 @@ $(function () {
             const profitRp =
                 row.harga -
                 (parseInt(
-                    $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")
+                    $("#editTotalModalKeseluruhan")
+                        .text()
+                        .replace(/[^\d]/g, ""),
                 ) || 0);
             const profitPersen =
-                row.harga > 0 ? ((profitRp / parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, ""))) * 100).toFixed(1) : 0;
+                row.harga > 0
+                    ? (
+                          (profitRp /
+                              parseInt(
+                                  $("#editTotalModalKeseluruhan")
+                                      .text()
+                                      .replace(/[^\d]/g, ""),
+                              )) *
+                          100
+                      ).toFixed(1)
+                    : 0;
             tbody.append(` <tr>
                 <td><input type="number" class="form-control form-control-sm min-qty" value="${
                     row.min_qty
@@ -799,7 +1030,7 @@ $(function () {
                     row.harga ? formatRupiahInput(row.harga.toString()) : ""
                 }" min="0" data-idx="${idx}"></td>
                 <td class="text-success fw-semibold">Rp ${profitRp.toLocaleString(
-                    "id-ID"
+                    "id-ID",
                 )}</td>
                 <td class="text-success fw-semibold">${profitPersen}%</td>
                 <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-edit-harga-bertingkat" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
@@ -813,7 +1044,7 @@ $(function () {
         tbody.empty();
         if (editHargaResellerList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga reseller</td></tr>'
+                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada harga reseller</td></tr>',
             );
             return;
         }
@@ -821,10 +1052,22 @@ $(function () {
             const profitRp =
                 row.harga -
                 (parseInt(
-                    $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")
+                    $("#editTotalModalKeseluruhan")
+                        .text()
+                        .replace(/[^\d]/g, ""),
                 ) || 0);
             const profitPersen =
-                row.harga > 0 ? ((profitRp / parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, ""))) * 100).toFixed(1) : 0;
+                row.harga > 0
+                    ? (
+                          (profitRp /
+                              parseInt(
+                                  $("#editTotalModalKeseluruhan")
+                                      .text()
+                                      .replace(/[^\d]/g, ""),
+                              )) *
+                          100
+                      ).toFixed(1)
+                    : 0;
             tbody.append(` <tr>
                 <td><input type="number" class="form-control form-control-sm min-qty" value="${
                     row.min_qty
@@ -836,7 +1079,7 @@ $(function () {
                     row.harga ? formatRupiahInput(row.harga.toString()) : ""
                 }" min="0" data-idx="${idx}"></td>
                 <td class="text-success fw-semibold">Rp ${profitRp.toLocaleString(
-                    "id-ID"
+                    "id-ID",
                 )}</td>
                 <td class="text-success fw-semibold">${profitPersen}%</td>
                 <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-edit-harga-reseller" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
@@ -884,18 +1127,19 @@ $(function () {
         const field = $(this).hasClass("min-qty")
             ? "min_qty"
             : $(this).hasClass("max-qty")
-            ? "max_qty"
-            : "harga";
+              ? "max_qty"
+              : "harga";
         if (field === "harga") {
             editHargaBertingkatList[idx][field] =
                 parseInt($(this).val().replace(/\./g, "")) || 0;
         } else {
-            editHargaBertingkatList[idx][field] = parseFloat($(this).val()) || 0;
+            editHargaBertingkatList[idx][field] =
+                parseFloat($(this).val()) || 0;
         }
         updateEditProfitCalculation(
             "#editTabelHargaBertingkat",
             idx,
-            editHargaBertingkatList[idx]
+            editHargaBertingkatList[idx],
         );
     });
 
@@ -908,8 +1152,8 @@ $(function () {
         const field = $(this).hasClass("min-qty")
             ? "min_qty"
             : $(this).hasClass("max-qty")
-            ? "max_qty"
-            : "harga";
+              ? "max_qty"
+              : "harga";
         if (field === "harga") {
             editHargaResellerList[idx][field] =
                 parseInt($(this).val().replace(/\./g, "")) || 0;
@@ -919,7 +1163,7 @@ $(function () {
         updateEditProfitCalculation(
             "#editTabelHargaReseller",
             idx,
-            editHargaResellerList[idx]
+            editHargaResellerList[idx],
         );
     });
 
@@ -929,22 +1173,26 @@ $(function () {
 
     function updateEditProfitCalculation(tableSelector, idx, rowData) {
         const totalModalKeseluruhan =
-            parseInt($("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, "")) ||
-            0;
+            parseInt(
+                $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, ""),
+            ) || 0;
         const profitRp = rowData.harga - totalModalKeseluruhan;
-        const profitPersen = totalModalKeseluruhan > 0 ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1) : 0;
+        const profitPersen =
+            totalModalKeseluruhan > 0
+                ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1)
+                : 0;
         const row = $(`${tableSelector} tbody tr`).eq(idx);
         row.find("td")
             .eq(3)
             .html(
                 `<span class="text-success fw-semibold">Rp ${profitRp.toLocaleString(
-                    "id-ID"
-                )}</span>`
+                    "id-ID",
+                )}</span>`,
             );
         row.find("td")
             .eq(4)
             .html(
-                `<span class="text-success fw-semibold">${profitPersen}%</span>`
+                `<span class="text-success fw-semibold">${profitPersen}%</span>`,
             );
     }
 
@@ -954,7 +1202,7 @@ $(function () {
         if (!mesinId) return false;
         return editAlurProduksiList.some(
             (item, idx) =>
-                idx !== excludeIndex && item.id == mesinId && mesinId !== ""
+                idx !== excludeIndex && item.id == mesinId && mesinId !== "",
         );
     }
 
@@ -991,7 +1239,7 @@ $(function () {
         container.empty();
         if (!editAlurProduksiList || editAlurProduksiList.length === 0) {
             container.append(
-                '<div class="text-muted text-center">Belum ada mesin ditambahkan</div>'
+                '<div class="text-muted text-center">Belum ada mesin ditambahkan</div>',
             );
             return;
         }
@@ -1023,7 +1271,7 @@ $(function () {
                     backdrop: "static",
                     keyboard: false,
                     focus: true,
-                }
+                },
             );
             modalMesin.show();
             // Tambahkan class stack untuk modal
@@ -1060,7 +1308,7 @@ $(function () {
                 mesinDiv.find('input[name*="[nama_mesin]"]').val() || "";
             editAlurProduksiList[idx].estimasi_waktu =
                 parseInt(
-                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val()
+                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val(),
                 ) || 0;
             editAlurProduksiList[idx].catatan =
                 mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
@@ -1069,7 +1317,7 @@ $(function () {
                 mesinDiv.find("span").text() || "";
             editAlurProduksiList[idx].id =
                 mesinDiv.find(".mesin-id-input").val() || "";
-        }
+        },
     );
 
     // === MODAL CARI BAHAN BAKU (EDIT) ===
@@ -1082,7 +1330,7 @@ $(function () {
                     backdrop: "static",
                     keyboard: false,
                     focus: true,
-                }
+                },
             );
             modalBahan.show();
             setTimeout(function () {
@@ -1108,20 +1356,23 @@ $(function () {
             total: data.harga || 0,
         });
         renderEditTabelBahanBaku();
-        updateTotalModalKeseluruhanEdit(); 
+        updateTotalModalKeseluruhanEdit();
     });
 
     $(document).on("click", ".btn-hapus-edit-bahan-baku", function () {
         const idx = $(this).data("idx");
         editBahanBakuList.splice(idx, 1);
         renderEditTabelBahanBaku();
-        updateTotalModalKeseluruhanEdit(); 
+        updateTotalModalKeseluruhanEdit();
         updateTotalItemModalEdit();
     });
 
     $(document).on("input", ".jumlah_bahan_edit", function () {
         const idx = $(this).data("idx");
-        const harga = parseInt($(this).closest("tr").find('input[name="harga_bahan[]"]').val()) || 0;
+        const harga =
+            parseInt(
+                $(this).closest("tr").find('input[name="harga_bahan[]"]').val(),
+            ) || 0;
         const jumlah = parseFloat($(this).val()) || 0;
         editBahanBakuList[idx].harga = harga;
         editBahanBakuList[idx].jumlah = jumlah;
@@ -1133,8 +1384,8 @@ $(function () {
             .eq(4)
             .html(
                 `<span class="text-success fw-semibold text-end">Rp ${total.toLocaleString(
-                    "id-ID"
-                )}</span>`
+                    "id-ID",
+                )}</span>`,
             );
         // hitungTotalModalBahanEdit();
         updateTotalModalKeseluruhanEdit();
@@ -1145,17 +1396,40 @@ $(function () {
     });
 
     function hitungTotalModalBahanEdit() {
+        const jenisProduk = $("#edit_jenis_produk").val();
+
+        if (jenisProduk === "rakitan") {
+            $("#editTotalModalBahan").text("Rp 0");
+            return;
+        }
+
         const total = editBahanBakuList.reduce((sum, item) => {
-            return sum + (item.harga * item.jumlah);
+            return sum + item.harga * item.jumlah;
         }, 0);
-        
+
         $("#editTotalModalBahan").text("Rp " + total.toLocaleString("id-ID"));
-        $("#editTotalModalKeseluruhan").text("Rp " + total.toLocaleString("id-ID"));
+        $("#editTotalModalKeseluruhan").text(
+            "Rp " + total.toLocaleString("id-ID"),
+        );
         updateTotalItemModalEdit();
-        
+
         // Re-render profit calculations
         renderEditHargaBertingkat();
         renderEditHargaReseller();
+    }
+
+    function hitungTotalModalKomponenEdit() {
+        let total = 0;
+        if (editProdukKomponenList && editProdukKomponenList.length > 0) {
+            total = editProdukKomponenList.reduce((sum, item) => {
+                return sum + (item.total || 0);
+            }, 0);
+        }
+        $("#editTotalModalKomponen").text(
+            `Rp ${total.toLocaleString("id-ID")}`,
+        );
+        $("#editTotalKomponenText").text(`Rp ${total.toLocaleString("id-ID")}`);
+        updateTotalModalKeseluruhanEdit();
     }
 
     // Sinkronisasi data alur produksi (edit) secara real-time
@@ -1171,7 +1445,7 @@ $(function () {
                 mesinDiv.find('input[name*="[nama_mesin]"]').val() || "";
             editAlurProduksiList[idx].estimasi_waktu =
                 parseInt(
-                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val()
+                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val(),
                 ) || 0;
             editAlurProduksiList[idx].catatan =
                 mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
@@ -1180,13 +1454,13 @@ $(function () {
                 mesinDiv.find("span").text() || "";
             editAlurProduksiList[idx].id =
                 mesinDiv.find(".mesin-id-input").val() || "";
-        }
+        },
     );
 
     // === Spesifikasi Teknis Dinamis (Edit Produk) ===
-    $('#edit_tambah_spesifikasi_produk').on('click', function() {
-        tambahEditSpesifikasiBaris('#edit_spesifikasi_produk_container');
-        $('#edit_no_spesifikasi_message').hide();
+    $("#edit_tambah_spesifikasi_produk").on("click", function () {
+        tambahEditSpesifikasiBaris("#edit_spesifikasi_produk_container");
+        $("#edit_no_spesifikasi_message").hide();
     });
 
     // Fungsi untuk menambah baris spesifikasi edit
@@ -1217,46 +1491,50 @@ $(function () {
     }
 
     // Event handler untuk tombol hapus spesifikasi edit
-    $(document).on('click', '.edit-remove-spesifikasi', function() {
-        $(this).closest('.edit-spesifikasi-item').remove();
-        
+    $(document).on("click", ".edit-remove-spesifikasi", function () {
+        $(this).closest(".edit-spesifikasi-item").remove();
+
         // Cek apakah masih ada spesifikasi yang tersisa
-        var container = $('#edit_spesifikasi_produk_container');
-        if (container.find('.edit-spesifikasi-item').length === 0) {
-            $('#edit_no_spesifikasi_message').show();
+        var container = $("#edit_spesifikasi_produk_container");
+        if (container.find(".edit-spesifikasi-item").length === 0) {
+            $("#edit_no_spesifikasi_message").show();
         }
     });
 
     // Fungsi untuk memuat spesifikasi teknis dari data produk yang akan diedit
     function loadEditSpesifikasiTeknis(spesifikasiJson = []) {
-        const spesifikasiData = Array.isArray(spesifikasiJson) ? spesifikasiJson : [];
-        
+        const spesifikasiData = Array.isArray(spesifikasiJson)
+            ? spesifikasiJson
+            : [];
+
         // Render existing spesifikasi dari data yang dimuat
-        const container = $('#edit_spesifikasi_produk_container');
+        const container = $("#edit_spesifikasi_produk_container");
         container.empty();
-        
+
         if (spesifikasiData.length === 0) {
-            container.append('<div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>');
+            container.append(
+                '<div class="text-muted text-center py-3" id="edit_no_spesifikasi_message">Belum ada spesifikasi teknis. Klik tombol "Tambah Spesifikasi" untuk menambahkan.</div>',
+            );
             return;
         }
-        
+
         spesifikasiData.forEach((item) => {
             var existingSpesifikasi = `
                 <div class="row mb-2 edit-spesifikasi-item align-items-center">
                     <div class="col-md-4 mb-1">
                         <input type="text" class="form-control form-control-sm" 
                             name="edit_spesifikasi_nama[]" placeholder="Nama Spesifikasi" 
-                            value="${item.nama || ''}">
+                            value="${item.nama || ""}">
                     </div>
                     <div class="col-md-4 mb-1">
                         <input type="text" class="form-control form-control-sm" 
                             name="edit_spesifikasi_nilai[]" placeholder="Nilai" 
-                            value="${item.nilai || ''}">
+                            value="${item.nilai || ""}">
                     </div>
                     <div class="col-md-3 mb-1">
                         <input type="text" class="form-control form-control-sm" 
                             name="edit_spesifikasi_satuan[]" placeholder="Satuan" 
-                            value="${item.satuan || ''}">
+                            value="${item.satuan || ""}">
                     </div>
                     <div class="col-md-1 mb-1 text-end">
                         <button type="button" class="btn btn-outline-danger btn-sm edit-remove-spesifikasi">
@@ -1267,7 +1545,7 @@ $(function () {
             `;
             container.append(existingSpesifikasi);
         });
-        
+
         feather.replace();
     }
 
@@ -1275,19 +1553,24 @@ $(function () {
     let editBiayaTambahanList = [];
 
     // Handler tombol Tambah Biaya (Edit)
-    $(document).on('click', '#editBtnTambahBiayaTambahan', function() {
-        // Cek apakah sudah ada biaya dengan nama yang sama 
+    $(document).on("click", "#editBtnTambahBiayaTambahan", function () {
+        // Cek apakah sudah ada biaya dengan nama yang sama
         const existingBiayaNama = new Set();
-        $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').each(function() {
-            const nama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim();
-            if (nama) {
-                existingBiayaNama.add(nama.toLowerCase());
-            }
-        });
+        $("#editTabelBiayaTambahan .edit-biaya-tambahan-item").each(
+            function () {
+                const nama = $(this)
+                    .find(".edit-biaya-tambahan-nama")
+                    .val()
+                    ?.trim();
+                if (nama) {
+                    existingBiayaNama.add(nama.toLowerCase());
+                }
+            },
+        );
 
         // Hapus row pesan jika ada
         $('#editTabelBiayaTambahan tbody tr td[colspan="3"]').parent().remove();
-        
+
         const biayaHtml = `
             <tr class="edit-biaya-tambahan-item">
                 <td>
@@ -1308,54 +1591,66 @@ $(function () {
                 </td>
             </tr>
         `;
-        
-        $('#editTabelBiayaTambahan tbody').append(biayaHtml);
+
+        $("#editTabelBiayaTambahan tbody").append(biayaHtml);
         feather.replace();
-        
-        // Tambahkan validasi untuk mencegah duplikasi nama biaya 
-        $('#editTabelBiayaTambahan .edit-biaya-tambahan-nama').last().on('input', function() {
-            const input = $(this);
-            const nama = input.val()?.trim().toLowerCase();
-            
-            // Cek duplikasi dengan nama biaya yang sudah ada 
-            let isDuplicate = false;
-            $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').not(input.closest('.edit-biaya-tambahan-item')).each(function() {
-                const existingNama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim().toLowerCase();
-                if (existingNama === nama && nama !== '') {
-                    isDuplicate = true;
-                    return false;
+
+        // Tambahkan validasi untuk mencegah duplikasi nama biaya
+        $("#editTabelBiayaTambahan .edit-biaya-tambahan-nama")
+            .last()
+            .on("input", function () {
+                const input = $(this);
+                const nama = input.val()?.trim().toLowerCase();
+
+                // Cek duplikasi dengan nama biaya yang sudah ada
+                let isDuplicate = false;
+                $("#editTabelBiayaTambahan .edit-biaya-tambahan-item")
+                    .not(input.closest(".edit-biaya-tambahan-item"))
+                    .each(function () {
+                        const existingNama = $(this)
+                            .find(".edit-biaya-tambahan-nama")
+                            .val()
+                            ?.trim()
+                            .toLowerCase();
+                        if (existingNama === nama && nama !== "") {
+                            isDuplicate = true;
+                            return false;
+                        }
+                    });
+
+                if (isDuplicate) {
+                    input.addClass("is-invalid");
+                    if (!input.next(".invalid-feedback").length) {
+                        input.after(
+                            '<div class="invalid-feedback">Nama biaya sudah ada.</div>',
+                        );
+                    }
+                } else {
+                    input.removeClass("is-invalid");
+                    input.next(".invalid-feedback").remove();
                 }
             });
-            
-            if (isDuplicate) {
-                input.addClass('is-invalid');
-                if (!input.next('.invalid-feedback').length) {
-                    input.after('<div class="invalid-feedback">Nama biaya sudah ada.</div>');
-                }
-            } else {
-                input.removeClass('is-invalid');
-                input.next('.invalid-feedback').remove();
-            }
-        });
-        
+
         updateTotalItemModalEdit();
         updateTotalModalKeseluruhanEdit();
     });
 
     // Handler tombol hapus biaya tambahan (Edit)
-    $(document).on('click', '.edit-remove-biaya-tambahan', function() {
-        $(this).closest('.edit-biaya-tambahan-item').remove();
-        
-        if ($('#editTabelBiayaTambahan .edit-biaya-tambahan-item').length === 0) {
-            $('#editTabelBiayaTambahan tbody').append(
-                '<tr><td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td></tr>'
+    $(document).on("click", ".edit-remove-biaya-tambahan", function () {
+        $(this).closest(".edit-biaya-tambahan-item").remove();
+
+        if (
+            $("#editTabelBiayaTambahan .edit-biaya-tambahan-item").length === 0
+        ) {
+            $("#editTabelBiayaTambahan tbody").append(
+                '<tr><td colspan="3" class="text-center text-muted">Belum ada biaya tambahan ditambahkan</td></tr>',
             );
         }
         updateTotalModalKeseluruhanEdit();
         updateTotalItemModalEdit();
     });
 
-    $(document).on('input', '.edit-biaya-tambahan-nilai', function() {
+    $(document).on("input", ".edit-biaya-tambahan-nilai", function () {
         updateTotalModalKeseluruhanEdit();
     });
 
@@ -1366,34 +1661,38 @@ $(function () {
             const submitBtn = $(this).find('button[type="submit"]');
             const originalText = submitBtn.html();
             submitBtn.html(
-                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan...'
+                '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Menyimpan...',
             );
             submitBtn.prop("disabled", true);
             // $("#edit_bahan_baku_json").val(JSON.stringify(editBahanBakuList));
             $("#edit_alur_produksi_json").val(
-                JSON.stringify(editAlurProduksiList)
+                JSON.stringify(editAlurProduksiList),
             );
             $("#edit_harga_bertingkat_json").val(
-                JSON.stringify(editHargaBertingkatList)
+                JSON.stringify(editHargaBertingkatList),
             );
             $("#edit_harga_reseller_json").val(
-                JSON.stringify(editHargaResellerList)
+                JSON.stringify(editHargaResellerList),
             );
             const bahanBakuData = [];
-            $("#editTabelBahanBaku tbody tr").each(function() {
-                const bahanBakuId = $(this).find('input[name="bahan_baku_id[]"]').val();
-                const jumlah = $(this).find('input[name="jumlah_bahan[]"]').val();
+            $("#editTabelBahanBaku tbody tr").each(function () {
+                const bahanBakuId = $(this)
+                    .find('input[name="bahan_baku_id[]"]')
+                    .val();
+                const jumlah = $(this)
+                    .find('input[name="jumlah_bahan[]"]')
+                    .val();
                 const harga = $(this).find('input[name="harga_bahan[]"]').val();
-                
+
                 if (bahanBakuId && jumlah && harga) {
                     bahanBakuData.push({
                         id: parseInt(bahanBakuId),
                         jumlah: parseFloat(jumlah),
-                        harga: parseInt(harga)
+                        harga: parseInt(harga),
                     });
                 }
             });
-        
+
             const paramArr = editParameterMesinList.map((row) => {
                 const param = row.opsi[row.selected];
                 return {
@@ -1406,36 +1705,56 @@ $(function () {
             });
             $("#edit_parameter_modal_json").val(JSON.stringify(paramArr));
             const spesifikasiArr = [];
-            $('#edit_spesifikasi_produk_container .edit-spesifikasi-item').each(function() {
-                const nama = $(this).find('input[name="edit_spesifikasi_nama[]"]').val();
-                const nilai = $(this).find('input[name="edit_spesifikasi_nilai[]"]').val();
-                const satuan = $(this).find('input[name="edit_spesifikasi_satuan[]"]').val();
-                if (nama && nilai) {
-                    spesifikasiArr.push({nama, nilai, satuan});
-                }
-            });
-            $("#edit_spesifikasi_teknis_json").val(JSON.stringify(spesifikasiArr));
-            
+            $("#edit_spesifikasi_produk_container .edit-spesifikasi-item").each(
+                function () {
+                    const nama = $(this)
+                        .find('input[name="edit_spesifikasi_nama[]"]')
+                        .val();
+                    const nilai = $(this)
+                        .find('input[name="edit_spesifikasi_nilai[]"]')
+                        .val();
+                    const satuan = $(this)
+                        .find('input[name="edit_spesifikasi_satuan[]"]')
+                        .val();
+                    if (nama && nilai) {
+                        spesifikasiArr.push({ nama, nilai, satuan });
+                    }
+                },
+            );
+            $("#edit_spesifikasi_teknis_json").val(
+                JSON.stringify(spesifikasiArr),
+            );
+
             const editBiayaTambahanArr = [];
-            $('#editTabelBiayaTambahan .edit-biaya-tambahan-item').each(function() {
-                const nama = $(this).find('.edit-biaya-tambahan-nama').val()?.trim();
-                const nilai = parseFloat($(this).find('.edit-biaya-tambahan-nilai').val()) || 0;
-                if (nama && nilai > 0) {
-                    editBiayaTambahanArr.push({nama, nilai});
-                }
-            });
-            $("#edit_biaya_tambahan_json").val(JSON.stringify(editBiayaTambahanArr));
+            $("#editTabelBiayaTambahan .edit-biaya-tambahan-item").each(
+                function () {
+                    const nama = $(this)
+                        .find(".edit-biaya-tambahan-nama")
+                        .val()
+                        ?.trim();
+                    const nilai =
+                        parseFloat(
+                            $(this).find(".edit-biaya-tambahan-nilai").val(),
+                        ) || 0;
+                    if (nama && nilai > 0) {
+                        editBiayaTambahanArr.push({ nama, nilai });
+                    }
+                },
+            );
+            $("#edit_biaya_tambahan_json").val(
+                JSON.stringify(editBiayaTambahanArr),
+            );
             // Filter dokumen lama yang tidak dihapus
             const dokumenDipertahankan = existingDocuments.filter(
-                (_, idx) => !deletedDocumentIndexes.includes(idx)
+                (_, idx) => !deletedDocumentIndexes.includes(idx),
             );
             $("#edit_dokumen_pendukung_json").val(
-                JSON.stringify(dokumenDipertahankan)
+                JSON.stringify(dokumenDipertahankan),
             );
 
             var form = $(this)[0];
             var formData = new FormData(form);
-            formData.append('_method', 'PUT');
+            formData.append("_method", "PUT");
             bahanBakuData.forEach((item, index) => {
                 formData.append(`bahan_baku[${index}][id]`, item.id);
                 formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
@@ -1462,11 +1781,16 @@ $(function () {
                 success: function (res) {
                     if (res.success) {
                         if (res.produk && res.produk.total_modal_keseluruhan) {
-                            const totalModal = res.produk.total_modal_keseluruhan;
-                            $("#editTotalModalKeseluruhan").text("Rp " + totalModal.toLocaleString("id-ID"));
-                            $("#editTotalModalBahan").text("Rp " + totalModal.toLocaleString("id-ID"));
+                            const totalModal =
+                                res.produk.total_modal_keseluruhan;
+                            $("#editTotalModalKeseluruhan").text(
+                                "Rp " + totalModal.toLocaleString("id-ID"),
+                            );
+                            $("#editTotalModalBahan").text(
+                                "Rp " + totalModal.toLocaleString("id-ID"),
+                            );
                             updateTotalItemModalEdit();
-                            
+
                             // Re-render profit calculations
                             renderEditHargaBertingkat();
                             renderEditHargaReseller();
@@ -1604,9 +1928,9 @@ $(function () {
 
     // Fungsi untuk render biaya tambahan di edit modal
     function renderEditBiayaTambahan() {
-        const tbody = $('#editTabelBiayaTambahan tbody');
+        const tbody = $("#editTabelBiayaTambahan tbody");
         tbody.empty();
-        
+
         if (!editBiayaTambahanList || editBiayaTambahanList.length === 0) {
             tbody.append(`
                 <tr>
@@ -1615,13 +1939,13 @@ $(function () {
             `);
             return;
         }
-        
+
         editBiayaTambahanList.forEach((biaya, idx) => {
             const biayaHtml = `
                 <tr class="edit-biaya-tambahan-item">
                     <td>
                         <input type="text" class="form-control form-control-sm edit-biaya-tambahan-nama" 
-                            placeholder="Contoh: Biaya Pengiriman, Biaya Admin" value="${biaya.nama || ''}">
+                            placeholder="Contoh: Biaya Pengiriman, Biaya Admin" value="${biaya.nama || ""}">
                     </td>
                     <td>
                         <div class="input-group input-group-sm">
@@ -1639,10 +1963,49 @@ $(function () {
             `;
             tbody.append(biayaHtml);
         });
-        
+
         feather.replace();
 
         updateTotalModalKeseluruhanEdit();
         updateTotalItemModalEdit();
+    }
+
+    function handleEditProdukKomponenDipilih(e) {
+        if (!$("#editProdukModal").hasClass("show")) {
+            return;
+        }
+
+
+        const data = e.detail;
+        if (data.sourceModal !== 'edit') {
+            return;
+        }
+
+         if (!editProdukKomponenList) {
+            editProdukKomponenList = [];
+        }
+    
+        if (!Array.isArray(editProdukKomponenList)) {
+            editProdukKomponenList = [];
+        }
+
+
+        if (editProdukKomponenList.some((item) => item.id === data.id)) {
+            // Swal.fire("Info", "Produk komponen sudah ditambahkan.", "info");
+            return;
+        }
+
+        editProdukKomponenList.push({
+            id: parseInt(data.id) || 0,
+            kode_produk: data.kode_produk,
+            nama_produk: data.nama_produk,
+            total_modal_keseluruhan: parseFloat(data.total_modal_keseluruhan) || 0,
+            harga: parseFloat(data.total_modal_keseluruhan) || 0,
+            jumlah: 1,
+            total: parseFloat(data.total_modal_keseluruhan) || 0,
+        });
+
+        renderEditTabelProdukKomponen();
+        updateTotalModalKeseluruhanEdit();
     }
 });

@@ -147,6 +147,7 @@ Route::group(['prefix' => 'backend'], function () {
     Route::get('/cari-pelanggan', [CariController::class, 'cariPelanggan'])->name('backend.cari-pelanggan');
     Route::get('/cari-karyawan', [CariController::class, 'cariKaryawan'])->name('backend.cari-karyawan');
     Route::get('/cari-parameter', [CariController::class, 'cariParameter'])->name('backend.cari-parameter');
+    Route::get('/cari-produk', [CariController::class, 'cariProdukKomponen'])->name('backend.cari-produk');
 
     // Master Gudang Resource Routes
     Route::resource('master-gudang', GudangController::class)->names([
