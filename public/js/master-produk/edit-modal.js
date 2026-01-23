@@ -73,8 +73,8 @@ $(function () {
                     <input type="hidden" name="produk_komponen[${idx}][harga]" value="${row.total_modal_keseluruhan || 0}">
                     </td>
                     <td>${row.nama_produk || ""}</td>
-                    <td>Rp ${(row.total_modal_keseluruhan || 0).toLocaleString("id-ID")}</td>
-                    <td><input type="number" class="form-control form-control-sm jumlah-komponen-edit" name="produk_komponen[${idx}][jumlah]" value="${row.jumlah || 1}" min="1" data-idx="${idx}" step="1"></td>
+                    <td>Rp ${(parseFloat(row.total_modal_keseluruhan) || 0).toLocaleString("id-ID")}</td>
+                    <td><input type="number" class="form-control form-control-sm jumlah-komponen-edit" name="produk_komponen[${idx}][jumlah]" value="${row.jumlah || 1}" data-idx="${idx}" step="0.01"></td>
                     <td class="text-success fw-semibold text-end">Rp ${(row.total || 0).toLocaleString("id-ID")}</td>
                     <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-edit-komponen" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
                 </tr>
@@ -158,14 +158,20 @@ $(function () {
 
     $(document).on("input", ".jumlah-komponen-edit", function () {
         const idx = $(this).data("idx");
-        const jumlah = parseInt($(this).val()) || 1;
-
+        const jumlah = parseFloat($(this).val()) || 1;
+    
         if (editProdukKomponenList[idx]) {
             editProdukKomponenList[idx].jumlah = jumlah;
             editProdukKomponenList[idx].total =
-                jumlah *
-                (editProdukKomponenList[idx].total_modal_keseluruhan || 0);
-            renderEditTabelProdukKomponen();
+                jumlah * (editProdukKomponenList[idx].total_modal_keseluruhan || 0);
+            
+            $(this)
+                .closest("tr")
+                .find("td")
+                .eq(4)
+                .html(`<span class="text-success fw-semibold text-end">Rp ${editProdukKomponenList[idx].total.toLocaleString("id-ID")}</span>`);
+            
+            updateTotalModalKeseluruhanEdit();
         }
     });
 

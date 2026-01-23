@@ -559,7 +559,7 @@ $(function () {
                     </td>
                     <td>${row.nama_produk || ""}</td>
                     <td>Rp ${(row.total_modal_keseluruhan || 0).toLocaleString("id-ID")}</td>
-                    <td><input type="number" class="form-control form-control-sm jumlah-komponen" name="produk_komponen[${idx}][jumlah]" value="${row.jumlah || 1}" min="1" data-idx="${idx}" step="1"></td>
+                    <td><input type="number" class="form-control form-control-sm jumlah-komponen" name="produk_komponen[${idx}][jumlah]" value="${row.jumlah || 1}" data-idx="${idx}" step="0.01"></td>
                     <td class="text-success fw-semibold text-end">Rp ${(row.total || 0).toLocaleString("id-ID")}</td>
                     <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-komponen" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
                 </tr>
@@ -612,7 +612,7 @@ $(function () {
         const idx = $(this).data("idx");
         const harga =
             parseFloat(produkKomponenList[idx].total_modal_keseluruhan) || 0;
-        const jumlah = parseInt($(this).val()) || 1;
+        const jumlah = parseFloat($(this).val()) || 1;
 
         produkKomponenList[idx].harga = harga;
         produkKomponenList[idx].jumlah = jumlah;

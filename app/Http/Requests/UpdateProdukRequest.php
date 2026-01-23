@@ -40,12 +40,12 @@ class UpdateProdukRequest extends FormRequest
         if ($this->input('jenis_produk') === 'rakitan') {
             $rules['produk_komponen'] = 'required|array|min:1';
             $rules['produk_komponen.*.id'] = 'required|integer|exists:produk,id';
-            $rules['produk_komponen.*.jumlah'] = 'required|integer|min:1';
+            $rules['produk_komponen.*.jumlah'] = 'required|numeric|min:0';
             $rules['produk_komponen.*.harga'] = 'required|numeric|min:0';
         } else {
             // $rules['bahan_baku'] = 'required|array|min:1';
             $rules['bahan_baku.*.id'] = 'required|integer|exists:bahan_baku,id';
-            $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0.01';
+            $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0';
             $rules['bahan_baku.*.harga'] = 'required|integer|min:0';
         }
         return $rules;

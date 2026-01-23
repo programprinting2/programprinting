@@ -41,12 +41,12 @@ class StoreProdukRequest extends FormRequest
         if ($this->input('jenis_produk') === 'rakitan') {
             $rules['produk_komponen'] = 'required|array|min:1';
             $rules['produk_komponen.*.id'] = 'required|integer|exists:produk,id';
-            $rules['produk_komponen.*.jumlah'] = 'required|integer|min:1';
+            $rules['produk_komponen.*.jumlah'] = 'required|numeric|min:0';
             $rules['produk_komponen.*.harga'] = 'required|numeric|min:0';
         } else {
             // $rules['bahan_baku'] = 'required|array|min:1';
             $rules['bahan_baku.*.id'] = 'required|integer|exists:bahan_baku,id';
-            $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0.01';
+            $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0';
             $rules['bahan_baku.*.harga'] = 'required|integer|min:0';
         }
         return $rules;
@@ -73,7 +73,7 @@ class StoreProdukRequest extends FormRequest
             'produk_komponen.*.id.required' => 'ID produk komponen harus diisi',
             'produk_komponen.*.id.exists' => 'Produk komponen tidak ditemukan',
             'produk_komponen.*.jumlah.required' => 'Jumlah produk komponen harus diisi',
-            'produk_komponen.*.jumlah.integer' => 'Jumlah produk komponen harus berupa angka bulat',
+            'produk_komponen.*.jumlah.numeric' => 'Jumlah produk komponen harus berupa angka',
             'produk_komponen.*.jumlah.min' => 'Jumlah produk komponen minimal 1',
         ];
     }
