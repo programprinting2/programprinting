@@ -308,7 +308,7 @@
       const id = td.getAttribute('data-satuan-id');
       const found = satuanList.find(s => String(s.id) === String(id));
       if (found) {
-        td.childNodes[0].nodeValue = found.nama_detail_parameter + ' ';
+        td.childNodes[0].nodeValue = found.nama_sub_detail_parameter + ' ';
       }
     });
   });

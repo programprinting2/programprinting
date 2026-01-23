@@ -69,7 +69,7 @@
   function getNamaSatuanById(id) {
     if (!window.satuanList) return id;
     const found = window.satuanList.find(s => s.id == id || s.id == String(id) || String(s.id) == String(id));
-    return found ? found.nama_detail_parameter : id;
+    return found ? found.nama_sub_detail_parameter : id;
   }
 
   // --- Preview Total Item ---
@@ -262,7 +262,7 @@
       if (window.satuanList) {
         const found = window.satuanList.find(s => String(s.id) === String(satuanId));
         if (found) {
-          satuanLabel = found.nama_detail_parameter;
+          satuanLabel = found.nama_sub_detail_parameter;
         }
       }
       
@@ -303,7 +303,7 @@
       if (window.satuanList) {
         const found = window.satuanList.find(s => String(s.id) === String(satuanId));
         if (found) {
-          satuanLabel = found.nama_detail_parameter;
+          satuanLabel = found.nama_sub_detail_parameter;
         }
       }
       

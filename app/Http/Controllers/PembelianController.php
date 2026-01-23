@@ -8,7 +8,7 @@ use App\Http\Requests\StorePembelianRequest;
 use App\Http\Requests\UpdatePembelianRequest;
 use App\Models\Pemasok;
 use App\Models\BahanBaku;
-use App\Models\DetailParameter;
+use App\Models\SubDetailParameter;
 use App\Services\PembelianService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
@@ -63,7 +63,7 @@ class PembelianController extends Controller
     {
         $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
         $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
-        $satuanList = DetailParameter::orderBy('nama_detail_parameter')->get(['id', 'nama_detail_parameter'])->toArray();
+        $satuanList = SubDetailParameter::orderBy('nama_sub_detail_parameter')->get(['id', 'nama_sub_detail_parameter'])->toArray();
         
         return view('pages.pembelian.create', compact('pemasok', 'bahan_baku', 'satuanList'));
     }
@@ -89,8 +89,8 @@ class PembelianController extends Controller
     {
         try {
             $pembelian = $this->pembelianService->getPembelianByKode($kode_pembelian);
-            $satuanList = DetailParameter::orderBy('nama_detail_parameter')
-                ->get(['id', 'nama_detail_parameter'])
+            $satuanList = SubDetailParameter::orderBy('nama_sub_detail_parameter')
+                ->get(['id', 'nama_sub_detail_parameter'])
                 ->toArray();
             return view('pages.pembelian.show', compact('pembelian', 'satuanList'));
         } catch (PembelianNotFoundException $e) {
@@ -112,8 +112,8 @@ class PembelianController extends Controller
             $pembelian = $this->pembelianService->getPembelianByKode($kode_pembelian);
             $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
             $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
-            $satuanList = DetailParameter::orderBy('nama_detail_parameter')
-                ->get(['id', 'nama_detail_parameter'])
+            $satuanList = SubDetailParameter::orderBy('nama_sub_detail_parameter')
+                ->get(['id', 'nama_sub_detail_parameter'])
                 ->toArray();
             
             return view('pages.pembelian.edit', compact('pembelian', 'pemasok', 'bahan_baku', 'satuanList'));

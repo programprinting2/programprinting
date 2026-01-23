@@ -89,7 +89,7 @@
             // Cari nama satuan
             if(isset($satuanList)) {
                 foreach($satuanList as $s) {
-                    if($s['id'] == $satuanId) { $namaSatuan = $s['nama_detail_parameter']; break; }
+                    if($s['id'] == $satuanId) { $namaSatuan = $s['nama_sub_detail_parameter']; break; }
                 }
             }
             // Konversi qty jika satuan bukan satuan utama

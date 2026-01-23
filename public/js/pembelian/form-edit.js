@@ -289,7 +289,7 @@
       if (window.satuanList) {
         const found = window.satuanList.find(s => String(s.id) === String(satuanId));
         if (found) {
-          satuanLabel = found.nama_detail_parameter;
+          satuanLabel = found.nama_sub_detail_parameter;
         }
       }
       
@@ -330,7 +330,7 @@
       if (window.satuanList) {
         const found = window.satuanList.find(s => String(s.id) === String(satuanId));
         if (found) {
-          satuanLabel = found.nama_detail_parameter;
+          satuanLabel = found.nama_sub_detail_parameter;
         }
       }
       
@@ -512,6 +512,15 @@
   // --- Validasi sebelum submit form ---
   document.getElementById('editForm').addEventListener('submit', function(e) {
     e.preventDefault();
+
+    const formData = new FormData(this);
+    console.log('=== FORM SUBMIT DEBUG ===');
+    for (let [key, value] of formData.entries()) {
+      if (key.includes('[jumlah]')) {
+        console.log(`Field: ${key}, Value: ${value}`);
+      }
+    }
+    console.log('=== END FORM SUBMIT DEBUG ===');
     
     // Validasi pemasok
     const pemasokId = document.getElementById('pemasokIdInput').value;
@@ -688,7 +697,7 @@
         if (satuanFound) {
           const satuanCell = row.querySelector('.item-satuan');
           if (satuanCell) {
-            satuanCell.innerHTML = `${satuanFound.nama_detail_parameter}<input type="hidden" name="items[][satuan]" value="${satuanId}">`;
+            satuanCell.innerHTML = `${satuanFound.nama_sub_detail_parameter}<input type="hidden" name="items[][satuan]" value="${satuanId}">`;
           }
         }
       }
@@ -700,7 +709,7 @@
   function getNamaSatuanById(id) {
     if (!window.satuanList) return id;
     const found = window.satuanList.find(s => s.id == id || s.id == String(id) || String(s.id) == String(id));
-    return found ? found.nama_detail_parameter : id;
+    return found ? found.nama_sub_detail_parameter : id;
   }
 
   function updateKonversiSatuanInfo(data) {

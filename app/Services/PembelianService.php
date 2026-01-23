@@ -105,6 +105,39 @@ class PembelianService
                 'kode_pembelian' => $pembelian->kode_pembelian
             ]);
 
+            // Update stock bahan baku
+            foreach ($items as $item) {
+                $bahanBaku = $bahanBakus->get($item['bahanbaku_id']);
+                if ($bahanBaku) {
+                    $currentStock = $bahanBaku->stok_saat_ini;
+                    $newStock = $currentStock + $item['jumlah'];
+                    
+                    // Validasi stock minimum
+                    if ($newStock < $bahanBaku->stok_minimum) {
+                        Log::warning('Stock akan di bawah minimum setelah pembelian', [
+                            'bahan_baku_id' => $bahanBaku->id,
+                            'nama_bahan' => $bahanBaku->nama_bahan,
+                            'current_stock' => $currentStock,
+                            'added_quantity' => $item['jumlah'],
+                            'new_stock' => $newStock,
+                            'minimum_stock' => $bahanBaku->stok_minimum
+                        ]);
+                    }
+                    
+                    // Update stock menggunakan sebanyak jumlah
+                    $bahanBaku->increment('stok_saat_ini', $item['jumlah']);
+                    
+                    Log::info('Stock bahan baku ditambah setelah pembelian', [
+                        'bahan_baku_id' => $bahanBaku->id,
+                        'nama_bahan' => $bahanBaku->nama_bahan,
+                        'previous_stock' => $currentStock,
+                        'added_quantity' => $item['jumlah'],
+                        'new_stock' => $newStock,
+                        'pembelian_kode' => $kodePembelian
+                    ]);
+                }
+            }
+
             return $pembelian;
 
         } catch (\Exception $e) {
@@ -191,12 +224,69 @@ class PembelianService
                 'total' => $total,
             ]);
 
+            $existingItems = $pembelian->items->load('bahanBaku');
+
             // Delete old items and create new ones
             $this->pembelianItemRepository->deleteByPembelian($pembelian->id);
             foreach ($items as $item) {
                 $this->pembelianItemRepository->createForPembelian($pembelian->id, $item);
             }
 
+            // Update stock bahan baku
+            foreach ($items as $item) {
+                $bahanBaku = $bahanBakus->get($item['bahanbaku_id']);
+                if ($bahanBaku) {
+                    $oldItem = $existingItems->where('bahanbaku_id', $item['bahanbaku_id'])->first();
+                    
+                    $currentStock = $bahanBaku->stok_saat_ini;
+                    $newQuantity = $item['jumlah']; 
+                    
+                    if ($oldItem) {
+                        $oldQuantity = $oldItem->jumlah; 
+                        $stockChange = $newQuantity - $oldQuantity;
+                        
+                        if ($stockChange > 0) {
+                            $bahanBaku->increment('stok_saat_ini', $stockChange);
+                            $operation = 'ditambah';
+                        } elseif ($stockChange < 0) {
+                            $bahanBaku->decrement('stok_saat_ini', abs($stockChange));
+                            $operation = 'dikurangi';
+                        } else {
+                            $operation = 'tidak berubah';
+                        }
+                        
+                        $finalStock = $bahanBaku->stok_saat_ini;
+                        
+                    } else {
+                        $bahanBaku->increment('stok_saat_ini', $newQuantity);
+                        $finalStock = $bahanBaku->stok_saat_ini;
+                        $operation = 'ditambah (item baru)';
+                        $stockChange = $newQuantity;
+                        $oldQuantity = 0;
+                    }
+                    
+                    // Validasi stock minimum
+                    if ($finalStock < $bahanBaku->stok_minimum) {
+                        Log::warning('Stock di bawah minimum setelah update pembelian', [
+                            'bahan_baku_id' => $bahanBaku->id,
+                            'nama_bahan' => $bahanBaku->nama_bahan,
+                            'final_stock' => $finalStock,
+                            'minimum_stock' => $bahanBaku->stok_minimum
+                        ]);
+                    }
+                    
+                    Log::info('Stock bahan baku diupdate setelah update pembelian', [
+                        'bahan_baku_id' => $bahanBaku->id,
+                        'nama_bahan' => $bahanBaku->nama_bahan,
+                        'old_quantity' => $oldQuantity,
+                        'new_quantity' => $newQuantity,
+                        'stock_change' => $stockChange,
+                        'operation' => $operation,
+                        'final_stock' => $finalStock,
+                        'pembelian_kode' => $kodePembelian
+                    ]);
+                }
+            }
             DB::commit();
 
             Log::info('Pembelian updated successfully', ['kode_pembelian' => $kodePembelian]);
@@ -223,6 +313,27 @@ class PembelianService
 
         try {
             DB::beginTransaction();
+
+            // Kurangi stock bahan baku
+            foreach ($pembelian->items as $item) {
+                $bahanBaku = $item->bahanBaku;
+                if ($bahanBaku) {
+                    $currentStock = $bahanBaku->stok_saat_ini;
+                    $newStock = $currentStock - $item->jumlah;
+                    
+                    // Update stock menggunakan decrement
+                    $bahanBaku->decrement('stok_saat_ini', $item->jumlah);
+                    
+                    Log::info('Stock bahan baku dikurangi setelah delete pembelian', [
+                        'bahan_baku_id' => $bahanBaku->id,
+                        'nama_bahan' => $bahanBaku->nama_bahan,
+                        'reduced_quantity' => $item->jumlah,
+                        'previous_stock' => $currentStock,
+                        'remaining_stock' => $newStock,
+                        'pembelian_kode' => $kodePembelian
+                    ]);
+                }
+            }
 
             $this->pembelianItemRepository->deleteByPembelian($pembelian->id);
             $result = $this->pembelianRepository->delete($pembelian->id);
