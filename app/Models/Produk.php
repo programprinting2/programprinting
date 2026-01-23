@@ -24,6 +24,7 @@ class Produk extends Model
         'panjang',
         'status_aktif',
         'jenis_produk',
+        'keterangan',
         'harga_bertingkat_json',
         'harga_reseller_json',
         'foto_pendukung_json',

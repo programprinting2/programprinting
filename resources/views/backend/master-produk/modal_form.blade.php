@@ -149,7 +149,7 @@
                                         <input type="hidden" name="biaya_tambahan_json" id="biaya_tambahan_json" value="">
                                     </div>
                                     <div class="row mb-3">
-                                        <div class="col-md-4">
+                                        <div class="col-md-6">
                                             <div class="form-check form-switch">
                                                 <input type="hidden" name="status_aktif" value="0">
                                                 <input class="form-check-input" type="checkbox" id="status_aktif"
@@ -159,7 +159,11 @@
                                                         aktif</small></div>
                                             </div>
                                         </div>
-
+                                        <div class="col-md-6">
+                                            <label for="keterangan" class="form-label">Keterangan</label>
+                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" 
+                                                placeholder="Tambahkan keterangan atau catatan untuk produk ini"></textarea>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

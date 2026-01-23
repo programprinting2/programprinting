@@ -27,6 +27,7 @@ class StoreProdukRequest extends FormRequest
             // 'bahan_baku.*.id' => 'required|integer|exists:bahan_baku,id',
             // 'bahan_baku.*.jumlah' => 'required|numeric|min:0.01',
             // 'bahan_baku.*.harga' => 'required|integer|min:0',
+            'keterangan' => 'nullable|string|max:1000',
             'harga_bertingkat_json' => 'nullable|json',
             'harga_reseller_json' => 'nullable|json',
             'foto_pendukung_new.*' => 'nullable|file|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:5048',

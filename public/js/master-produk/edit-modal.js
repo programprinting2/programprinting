@@ -220,6 +220,7 @@ $(function () {
                 }, 100);
                 $("#edit_status_aktif").prop("checked", !!p.status_aktif);
                 $("#edit_jenis_produk").val(p.jenis_produk);
+                $('#edit_keterangan').val(p.keterangan || '');
                 // $("#edit_bahan_baku_json").val(
                 //     JSON.stringify(p.bahan_baku_json || [])
                 // );
