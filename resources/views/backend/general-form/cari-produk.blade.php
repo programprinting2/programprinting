@@ -130,7 +130,7 @@
                                       ${produk.jenis_produk === 'produk' ? 'Produk' : 'Jasa'}
                                   </span>
                               </td>
-                              <td class="text-end">Rp ${produk.total_modal_keseluruhan ? produk.total_modal_keseluruhan.toLocaleString('id-ID') : '0'}</td>
+                              <td class="text-end">Rp ${produk.total_modal_keseluruhan ? parseFloat(produk.total_modal_keseluruhan).toLocaleString('id-ID') : '0'}</td>
                           </tr>
                       `;
                   });

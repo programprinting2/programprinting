@@ -5,7 +5,7 @@
   $paginationId = $paginationId ?? 'paginationCariPemasok';
   $clearBtnId = $clearBtnId ?? 'clearSearchPemasok';
 @endphp
-<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-bs-focus="false">
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border border-primary">
       <div class="modal-header">
