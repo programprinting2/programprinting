@@ -37,6 +37,14 @@ class ProdukRepository implements ProdukRepositoryInterface
             $query->where('status_aktif', $filters['status']);
         }
 
+        if (isset($filters['kategori']) && !empty($filters['kategori'])) {
+            $query->where('kategori_utama_id', $filters['kategori']);
+        }
+        
+        if (isset($filters['subkategori']) && !empty($filters['subkategori'])) {
+            $query->where('sub_kategori_id', $filters['subkategori']);
+        }
+
         return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 

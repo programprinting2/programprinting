@@ -30,13 +30,17 @@ class MasterProdukController extends Controller
             $filters = [
                 'search' => $request->input('search'),
                 'status' => $request->input('status'),
+                'kategori' => $request->input('kategori'),        
+                'subkategori' => $request->input('subkategori'),    
             ];
 
             $produk = $this->produkService->getPaginatedProduk(10, $filters);
 
             // Ambil data kategori, subkategori, satuan
             $kategoriProdukList = \App\Services\ParameterService::getParameterDetails('KATEGORI PRODUK');
+            $kategoriIds = $kategoriProdukList->pluck('id');
             $subKategoriList = SubDetailParameter::with('detailParameter')
+                ->whereIn('detail_parameter_id', $kategoriIds)
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();

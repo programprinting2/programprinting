@@ -33,7 +33,7 @@
                     <!-- Search and Filter Form -->
                     <form id="searchForm" class="mb-4">
                         <div class="row g-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="input-group">
                                     <span class="input-group-text bg-light">
                                         <i data-feather="search" class="icon-sm"></i>
@@ -41,14 +41,34 @@
                                     <input type="text" class="form-control" name="search" placeholder="Cari berdasarkan kode, nama produk..." value="{{ request('search') }}">
                                 </div>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
                                 <select class="form-select" name="status" onchange="this.form.submit()">
                                     <option value="">Semua Status</option>
                                     <option value="1" {{ request('status') == '1' ? 'selected' : '' }}>Aktif</option>
                                     <option value="0" {{ request('status') == '0' ? 'selected' : '' }}>Tidak Aktif</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-2">
+                                <select class="form-select" name="kategori" onchange="this.form.submit()">
+                                    <option value="">Semua Kategori</option>
+                                    @foreach($kategoriProdukList as $kategori)
+                                        <option value="{{ $kategori->id }}" {{ request('kategori') == $kategori->id ? 'selected' : '' }}>
+                                            {{ $kategori->nama_detail_parameter }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select class="form-select" name="subkategori" onchange="this.form.submit()">
+                                    <option value="">Semua Subkategori</option>
+                                    @foreach($subKategoriList as $subkategori)
+                                        <option value="{{ $subkategori->id }}" {{ request('subkategori') == $subkategori->id ? 'selected' : '' }}>
+                                            {{ $subkategori->nama_sub_detail_parameter }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
                                 <a href="{{ route('backend.master-produk.index') }}" class="btn btn-outline-secondary w-100">
                                     <i data-feather="refresh-cw" class="icon-sm me-1"></i> Reset
                                 </a>
@@ -71,9 +91,9 @@
                                     <th>Nama Produk</th>
                                     <th>Kategori</th>
                                     <th>Sub Kategori</th>
-                                    <th>Satuan</th>
+                                    <!-- <th>Satuan</th>
                                     <th>Lebar (cm)</th>
-                                    <th>Panjang (cm)</th>
+                                    <th>Panjang (cm)</th> -->
                                     <th>Status</th>
                                     <th>Aksi</th>
                                 </tr>
@@ -85,9 +105,9 @@
                                         <td>{{ $p->nama_produk }}</td>
                                         <td>{{ $p->kategoriUtama->nama_detail_parameter ?? '-' }}</td>
                                         <td>{{ $p->subKategori->nama_sub_detail_parameter ?? '-' }}</td>
-                                        <td>{{ $p->subSatuan->nama_sub_detail_parameter ?? '-' }}</td>
+                                        <!-- <td>{{ $p->subSatuan->nama_sub_detail_parameter ?? '-' }}</td>
                                         <td>{{ $p->lebar }}</td>
-                                        <td>{{ $p->panjang }}</td>
+                                        <td>{{ $p->panjang }}</td> -->
                                         <td>
                                             <span class="badge {{ $p->status_aktif ? 'bg-success' : 'bg-danger' }}">
                                                 {{ $p->status_aktif ? 'Aktif' : 'Tidak Aktif' }}
