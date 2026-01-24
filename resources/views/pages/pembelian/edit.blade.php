@@ -93,6 +93,9 @@
               
               <div class="d-flex align-items-center gap-3">
                 <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
+                <button type="button" class="btn btn-outline-secondary" id="btnResetItem">
+                  <i class="fa fa-times"></i> Reset
+                </button>
                 <div id="previewContainer" class="text-center">
                     <label class="form-label small mb-1">Warna</label>
                     <div id="warnaPreview" class="warna-preview-box mx-auto"></div>

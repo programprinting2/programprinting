@@ -726,6 +726,34 @@
     reindexItemInputs();
   }
 
+  // --- Reset/Cancel Item ---
+  document.getElementById('btnResetItem').addEventListener('click', function() {
+    // Reset semua input field
+    document.getElementById('namaBahanBakuInput').value = '';
+    document.getElementById('bahanbakuIdInput').value = '';
+    document.getElementById('kodeBahanBakuInput').value = '';
+    document.getElementById('jumlahInput').value = 1;
+    document.getElementById('hargaInput').value = '0';
+    document.getElementById('diskonInput').value = 0;
+    document.getElementById('previewTotalItem').value = 'Rp 0';
+    
+    // Reset dropdown satuan
+    var satuanInput = document.getElementById('satuanInput');
+    satuanInput.innerHTML = '';
+    satuanInput.disabled = true;
+    
+    // Hide info konversi satuan
+    document.getElementById('konversiSatuanInfo').style.display = 'none';
+    document.getElementById('konversiSatuanInfo').innerHTML = '';
+    
+    // Reset warna preview color
+    const warnaPreview = document.getElementById('warnaPreview');
+    if (warnaPreview) {
+        warnaPreview.style.backgroundColor = '#ffffff';
+    }
+
+  });
+
   // Helper: mapping id satuan ke nama
   function getNamaSatuanById(id) {
     if (!window.satuanList) return id;

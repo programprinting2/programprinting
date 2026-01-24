@@ -93,6 +93,9 @@
                   <button type="button" class="btn btn-outline-primary" id="btnTambahItem">
                       <i class="fa fa-plus"></i> Tambah Item
                   </button>
+                  <button type="button" class="btn btn-outline-secondary" id="btnResetItem">
+                      <i class="fa fa-times"></i> Reset
+                  </button>
 
                   <div id="previewContainer" class="text-center">
                       <label class="form-label small mb-1 d-block">Warna</label>
@@ -247,7 +250,6 @@
   </form>
 
   <style>
-    /* Style untuk input field yang sedang difokuskan */
     .form-control:focus {
       border-color: #80bdff;
       box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
