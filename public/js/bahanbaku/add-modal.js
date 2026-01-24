@@ -1,5 +1,24 @@
 $(document).ready(function() {
   feather.replace();
+   $('#warna_id').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const hexCode = selectedOption.data('hex');
+        updateWarnaPreviewModal(hexCode, 'warnaPreviewModal');
+    });
+    
+    // Fungsi untuk update preview warna di modal
+    function updateWarnaPreviewModal(hexCode, previewId) {
+        const preview = document.getElementById(previewId);
+        if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+            preview.style.backgroundColor = hexCode;
+            preview.style.display = 'block';
+            preview.title = `Warna: ${hexCode}`;
+        } else {
+            preview.style.display = 'none';
+            preview.style.backgroundColor = '';
+            preview.title = 'Tidak ada preview warna';
+        }
+    }
 
   let subSatuanList = window.subSatuanList || [];
 

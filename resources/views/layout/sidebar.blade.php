@@ -74,6 +74,14 @@
         </a>
       </li>
 
+      <!-- Hutang -->
+      <li class="nav-item {{ active_class(['hutang/*', 'hutang']) }}">
+        <a class="nav-link" href="{{ url('/hutang') }}" role="button">
+          <i class="link-icon" data-feather="credit-card"></i>
+          <span class="link-title">Hutang</span>
+        </a>
+      </li>
+
       <!-- SPK -->
       <li class="nav-item {{ active_class(['spk/*', 'spk']) }}">
         <a class="nav-link" href="{{ url('/spk') }}" role="button">

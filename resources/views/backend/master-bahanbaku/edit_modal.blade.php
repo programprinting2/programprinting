@@ -82,17 +82,23 @@
                   <div class="row mb-3">
                     <div class="col-md-6">
                       <label for="edit_keterangan" class="form-label">Keterangan</label>
-                      <textarea class="form-control" id="edit_keterangan" name="keterangan" rows="3"></textarea>
+                      <textarea class="form-control" id="edit_keterangan" name="keterangan" rows="2"></textarea>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label for="edit_warna_id" class="form-label">Warna</label>
                         <select class="form-select" id="edit_warna_id" name="warna_id">
                             <option value="">Pilih warna (opsional)</option>
                             @foreach($modeWarnaOptions ?? [] as $warnaOption)
-                                <option value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
+                            <option value="{{ $warnaOption->id }}" data-hex="{{ $warnaOption->keterangan }}">{{ $warnaOption->nama_detail_parameter }}</option>
                             @endforeach
                         </select>
                         <small class="text-muted">Pilih warna bahan baku jika ada</small>
+                    </div>
+                    <div class="col-md-1">
+                      <label class="form-label">&nbsp;</label>
+                      <div id="editWarnaPreviewModal" class="warna-preview-modal" 
+                          style="display: none; height: 38px" title="Preview warna">
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -366,6 +372,25 @@
     </div>
   </div>
 </div>
+
+@push('custom-styles')
+<style>
+.warna-preview-modal {
+    width: 100%;
+    height: 40px;
+    border: 2px solid #ced4da;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.warna-preview-modal:hover {
+    border-color: #6c757d;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+</style>
+@endpush
 
 @push('custom-scripts')
 @include('backend.general-form.cari-pemasok', [

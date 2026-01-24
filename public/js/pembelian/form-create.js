@@ -20,13 +20,16 @@
     return Array.from(document.querySelectorAll('input[name$="[bahanbaku_id]"]')).some(input => input.value == bahanbakuId);
   }
   function updateWarnaPreview(hexCode) {
+    const container = document.getElementById('previewContainer');
     const warnaPreview = document.getElementById('warnaPreview');
     if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
         warnaPreview.style.backgroundColor = hexCode;
         warnaPreview.style.display = 'block';
+        container.style.display='block';
         warnaPreview.title = `Warna: ${hexCode}`;
     } else {
         warnaPreview.style.display = 'none';
+        container.style.display='none';
         warnaPreview.style.backgroundColor = '';
         warnaPreview.title = 'No Color';
     }

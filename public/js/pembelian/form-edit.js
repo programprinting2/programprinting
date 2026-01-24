@@ -6,12 +6,15 @@
 
   // --- Helper Functions ---
   function updateWarnaPreview(hexCode) {
+    const container = document.getElementById('previewContainer');
     const warnaPreview = document.getElementById('warnaPreview');
     if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+        container.style.display='block';
         warnaPreview.style.backgroundColor = hexCode;
         warnaPreview.style.display = 'block';
         warnaPreview.title = `Warna: ${hexCode}`;
     } else {
+        container.style.display='none';
         warnaPreview.style.display = 'none';
         warnaPreview.style.backgroundColor = '';
         warnaPreview.title = 'No Color';

@@ -32,20 +32,25 @@
             <div class="tab-pane fade show active" id="informasi-umum" role="tabpanel" aria-labelledby="informasi-umum-tab">
               <div class="card mb-0">
                 <div class="card-body">
-                  <div class="row mb-3">
+                  <div class="row mb-3 align-items-end">
                     <div class="col-md-6">
                       <label for="namaBahan" class="form-label">Nama Bahan <span class="text-danger">*</span></label>
                       <input type="text" class="form-control" id="namaBahan" name="nama_bahan" placeholder="Nama bahan baku" required>
                     </div>
-                    <div class="col-md-6">
+                    <div class="col-md-5">
                         <label for="warna_id" class="form-label">Warna</label>
                         <select class="form-select" id="warna_id" name="warna_id">
                             <option value="">Pilih warna (opsional)</option>
                             @foreach($modeWarnaOptions ?? [] as $warnaOption)
-                                <option value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
+                                <option data-hex="{{ $warnaOption->keterangan }}" value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
                             @endforeach
                         </select>
-                        <small class="text-muted">Pilih warna bahan baku jika ada</small>
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label">&nbsp;</label>
+                        <div id="warnaPreviewModal" class="warna-preview-modal" 
+                            style="display: none; height: 38px" title="Preview warna">
+                        </div>
                     </div>
                   </div>
                   <div class="row mb-3">
@@ -374,6 +379,25 @@
     </div>
   </div>
 </div>
+
+@push('custom-styles')
+<style>
+.warna-preview-modal {
+    width: 100%;
+    height: 40px;
+    border: 2px solid #ced4da;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.warna-preview-modal:hover {
+    border-color: #6c757d;
+    transform: scale(1.02);
+    transition: all 0.2s ease;
+}
+</style>
+@endpush
 
 @push('plugin-scripts')
   <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>

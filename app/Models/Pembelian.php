@@ -10,7 +10,7 @@ class Pembelian extends Model
     protected $table = 'pembelian';
     protected $fillable = [
         'kode_pembelian', 'tanggal_pembelian', 'pemasok_id', 'nomor_form', 'jatuh_tempo', 'catatan',
-        'diskon_persen', 'biaya_pengiriman', 'tarif_pajak', 'nota_kredit', 'biaya_lain', 'total'
+        'diskon_persen', 'biaya_pengiriman', 'tarif_pajak', 'nota_kredit', 'biaya_lain', 'total', 'is_lunas'
     ];
 
     public function pemasok()

@@ -297,6 +297,7 @@ function loadBahanBakuData(id) {
     $('#edit_status_aktif').val(data.status_aktif ? '1' : '0');
     $('#edit_keterangan').val(data.keterangan);
     $('#edit_warna_id').val(data.warna_id);
+    $('#edit_warna_id').trigger('change');
     
     // Spesifikasi Teknis
     // $('#edit_pilihan_warna').val(data.pilihan_warna);
@@ -956,7 +957,39 @@ $('#edit_satuan_utama').on('change', function() {
 $('#editModal').on('shown.bs.modal', updateEditLabelSatuanHargaTerakhir);
 
 $(document).ready(function() {
-  feather.replace(); // Pastikan feather icons diinisialisasi untuk elemen statis juga
+  feather.replace(); 
+  $('#edit_warna_id').on('change', function() {
+    const selectedOption = $(this).find('option:selected');
+    const hexCode = selectedOption.data('hex');
+    updateWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
+  });
+
+  // Fungsi untuk update preview warna di modal
+  function updateWarnaPreviewModal(hexCode, previewId) {
+      const preview = document.getElementById(previewId);
+      if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+          preview.style.backgroundColor = hexCode;
+          preview.style.display = 'block';
+          preview.title = `Warna: ${hexCode}`;
+      } else {
+          preview.style.display = 'none';
+          preview.style.backgroundColor = '';
+          preview.title = 'Tidak ada preview warna';
+      }
+  }
+
+  // Saat modal edit dibuka, set preview warna
+  $('#editModal').on('shown.bs.modal', function() {
+      const selectedWarnaId = $('#edit_warna_id').val();
+      if (selectedWarnaId) {
+          const selectedOption = $('#edit_warna_id').find('option[value="' + selectedWarnaId + '"]');
+          const hexCode = selectedOption.data('hex');
+          updateWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
+      } else {
+          updateWarnaPreviewModal(null, 'editWarnaPreviewModal');
+      }
+  });
+
   updateEditStockUnitLabels();
   updateEditStokInfo();
 

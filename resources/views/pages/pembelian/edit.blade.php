@@ -93,8 +93,8 @@
               
               <div class="d-flex align-items-center gap-3">
                 <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
-                <div class="text-center">
-                    <!-- <label class="form-label small mb-1">Warna</label> -->
+                <div id="previewContainer" class="text-center">
+                    <label class="form-label small mb-1">Warna</label>
                     <div id="warnaPreview" class="warna-preview-box mx-auto"></div>
                 </div>
               </div>
@@ -261,8 +261,8 @@
       box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
     .warna-preview-box {
-      width: 40px;
-      height: 40px;
+      width: 20px;
+      height: 20px;
       border: 2px solid #ced4da;
       border-radius: 4px;
       background-color: #f8f9fa;
