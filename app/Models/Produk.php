@@ -25,6 +25,7 @@ class Produk extends Model
         'status_aktif',
         'jenis_produk',
         'keterangan',
+        'warna_id',
         'harga_bertingkat_json',
         'harga_reseller_json',
         'foto_pendukung_json',
@@ -54,6 +55,7 @@ class Produk extends Model
         'panjang' => 'decimal:2',
         'mesin_ids' => 'array',
         'needs_recalc' => 'boolean',
+        'warna_id' => 'integer',
     ];
 
     // Relationship dengan bahan baku
@@ -62,6 +64,11 @@ class Produk extends Model
         return $this->belongsToMany(BahanBaku::class, 'produk_bahan_baku')
             ->withPivot(['jumlah', 'harga_snapshot', 'harga_updated_at'])
             ->withTimestamps();
+    }
+
+    public function warnaDetail()
+    {
+        return $this->belongsTo(\App\Models\DetailParameter::class, 'warna_id');
     }
 
     public function produkKomponen(): BelongsToMany

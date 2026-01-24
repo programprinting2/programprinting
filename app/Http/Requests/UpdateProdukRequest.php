@@ -28,6 +28,7 @@ class UpdateProdukRequest extends FormRequest
             // 'bahan_baku.*.jumlah' => 'required|numeric|min:0.01',
             // 'bahan_baku.*.harga' => 'required|integer|min:0',
             'keterangan' => 'nullable|string|max:1000',
+            'warna_id' => 'nullable|exists:detail_parameters,id',
             'harga_bertingkat_json' => 'nullable|json',
             'harga_reseller_json' => 'nullable|json',
             'foto_pendukung_new.*' => 'nullable|file|mimes:jpeg,png,jpg,gif|mimetypes:image/jpeg,image/png,image/jpg,image/gif|max:5048',

@@ -60,7 +60,7 @@ class ProdukRepository implements ProdukRepositoryInterface
 
     public function findWithRelations(int $id): ?Produk
     {
-        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan', 'bahanBakus.satuanUtamaDetail', 'produkKomponen'])->find($id);
+        return $this->model->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan', 'bahanBakus.satuanUtamaDetail', 'produkKomponen', 'warnaDetail'])->find($id);
     }
 
     public function search(string $search): Collection

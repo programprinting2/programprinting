@@ -49,10 +49,16 @@ class MasterProdukController extends Controller
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
+            $modeWarnaParam = MasterParameter::where('nama_parameter', 'WARNA UMUM')->first();
+            $modeWarnaOptions = $modeWarnaParam ? $modeWarnaParam->details()
+                ->where('aktif', 1)
+                ->select('id', 'nama_detail_parameter')
+                ->orderBy('nama_detail_parameter')
+                ->get() : collect();
             // Ambil data master mesin untuk window.masterMesinList
             $masterMesinList = MasterMesin::select('id', 'nama_mesin', 'tipe_mesin', 'biaya_perhitungan_profil')->get();
             
-            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'satuanDetailList','masterMesinList'));
+            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'satuanDetailList','masterMesinList', 'modeWarnaOptions'));
         } catch (\Exception $e) {
             Log::error('Error loading Produk index', ['error' => $e->getMessage()]);
             return view('backend.master-produk.index', [

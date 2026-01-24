@@ -147,6 +147,23 @@
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-6">
+                        <label for="warna_id" class="form-label">Warna</label>
+                        <select class="form-select" id="edit_warna_id" name="warna_id">
+                            <option value="">Pilih warna (opsional)</option>
+                            @foreach($modeWarnaOptions ?? [] as $warnaOption)
+                                <option value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Pilih warna produk jika ada</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_keterangan" class="form-label">Keterangan</label>
+                        <textarea class="form-control" id="edit_keterangan" name="keterangan" rows="3" 
+                            placeholder="Tambahkan keterangan atau catatan untuk produk ini"></textarea>
+                    </div>
+                  </div>
+                  <div class="row mb-3">       
+                    <div class="col-md-6">
                       <div class="form-check form-switch">
                         <input type="hidden" name="status_aktif" value="0">
                         <input class="form-check-input" type="checkbox" id="edit_status_aktif" name="status_aktif"
@@ -154,11 +171,6 @@
                         <label class="form-check-label" for="edit_status_aktif">Status Aktif</label>
                         <div><small class="text-muted">Produk akan tampil di daftar produk aktif</small></div>
                       </div>
-                    </div>
-                    <div class="col-md-6">
-                        <label for="edit_keterangan" class="form-label">Keterangan</label>
-                        <textarea class="form-control" id="edit_keterangan" name="keterangan" rows="3" 
-                            placeholder="Tambahkan keterangan atau catatan untuk produk ini"></textarea>
                     </div>
                   </div>
                 </div>

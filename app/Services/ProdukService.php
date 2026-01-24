@@ -30,6 +30,7 @@ class ProdukService
             $data['kode_produk'] = $this->generateKodeProduk();
             $data['lebar'] = $data['lebar'] ?? 0;
             $data['panjang'] = $data['panjang'] ?? 0;
+            $data['warna_id'] = $data['warna_id'] ?? null;
 
             // Process JSON fields
             // $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
@@ -116,6 +117,7 @@ class ProdukService
             DB::beginTransaction();
             $data['lebar'] = $data['lebar'] ?? 0;
             $data['panjang'] = $data['panjang'] ?? 0;
+            $data['warna_id'] = $data['warna_id'] ?? null;
 
             // Process JSON fields
             // $data['bahan_baku_json'] = $this->processJsonField($data['bahan_baku_json'] ?? null);
