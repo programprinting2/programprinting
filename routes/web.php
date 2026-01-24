@@ -27,6 +27,7 @@ use App\Http\Controllers\MasterProdukController;
 use App\Http\Controllers\CariController;
 use App\Http\Controllers\GudangController;
 use App\Http\Controllers\RakController;
+use App\Http\Controllers\HutangController; 
 
 
 Route::get('/', function () {
@@ -199,9 +200,8 @@ Route::group(['prefix' => 'spk'], function () {
     ]);
 });
 
-// Route::group(['prefix' => 'produk'], function () {
-//     Route::get('/', [ProdukController::class, 'index'])->name('produk.index');
-// });
+//Hutang Route
+Route::get('/hutang', [HutangController::class, 'index'])->name('hutang.index');
 
 Route::group(['prefix' => 'kasir'], function () {
     Route::get('/', [KasirController::class, 'index'])->name('kasir.index');

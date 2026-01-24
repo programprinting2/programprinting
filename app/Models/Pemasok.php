@@ -51,4 +51,9 @@ class Pemasok extends Model
     {
         $this->attributes['wajib_pajak'] = filter_var($value, FILTER_VALIDATE_BOOLEAN);
     }
+
+    public function pembelian()
+    {
+        return $this->hasMany(Pembelian::class, 'pemasok_id');
+    }
 }
