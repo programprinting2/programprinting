@@ -80,9 +80,19 @@
                     </div>
                   </div>
                   <div class="row mb-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                       <label for="edit_keterangan" class="form-label">Keterangan</label>
                       <textarea class="form-control" id="edit_keterangan" name="keterangan" rows="3"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="edit_warna_id" class="form-label">Warna</label>
+                        <select class="form-select" id="edit_warna_id" name="warna_id">
+                            <option value="">Pilih warna (opsional)</option>
+                            @foreach($modeWarnaOptions ?? [] as $warnaOption)
+                                <option value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Pilih warna bahan baku jika ada</small>
                     </div>
                   </div>
                 </div>

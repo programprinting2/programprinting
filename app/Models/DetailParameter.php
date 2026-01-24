@@ -19,7 +19,7 @@ class DetailParameter extends Model
         'keterangan',
         'master_parameter_id',
         'nama_detail_parameter',
-        'warna',
+        // 'warna',
     ];
 
     public function subDetailParameters()

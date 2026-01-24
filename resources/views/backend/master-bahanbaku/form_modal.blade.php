@@ -33,9 +33,19 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <div class="row mb-3">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                       <label for="namaBahan" class="form-label">Nama Bahan <span class="text-danger">*</span></label>
                       <input type="text" class="form-control" id="namaBahan" name="nama_bahan" placeholder="Nama bahan baku" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="warna_id" class="form-label">Warna</label>
+                        <select class="form-select" id="warna_id" name="warna_id">
+                            <option value="">Pilih warna (opsional)</option>
+                            @foreach($modeWarnaOptions ?? [] as $warnaOption)
+                                <option value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Pilih warna bahan baku jika ada</small>
                     </div>
                   </div>
                   <div class="row mb-3">

@@ -65,9 +65,9 @@
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Nama Bahan</th>
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Kategori</th>
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Sub-Kategori</th>
-            <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jenis Satuan</th>
+            <!-- <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Jenis Satuan</th>
             <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">Sub Satuan</th>
-          </tr>
+          </tr> -->
         </thead>
         <tbody>
           <!-- Data bahan baku akan dimuat di sini melalui AJAX -->
@@ -122,8 +122,6 @@ function loadBahanBaku(search = '', page = 1) {
                         <td>${item.nama_bahan ?? '-'}</td>
                         <td>${item.kategori ?? '-'}</td>
                         <td>${item.sub_kategori ?? '-'}</td>
-                        <td>${item.jenis_satuan ?? '-'}</td>
-                        <td>${item.sub_satuan ?? '-'}</td>
                     </tr>`;
                 });
             } else {

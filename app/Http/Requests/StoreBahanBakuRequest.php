@@ -20,6 +20,7 @@ class StoreBahanBakuRequest extends FormRequest
             'satuan_utama_id' => 'required|exists:detail_parameters,id',
             'sub_satuan_id' => 'required|exists:sub_detail_parameter,id',
             'status_aktif' => 'required|in:0,1',
+            'warna_id' => 'nullable|exists:detail_parameters,id',
             'konversi_satuan_json' => 'nullable|string',
             'pemasok_utama_id' => 'nullable|exists:pemasok,id',
             'harga_terakhir' => 'nullable|numeric|min:0',

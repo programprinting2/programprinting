@@ -16,6 +16,7 @@ class BahanBaku extends Model
         'kode_bahan',
         'nama_bahan',
         'keterangan',
+        'warna_id',
         'detail_spesifikasi_json',
         'kategori_id',
         'sub_kategori_id',
@@ -46,6 +47,7 @@ class BahanBaku extends Model
         'stok_maksimum' => 'integer',
         'link_pendukung_json' => 'array',
         'detail_spesifikasi_json' => 'array',
+        'warna_id' => 'integer',
     ];
 
     /**
@@ -74,6 +76,11 @@ class BahanBaku extends Model
     public function subSatuanDetail()
     {
         return $this->belongsTo(\App\Models\SubDetailParameter::class, 'sub_satuan_id');
+    }
+
+    public function warnaDetail()
+    {
+        return $this->belongsTo(\App\Models\DetailParameter::class, 'warna_id');
     }
 
     // Relationship dengan produk

@@ -296,15 +296,16 @@ function loadBahanBakuData(id) {
     updateEditLabelSatuanHargaTerakhir();
     $('#edit_status_aktif').val(data.status_aktif ? '1' : '0');
     $('#edit_keterangan').val(data.keterangan);
+    $('#edit_warna_id').val(data.warna_id);
     
     // Spesifikasi Teknis
-    $('#edit_pilihan_warna').val(data.pilihan_warna);
-    $('#edit_nama_warna_custom').val(data.nama_warna_custom);
-    $('#edit_berat').val(data.berat);
-    $('#edit_tinggi').val(data.tinggi);
-    $('#edit_tebal').val(data.tebal);
-    $('#edit_gramasi_densitas').val(data.gramasi_densitas);
-    $('#edit_volume').val(data.volume);
+    // $('#edit_pilihan_warna').val(data.pilihan_warna);
+    // $('#edit_nama_warna_custom').val(data.nama_warna_custom);
+    // $('#edit_berat').val(data.berat);
+    // $('#edit_tinggi').val(data.tinggi);
+    // $('#edit_tebal').val(data.tebal);
+    // $('#edit_gramasi_densitas').val(data.gramasi_densitas);
+    // $('#edit_volume').val(data.volume);
     
     // Pemasok & Harga
     $('#edit_pemasok_utama_id').val(data.pemasok_utama_id);

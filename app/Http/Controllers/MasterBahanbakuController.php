@@ -74,8 +74,17 @@ class MasterBahanbakuController extends Controller
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
+            $modeWarnaParam = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
+            $modeWarnaOptions = [];
+            if ($modeWarnaParam) {
+                $modeWarnaOptions = $modeWarnaParam->details()
+                    ->where('aktif', 1)
+                    ->select('id', 'nama_detail_parameter', 'keterangan')
+                    ->orderBy('nama_detail_parameter')
+                    ->get();
+            }
 
-            return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'satuanList', 'subSatuanList'));
+            return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'satuanList', 'subSatuanList', 'modeWarnaOptions'));
         } catch (\Exception $e) {
             Log::error('Error loading Bahan Baku index', ['error' => $e->getMessage()]);
             return view('backend.master-bahanbaku.index', [
@@ -83,7 +92,8 @@ class MasterBahanbakuController extends Controller
                 'pemasok' => collect(),
                 'kategoriList' => collect(),
                 'subKategoriList' => collect(),
-                'satuanList' => collect()
+                'satuanList' => collect(),
+                'modeWarnaOptions' => collect(),
             ])->with('error', 'Gagal memuat data bahan baku');
         }
     }
