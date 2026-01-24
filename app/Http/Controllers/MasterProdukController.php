@@ -52,7 +52,7 @@ class MasterProdukController extends Controller
             $modeWarnaParam = MasterParameter::where('nama_parameter', 'WARNA UMUM')->first();
             $modeWarnaOptions = $modeWarnaParam ? $modeWarnaParam->details()
                 ->where('aktif', 1)
-                ->select('id', 'nama_detail_parameter')
+                ->select('id', 'nama_detail_parameter', 'keterangan')
                 ->orderBy('nama_detail_parameter')
                 ->get() : collect();
             // Ambil data master mesin untuk window.masterMesinList

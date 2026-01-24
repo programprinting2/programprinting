@@ -222,9 +222,7 @@ $(function () {
                 $("#edit_jenis_produk").val(p.jenis_produk);
                 $('#edit_keterangan').val(p.keterangan || '');
                 $('#edit_warna_id').val(p.warna_id || '');
-                // $("#edit_bahan_baku_json").val(
-                //     JSON.stringify(p.bahan_baku_json || [])
-                // );
+
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
                     ? p.bahan_bakus.map((bahanBaku) => {
                           return {
@@ -322,6 +320,14 @@ $(function () {
                     : [];
                 renderEditBiayaTambahan();
                 loadEditSpesifikasiTeknis(p.spesifikasi_teknis_json);
+                const selectedWarnaId = p.warna_id;
+                if (selectedWarnaId) {
+                    const selectedOption = $('#edit_warna_id option[value="' + selectedWarnaId + '"]');
+                    const hexCode = selectedOption.data('hex');
+                    if (hexCode) {
+                        updateEditWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
+                    }
+                }
                 $("#editProdukModal").modal("show");
             } else {
                 Swal.fire("Gagal", "Data produk tidak ditemukan", "error");
@@ -2016,4 +2022,24 @@ $(function () {
         renderEditTabelProdukKomponen();
         updateTotalModalKeseluruhanEdit();
     }
+
+    // Fungsi untuk update preview warna
+    function updateEditWarnaPreviewModal(hexCode, previewId) {
+        const preview = document.getElementById(previewId);
+        if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+            preview.style.backgroundColor = hexCode;
+            preview.style.display = 'block';
+            preview.title = `Warna: ${hexCode}`;
+        } else {
+            preview.style.display = 'none';
+            preview.style.backgroundColor = '';
+            preview.title = 'Tidak ada preview warna';
+        }
+    }
+
+    $('#edit_warna_id').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const hexCode = selectedOption.data('hex');
+        updateEditWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
+    });
 });

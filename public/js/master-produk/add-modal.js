@@ -1781,4 +1781,23 @@ $(function () {
         selectedDocuments.splice(indexToDelete, 1);
         renderDocumentsPreview();
     });
+
+    function updateWarnaPreviewModal(hexCode, previewId) {
+        const preview = document.getElementById(previewId);
+        if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+            preview.style.backgroundColor = hexCode;
+            preview.style.display = 'block';
+            preview.title = `Warna: ${hexCode}`;
+        } else {
+            preview.style.display = 'none';
+            preview.style.backgroundColor = '';
+            preview.title = 'Tidak ada preview warna';
+        }
+    }
+    
+    $('#warna_id').on('change', function() {
+        const selectedOption = $(this).find('option:selected');
+        const hexCode = selectedOption.data('hex');
+        updateWarnaPreviewModal(hexCode, 'warnaPreviewModal');
+    });
 });

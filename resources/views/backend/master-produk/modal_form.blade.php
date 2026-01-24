@@ -150,19 +150,26 @@
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
+                                            <label for="keterangan" class="form-label">Keterangan</label>
+                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="2" 
+                                                placeholder="Tambahkan keterangan atau catatan untuk produk ini"></textarea>
+                                        </div>
+                                        <div class="col-md-5">
                                             <label for="warna_id" class="form-label">Warna</label>
                                             <select class="form-select" id="warna_id" name="warna_id">
                                                 <option value="">Pilih warna (opsional)</option>
                                                 @foreach($modeWarnaOptions ?? [] as $warnaOption)
-                                                    <option value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
+                                                    <option data-hex="{{ $warnaOption->keterangan }}" value="{{ $warnaOption->id }}">{{ $warnaOption->nama_detail_parameter }}</option>
                                                 @endforeach
                                             </select>
                                             <small class="text-muted">Pilih warna produk jika ada</small>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label for="keterangan" class="form-label">Keterangan</label>
-                                            <textarea class="form-control" id="keterangan" name="keterangan" rows="3" 
-                                                placeholder="Tambahkan keterangan atau catatan untuk produk ini"></textarea>
+                                        <div class="col-md-1">
+                                            <label class="form-label">&nbsp;</label>
+                                            <div id="warnaPreviewModal" class="warna-preview-modal flex-grow-1" 
+                                                style="display: none; height: 38px; border: 1px solid #ced4da; border-radius: 0.375rem;" 
+                                                title="Preview warna">
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="row mb-3">
@@ -799,6 +806,21 @@
         </div>
     </div>
 </div>
+
+@push('custom-styles')
+<style>
+    .warna-preview-modal {
+    width: 100%;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.warna-preview-modal:hover {
+    transform: scale(1.02);
+}
+</style>
+@endpush
 
 @include('backend.general-form.cari-bahanbaku', [
     'modalId' => 'modalCariBahanBakuProduk',
