@@ -158,8 +158,9 @@
     hargaInput.value = '0';
     diskonInput.value = 0;
     var satuanInput = document.getElementById('satuanInput');
+    document.getElementById('previewTotalItem').value = 'Rp 0';
     satuanInput.innerHTML = '';
-    satuanInput.disabled = true; // Kembalikan ke disabled setelah item ditambah
+    satuanInput.disabled = true; 
     document.getElementById('konversiSatuanInfo').style.display = 'none';
     document.getElementById('konversiSatuanInfo').innerHTML = '';
   });
