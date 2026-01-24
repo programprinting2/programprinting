@@ -74,12 +74,12 @@ class MasterBahanbakuController extends Controller
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
-            $modeWarnaParam = MasterParameter::where('nama_parameter', 'MODE WARNA')->first();
+            $modeWarnaParam = MasterParameter::where('nama_parameter', 'WARNA UMUM')->first();
             $modeWarnaOptions = [];
             if ($modeWarnaParam) {
                 $modeWarnaOptions = $modeWarnaParam->details()
                     ->where('aktif', 1)
-                    ->select('id', 'nama_detail_parameter')
+                    ->select('id', 'nama_detail_parameter', 'keterangan')
                     ->orderBy('nama_detail_parameter')
                     ->get();
             }
