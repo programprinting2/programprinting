@@ -25,7 +25,7 @@ class CariController extends Controller
         }
 
         // Eager load relasi kategori, sub-kategori, satuan utama
-        $query->with(['kategoriDetail', 'subKategoriDetail', 'satuanUtamaDetail', 'subSatuanDetail']);
+        $query->with(['kategoriDetail', 'subKategoriDetail', 'satuanUtamaDetail', 'subSatuanDetail', 'warnaDetail']);
 
         $bahanBakus = $query->orderBy('nama_bahan')->paginate(10);
 
@@ -41,6 +41,11 @@ class CariController extends Controller
                 'sub_satuan' => $item->subSatuanDetail ? $item->subSatuanDetail->nama_sub_detail_parameter : '-',
                 'harga_terakhir' => $item->harga_terakhir ?? 0,
                 'konversi_satuan' => $item->konversi_satuan_json ?? [],
+                'warna_detail' => $item->warnaDetail ? [
+                    'id' => $item->warnaDetail->id,
+                    'nama_detail_parameter' => $item->warnaDetail->nama_detail_parameter,
+                    'keterangan' => $item->warnaDetail->keterangan
+                ] : null,
             ];
         });
 

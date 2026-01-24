@@ -5,6 +5,18 @@
   PembelianHelper.init();
 
   // --- Helper Functions ---
+  function updateWarnaPreview(hexCode) {
+    const warnaPreview = document.getElementById('warnaPreview');
+    if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+        warnaPreview.style.backgroundColor = hexCode;
+        warnaPreview.style.display = 'block';
+        warnaPreview.title = `Warna: ${hexCode}`;
+    } else {
+        warnaPreview.style.display = 'none';
+        warnaPreview.style.backgroundColor = '';
+        warnaPreview.title = 'No Color';
+    }
+  }
   
   // Fungsi untuk mengecek duplikasi bahan baku
   function checkBahanBakuDuplikat(bahanbakuId) {
@@ -54,6 +66,10 @@
     document.getElementById('hargaInput').value = PembelianHelper.formatNumber(data.harga);
     window.hargaSatuanUtama = parseInt(data.harga) || 0; // Simpan harga satuan utama
     document.getElementById('kodeBahanBakuInput') && (document.getElementById('kodeBahanBakuInput').value = data.kode);
+
+    const warnaHex = data.warna_detail?.keterangan || null;
+    updateWarnaPreview(warnaHex);
+
     var satuanInput = document.getElementById('satuanInput');
     satuanInput.innerHTML = '';
     satuanInput.disabled = false; // Aktifkan dropdown setelah bahan baku dipilih
@@ -190,6 +206,7 @@
     satuanInput.disabled = true; 
     document.getElementById('konversiSatuanInfo').style.display = 'none';
     document.getElementById('konversiSatuanInfo').innerHTML = '';
+    updateWarnaPreview();
   });
 
   // --- Edit & Hapus Item ---

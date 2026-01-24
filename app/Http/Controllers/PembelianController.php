@@ -62,7 +62,7 @@ class PembelianController extends Controller
     public function create()
     {
         $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
-        $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
+        $bahan_baku = BahanBaku::with('warnaDetail')->orderBy('created_at', 'desc')->get();
         $satuanList = SubDetailParameter::orderBy('nama_sub_detail_parameter')->get(['id', 'nama_sub_detail_parameter'])->toArray();
         
         return view('pages.pembelian.create', compact('pemasok', 'bahan_baku', 'satuanList'));
@@ -111,7 +111,7 @@ class PembelianController extends Controller
         try {
             $pembelian = $this->pembelianService->getPembelianByKode($kode_pembelian);
             $pemasok = Pemasok::orderBy('created_at', 'desc')->get();
-            $bahan_baku = BahanBaku::orderBy('created_at', 'desc')->get();
+            $bahan_baku = BahanBaku::with('warnaDetail')->orderBy('nama_bahan')->get();
             $satuanList = SubDetailParameter::orderBy('nama_sub_detail_parameter')
                 ->get(['id', 'nama_sub_detail_parameter'])
                 ->toArray();

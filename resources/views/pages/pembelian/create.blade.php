@@ -88,9 +88,17 @@
                   <input type="text" id="previewTotalItem" class="form-control text-primary fw-bold text-end" value="Rp 0" readonly tabindex="-1" style="box-shadow:none;pointer-events:none;" />
             </div>
             </div>
-              
               <div class="mb-2" id="konversiSatuanInfo" style="display:none"></div>
-              <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
+              <div class="d-flex align-items-center gap-3">
+                  <button type="button" class="btn btn-outline-primary" id="btnTambahItem">
+                      <i class="fa fa-plus"></i> Tambah Item
+                  </button>
+
+                  <div class="text-center">
+                      <!-- <label class="form-label small mb-1 d-block">Warna</label> -->
+                      <div id="warnaPreview" class="warna-preview-box mx-auto"></div>
+                  </div>
+              </div>
             </div>
           </div>
           <div class="table-responsive">
@@ -243,6 +251,13 @@
     .form-control:focus {
       border-color: #80bdff;
       box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    .warna-preview-box {
+    width: 40px;
+    height: 40px;
+    border: 2px solid #ced4da;
+    border-radius: 4px;
+    background-color: #f8f9fa;
     }
   </style>
 @endsection

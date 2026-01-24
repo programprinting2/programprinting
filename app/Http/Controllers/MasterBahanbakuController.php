@@ -79,7 +79,7 @@ class MasterBahanbakuController extends Controller
             if ($modeWarnaParam) {
                 $modeWarnaOptions = $modeWarnaParam->details()
                     ->where('aktif', 1)
-                    ->select('id', 'nama_detail_parameter', 'keterangan')
+                    ->select('id', 'nama_detail_parameter')
                     ->orderBy('nama_detail_parameter')
                     ->get();
             }

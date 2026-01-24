@@ -19,9 +19,25 @@
   function checkBahanBakuDuplikat(bahanbakuId) {
     return Array.from(document.querySelectorAll('input[name$="[bahanbaku_id]"]')).some(input => input.value == bahanbakuId);
   }
+  function updateWarnaPreview(hexCode) {
+    const warnaPreview = document.getElementById('warnaPreview');
+    if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
+        warnaPreview.style.backgroundColor = hexCode;
+        warnaPreview.style.display = 'block';
+        warnaPreview.title = `Warna: ${hexCode}`;
+    } else {
+        warnaPreview.style.display = 'none';
+        warnaPreview.style.backgroundColor = '';
+        warnaPreview.title = 'No Color';
+    }
+  }
 
   window.addEventListener('bahanBakuDipilih', function(e) {
     const data = e.detail;
+
+    const warnaHex = data.warna_detail?.keterangan || null;
+    updateWarnaPreview(warnaHex);
+
     // Cek duplikat berbasis value hidden input
     if (checkBahanBakuDuplikat(data.id)) {
       Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
@@ -96,8 +112,6 @@
     let hargaBaru = window.hargaSatuanUtama * konversi;
     hargaInput.value = PembelianHelper.formatNumber(hargaBaru);
     updatePreviewTotalItem();
-    // Optional: update info konversi satuan jika perlu
-    // Jika ingin update info konversi, panggil updateKonversiSatuanInfo dengan data bahan baku terakhir
   });
 
   // --- Tambah Item ---
@@ -163,6 +177,7 @@
     satuanInput.disabled = true; 
     document.getElementById('konversiSatuanInfo').style.display = 'none';
     document.getElementById('konversiSatuanInfo').innerHTML = '';
+    updateWarnaPreview();
   });
 
   // --- Edit & Hapus Item ---
