@@ -518,7 +518,7 @@ $(function () {
 
         if (jenisProduk === "rakitan") {
             $(bahanBakuSection).show();
-            $(parameterModalSection).hide();
+            $(parameterModalSection).show();
             $(produkKomponenSection).show();
             // Reset bahan baku dan load produk komponen
             if (mode === "add") {

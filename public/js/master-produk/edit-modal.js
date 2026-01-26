@@ -107,7 +107,7 @@ $(function () {
         if (isRakitan) {
             $("#editProdukKomponenSection").show();
             $("#editBahanBakuSection").show();
-            $("#editParameterModalSection").hide();
+            $("#editParameterModalSection").show();
 
             // Reset bahan baku list
             editBahanBakuList = [];
