@@ -517,7 +517,7 @@ $(function () {
                 : "#edit_parameterModalSection";
 
         if (jenisProduk === "rakitan") {
-            $(bahanBakuSection).hide();
+            $(bahanBakuSection).show();
             $(parameterModalSection).hide();
             $(produkKomponenSection).show();
             // Reset bahan baku dan load produk komponen
@@ -1493,7 +1493,7 @@ $(function () {
 
             var form = $(this)[0];
             var formData = new FormData(form);
-            formData.append('warna_id', document.getElementById('warna_id').value || null);
+            formData.append('warna_id', document.getElementById('warna_id').value || '');
             const jenisProduk = $("#jenis_produk").val();
             if (jenisProduk === "rakitan") {
                 $("#tabelProdukKomponen tbody tr").each(function (index) {

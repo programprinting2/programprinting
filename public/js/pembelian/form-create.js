@@ -636,8 +636,8 @@
     satuanInput.disabled = true;
     
     // Hide info konversi satuan
-    document.getElementById('konversiSatuanInfo').style.display = 'none';
-    document.getElementById('konversiSatuanInfo').innerHTML = '';
+    document.getElementById('konversiSatuanContainer').style.display = 'none';
+    document.getElementById('konversiSatuanContainer').innerHTML = '';
     
     // Reset warna preview
     const warnaPreview = document.getElementById('warnaPreview');

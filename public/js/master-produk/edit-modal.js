@@ -106,7 +106,7 @@ $(function () {
         // Toggle visibility sections berdasarkan jenis produk
         if (isRakitan) {
             $("#editProdukKomponenSection").show();
-            $("#editBahanBakuSection").hide();
+            $("#editBahanBakuSection").show();
             $("#editParameterModalSection").hide();
 
             // Reset bahan baku list

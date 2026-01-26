@@ -743,8 +743,8 @@
     satuanInput.disabled = true;
     
     // Hide info konversi satuan
-    document.getElementById('konversiSatuanInfo').style.display = 'none';
-    document.getElementById('konversiSatuanInfo').innerHTML = '';
+    document.getElementById('konversiSatuanContainer').style.display = 'none';
+    document.getElementById('konversiSatuanContainer').innerHTML = '';
     
     // Reset warna preview color
     const warnaPreview = document.getElementById('warnaPreview');
@@ -760,7 +760,7 @@
     const found = window.satuanList.find(s => s.id == id || s.id == String(id) || String(s.id) == String(id));
     return found ? found.nama_sub_detail_parameter : id;
   }
-  
+
   function updateKonversiSatuanInfo(data) {
     const konversiInfo = document.getElementById('konversiSatuanContainer');
     konversiInfo.style.display = 'none';
