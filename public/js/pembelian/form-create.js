@@ -178,8 +178,8 @@
     document.getElementById('previewTotalItem').value = 'Rp 0';
     satuanInput.innerHTML = '';
     satuanInput.disabled = true; 
-    document.getElementById('konversiSatuanInfo').style.display = 'none';
-    document.getElementById('konversiSatuanInfo').innerHTML = '';
+    document.getElementById('konversiSatuanContainer').style.display = 'none';
+    document.getElementById('konversiSatuanContainer').innerHTML = '';
     updateWarnaPreview();
   });
 
@@ -568,7 +568,7 @@
   });
 
   function updateKonversiSatuanInfo(data) {
-    const konversiInfo = document.getElementById('konversiSatuanInfo');
+    const konversiInfo = document.getElementById('konversiSatuanContainer');
     konversiInfo.style.display = 'none';
     konversiInfo.innerHTML = '';
     let konv = data.konversi_satuan;

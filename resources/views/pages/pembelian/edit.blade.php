@@ -89,17 +89,21 @@
                   <input type="text" id="previewTotalItem" class="form-control text-primary fw-bold text-end" value="Rp 0" readonly tabindex="-1" style="box-shadow:none;pointer-events:none;" />
                 </div>
               </div>
-              <div class="mb-2" id="konversiSatuanInfo" style="display:none"></div>
+              <div class="d-flex align-items-center mt-1">
+                <div id="konversiSatuanContainer">
+                  <!-- Info konversi satuan akan ditampilkan di sini -->
+                </div>
+                <div id="previewContainer" class="text-center ms-4 mb-2" style="display:none">
+                    <label class="text-muted small">&nbsp;</label>
+                    <div id="warnaPreview" class="warna-preview-box mx-auto"></div>
+                </div>
+              </div>
               
               <div class="d-flex align-items-center gap-3">
                 <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
-                <button type="button" class="btn btn-outline-secondary" id="btnResetItem">
+                <button type="button" class="btn btn-outline-danger" id="btnResetItem">
                   <i class="fa fa-times"></i> Reset
                 </button>
-                <div id="previewContainer" class="text-center">
-                    <label class="form-label small mb-1">Warna</label>
-                    <div id="warnaPreview" class="warna-preview-box mx-auto"></div>
-                </div>
               </div>
             </div>
           </div>
@@ -210,9 +214,13 @@
           <button class="btn btn-outline-secondary" type="button" id="btnCariPemasok"><i class="fa fa-search"></i></button>
         </div>
       </div>
+      <div class="mb-3">
+        <label class="form-label">Gunakan Nomor Faktur <span class="text-muted small">(Opsional)</span></label>
+        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form" value="{{ $pembelian->nomor_form }}">
+      </div>
 
       <div class="mb-3">
-        <label class="form-label">Tanggal Pembelian</label>
+        <label class="form-label">Tanggal Faktur</label>
         <input type="date" class="form-control" name="tanggal_pembelian" id="tanggalPembelian" value="{{ $pembelian->tanggal_pembelian }}" required>
       </div>
 
@@ -224,11 +232,6 @@
       <div class="mb-3">
         <label class="form-label">Tanggal Jatuh Tempo <span class="text-muted small">(Opsional)</span></label>
         <input type="date" class="form-control" name="jatuh_tempo" id="tanggalJatuhTempo" value="{{ $pembelian->jatuh_tempo }}">
-      </div>
-
-      <div class="mb-3">
-        <label class="form-label">Gunakan Nomor Form <span class="text-muted small">(Opsional)</span></label>
-        <input type="text" class="form-control" id="nomorFormInput" name="nomor_form" placeholder="Nomor form" value="{{ $pembelian->nomor_form }}">
       </div>
       </div>
       <div class="mb-4 p-3 border rounded bg-light">
@@ -270,12 +273,6 @@
       border-radius: 4px;
       background-color: #f8f9fa;
     }
-
-    .warna-preview-box:hover {
-        border-color: #6c757d;
-        transform: scale(1.1);
-        transition: all 0.2s ease;
-    }
   </style>
 @endsection
 
@@ -301,7 +298,7 @@
   window.bahanBakuList = @json($bahan_baku);
   
   document.getElementById('btnBatalPembelian').addEventListener('click', function() {
-    window.history.back();
+    window.location.href = '{{ route("pembelian.index") }}';
     });
     
   @if(session('success'))

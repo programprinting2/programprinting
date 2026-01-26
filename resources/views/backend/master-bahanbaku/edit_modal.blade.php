@@ -97,7 +97,8 @@
                     <div class="col-md-1">
                       <label class="form-label">&nbsp;</label>
                       <div id="editWarnaPreviewModal" class="warna-preview-modal" 
-                          style="display: none; height: 38px" title="Preview warna">
+                          style="display: none; height: 38px; border: 2px solid #ced4da; box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+                          border-radius: 0.375rem; " title="Preview warna">
                       </div>
                     </div>
                   </div>
@@ -378,10 +379,7 @@
 .warna-preview-modal {
     width: 100%;
     height: 40px;
-    border: 2px solid #ced4da;
-    border-radius: 0.375rem;
     cursor: pointer;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
 .warna-preview-modal:hover {

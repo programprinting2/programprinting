@@ -207,8 +207,8 @@
     var satuanInput = document.getElementById('satuanInput');
     satuanInput.innerHTML = '';
     satuanInput.disabled = true; 
-    document.getElementById('konversiSatuanInfo').style.display = 'none';
-    document.getElementById('konversiSatuanInfo').innerHTML = '';
+    document.getElementById('konversiSatuanContainer').style.display = 'none';
+    document.getElementById('konversiSatuanContainer').innerHTML = '';
     updateWarnaPreview();
   });
 
@@ -760,9 +760,9 @@
     const found = window.satuanList.find(s => s.id == id || s.id == String(id) || String(s.id) == String(id));
     return found ? found.nama_sub_detail_parameter : id;
   }
-
+  
   function updateKonversiSatuanInfo(data) {
-    const konversiInfo = document.getElementById('konversiSatuanInfo');
+    const konversiInfo = document.getElementById('konversiSatuanContainer');
     konversiInfo.style.display = 'none';
     konversiInfo.innerHTML = '';
     let konv = data.konversi_satuan;
