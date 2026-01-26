@@ -89,21 +89,23 @@
                   <input type="text" id="previewTotalItem" class="form-control text-primary fw-bold text-end" value="Rp 0" readonly tabindex="-1" style="box-shadow:none;pointer-events:none;" />
                 </div>
               </div>
-              <div class="d-flex align-items-center mt-1">
-                <div id="konversiSatuanContainer">
-                  <!-- Info konversi satuan akan ditampilkan di sini -->
-                </div>
-                <div id="previewContainer" class="text-center ms-4 mb-2" style="display:none">
-                    <label class="text-muted small">&nbsp;</label>
-                    <div id="warnaPreview" class="warna-preview-box mx-auto"></div>
-                </div>
-              </div>
               
-              <div class="d-flex align-items-center gap-3">
-                <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
-                <button type="button" class="btn btn-outline-danger" id="btnResetItem">
-                  <i class="fa fa-times"></i> Reset
-                </button>
+              <div class="d-flex justify-content-between mt-2">
+                <div class="d-flex align-items-center gap-3">
+                  <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
+                  <button type="button" class="btn btn-outline-danger" id="btnResetItem">
+                    <i class="fa fa-times"></i> Reset
+                  </button>
+                </div>
+                <div class="d-flex align-items-center">
+                  <div id="konversiSatuanContainer">
+                    <!-- Info konversi satuan akan ditampilkan di sini -->
+                  </div>
+                  <div id="previewContainer" class="text-center ms-4 mb-2" style="display:none">
+                      <label class="text-muted small">&nbsp;</label>
+                      <div id="warnaPreview" class="warna-preview-box mx-auto"></div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
