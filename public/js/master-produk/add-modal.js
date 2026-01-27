@@ -643,13 +643,13 @@ $(function () {
         let totalBahan = 0;
         let totalParam = 0;
 
-        if (jenisProduk === "rakitan") {
+        // if (jenisProduk === "rakitan") {
             // Hitung dari produk komponen
             totalKomponen = produkKomponenList.reduce(
                 (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
                 0,
             );
-        } else {
+        // } else {
             // Hitung dari bahan baku (existing logic)
             totalBahan = bahanBakuList.reduce(
                 (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
@@ -662,7 +662,7 @@ $(function () {
                         : { total: 0 };
                 return sum + (param.total || 0) * (row.jumlah || 1);
             }, 0);
-        }
+        // }
 
         let totalBiayaTambahan = 0;
         $("#tabelBiayaTambahan .biaya-tambahan-item").each(function () {
@@ -676,8 +676,14 @@ $(function () {
             $("#totalKomponenText").text(
                 "Rp " + totalKomponen.toLocaleString("id-ID"),
             );
-            $("#totalBahanBakuText").text("Rp 0");
-            $("#totalParameterText").text("Rp 0");
+            // $("#totalBahanBakuText").text("Rp 0");
+            // $("#totalParameterText").text("Rp 0");
+            $("#totalBahanBakuText").text(
+                "Rp " + totalBahan.toLocaleString("id-ID"),
+            );
+            $("#totalParameterText").text(
+                "Rp " + totalParam.toLocaleString("id-ID"),
+            );
         } else {
             $("#totalBahanBakuText").text(
                 "Rp " + totalBahan.toLocaleString("id-ID"),
@@ -693,17 +699,17 @@ $(function () {
         );
 
         const totalKeseluruhan =
-            jenisProduk === "rakitan"
-                ? totalKomponen + totalBiayaTambahan
-                : totalBahan + totalParam + totalBiayaTambahan;
+            // jenisProduk === "rakitan" ?
+                 totalKomponen + totalBiayaTambahan + totalParam + totalBahan
+                // : totalBahan + totalParam + totalBiayaTambahan;
 
         $("#totalModalKeseluruhan").text(
             "Rp " + totalKeseluruhan.toLocaleString("id-ID"),
         );
         $("#totalModalBahan").text(
-            jenisProduk === "rakitan"
-                ? "Rp 0"
-                : "Rp " + totalBahan.toLocaleString("id-ID"),
+            // jenisProduk === "rakitan" ?
+            //      "Rp 0" :
+                 "Rp " + totalBahan.toLocaleString("id-ID"),
         );
 
         renderHargaBertingkat();

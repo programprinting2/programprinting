@@ -834,7 +834,7 @@ $(function () {
         let totalParam = 0;
         let totalBiayaTambahan = 0;
 
-        if (jenisProduk === "rakitan") {
+        // if (jenisProduk === "rakitan") {
             // Hitung total komponen untuk produk rakitan
             totalKomponen = editProdukKomponenList.reduce((sum, item) => {
                 return (
@@ -843,7 +843,7 @@ $(function () {
                 );
             }, 0);
 
-            // Hitung total parameter mesin (masih bisa ada untuk rakitan)
+            // Hitung total parameter mesin
             if (typeof editParameterMesinList !== "undefined") {
                 editParameterMesinList.forEach((row) => {
                     const param =
@@ -853,7 +853,7 @@ $(function () {
                     totalParam += (param.total || 0) * (row.jumlah || 1);
                 });
             }
-        } else {
+        // } else {
             // Hitung total bahan baku untuk produk biasa
             totalBahan = editBahanBakuList.reduce((sum, row) => {
                 return sum + (row.harga || 0) * (row.jumlah || 1);
@@ -869,7 +869,7 @@ $(function () {
                     totalParam += (param.total || 0) * (row.jumlah || 1);
                 });
             }
-        }
+        // }
 
         // Hitung total biaya tambahan
         $("#editTabelBiayaTambahan .edit-biaya-tambahan-item").each(
