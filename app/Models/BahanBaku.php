@@ -36,12 +36,12 @@ class BahanBaku extends Model
     ];
 
     protected $casts = [
+        'harga_terakhir' => 'decimal:2',
         'status_aktif' => 'boolean',
         'konversi_satuan_json' => 'array',
         'dokumen_pendukung_json' => 'array',
         'foto_pendukung_json' => 'array',
         'video_pendukung_json' => 'array',
-        'harga_terakhir' => 'integer',
         'stok_saat_ini' => 'integer',
         'stok_minimum' => 'integer',
         'stok_maksimum' => 'integer',

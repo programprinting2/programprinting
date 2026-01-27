@@ -171,7 +171,7 @@
                       </label>
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
-                        <input type="text" class="form-control money-format" id="edit_harga_terakhir" name="harga_terakhir" value="0">
+                        <input type="number" class="form-control" id="edit_harga_terakhir" name="harga_terakhir" value="0" step="0.01" min="0">
                         <span class="input-group-text" id="editLabelSatuanHargaTerakhir"></span>
                         <input type="hidden" id="edit_id" name="id" value="">
                       </div>

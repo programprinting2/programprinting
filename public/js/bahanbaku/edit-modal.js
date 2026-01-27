@@ -319,7 +319,7 @@ function loadBahanBakuData(id) {
       $('#editNamaPemasokUtama').val('');
       $('#editPemasokUtamaId').val('');
     }
-    BahanBakuHelper.applyMoneyFormat($('#edit_harga_terakhir').val(data.harga_terakhir));
+    $('#edit_harga_terakhir').val(data.harga_terakhir || 0);
     
     // Informasi Stok
     $('#edit_stok_saat_ini').val(data.stok_saat_ini);
@@ -707,12 +707,6 @@ $('#edit_sub_satuan').on('change', function() {
 
 // Fungsi untuk mempersiapkan data sebelum submit
 function prepareFormData(formData) {
-  // Hapus format Rupiah dari harga terakhir
-  const hargaTerakhir = formData.get('harga_terakhir');
-  if (hargaTerakhir) {
-    formData.set('harga_terakhir', hargaTerakhir.replace(/\./g, ''));
-  }
-
   // Set status_aktif dari dropdown
   const statusAktif = $('#edit_status_aktif').val();
   formData.delete('status_aktif'); // Hapus nilai lama jika ada
@@ -917,7 +911,7 @@ function getSatuanOptionsFromList() {
 
 // Fungsi untuk menghitung dan update total harga per baris konversi satuan
 function updateEditConversionTotals() {
-  const hargaTerakhir = parseFloat($('#edit_harga_terakhir').val().replace(/\./g, '').replace(/,/g, '')) || 0;
+  const hargaTerakhir = parseFloat($('#edit_harga_terakhir').val()) || 0;
   $('#editConversionUnitsContainer .conversion-row').each(function() {
     const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
     const subSatuanId = $(this).find('select[name*="[satuan_dari]"]').val();

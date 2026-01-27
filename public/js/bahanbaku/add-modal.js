@@ -35,7 +35,7 @@ $(document).ready(function() {
     const stokSaatIni = parseInt($('#stokSaatIni').val()) || 0;
     const stokMinimum = parseInt($('#stokMinimum').val()) || 0;
     const stokMaksimum = parseInt($('#stokMaksimum').val()) || 0;
-    const hargaTerakhir = parseFloat($('#hargaTerakhir').val().replace(/\./g, '')) || 0;
+    const hargaTerakhir = parseFloat($('#hargaTerakhir').val()) || 0;
     const satuanUtama = $('#satuanUtama').val();
 
     // Update Status Stok
@@ -127,7 +127,7 @@ $(document).ready(function() {
 
   // Fungsi untuk menghitung dan update total harga per baris konversi satuan
   function updateAddConversionTotals() {
-    const hargaTerakhir = parseFloat($('#hargaTerakhir').val().replace(/\./g, '').replace(/,/g, '')) || 0;
+    const hargaTerakhir = parseFloat($('#hargaTerakhir').val()) || 0;
     $('#conversionUnitsContainer .conversion-row').each(function() {
       const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
       const subSatuanId = $(this).find('select[name*="[satuan_dari]"]').val();
@@ -238,12 +238,6 @@ $(document).ready(function() {
 
   // Fungsi untuk mempersiapkan data sebelum submit
   function prepareFormData(formData) {
-    // Hapus format Rupiah dari harga terakhir
-    const hargaTerakhir = formData.get('harga_terakhir');
-    if (hargaTerakhir) {
-      formData.set('harga_terakhir', hargaTerakhir.replace(/\./g, ''));
-    }
-
     // Persiapkan data konversi satuan
     const konversiRows = [];
     $('.conversion-row').each(function() {

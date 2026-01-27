@@ -25,38 +25,6 @@ if (typeof BahanBakuHelper === 'undefined') {
         formatNumber: function(number) {
             return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
         },
-
-        /**
-         * Mengaplikasikan format mata uang pada input
-         * @param {jQuery} $input - Element input yang akan diformat
-         */
-        applyMoneyFormat: function($input) {
-            // Simpan posisi kursor
-            const cursorPos = $input[0].selectionStart;
-            const cursorEnd = $input[0].selectionEnd;
-            
-            // Ambil nilai tanpa format
-            let value = $input.val().replace(/\./g, '');
-            
-            if (value !== '') {
-                // Hitung perbedaan panjang sebelum dan sesudah format
-                const lengthBefore = $input.val().length;
-                
-                // Format angka
-                const formattedValue = this.formatNumber(value);
-                $input.val(formattedValue);
-                
-                // Hitung perbedaan panjang
-                const lengthAfter = formattedValue.length;
-                const lengthDiff = lengthAfter - lengthBefore;
-                
-                // Sesuaikan posisi kursor
-                if (cursorPos !== undefined) {
-                    $input[0].setSelectionRange(cursorPos + lengthDiff, cursorEnd + lengthDiff);
-                }
-            }
-        },
-
         /**
          * Inisialisasi format mata uang untuk semua input uang
          */

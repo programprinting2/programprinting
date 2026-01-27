@@ -123,7 +123,7 @@
                 <td>{{ $b->stok_saat_ini }}</td>
                 <td>
                     <div>
-                        Rp {{ number_format($b->harga_terakhir, 0, ',', '.') }}<br>
+                        Rp {{ number_format($b->harga_terakhir, 2, ',', '.') }}<br>
                         <small class="text-muted">{{ $b->pemasokUtama ? $b->pemasokUtama->nama : 'Tidak Ada Pemasok' }}</small>
                     </div>
                 </td>

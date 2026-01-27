@@ -34,7 +34,6 @@ class BahanBakuService
             $data['link_pendukung_json'] = $this->processLinkPendukung($data['link_pendukung_json'] ?? null);
             
             // Process numeric fields
-            $data['harga_terakhir'] = isset($data['harga_terakhir']) ? (int) $data['harga_terakhir'] : null;
             $data['stok_saat_ini'] = isset($data['stok_saat_ini']) ? (int) $data['stok_saat_ini'] : 0;
             $data['stok_minimum'] = isset($data['stok_minimum']) ? (int) $data['stok_minimum'] : 0;
             $data['stok_maksimum'] = isset($data['stok_maksimum']) ? (int) $data['stok_maksimum'] : 0;
@@ -94,7 +93,6 @@ class BahanBakuService
             $data['link_pendukung_json'] = $this->processLinkPendukung($data['link_pendukung_json'] ?? null);
             
             // Process numeric fields
-            $data['harga_terakhir'] = isset($data['harga_terakhir']) ? (int) $data['harga_terakhir'] : null;
             $data['stok_saat_ini'] = isset($data['stok_saat_ini']) ? (int) $data['stok_saat_ini'] : 0;
             $data['stok_minimum'] = isset($data['stok_minimum']) ? (int) $data['stok_minimum'] : 0;
             $data['stok_maksimum'] = isset($data['stok_maksimum']) ? (int) $data['stok_maksimum'] : 0;
