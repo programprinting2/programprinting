@@ -89,7 +89,7 @@ class HutangController extends Controller
             '0-30' => ['label' => '0-30 Hari', 'data' => [], 'total' => 0],
             '30-60' => ['label' => '31-60 Hari', 'data' => [], 'total' => 0],
             '60-90' => ['label' => '61-90 Hari', 'data' => [], 'total' => 0],
-            '90+' => ['label' => '>90 Hari', 'data' => [], 'total' => 0],
+            '90plus' => ['label' => '>90 Hari', 'data' => [], 'total' => 0],
         ];
 
         foreach ($pembelianBelumLunas as $pembelian) {
@@ -103,7 +103,7 @@ class HutangController extends Controller
             } elseif ($umurHari <= 90) {
                 $group = '60-90';
             } else {
-                $group = '90+';
+                $group = '90plus';
             }
             
             $groups[$group]['data'][] = $pembelian;
@@ -111,9 +111,10 @@ class HutangController extends Controller
         }
 
         // Filter hanya group yang ada datanya
-        return collect($groups)->filter(function ($group) {
-            return count($group['data']) > 0;
-        });
+        // return collect($groups)->filter(function ($group) {
+        //     return count($group['data']) > 0;
+        // });
+        return collect($groups);
     }
 
     private function getPemasokDetailAjax($pemasokId): JsonResponse
@@ -165,7 +166,7 @@ class HutangController extends Controller
                     $query->whereRaw('(CURRENT_DATE - tanggal_pembelian) BETWEEN 61 AND 90');
                     break;
             
-                case '90+':
+                case '90plus':
                     $query->whereRaw('(CURRENT_DATE - tanggal_pembelian) > 90');
                     break;
             }
@@ -198,7 +199,7 @@ class HutangController extends Controller
             '0-30' => '0-30 Hari',
             '30-60' => '31-60 Hari',
             '60-90' => '61-90 Hari',
-            '90+' => '>90 Hari'
+            '90plus' => '>90 Hari'
         ];
         
         return $labels[$group] ?? $group;

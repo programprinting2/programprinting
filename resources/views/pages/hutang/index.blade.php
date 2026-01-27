@@ -14,6 +14,9 @@
       border-radius: 0.375rem !important;
       margin-bottom: 1rem;
     }
+    .accordion-item:not(:first-of-type) {
+      border-top: 1px solid #dee2e6 !important; 
+    }
     .accordion-header {
       border-radius: 0.375rem 0.375rem 0 0 !important;
     }
@@ -162,15 +165,18 @@
                  aria-labelledby="umur-tab">
               <div class="accordion" id="umurAccordion">
                 @forelse($umurHutangGroups as $groupKey => $group)
+                  @php
+                    $safeKey = str_replace('+', 'plus', $groupKey);
+                  @endphp
                   <div class="accordion-item">
-                    <h2 class="accordion-header" id="umur-heading{{ $groupKey }}">
+                    <h2 class="accordion-header" id="umur-heading{{ $safeKey }}">
                       <button class="accordion-button collapsed umur-header" 
                               type="button" 
                               data-bs-toggle="collapse" 
-                              data-bs-target="#umur-collapse{{ $groupKey }}" 
+                              data-bs-target="#umur-collapse{{ $safeKey }}" 
                               aria-expanded="false" 
-                              aria-controls="umur-collapse{{ $groupKey }}"
-                              data-umur-group="{{ $groupKey }}">
+                              aria-controls="umur-collapse{{ $safeKey }}"
+                              data-umur-group="{{ $safeKey }}">
                         <div class="d-flex justify-content-between align-items-center w-100 me-3">
                           <div class="flex-grow-1">
                             <h6 class="mb-1 text-dark fw-bold">
@@ -194,11 +200,12 @@
                         </div>
                       </button>
                     </h2>
-                    <div id="umur-collapse{{ $groupKey }}" 
+                    <div id="umur-collapse{{ $safeKey }}" 
                          class="accordion-collapse collapse" 
                          aria-labelledby="umur-heading{{ $groupKey }}" 
                          data-bs-parent="#umurAccordion">
                       <div class="accordion-body">
+                        @if(count($group['data']) >= 0)
                         <div class="loading-spinner text-center py-4">
                           <div class="spinner-border text-primary mb-3" role="status">
                             <span class="visually-hidden">Memuat...</span>
@@ -207,6 +214,15 @@
                           <p class="text-muted small">Mohon tunggu sebentar</p>
                         </div>
                         <div class="umur-detail-content" data-loaded="false"></div>
+                      @else
+                        <div class="text-center py-4">
+                          <i data-feather="check-circle" class="icon-lg text-success mb-2"></i>
+                          <h6 class="text-muted">Tidak ada hutang dalam kategori ini</h6>
+                          <p class="text-muted small">
+                            Semua hutang telah lunas atau tidak ada di rentang {{ $group['label'] }}
+                          </p>
+                        </div>
+                      @endif
                       </div>
                     </div>
                   </div>
@@ -419,7 +435,7 @@
           <td>${formatDate(pembelian.tanggal_pembelian)}</td>
           <td>${pembelian.jatuh_tempo ? formatDate(pembelian.jatuh_tempo) : '<span class="text-muted">-</span>'}</td>
           <td>
-            <span class="badge bg-secondary">${umurHari} hari</span>
+            <span class="badge ${getUmurBadgeClass(umurHari)}">${umurHari} hari</span>
           </td>
           <td class="fw-bold text-danger">Rp ${formatNumber(pembelian.total)}</td>
           <td>
@@ -504,7 +520,7 @@
           </td>
           <td>${formatDate(pembelian.tanggal_pembelian)}</td>
           <td>
-            <span class="badge bg-secondary">${umurHari} hari</span>
+            <span class="badge ${getUmurBadgeClass(umurHari)}">${umurHari} hari</span>
           </td>
           <td class="fw-bold text-danger">Rp ${formatNumber(pembelian.total)}</td>
           <td>
@@ -553,6 +569,18 @@
 
   function formatNumber(number) {
     return new Intl.NumberFormat('id-ID').format(number);
+  }
+
+  function getUmurBadgeClass(umurHari) {
+    if (umurHari <= 30) {
+      return 'bg-success';  
+    } else if (umurHari <= 60) {
+      return 'bg-warning';  
+    } else if (umurHari <= 90) {
+      return 'bg-danger';  
+    } else {
+      return 'bg-dark';    
+    }
   }
 
   function calculateUmurHutang(tanggalPembelian) {
