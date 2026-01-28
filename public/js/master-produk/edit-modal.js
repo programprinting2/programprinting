@@ -343,6 +343,7 @@ $(function () {
                         updateEditWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
                     }
                 }
+                $("#editProdukModalLabel").text(`Edit Produk: ${p.nama_produk}`);
                 $("#editProdukModal").modal("show");
             } else {
                 Swal.fire("Gagal", "Data produk tidak ditemukan", "error");
@@ -733,7 +734,8 @@ $(function () {
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleEditMesinDipilih);
         window.removeEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih); 
-        
+        $("#editProdukModalLabel").text("Edit Produk");
+        $("#editProdukForm")[0].reset();
         editProdukKomponenList = [];
         renderEditTabelProdukKomponen();
     });

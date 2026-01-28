@@ -437,6 +437,7 @@ function loadBahanBakuData(id) {
     renderEditVideosPreview();
 
     // Tampilkan modal
+    $('#editModalLabel').text(`Edit Bahan Baku: ${data.nama_bahan}`);
     $('#editModal').modal('show');
     // Panggil fungsi update stok saat modal ditampilkan dan data dimuat
     updateEditStockUnitLabels();
@@ -1075,6 +1076,7 @@ $(document).ready(function() {
 
   // Reset form dan preview saat modal ditutup
   $('#editModal').on('hidden.bs.modal', function () {
+    $('#editModalLabel').text('Edit Bahan Baku');
     $('#editForm')[0].reset();
     selectedEditPhotos = [];
     selectedEditVideos = [];
