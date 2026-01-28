@@ -121,7 +121,22 @@ $(function () {
             editProdukKomponenList.length = 0;
             renderEditTabelProdukKomponen();
         }
-
+        let description = "";
+        switch (jenisProduk) {
+            case "jasa":
+                description = "Non Stok";
+                break;
+            case "produk":
+                description = "Kumpulan dari beberapa bahan baku";
+                break;
+            case "rakitan":
+                description = "Gabungan dari beberapa produk yang bisa dijual terpisah";
+                break;
+            default:
+                description = "Pilih jenis produk terlebih dahulu";
+        }
+        
+        $("#edit-jenis-produk-description").text(description);
         updateTotalModalKeseluruhanEdit();
     }
 

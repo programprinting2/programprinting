@@ -1806,4 +1806,34 @@ $(function () {
         const hexCode = selectedOption.data('hex');
         updateWarnaPreviewModal(hexCode, 'warnaPreviewModal');
     });
+
+    $(document).on("change", "#jenis_produk", function () {
+        const jenisProduk = $(this).val();
+        let description = "";
+        
+        switch (jenisProduk) {
+            case "jasa":
+                description = "Non Stok";
+                break;
+            case "produk":
+                description = "Kumpulan dari beberapa bahan baku";
+                break;
+            case "rakitan":
+                description = "Gabungan dari beberapa produk yang bisa dijual terpisah";
+                break;
+            default:
+                description = "Pilih jenis produk terlebih dahulu";
+        }
+        
+        $("#jenis-produk-description").text(description);
+    });
+    
+    $("#tambahProduk").on("shown.bs.modal", function () {
+        const selectedJenis = $("#jenis_produk").val();
+        if (selectedJenis) {
+            $("#jenis_produk").trigger("change");
+        } else {
+            $("#jenis-produk-description").text("Pilih jenis produk terlebih dahulu");
+        }
+    });
 });

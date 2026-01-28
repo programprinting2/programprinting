@@ -63,6 +63,7 @@
                         <option value="jasa">Jasa</option>
                         <option value="rakitan">Rakitan</option>
                       </select>
+                      <small id="edit-jenis-produk-description" class="text-muted">Pilih jenis produk terlebih dahulu</small>
                     </div>
                     <div class="col-md-4">
                       <label for="edit_kode_produk" class="form-label">Kode Produk</label>
