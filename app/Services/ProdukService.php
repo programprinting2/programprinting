@@ -170,8 +170,8 @@ class ProdukService
             }
 
             $bahanBakuData = null;
-            if ($data['jenis_produk'] !== 'rakitan' && isset($data['bahan_baku'])) {
-                $bahanBakuData = $data['bahan_baku'];
+            if ($data['jenis_produk'] !== 'rakitan' ) {
+                $bahanBakuData = $data['bahan_baku'] ?? [];
                 unset($data['bahan_baku']);
             }
             
@@ -180,8 +180,8 @@ class ProdukService
 
             if ($produk->jenis_produk === 'rakitan' && $produkKomponenData) {
                 $produk->syncProdukKomponen($produkKomponenData);
-            } elseif ($produk->jenis_produk !== 'rakitan' && $bahanBakuData) {
-                $produk->syncBahanBakus($bahanBakuData);
+            } elseif ($produk->jenis_produk !== 'rakitan') {
+                $produk->syncBahanBakus($bahanBakuData ?: []);
             }
 
             DB::commit();
