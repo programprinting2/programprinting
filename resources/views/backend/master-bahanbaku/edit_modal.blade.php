@@ -171,7 +171,8 @@
                       </label>
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
-                        <input type="number" class="form-control" id="edit_harga_terakhir" name="harga_terakhir" value="0" step="0.01" min="0">
+                        <!-- <input type="number" class="form-control" id="edit_harga_terakhir" name="harga_terakhir" value="0" step="0.01" min="0"> -->
+                        <input class="form-control" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true, 'removeMaskOnSubmit':true" id="edit_harga_terakhir" name="harga_terakhir" value="0" >
                         <span class="input-group-text" id="editLabelSatuanHargaTerakhir"></span>
                         <input type="hidden" id="edit_id" name="id" value="">
                       </div>
@@ -390,6 +391,10 @@
 </style>
 @endpush
 
+@push('plugin-scripts')
+  <script src="{{ asset('assets/plugins/inputmask/jquery.inputmask.min.js') }}"></script>
+@endpush
+
 @push('custom-scripts')
 @include('backend.general-form.cari-pemasok', [
   'modalId' => 'modalCariPemasokBahanBakuEdit',
@@ -398,6 +403,7 @@
   'paginationId' => 'paginationCariPemasokBahanBakuEdit',
   'clearBtnId' => 'clearSearchPemasokBahanBakuEdit',
 ])
+<script src="{{ asset('assets/js/inputmask.js') }}"></script>
 <script>
 $(function() {
   $('#btnEditCariPemasokUtama, #editNamaPemasokUtama').on('click', function() {

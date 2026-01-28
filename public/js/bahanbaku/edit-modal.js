@@ -319,7 +319,7 @@ function loadBahanBakuData(id) {
       $('#editNamaPemasokUtama').val('');
       $('#editPemasokUtamaId').val('');
     }
-    $('#edit_harga_terakhir').val(data.harga_terakhir || 0);
+    $('#edit_harga_terakhir').val(parseFloat(data.harga_terakhir).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2}) || 0);
     
     // Informasi Stok
     $('#edit_stok_saat_ini').val(data.stok_saat_ini);
@@ -361,7 +361,7 @@ function loadBahanBakuData(id) {
             <div class="col-auto d-flex align-items-center gap-4">
               <div class="input-group">
                 <span class="input-group-text">Rp</span>
-                <input type="text" class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" value="0" readonly disabled>
+                <input class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" value="0" readonly disabled>
                 <span class="input-group-text satuan-total-konversi"></span>
               </div>
               <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
@@ -680,7 +680,7 @@ $('#editTambahKonversi').off('click').on('click', function() {
       <div class="col-auto d-flex align-items-center gap-4">
         <div class="input-group">
           <span class="input-group-text">Rp</span>
-          <input type="text" class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" value="0" readonly disabled>
+          <input class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" value="0" readonly disabled>
           <span class="input-group-text satuan-total-konversi"></span>
         </div>
         <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
@@ -912,7 +912,7 @@ function getSatuanOptionsFromList() {
 
 // Fungsi untuk menghitung dan update total harga per baris konversi satuan
 function updateEditConversionTotals() {
-  const hargaTerakhir = parseFloat($('#edit_harga_terakhir').val()) || 0;
+  const hargaTerakhir = BahanBakuHelper.getNumericValue($('#edit_harga_terakhir'));
   $('#editConversionUnitsContainer .conversion-row').each(function() {
     const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
     const subSatuanId = $(this).find('select[name*="[satuan_dari]"]').val();
@@ -922,7 +922,10 @@ function updateEditConversionTotals() {
       subSatuanNama = subSatuan ? subSatuan.nama_sub_detail_parameter : '';
     }
     const total = jumlah * hargaTerakhir;
-    $(this).find('.total-konversi-harga').val(total.toLocaleString('id-ID'));
+    $(this).find('.total-konversi-harga').val(total.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }));
     $(this).find('.satuan-total-konversi').text(subSatuanNama ? '/' + subSatuanNama : '');
   });
 }

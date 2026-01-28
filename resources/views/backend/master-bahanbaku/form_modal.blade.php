@@ -174,7 +174,8 @@
                       </label>
                       <div class="input-group">
                         <span class="input-group-text">Rp</span>
-                        <input type="number" class="form-control" id="hargaTerakhir" name="harga_terakhir" value="0" step="0.01" min="0">
+                        <!-- <input type="number" class="form-control" id="hargaTerakhir" name="harga_terakhir" value="0" step="0.01" min="0"> -->
+                        <input class="form-control" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true, 'removeMaskOnSubmit':true" id="hargaTerakhir" name="harga_terakhir" value="0" >
                         <span class="input-group-text" id="labelSatuanHargaTerakhir"></span>
                       </div>
                       <small class="text-muted">Harga beli terakhir dari pemasok utama</small>
@@ -392,6 +393,11 @@
 @endpush
 
 @push('plugin-scripts')
+  <script src="{{ asset('assets/plugins/inputmask/jquery.inputmask.min.js') }}"></script>
+@endpush
+
+@push('plugin-scripts')
+  <script src="{{ asset('assets/js/inputmask.js') }}"></script>
   <script src="{{ asset('assets/plugins/datatables-net/jquery.dataTables.js') }}"></script>
   <script src="{{ asset('assets/plugins/datatables-net-bs5/dataTables.bootstrap5.js') }}"></script>
   <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>

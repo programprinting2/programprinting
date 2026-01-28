@@ -32,10 +32,10 @@ $(document).ready(function() {
 
   // Fungsi untuk mengupdate informasi stok secara dinamis
   function updateStokInfo() {
-    const stokSaatIni = parseInt($('#stokSaatIni').val()) || 0;
-    const stokMinimum = parseInt($('#stokMinimum').val()) || 0;
-    const stokMaksimum = parseInt($('#stokMaksimum').val()) || 0;
-    const hargaTerakhir = parseFloat($('#hargaTerakhir').val()) || 0;
+    const stokSaatIni = parseFloat($('#stokSaatIni').val()) || 0;
+    const stokMinimum = parseFloat($('#stokMinimum').val()) || 0;
+    const stokMaksimum = parseFloat($('#stokMaksimum').val()) || 0;
+    const hargaTerakhir = parseFloat($('#hargaTerakhir').val().replace(/,/g, '')) || 0;
     const satuanUtama = $('#satuanUtama').val();
 
     // Update Status Stok
@@ -127,7 +127,7 @@ $(document).ready(function() {
 
   // Fungsi untuk menghitung dan update total harga per baris konversi satuan
   function updateAddConversionTotals() {
-    const hargaTerakhir = parseFloat($('#hargaTerakhir').val()) || 0;
+    const hargaTerakhir = parseFloat($('#hargaTerakhir').val().replace(/,/g, '')) || 0;
     $('#conversionUnitsContainer .conversion-row').each(function() {
       const jumlah = parseFloat($(this).find('.jumlah-konversi').val()) || 0;
       const subSatuanId = $(this).find('select[name*="[satuan_dari]"]').val();
@@ -172,7 +172,7 @@ $(document).ready(function() {
         <div class="col-auto d-flex align-items-center gap-4">
           <div class="input-group">
             <span class="input-group-text">Rp</span>
-            <input type="text" class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" value="0" readonly disabled>
+            <input class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" value="0" readonly disabled>
             <span class="input-group-text satuan-total-konversi"></span>
           </div>
           <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>

@@ -23,7 +23,18 @@ if (typeof BahanBakuHelper === 'undefined') {
          * @returns {string} Format angka dengan pemisah ribuan
          */
         formatNumber: function(number) {
-            return number.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+            return number.toString().replace(/,/g, '');
+        },
+
+        getNumericValue: function($input) {
+          let value = $input.val() || '';
+
+          // Hapus prefix seperti "Rp " jika ada
+          value = value.replace(/^Rp\s*/, '');
+
+          value = value.replace(/,/g, '');
+
+          return parseFloat(value) || 0;
         },
         /**
          * Inisialisasi format mata uang untuk semua input uang
