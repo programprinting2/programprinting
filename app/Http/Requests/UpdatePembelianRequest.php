@@ -27,8 +27,8 @@ class UpdatePembelianRequest extends FormRequest
             'biaya_lain' => 'nullable|integer|min:0',
             'items' => 'required|array|min:1|max:100',
             'items.*.bahanbaku_id' => 'required|exists:bahan_baku,id',
-            'items.*.jumlah' => 'required|integer|min:1|max:999999',
-            'items.*.harga' => 'required|integer|min:0|max:999999999',
+            'items.*.jumlah' => 'required|numeric|min:0.01|max:999999',
+            'items.*.harga' => 'required|numeric|min:0|max:999999999',
             'items.*.diskon_persen' => 'nullable|numeric|min:0|max:100',
             'items.*.satuan' => 'nullable|integer',
         ];

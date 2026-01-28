@@ -93,9 +93,9 @@ class BahanBakuService
             $data['link_pendukung_json'] = $this->processLinkPendukung($data['link_pendukung_json'] ?? null);
             
             // Process numeric fields
-            $data['stok_saat_ini'] = isset($data['stok_saat_ini']) ? (int) $data['stok_saat_ini'] : 0;
-            $data['stok_minimum'] = isset($data['stok_minimum']) ? (int) $data['stok_minimum'] : 0;
-            $data['stok_maksimum'] = isset($data['stok_maksimum']) ? (int) $data['stok_maksimum'] : 0;
+            $data['stok_saat_ini'] = isset($data['stok_saat_ini']) ? (float) $data['stok_saat_ini'] : 0;
+            $data['stok_minimum'] = isset($data['stok_minimum']) ? (float) $data['stok_minimum'] : 0;
+            $data['stok_maksimum'] = isset($data['stok_maksimum']) ? (float) $data['stok_maksimum'] : 0;
             $data['status_aktif'] = (bool) ($data['status_aktif'] ?? false);
 
             // Handle existing files

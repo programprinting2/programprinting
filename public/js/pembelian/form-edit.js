@@ -107,13 +107,14 @@
 
   // --- Preview Total Item ---
   function updatePreviewTotalItem() {
-    const jumlah = parseInt(document.getElementById('jumlahInput').value) || 1;
-    const harga = PembelianHelper.getNumericValue($('#hargaInput'));
+    const jumlah = parseFloat(document.getElementById('jumlahInput').value) || 1;
+    const harga = parseFloat(document.getElementById('hargaInput').value) || 0;
     const diskon = parseFloat(document.getElementById('diskonInput').value) || 0;
     // Tidak perlu konversi lagi, harga sudah sesuai satuan yang dipilih
     let total = jumlah * harga * (1 - diskon / 100);
+    total = Math.round(total * 100) / 100; 
     if (isNaN(total) || total < 0) total = 0;
-    document.getElementById('previewTotalItem').value = PembelianHelper.formatNumber('Rp ' + (total ? total : 0));
+    document.getElementById('previewTotalItem').value = PembelianHelper.formatDecimal('Rp ' + (total ? total : 0));
   }
 
   document.getElementById('jumlahInput').addEventListener('input', updatePreviewTotalItem);
@@ -156,11 +157,11 @@
     const satuanSelect = document.getElementById('satuanInput');
     const itemBody = document.getElementById('itemBody');
     const hargaSatuan = PembelianHelper.getNumericValue($(hargaInput));
-    const jumlah = parseInt(jumlahInput.value) || 1;
+    const jumlah = parseFloat(jumlahInput.value) || 1;
     const diskonPersen = parseFloat(diskonInput.value) || 0;
     
     if (!bahanbakuId) return Swal.fire({icon: 'error', title: 'Pilih bahan baku terlebih dahulu!'});
-    if (jumlah < 1) return Swal.fire({icon: 'error', title: 'Jumlah minimal 1!'});
+    if (jumlah <= 0) return Swal.fire({icon: 'error', title: 'Jumlah minimal 1!'});
     if (hargaSatuan < 1) return Swal.fire({icon: 'error', title: 'Harga minimal 1!'});
     if (diskonPersen < 0 || diskonPersen > 100) return Swal.fire({icon: 'error', title: 'Diskon harus antara 0-100%'});
     
@@ -185,9 +186,9 @@
       <td>${bahanbakuNama}</td>
       <td class="item-jumlah">${jumlah}<input type="hidden" name="items[${index}][jumlah]" value="${jumlah}"></td>
       <td class="item-satuan">${satuanLabel}<input type="hidden" name="items[${index}][satuan]" value="${satuanValue}"></td>
-      <td class="item-harga text-end">${PembelianHelper.formatNumber(itemHarga)}<input type="hidden" name="items[${index}][harga]" value="${itemHarga}"></td>
+      <td class="item-harga text-end">${itemHarga}<input type="hidden" name="items[${index}][harga]" value="${itemHarga}"></td>
       <td class="item-diskon text-end">${diskonPersen}%<input type="hidden" name="items[${index}][diskon_persen]" value="${diskonPersen}"></td>
-      <td class="item-total text-end">${PembelianHelper.formatNumber(itemTotal)}</td>
+      <td class="item-total text-end" data-value="${itemTotal}">${itemTotal.toFixed(2)}</td>
       <td>
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -235,7 +236,7 @@
       const satuanId = row.querySelector('input[name$="[satuan]"]').value;
       row.querySelector('.item-jumlah').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-jumlah' value='${jumlah}' min='1'>`;
       let hargaSatuan = parseInt(harga.replace(/\./g, '')) || 0;
-      row.querySelector('.item-harga').innerHTML = `<input type='text' class='form-control form-control-sm input-edit-harga' value='${PembelianHelper.formatNumber(hargaSatuan)}'>`;
+      row.querySelector('.item-harga').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-harga' value='${hargaSatuan}' min='0.01' step="0.01">`;
       row.querySelector('.item-diskon').innerHTML = `<input type='number' class='form-control form-control-sm input-edit-diskon' value='${diskon}' min='0' max='100' step='0.01'>`;
       let satuanOptions = '';
       if (window.bahanBakuCache && window.bahanBakuCache[bahanbakuId]) {
@@ -274,7 +275,8 @@
         const hargaVal = PembelianHelper.getNumericValue($(hargaInput));
         const diskonVal = parseFloat(diskonInput.value) || 0;
         const total = hargaVal * jumlahVal * (1 - diskonVal/100);
-        row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(total);
+        row.querySelector('.item-total').textContent = total.toFixed(2);
+        row.querySelector('.item-total').dataset.value = total;
         updateRingkasanBiaya();
       }
       jumlahInput.addEventListener('input', updateItemTotalLive);
@@ -298,7 +300,7 @@
     if (e.target.closest('.btn-batal-edit')) {
       const row = e.target.closest('tr');
       const jumlah = row.querySelector('.input-edit-jumlah').defaultValue;
-      const hargaSatuan = PembelianHelper.getNumericValue($(row.querySelector('.input-edit-harga')));
+      const hargaSatuan = parseFloat(row.querySelector('.input-edit-harga').defaultValue) || 0;
       const diskon = row.querySelector('.input-edit-diskon').defaultValue;
       const satuanId = row.querySelector('input[name$="[satuan]"]').value;
       
@@ -315,10 +317,11 @@
       }
       
       row.querySelector('.item-jumlah').innerHTML = `${jumlah}<input type="hidden" name="items[][jumlah]" value="${jumlah}">`;
-      row.querySelector('.item-harga').innerHTML = `${PembelianHelper.formatNumber(itemHarga)}<input type="hidden" name="items[][harga]" value="${itemHarga}">`;
+      row.querySelector('.item-harga').innerHTML = `${itemHarga}<input type="hidden" name="items[][harga]" value="${itemHarga}">`;
       row.querySelector('.item-diskon').innerHTML = `${diskon}<input type="hidden" name="items[][diskon_persen]" value="${diskon}">`;
       row.querySelector('.item-satuan').innerHTML = `${satuanLabel}<input type="hidden" name="items[][satuan]" value="${satuanId}">`;
-      row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(itemTotal);
+      row.querySelector('.item-total').textContent = itemTotal.toFixed(2);
+      row.querySelector('.item-total').dataset.value = itemTotal;
       row.querySelector('td:last-child').innerHTML = `
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -335,7 +338,7 @@
       const satuanSelect = row.querySelector('.input-edit-satuan');
       const satuanId = satuanSelect ? satuanSelect.value : row.querySelector('input[name$="[satuan]"]').value;
       
-      if (jumlah < 1) return alert('Jumlah minimal 1!');
+      if (jumlah <= 0) return alert('Jumlah minimal 1!');
       if (hargaSatuan < 1) return alert('Harga minimal 1!');
       if (diskon === '' || diskon === null || diskon === undefined) {
         return alert('Diskon tidak boleh dikosongkan!');
@@ -344,7 +347,7 @@
       if (diskon > 100) return alert('Diskon tidak boleh lebih dari 100%!');
       
       const itemHarga = hargaSatuan; // Hanya harga satuan
-      const itemTotal = itemHarga * parseInt(jumlah) * (1 - (parseFloat(diskon) || 0) / 100);
+      const itemTotal = itemHarga * parseFloat(jumlah) * (1 - (parseFloat(diskon) || 0) / 100);
       
       // Ambil nama satuan dari satuanList
       let satuanLabel = satuanId;
@@ -356,10 +359,11 @@
       }
       
       row.querySelector('.item-jumlah').innerHTML = `${jumlah}<input type="hidden" name="items[][jumlah]" value="${jumlah}">`;
-      row.querySelector('.item-harga').innerHTML = `${PembelianHelper.formatNumber(itemHarga)}<input type="hidden" name="items[][harga]" value="${itemHarga}">`;
+      row.querySelector('.item-harga').innerHTML = `${itemHarga}<input type="hidden" name="items[][harga]" value="${itemHarga}">`;
       row.querySelector('.item-diskon').innerHTML = `${diskon}<input type="hidden" name="items[][diskon_persen]" value="${diskon}">`;
       row.querySelector('.item-satuan').innerHTML = `${satuanLabel}<input type="hidden" name="items[][satuan]" value="${satuanId}">`;
-      row.querySelector('.item-total').textContent = PembelianHelper.formatNumber(itemTotal);
+      row.querySelector('.item-total').textContent = itemTotal.toFixed(2);
+      row.querySelector('.item-total').dataset.value = itemTotal;
       row.querySelector('td:last-child').innerHTML = `
       <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
       <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -404,7 +408,7 @@
     for (let row of itemBody.children) {
       if (row.children.length < 7) continue;
       // Ambil item-total dari kolom
-      const itemTotal = parseFloat(row.querySelector('.item-total').textContent.replace(/\./g, '').replace(/Rp\s?/g, '')) || 0;
+      const itemTotal = parseFloat(row.querySelector('.item-total').dataset.value) || 0;
       subtotal += itemTotal;
     }
     // 2. Diskon total pembelian: HANYA dari field jumlah_diskon (Rp)
@@ -423,7 +427,7 @@
     const total = dpp + pajak + biayaPengiriman + biayaLain - notaKredit;
     // Format rupiah
     function formatRupiah(val) {
-      return 'Rp ' + (Math.round(val)||0).toLocaleString('id-ID');
+      return 'Rp ' + (Number(val)||0).toLocaleString('id-ID',{minimumFractionDigits: 2, maximumFractionDigits: 2});
     }
     // Update tampilan
     document.querySelectorAll('.ringkasan-subtotal').forEach(e => e.textContent = formatRupiah(subtotal));
@@ -451,7 +455,7 @@
     for (let row of itemBody.children) {
       if (row.children.length < 7) continue;
       // Ambil item-total dari kolom
-      const itemTotal = parseFloat(row.querySelector('.item-total').textContent.replace(/\./g, '').replace(/Rp\s?/g, '')) || 0;
+      const itemTotal = parseFloat(row.querySelector('.item-total').dataset.value) || 0;
       subtotal += itemTotal;
     }
     return subtotal;
@@ -465,7 +469,7 @@
     const diskonPersen = parseFloat(diskonPersenInput.value) || 0;
     
     // Hitung ulang jumlah diskon berdasarkan persentase yang ada
-    const jumlahDiskonBaru = Math.round(subtotal * (diskonPersen / 100));
+    const jumlahDiskonBaru = Math.round(subtotal * (diskonPersen / 100) * 100) / 100;
     
     // Update field diskon (Rp) dengan nilai baru
     jumlahDiskonInput.value = PembelianHelper.formatNumber(jumlahDiskonBaru);
@@ -479,7 +483,7 @@
     isSyncingDiskon = true;
     const persen = parseFloat(this.value) || 0;
     const subtotal = getSubtotalItemSetelahDiskonPerItem();
-    const jumlah = Math.round(subtotal * (persen / 100));
+    const jumlah = Math.round((subtotal * (persen / 100)) * 100) / 100;
     jumlahDiskonInput.value = PembelianHelper.formatNumber(jumlah);
     isSyncingDiskon = false;
     updateRingkasanBiaya();
@@ -590,7 +594,7 @@
     const totalEl = document.querySelector('.ringkasan-total');
     if (totalEl) {
       const totalStr = totalEl.textContent.replace(/[^\d-]/g, '');
-      total = parseInt(totalStr) || 0;
+      total = parseFloat(totalStr) || 0;
     }
     if (total < 0) {
       Swal.fire({icon: 'error', title: 'Total pembelian tidak boleh minus!'});

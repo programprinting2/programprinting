@@ -71,13 +71,13 @@
                 <div class="col-md-2">
                   <label for="jumlahInput" class="form-label small mb-1 d-block text-end">Jumlah</label>
                   <div class="input-group">
-                    <input type="number" class="form-control text-end" id="jumlahInput" placeholder="Masukkan jumlah" min="1" value="1">
+                    <input type="number" class="form-control text-end" id="jumlahInput" placeholder="Masukkan jumlah" min="1" step="0.01" value="1">
                     <select class="form-select" id="satuanInput" style="min-width:40px" disabled></select>
                   </div>
                 </div>
                 <div class="col-md-2">
                   <label for="hargaInput" class="form-label small mb-1 d-block text-end">Harga Satuan (Rp)</label>
-                  <input type="text" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" value="0">
+                  <input type="number" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" min="1" step="0.01" value="0">
                 </div>
                 <div class="col-md-2">
                   <label for="diskonInput" class="form-label small mb-1 d-block text-end">Diskon per Item (%)</label>

@@ -11,6 +11,12 @@ class PembelianItem extends Model
     protected $fillable = [
         'pembelian_id', 'bahanbaku_id', 'jumlah', 'satuan', 'harga', 'diskon_persen', 'subtotal'
     ];
+    protected $casts = [
+        'jumlah' => 'decimal:2',
+        'harga' => 'decimal:2',
+        'diskon_persen' => 'decimal:2',
+        'subtotal' => 'decimal:2', 
+    ];
 
     public function pembelian()
     {

@@ -27,6 +27,33 @@ if (typeof PembelianHelper === 'undefined') {
         },
 
         /**
+         * Format angka decimal dengan pemisah ribuan dan desimal
+         * @param {number} number - Angka yang akan diformat
+         * @param {number} decimals - Jumlah digit desimal
+         * @returns {string} Format angka dengan desimal
+         */
+        formatDecimal: function(number, decimals = 2) {
+            return number.toLocaleString('id-ID', {
+            minimumFractionDigits: decimals,
+            maximumFractionDigits: decimals
+            });
+        },
+        
+        /**
+         * Format mata uang Rupiah dengan desimal
+         * @param {number} amount - Jumlah uang
+         * @returns {string} Format Rupiah dengan desimal
+         */
+        formatCurrencyDecimal: function(amount) {
+            return amount.toLocaleString('id-ID', {
+            style: 'currency',
+            currency: 'IDR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+            });
+        },
+
+        /**
          * Mengaplikasikan format mata uang pada input
          * @param {jQuery} $input - Element input yang akan diformat
          */
@@ -62,17 +89,17 @@ if (typeof PembelianHelper === 'undefined') {
          */
         initMoneyFormat: function() {
             // Format untuk input harga bahan baku
-            const hargaInputSelector = '#hargaInput';
+            // const hargaInputSelector = '#hargaInput';
             
-            // Format saat focus
-            $(document).on('focus', hargaInputSelector, (e) => {
-                this.applyMoneyFormat($(e.target));
-            });
+            // // Format saat focus
+            // $(document).on('focus', hargaInputSelector, (e) => {
+            //     this.applyMoneyFormat($(e.target));
+            // });
             
-            // Format saat input
-            $(document).on('input', hargaInputSelector, (e) => {
-                this.applyMoneyFormat($(e.target));
-            });
+            // // Format saat input
+            // $(document).on('input', hargaInputSelector, (e) => {
+            //     this.applyMoneyFormat($(e.target));
+            // });
 
             // Format untuk input biaya tambahan
             const biayaInputSelectors = [
@@ -82,34 +109,34 @@ if (typeof PembelianHelper === 'undefined') {
                 'input[name="nota_kredit"]'
             ];
 
-            biayaInputSelectors.forEach(selector => {
-                // Format saat focus
-                $(document).on('focus', selector, (e) => {
-                    this.applyMoneyFormat($(e.target));
-                });
+            // biayaInputSelectors.forEach(selector => {
+            //     // Format saat focus
+            //     $(document).on('focus', selector, (e) => {
+            //         this.applyMoneyFormat($(e.target));
+            //     });
                 
-                // Format saat input
-                $(document).on('input', selector, (e) => {
-                    this.applyMoneyFormat($(e.target));
-                });
-            });
+            //     // Format saat input
+            //     $(document).on('input', selector, (e) => {
+            //         this.applyMoneyFormat($(e.target));
+            //     });
+            // });
 
             // Format untuk input edit item (dinamis)
-            $(document).on('focus', '.input-edit-harga', (e) => {
-                this.applyMoneyFormat($(e.target));
-            });
+            // $(document).on('focus', '.input-edit-harga', (e) => {
+            //     this.applyMoneyFormat($(e.target));
+            // });
             
-            $(document).on('input', '.input-edit-harga', (e) => {
-                this.applyMoneyFormat($(e.target));
-            });
+            // $(document).on('input', '.input-edit-harga', (e) => {
+            //     this.applyMoneyFormat($(e.target));
+            // });
 
             // Inisialisasi format untuk input yang sudah ada nilai (edit mode)
             $(document).ready(() => {
                 // Format input harga bahan baku
-                const $hargaInput = $(hargaInputSelector);
-                if ($hargaInput.length && $hargaInput.val() !== '0') {
-                    this.applyMoneyFormat($hargaInput);
-                }
+                // const $hargaInput = $(hargaInputSelector);
+                // if ($hargaInput.length && $hargaInput.val() !== '0') {
+                //     this.applyMoneyFormat($hargaInput);
+                // }
 
                 // Format input biaya tambahan
                 biayaInputSelectors.forEach(selector => {
@@ -121,13 +148,18 @@ if (typeof PembelianHelper === 'undefined') {
             });
         },
 
-        /**
-         * Mengambil nilai numerik murni dari input berformat
-         * @param {jQuery} $input - Element input
-         * @returns {number} Nilai numerik
-         */
         getNumericValue: function($input) {
-            return parseInt($input.val().replace(/\./g, '')) || 0;
+            const inputType = $input.attr('type');
+            const inputId = $input.attr('id')
+
+            if (inputId === 'hargaInput') {
+                return parseFloat($input.val()) || 0;
+            }
+            
+            if (inputType === 'number') {
+                return parseFloat($input.val()) || 0;
+            }
+            return parseFloat($input.val().replace(/\./g, '').replace(',', '.')) || 0;
         },
 
         /**
@@ -137,11 +169,11 @@ if (typeof PembelianHelper === 'undefined') {
         prepareFormSubmit: function(formSelector) {
             $(formSelector).on('submit', function() {
                 // Hapus format dari input harga bahan baku
-                const $hargaInput = $('#hargaInput');
-                if ($hargaInput.length) {
-                    const rawValue = $hargaInput.val().replace(/\./g, '');
-                    $hargaInput.val(rawValue);
-                }
+                // const $hargaInput = $('#hargaInput');
+                // if ($hargaInput.length) {
+                //     const rawValue = $hargaInput.val().replace(/\./g, '');
+                //     $hargaInput.val(rawValue);
+                // }
 
                 // Hapus format dari input biaya tambahan
                 const biayaInputs = [
@@ -157,6 +189,11 @@ if (typeof PembelianHelper === 'undefined') {
                         const rawValue = $input.val().replace(/\./g, '');
                         $input.val(rawValue);
                     }
+                });
+
+                $(this).find('input[type="text"].money-format').each(function() {
+                    const rawValue = $(this).val().replace(/\./g, '');
+                    $(this).val(rawValue);
                 });
 
                 // Hapus format dari input edit item yang sedang aktif

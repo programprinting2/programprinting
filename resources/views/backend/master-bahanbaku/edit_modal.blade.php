@@ -201,7 +201,7 @@
                         <div class="col-md-12">
                           <label for="edit_stok_saat_ini" class="form-label">Stok Saat Ini</label>
                           <div class="input-group">
-                            <input type="number" class="form-control" id="edit_stok_saat_ini" name="stok_saat_ini" min="0">
+                            <input type="number" class="form-control" id="edit_stok_saat_ini" name="stok_saat_ini" min="0" value="0" step="0.01">
                             <span class="input-group-text" id="editStokSaatIniUnit">Unit</span>
                           </div>
                           <small class="text-muted">Jumlah stok tersedia saat ini</small>
