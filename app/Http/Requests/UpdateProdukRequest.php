@@ -44,8 +44,13 @@ class UpdateProdukRequest extends FormRequest
             $rules['produk_komponen.*.id'] = 'required|integer|exists:produk,id';
             $rules['produk_komponen.*.jumlah'] = 'required|numeric|min:0';
             $rules['produk_komponen.*.harga'] = 'required|numeric|min:0';
+            
+            $rules['bahan_baku'] = 'nullable|array';
+            $rules['bahan_baku.*.id'] = 'required_with:bahan_baku|integer|exists:bahan_baku,id';
+            $rules['bahan_baku.*.jumlah'] = 'required_with:bahan_baku|numeric|min:0';
+            $rules['bahan_baku.*.harga'] = 'required_with:bahan_baku|integer|min:0';
         } else {
-            // $rules['bahan_baku'] = 'required|array|min:1';
+            $rules['bahan_baku'] = 'nullable|array|';
             $rules['bahan_baku.*.id'] = 'required|integer|exists:bahan_baku,id';
             $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0';
             $rules['bahan_baku.*.harga'] = 'required|integer|min:0';

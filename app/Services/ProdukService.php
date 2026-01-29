@@ -69,7 +69,7 @@ class ProdukService
 
             // Handle bahan baku untuk produk biasa
             $bahanBakuData = null;
-            if ($data['jenis_produk'] !== 'rakitan' && isset($data['bahan_baku'])) {
+            if (isset($data['bahan_baku'])) {
                 $bahanBakuData = $data['bahan_baku'];
                 unset($data['bahan_baku']);
             }
@@ -78,12 +78,15 @@ class ProdukService
             $produk = $this->produkRepository->create($data);
 
             // Sync relationships berdasarkan jenis produk
-            if ($produk->jenis_produk === 'rakitan' && $produkKomponenData) {
+            if ($produk->jenis_produk === 'rakitan') {
                 $produk->syncProdukKomponen($produkKomponenData);
+                if ($bahanBakuData) {
+                    $produk->syncBahanBakus($bahanBakuData);
+                }
             } elseif ($produk->jenis_produk !== 'rakitan' && $bahanBakuData) {
                 $produk->syncBahanBakus($bahanBakuData);
-            } 
-            
+            }
+
             DB::commit();
 
             Log::info('Produk created successfully', [
@@ -170,16 +173,17 @@ class ProdukService
             }
 
             $bahanBakuData = null;
-            if ($data['jenis_produk'] !== 'rakitan' ) {
+            if (isset($data['bahan_baku']) && is_array($data['bahan_baku'])) {
                 $bahanBakuData = $data['bahan_baku'] ?? [];
                 unset($data['bahan_baku']);
             }
-            
+
             unset($data['produk_komponen'], $data['bahan_baku']);
             $produk = $this->produkRepository->update($id, $data);
 
-            if ($produk->jenis_produk === 'rakitan' && $produkKomponenData) {
-                $produk->syncProdukKomponen($produkKomponenData);
+            if ($produk->jenis_produk === 'rakitan') {
+                $produk->syncProdukKomponen($produkKomponenData ?: []);
+                $produk->syncBahanBakus($bahanBakuData ?: []);
             } elseif ($produk->jenis_produk !== 'rakitan') {
                 $produk->syncBahanBakus($bahanBakuData ?: []);
             }
@@ -189,7 +193,7 @@ class ProdukService
             Log::info('Produk updated successfully', ['produk_id' => $id]);
 
             return $produk->load(['bahanBakus', 'produkKomponen']);
-            
+
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Failed to update Produk', [
@@ -268,7 +272,7 @@ class ProdukService
                 ->where('detail_parameter_id', $data['satuan_id'])
                 ->where('aktif', 1)
                 ->first();
-            
+
             if (!$subSatuan) {
                 throw new InvalidProdukDataException('Detail satuan tidak valid untuk satuan yang dipilih');
             }
@@ -277,16 +281,16 @@ class ProdukService
             if (empty($data['bahan_baku'])) {
                 throw new InvalidProdukDataException('Bahan baku tidak boleh kosong');
             }
-    
+
             foreach ($data['bahan_baku'] as $index => $bahanBaku) {
                 if (!isset($bahanBaku['id']) || !isset($bahanBaku['jumlah']) || !isset($bahanBaku['harga'])) {
                     throw new InvalidProdukDataException("Bahan baku #{$index}: id, jumlah, dan harga harus diisi");
                 }
-    
+
                 if ($bahanBaku['jumlah'] <= 0) {
                     throw new InvalidProdukDataException("Bahan baku #{$index}: jumlah harus lebih dari 0");
                 }
-    
+
                 if ($bahanBaku['harga'] < 0) {
                     throw new InvalidProdukDataException("Bahan baku #{$index}: harga tidak boleh negatif");
                 }

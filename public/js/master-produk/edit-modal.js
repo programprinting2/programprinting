@@ -110,16 +110,16 @@ $(function () {
             $("#editParameterModalSection").show();
 
             // Reset bahan baku list
-            editBahanBakuList = [];
-            renderEditTabelBahanBaku();
+            // editBahanBakuList = [];
+            // renderEditTabelBahanBaku();
         } else {
             $("#editProdukKomponenSection").hide();
             $("#editBahanBakuSection").show();
             $("#editParameterModalSection").show();
 
             // Reset komponen list
-            editProdukKomponenList.length = 0;
-            renderEditTabelProdukKomponen();
+            // editProdukKomponenList.length = 0;
+            // renderEditTabelProdukKomponen();
         }
         let description = "";
         switch (jenisProduk) {
@@ -130,13 +130,16 @@ $(function () {
                 description = "Kumpulan dari beberapa bahan baku";
                 break;
             case "rakitan":
-                description = "Gabungan dari beberapa produk yang bisa dijual terpisah";
+                description =
+                    "Gabungan dari beberapa produk yang bisa dijual terpisah";
                 break;
             default:
                 description = "Pilih jenis produk terlebih dahulu";
         }
-        
+
         $("#edit-jenis-produk-description").text(description);
+        renderEditTabelBahanBaku();
+        renderEditTabelProdukKomponen();
         updateTotalModalKeseluruhanEdit();
     }
 
@@ -174,18 +177,21 @@ $(function () {
     $(document).on("input", ".jumlah-komponen-edit", function () {
         const idx = $(this).data("idx");
         const jumlah = parseFloat($(this).val()) || 1;
-    
+
         if (editProdukKomponenList[idx]) {
             editProdukKomponenList[idx].jumlah = jumlah;
             editProdukKomponenList[idx].total =
-                jumlah * (editProdukKomponenList[idx].total_modal_keseluruhan || 0);
-            
+                jumlah *
+                (editProdukKomponenList[idx].total_modal_keseluruhan || 0);
+
             $(this)
                 .closest("tr")
                 .find("td")
                 .eq(4)
-                .html(`<span class="text-success fw-semibold text-end">Rp ${editProdukKomponenList[idx].total.toLocaleString("id-ID")}</span>`);
-            
+                .html(
+                    `<span class="text-success fw-semibold text-end">Rp ${editProdukKomponenList[idx].total.toLocaleString("id-ID")}</span>`,
+                );
+
             updateTotalModalKeseluruhanEdit();
         }
     });
@@ -193,14 +199,14 @@ $(function () {
     $(document).on("click", ".btn-hapus-edit-komponen", function () {
         const idx = $(this).data("idx");
         Swal.fire({
-            title: 'Apakah Anda yakin?',
+            title: "Apakah Anda yakin?",
             text: "Apakah Anda yakin ingin menghapus komponen ini?",
-            icon: 'warning',
+            icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Ya, Hapus!',
-            cancelButtonText: 'Batal'
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Ya, Hapus!",
+            cancelButtonText: "Batal",
         }).then((result) => {
             if (result.isConfirmed) {
                 editProdukKomponenList.splice(idx, 1);
@@ -235,8 +241,8 @@ $(function () {
                 }, 100);
                 $("#edit_status_aktif").prop("checked", !!p.status_aktif);
                 $("#edit_jenis_produk").val(p.jenis_produk);
-                $('#edit_keterangan').val(p.keterangan || '');
-                $('#edit_warna_id').val(p.warna_id || '');
+                $("#edit_keterangan").val(p.keterangan || "");
+                $("#edit_warna_id").val(p.warna_id || "");
 
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
                     ? p.bahan_bakus.map((bahanBaku) => {
@@ -255,21 +261,26 @@ $(function () {
                           };
                       })
                     : [];
-                    if (!editProdukKomponenList || editProdukKomponenList.length === 0) {
-                        editProdukKomponenList = Array.isArray(p.produk_komponen)
-                            ? p.produk_komponen.map((komponen) => {
-                                return {
-                                    id: komponen.id,
-                                    kode_produk: komponen.kode_produk,
-                                    nama_produk: komponen.nama_produk,
-                                    total_modal_keseluruhan: komponen.total_modal_keseluruhan,
-                                    harga: komponen.total_modal_keseluruhan,
-                                    jumlah: komponen.pivot ? komponen.pivot.jumlah : 1,
-                                    total: (komponen.pivot ? komponen.pivot.jumlah : 1) * komponen.total_modal_keseluruhan,
-                                };
-                            })
-                            : [];
-                    }
+                if (!editProdukKomponenList || editProdukKomponenList.length === 0) {
+                editProdukKomponenList = Array.isArray(p.produk_komponen)
+                    ? p.produk_komponen.map((komponen) => {
+                          return {
+                              id: komponen.id,
+                              kode_produk: komponen.kode_produk,
+                              nama_produk: komponen.nama_produk,
+                              total_modal_keseluruhan:
+                                  komponen.total_modal_keseluruhan,
+                              harga: komponen.total_modal_keseluruhan,
+                              jumlah: komponen.pivot
+                                  ? komponen.pivot.jumlah
+                                  : 1,
+                              total:
+                                  (komponen.pivot ? komponen.pivot.jumlah : 1) *
+                                  komponen.total_modal_keseluruhan,
+                          };
+                      })
+                    : [];
+                }
                 renderEditTabelProdukKomponen();
                 $("#edit_harga_bertingkat_json").val(
                     JSON.stringify(p.harga_bertingkat_json || []),
@@ -337,13 +348,22 @@ $(function () {
                 loadEditSpesifikasiTeknis(p.spesifikasi_teknis_json);
                 const selectedWarnaId = p.warna_id;
                 if (selectedWarnaId) {
-                    const selectedOption = $('#edit_warna_id option[value="' + selectedWarnaId + '"]');
-                    const hexCode = selectedOption.data('hex');
+                    const selectedOption = $(
+                        '#edit_warna_id option[value="' +
+                            selectedWarnaId +
+                            '"]',
+                    );
+                    const hexCode = selectedOption.data("hex");
                     if (hexCode) {
-                        updateEditWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
+                        updateEditWarnaPreviewModal(
+                            hexCode,
+                            "editWarnaPreviewModal",
+                        );
                     }
                 }
-                $("#editProdukModalLabel").text(`Edit Produk: ${p.nama_produk}`);
+                $("#editProdukModalLabel").text(
+                    `Edit Produk: ${p.nama_produk}`,
+                );
                 $("#editProdukModal").modal("show");
             } else {
                 Swal.fire("Gagal", "Data produk tidak ditemukan", "error");
@@ -560,7 +580,7 @@ $(function () {
         }
     }
 
-    // Named function untuk handle mesinDipilih 
+    // Named function untuk handle mesinDipilih
     function handleEditMesinDipilih(e) {
         if (!$("#editProdukModal").hasClass("show")) return;
         const data = e.detail;
@@ -725,15 +745,24 @@ $(function () {
         window.removeEventListener("mesinDipilih", handleEditMesinDipilih);
         window.addEventListener("mesinDipilih", handleEditMesinDipilih);
 
-        window.removeEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih);
-        window.addEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih);
+        window.removeEventListener(
+            "produkKomponenDipilih",
+            handleEditProdukKomponenDipilih,
+        );
+        window.addEventListener(
+            "produkKomponenDipilih",
+            handleEditProdukKomponenDipilih,
+        );
     });
 
     // Cleanup saat modal edit ditutup
     $("#editProdukModal").on("hidden.bs.modal", function () {
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleEditMesinDipilih);
-        window.removeEventListener("produkKomponenDipilih", handleEditProdukKomponenDipilih); 
+        window.removeEventListener(
+            "produkKomponenDipilih",
+            handleEditProdukKomponenDipilih,
+        );
         $("#editProdukModalLabel").text("Edit Produk");
         $("#editProdukForm")[0].reset();
         editProdukKomponenList = [];
@@ -851,42 +880,27 @@ $(function () {
         let totalParam = 0;
         let totalBiayaTambahan = 0;
 
-        // if (jenisProduk === "rakitan") {
-            // Hitung total komponen untuk produk rakitan
-            totalKomponen = editProdukKomponenList.reduce((sum, item) => {
-                return (
-                    sum +
-                    (item.total_modal_keseluruhan || 0) * (item.jumlah || 1)
-                );
-            }, 0);
+        // Hitung total komponen untuk produk rakitan
+        totalKomponen = editProdukKomponenList.reduce((sum, item) => {
+            return (
+                sum + (item.total_modal_keseluruhan || 0) * (item.jumlah || 1)
+            );
+        }, 0);
 
-            // Hitung total parameter mesin
-            if (typeof editParameterMesinList !== "undefined") {
-                editParameterMesinList.forEach((row) => {
-                    const param =
-                        row.opsi && row.opsi[row.selected]
-                            ? row.opsi[row.selected]
-                            : { total: 0 };
-                    totalParam += (param.total || 0) * (row.jumlah || 1);
-                });
-            }
-        // } else {
-            // Hitung total bahan baku untuk produk biasa
-            totalBahan = editBahanBakuList.reduce((sum, row) => {
-                return sum + (row.harga || 0) * (row.jumlah || 1);
-            }, 0);
-
-            // Hitung total parameter mesin
-            if (typeof editParameterMesinList !== "undefined") {
-                editParameterMesinList.forEach((row) => {
-                    const param =
-                        row.opsi && row.opsi[row.selected]
-                            ? row.opsi[row.selected]
-                            : { total: 0 };
-                    totalParam += (param.total || 0) * (row.jumlah || 1);
-                });
-            }
-        // }
+        // Hitung total parameter mesin
+        if (typeof editParameterMesinList !== "undefined") {
+            editParameterMesinList.forEach((row) => {
+                const param =
+                    row.opsi && row.opsi[row.selected]
+                        ? row.opsi[row.selected]
+                        : { total: 0 };
+                totalParam += (param.total || 0) * (row.jumlah || 1);
+            });
+        }
+        // Hitung total bahan baku untuk produk biasa
+        totalBahan = editBahanBakuList.reduce((sum, row) => {
+            return sum + (row.harga || 0) * (row.jumlah || 1);
+        }, 0);
 
         // Hitung total biaya tambahan
         $("#editTabelBiayaTambahan .edit-biaya-tambahan-item").each(
@@ -1786,11 +1800,73 @@ $(function () {
             var form = $(this)[0];
             var formData = new FormData(form);
             formData.append("_method", "PUT");
-            bahanBakuData.forEach((item, index) => {
-                formData.append(`bahan_baku[${index}][id]`, item.id);
-                formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
-                formData.append(`bahan_baku[${index}][harga]`, item.harga);
-            });
+            // bahanBakuData.forEach((item, index) => {
+            //     formData.append(`bahan_baku[${index}][id]`, item.id);
+            //     formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
+            //     formData.append(`bahan_baku[${index}][harga]`, item.harga);
+            // });
+
+            const jenisProduk = $("#edit_jenis_produk").val();
+            if (jenisProduk === "rakitan") {
+                $("#editTabelProdukKomponen tbody tr").each(function (index) {
+                    const komponenId = $(this)
+                        .find(
+                            'input[name="produk_komponen[' + index + '][id]"]',
+                        )
+                        .val();
+                    const jumlah = $(this)
+                        .find(
+                            'input[name="produk_komponen[' +
+                                index +
+                                '][jumlah]"]',
+                        )
+                        .val();
+                    const harga = $(this)
+                        .find(
+                            'input[name="produk_komponen[' +
+                                index +
+                                '][harga]"]',
+                        )
+                        .val();
+
+                    if (komponenId && jumlah && harga) {
+                        formData.append(
+                            `produk_komponen[${index}][id]`,
+                            parseInt(komponenId),
+                        );
+                        formData.append(
+                            `produk_komponen[${index}][jumlah]`,
+                            parseFloat(jumlah),
+                        );
+                        formData.append(
+                            `produk_komponen[${index}][harga]`,
+                            parseFloat(harga),
+                        );
+                    }
+                });
+            }
+            // else {
+            //     bahanBakuData.forEach((item, index) => {
+            //         formData.append(`bahan_baku[${index}][id]`, item.id);
+            //         formData.append(
+            //             `bahan_baku[${index}][jumlah]`,
+            //             item.jumlah,
+            //         );
+            //         formData.append(`bahan_baku[${index}][harga]`, item.harga);
+            //     });
+            // }
+            if (bahanBakuData.length > 0) {
+                bahanBakuData.forEach((item, index) => {
+                    formData.append(`bahan_baku[${index}][id]`, item.id);
+                    formData.append(
+                        `bahan_baku[${index}][jumlah]`,
+                        item.jumlah,
+                    );
+                    formData.append(`bahan_baku[${index}][harga]`, item.harga);
+                });
+            } else {
+                formData.append('bahan_baku', []);
+            }
 
             selectedPhotos.forEach((file) => {
                 formData.append("foto_pendukung_new[]", file);
@@ -1864,7 +1940,6 @@ $(function () {
                 },
             });
         });
-
     // Handler file input media (edit)
     const mediaDropzone = document.getElementById("editMediaDropzoneArea");
     const mediaInput = document.getElementById("editMediaPendukungInput");
@@ -2006,20 +2081,18 @@ $(function () {
             return;
         }
 
-
         const data = e.detail;
-        if (data.sourceModal !== 'edit') {
+        if (data.sourceModal !== "edit") {
             return;
         }
 
-         if (!editProdukKomponenList) {
-            editProdukKomponenList = [];
-        }
-    
-        if (!Array.isArray(editProdukKomponenList)) {
+        if (!editProdukKomponenList) {
             editProdukKomponenList = [];
         }
 
+        if (!Array.isArray(editProdukKomponenList)) {
+            editProdukKomponenList = [];
+        }
 
         if (editProdukKomponenList.some((item) => item.id === data.id)) {
             // Swal.fire("Info", "Produk komponen sudah ditambahkan.", "info");
@@ -2030,7 +2103,8 @@ $(function () {
             id: parseInt(data.id) || 0,
             kode_produk: data.kode_produk,
             nama_produk: data.nama_produk,
-            total_modal_keseluruhan: parseFloat(data.total_modal_keseluruhan) || 0,
+            total_modal_keseluruhan:
+                parseFloat(data.total_modal_keseluruhan) || 0,
             harga: parseFloat(data.total_modal_keseluruhan) || 0,
             jumlah: 1,
             total: parseFloat(data.total_modal_keseluruhan) || 0,
@@ -2045,18 +2119,18 @@ $(function () {
         const preview = document.getElementById(previewId);
         if (hexCode && /^#[0-9A-F]{6}$/i.test(hexCode)) {
             preview.style.backgroundColor = hexCode;
-            preview.style.display = 'block';
+            preview.style.display = "block";
             preview.title = `Warna: ${hexCode}`;
         } else {
-            preview.style.display = 'none';
-            preview.style.backgroundColor = '';
-            preview.title = 'Tidak ada preview warna';
+            preview.style.display = "none";
+            preview.style.backgroundColor = "";
+            preview.title = "Tidak ada preview warna";
         }
     }
 
-    $('#edit_warna_id').on('change', function() {
-        const selectedOption = $(this).find('option:selected');
-        const hexCode = selectedOption.data('hex');
-        updateEditWarnaPreviewModal(hexCode, 'editWarnaPreviewModal');
+    $("#edit_warna_id").on("change", function () {
+        const selectedOption = $(this).find("option:selected");
+        const hexCode = selectedOption.data("hex");
+        updateEditWarnaPreviewModal(hexCode, "editWarnaPreviewModal");
     });
 });
