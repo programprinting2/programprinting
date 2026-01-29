@@ -32,7 +32,9 @@ class PelangganService
             // Convert status
             $data['status'] = $data['status'] === '1' || $data['status'] === 1;
             $data['wajib_pajak'] = isset($data['wajib_pajak']) ? ($data['wajib_pajak'] === '1' || $data['wajib_pajak'] === 1) : false;
-
+            $data['default_diskon'] = isset($data['default_diskon']) && $data['default_diskon'] !== null && $data['default_diskon'] !== '' 
+                ? $data['default_diskon'] 
+                : 0;
             // Handle data_lain
             if (isset($data['data_lain'])) {
                 if (isset($data['data_lain']['batas_total_piutang_nilai'])) {
@@ -79,7 +81,7 @@ class PelangganService
             // Convert status
             $data['status'] = $data['status'] === '1' || $data['status'] === 1;
             $data['wajib_pajak'] = isset($data['wajib_pajak']) ? ($data['wajib_pajak'] === '1' || $data['wajib_pajak'] === 1) : false;
-
+            
             // Handle data_lain
             if (isset($data['data_lain'])) {
                 if (isset($data['data_lain']['batas_total_piutang_nilai'])) {
