@@ -241,6 +241,11 @@ $(function () {
                 $("#edit_jenis_produk").val(p.jenis_produk);
                 $("#edit_keterangan").val(p.keterangan || "");
                 $("#edit_warna_id").val(p.warna_id || "");
+                if (Array.isArray(p.tags) && p.tags.length > 0) {
+                    $('#edit_tags').importTags(p.tags.join(','));
+                } else {
+                    $('#edit_tags').importTags(''); 
+                }
 
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
                     ? p.bahan_bakus.map((bahanBaku) => {
@@ -1798,6 +1803,9 @@ $(function () {
             var form = $(this)[0];
             var formData = new FormData(form);
             formData.append("_method", "PUT");
+            const tagsString = $('#edit_tags').val(); 
+            const tagsArray = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            formData.append('tags', JSON.stringify(tagsArray));
             // bahanBakuData.forEach((item, index) => {
             //     formData.append(`bahan_baku[${index}][id]`, item.id);
             //     formData.append(`bahan_baku[${index}][jumlah]`, item.jumlah);
@@ -2130,5 +2138,16 @@ $(function () {
         const selectedOption = $(this).find("option:selected");
         const hexCode = selectedOption.data("hex");
         updateEditWarnaPreviewModal(hexCode, "editWarnaPreviewModal");
+    });
+
+    $('#edit_tags').tagsInput({
+        'width': '100%',
+        'height': '75%',
+        'interactive': true,
+        'defaultText': 'Add More',
+        'removeWithBackspace': true,
+        'minChars': 0,
+        'maxChars': 20,
+        'placeholderColor': '#666666'
     });
 });

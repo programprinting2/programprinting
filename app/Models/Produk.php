@@ -25,6 +25,7 @@ class Produk extends Model
         'status_aktif',
         'jenis_produk',
         'keterangan',
+        'tags',
         'warna_id',
         'harga_bertingkat_json',
         'harga_reseller_json',
@@ -56,6 +57,7 @@ class Produk extends Model
         'mesin_ids' => 'array',
         'needs_recalc' => 'boolean',
         'warna_id' => 'integer',
+        'tags' => 'array',
     ];
 
     // Relationship dengan bahan baku

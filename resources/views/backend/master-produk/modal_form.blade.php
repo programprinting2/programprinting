@@ -175,6 +175,12 @@
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
+                                            <label for="tags" class="form-label">Tags</label>
+                                            <div>
+                                                <input name="tags" id="tags" />
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
                                             <div class="form-check form-switch">
                                                 <input type="hidden" name="status_aktif" value="0">
                                                 <input class="form-check-input" type="checkbox" id="status_aktif"
@@ -808,6 +814,10 @@
     </div>
 </div>
 
+@push('plugin-styles')
+<link href="{{ asset('assets/plugins/jquery-tags-input/jquery.tagsinput.min.css') }}" rel="stylesheet" />
+@endpush
+
 @push('custom-styles')
 <style>
     .warna-preview-modal {
@@ -821,6 +831,14 @@
     transform: scale(1.02);
 }
 </style>
+@endpush
+
+@push('plugin-scripts')
+    <script src="{{ asset('assets/plugins/jquery-tags-input/jquery.tagsinput.min.js') }}"></script>
+@endpush
+
+@push('custom-scripts')
+    <script src="{{ asset('assets/js/tags-input.js') }}"></script>
 @endpush
 
 @include('backend.general-form.cari-bahanbaku', [

@@ -11,6 +11,17 @@ class StoreProdukRequest extends FormRequest
         return true;
     }
 
+    protected function prepareForValidation(): void
+    {
+        $tags = $this->input('tags');
+        if (is_string($tags)) {
+            $decoded = json_decode($tags, true);
+            $this->merge([
+                'tags' => is_array($decoded) ? $decoded : array_values(array_filter(array_map('trim', explode(',', $tags)))),
+            ]);
+        }
+    }
+
     public function rules(): array
     {
         $rules = [
@@ -28,6 +39,8 @@ class StoreProdukRequest extends FormRequest
             // 'bahan_baku.*.jumlah' => 'required|numeric|min:0.01',
             // 'bahan_baku.*.harga' => 'required|integer|min:0',
             'keterangan' => 'nullable|string|max:1000',
+            'tags' => 'nullable|array',
+            'tags.*' => 'string|max:255',
             'warna_id' => 'nullable|exists:detail_parameters,id',
             'harga_bertingkat_json' => 'nullable|json',
             'harga_reseller_json' => 'nullable|json',

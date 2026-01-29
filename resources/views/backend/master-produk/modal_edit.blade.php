@@ -169,7 +169,13 @@
                       </div>
                     </div>
                   </div>
-                  <div class="row mb-3">       
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                      <label for="edit_tags" class="form-label">Tags</label>
+                      <div>
+                          <input name="edit_tags" id="edit_tags" />
+                      </div>
+                    </div>       
                     <div class="col-md-6">
                       <div class="form-check form-switch">
                         <input type="hidden" name="status_aktif" value="0">
@@ -572,6 +578,17 @@
     transform: scale(1.02);
 }
 </style>
+@endpush
+@push('plugin-styles')
+  <link href="{{ asset('assets/plugins/jquery-tags-input/jquery.tagsinput.min.css') }}" rel="stylesheet" />
+@endpush
+
+@push('plugin-scripts')
+    <script src="{{ asset('assets/plugins/jquery-tags-input/jquery.tagsinput.min.js') }}"></script>
+@endpush
+
+@push('custom-scripts')
+    <script src="{{ asset('assets/js/tags-input.js') }}"></script>
 @endpush
 
 <!-- Modal Cari Bahan Baku untuk Edit -->

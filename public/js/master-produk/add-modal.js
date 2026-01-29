@@ -1500,6 +1500,10 @@ $(function () {
             var form = $(this)[0];
             var formData = new FormData(form);
             formData.append('warna_id', document.getElementById('warna_id').value || '');
+            const tagsString = $('#tags').val(); 
+            const tagsArray = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            formData.append('tags', JSON.stringify(tagsArray));
+            
             const jenisProduk = $("#jenis_produk").val();
             if (jenisProduk === "rakitan") {
                 $("#tabelProdukKomponen tbody tr").each(function (index) {
