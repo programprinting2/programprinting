@@ -149,9 +149,9 @@ $(function () {
             id: data.id,
             nama: data.nama,
             satuan: data.sub_satuan,
-            harga: data.harga || 0,
+            harga: parseFloat(data.harga || 0),
             jumlah: 1,
-            total: data.harga || 0,
+            total: parseFloat(data.harga || 0),
         });
 
         // Render tabel bahan baku

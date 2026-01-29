@@ -32,9 +32,7 @@ $(function () {
                     row.id || ""
                 }"></td>
                 <td>${row.satuan || ""}</td>
-                <td class="text-end">Rp ${(row.harga || 0).toLocaleString(
-                    "id-ID",
-                )}<input type="hidden" name="harga_bahan[]" value="${
+                <td class="text-end">Rp ${(row.harga || 0).toLocaleString("id-ID")}<input type="hidden" name="harga_bahan[]" value="${
                     row.harga || 0
                 }"></td>
                 <td><input type="number" class="form-control form-control-sm jumlah_bahan_edit" name="jumlah_bahan[]" value="${
@@ -1398,7 +1396,7 @@ $(function () {
             satuan: data.satuan,
             harga: data.harga || 0,
             jumlah: 1,
-            total: data.harga || 0,
+            total: parseFloat(data.harga || 0),
         });
         renderEditTabelBahanBaku();
         updateTotalModalKeseluruhanEdit();
