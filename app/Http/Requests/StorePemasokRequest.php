@@ -19,7 +19,7 @@ class StorePemasokRequest extends FormRequest
             'no_telp' => 'nullable|string|max:20',
             'handphone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
-            'website' => 'nullable|url|max:255',
+            'website' => 'nullable|url|max:2048',
             'syarat_pembayaran' => 'nullable|string|max:50',
             'default_diskon' => 'nullable|numeric|min:0|max:100',
             'deskripsi_pembelian' => 'nullable|string|max:255',
