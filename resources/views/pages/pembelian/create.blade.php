@@ -132,7 +132,8 @@
                 </div>
                 <div class="col-md-2">
                   <label for="hargaInput" class="form-label small mb-1 d-block text-end">Harga Satuan (Rp)</label>
-                  <input type="number" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" min="1" step="0.01" value="0">
+                  <!-- <input type="number" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" min="1" step="0.01" value="0"> -->
+                  <input class="form-control text-end" data-inputmask="'alias': 'currency', 'prefix':'Rp ', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true, 'removeMaskOnSubmit':true" id="hargaInput" placeholder="Masukkan harga satuan" value="0" >
                 </div>
                 <div class="col-md-2">
                   <label for="diskonInput" class="form-label small mb-1 d-block text-end">Diskon per Item (%)</label>
@@ -140,7 +141,7 @@
           </div>
                 <div class="col-md-2 text-end">
                   <span class="fw-semibold">Total : </span>
-                  <input type="text" id="previewTotalItem" class="form-control text-primary fw-bold text-end" value="Rp 0" readonly tabindex="-1" style="box-shadow:none;pointer-events:none;" />
+                  <input id="previewTotalItem" class="form-control text-primary fw-bold text-end" data-inputmask="'alias': 'currency', 'prefix':'Rp ', 'groupSeparator':'.', 'radixPoint':',', 'digits':2, 'autoGroup':true" value="Rp 0" readonly tabindex="-1" style="box-shadow:none;pointer-events:none;" />
                 </div>
             </div>
             
@@ -270,6 +271,10 @@
   </style>
 @endsection
 
+@push('plugin-scripts')
+  <script src="{{ asset('assets/plugins/inputmask/jquery.inputmask.min.js') }}"></script>
+@endpush
+
 @push('custom-scripts')
 @include('backend.general-form.cari-bahanbaku', [
   'modalId' => 'modalCariBahanBakuPembelian',
@@ -287,6 +292,7 @@
 ])
 <script src="/js/pembelian/pembelian-helper.js"></script>
 <script src="/js/pembelian/form-create.js"></script>
+<script src="{{ asset('assets/js/inputmask.js') }}"></script>
 <script>
   window.satuanList = @json($satuanList);
   window.bahanBakuList = @json($bahan_baku);

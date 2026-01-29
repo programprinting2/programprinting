@@ -135,7 +135,8 @@
                 </div>
                 <div class="col-md-2">
                   <label for="hargaInput" class="form-label small mb-1 d-block text-end">Harga Satuan (Rp)</label>
-                  <input type="text" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" value="0">
+                  <!-- <input type="text" class="form-control text-end" id="hargaInput" placeholder="Masukkan harga satuan" value="0"> -->
+                  <input class="form-control text-end" data-inputmask="'alias': 'currency', 'prefix':'Rp ', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true, 'removeMaskOnSubmit':true" id="hargaInput" placeholder="Masukkan harga satuan" value="0" >
                 </div>
                 <div class="col-md-2">
                   <label for="diskonInput" class="form-label small mb-1 d-block text-end">Diskon per Item (%)</label>
@@ -187,9 +188,20 @@
                 <td>{{ $item->bahanBaku->nama_bahan ?? '-' }}</td>
                 <td class="item-jumlah">{{ $item->jumlah }}<input type="hidden" name="items[{{ $index }}][jumlah]" value="{{ $item->jumlah }}"></td>
                 <td class="item-satuan satuan-label-prefill" data-satuan-id="{{ $item->satuan ?? '' }}">{{ $item->satuan ?? '-' }}<input type="hidden" name="items[{{ $index }}][satuan]" value="{{ $item->satuan }}"></td>
-                <td class="item-harga text-end">{{ number_format($item->harga, 0, ',', '.') }}<input type="hidden" name="items[{{ $index }}][harga]" value="{{ $item->harga }}"></td>
+                <td class="item-harga text-end">
+                  <input type="text" class="form-control text-end fw-bold p-0 border-0 bg-transparent" 
+                        data-inputmask="'alias': 'currency', 'prefix':'Rp ', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" 
+                        value="{{ $item->harga }}" 
+                        readonly tabindex="-1">
+                  <input type="hidden" name="items[{{ $index }}][harga]" value="{{ $item->harga }}">
+                </td>
                 <td class="item-diskon text-end">{{ $item->diskon_persen }}%<input type="hidden" name="items[{{ $index }}][diskon_persen]" value="{{ $item->diskon_persen }}"></td>
-                <td class="item-total text-end">{{ number_format($item->subtotal, 0, ',', '.') }}</td>
+                <td class="item-total text-end">
+                  <input type="text" class="form-control text-end fw-bold p-0 border-0 bg-transparent" 
+                        data-inputmask="'alias': 'currency', 'prefix':'Rp ', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" 
+                        value="{{ $item->subtotal }}" 
+                        data-value="{{ $item->subtotal }}" readonly tabindex="-1">
+                </td>
                 <td>
                   <button type="button" class="btn btn-sm btn-warning btn-edit-item me-1"><i class="fa fa-edit"></i></button>
                   <button type="button" class="btn btn-sm btn-danger btn-hapus-item"><i class="fa fa-trash"></i></button>
@@ -279,6 +291,10 @@
   </style>
 @endsection
 
+@push('plugin-scripts')
+  <script src="{{ asset('assets/plugins/inputmask/jquery.inputmask.min.js') }}"></script>
+@endpush
+
 @push('custom-scripts')
 @include('backend.general-form.cari-bahanbaku', [
   'modalId' => 'modalCariBahanBakuPembelian',
@@ -296,6 +312,7 @@
 ])
 <script src="/js/pembelian/pembelian-helper.js"></script>
 <script src="/js/pembelian/form-edit.js"></script>
+<script src="{{ asset('assets/js/inputmask.js') }}"></script>
 <script>
   window.satuanList = @json($satuanList);
   window.bahanBakuList = @json($bahan_baku);

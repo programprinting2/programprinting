@@ -149,17 +149,19 @@ if (typeof PembelianHelper === 'undefined') {
         },
 
         getNumericValue: function($input) {
-            const inputType = $input.attr('type');
-            const inputId = $input.attr('id')
-
-            if (inputId === 'hargaInput') {
-                return parseFloat($input.val()) || 0;
-            }
-            
-            if (inputType === 'number') {
-                return parseFloat($input.val()) || 0;
-            }
-            return parseFloat($input.val().replace(/\./g, '').replace(',', '.')) || 0;
+            let value = $input.val() || '';
+        
+            // Hapus prefix "Rp "
+            value = value.replace(/^Rp\s*/, '');
+        
+            // Untuk format Rupiah: groupSeparator '.', radixPoint ','
+            // Hapus titik ribuan, biarkan koma sebagai desimal
+            // value = value.replace(/\./g, '');
+        
+            // Jika ada koma, ganti dengan titik untuk desimal
+            value = value.replace(/,/g, '');
+        
+            return parseFloat(value) || 0;
         },
 
         /**
