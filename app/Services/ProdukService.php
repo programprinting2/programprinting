@@ -87,6 +87,7 @@ class ProdukService
             } elseif ($produk->jenis_produk !== 'rakitan' && $bahanBakuData) {
                 $produk->syncBahanBakus($bahanBakuData);
             }
+            $produk->updateTotalModal();
 
             DB::commit();
 
@@ -189,6 +190,7 @@ class ProdukService
             } elseif ($produk->jenis_produk !== 'rakitan') {
                 $produk->syncBahanBakus($bahanBakuData ?: []);
             }
+            $produk->updateTotalModal();
 
             DB::commit();
 

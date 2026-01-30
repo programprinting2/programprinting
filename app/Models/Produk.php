@@ -123,21 +123,26 @@ class Produk extends Model
      // Calculate total modal
      public function calculateTotalModal(): float
      {
-        if ($this->jenis_produk === 'rakitan') {
-            $totalKomponen = $this->produkKomponen->sum(function ($produkKomponen) {
-                return $produkKomponen->pivot->harga_snapshot * $produkKomponen->pivot->jumlah;
-            });
+        // if ($this->jenis_produk === 'rakitan') {
+        //     $totalKomponen = $this->produkKomponen->sum(function ($produkKomponen) {
+        //         return $produkKomponen->pivot->harga_snapshot * $produkKomponen->pivot->jumlah;
+        //     });
             
-            // Biaya tambahan tetap berlaku
-            $totalBiayaTambahan = 0;
-            if (!empty($this->biaya_tambahan_json) && is_array($this->biaya_tambahan_json)) {
-                foreach ($this->biaya_tambahan_json as $biaya) {
-                    $totalBiayaTambahan += $biaya['nilai'] ?? 0;
-                }
-            }
+        //     // Biaya tambahan tetap berlaku
+        //     $totalBiayaTambahan = 0;
+        //     if (!empty($this->biaya_tambahan_json) && is_array($this->biaya_tambahan_json)) {
+        //         foreach ($this->biaya_tambahan_json as $biaya) {
+        //             $totalBiayaTambahan += $biaya['nilai'] ?? 0;
+        //         }
+        //     }
             
-            return $totalKomponen + $totalBiayaTambahan;
-        }
+        //     return $totalKomponen + $totalBiayaTambahan;
+        // }
+
+        $totalKomponen = $this->produkKomponen->sum(function ($produkKomponen) {
+            return $produkKomponen->pivot->harga_snapshot * $produkKomponen->pivot->jumlah;
+        });
+    
 
         $totalBahan = $this->bahanBakus->sum(function ($bahanBaku) {
             return $bahanBaku->pivot->harga_snapshot * $bahanBaku->pivot->jumlah;
@@ -157,7 +162,7 @@ class Produk extends Model
             }
         }
     
-        return $totalBahan + $totalParam + $totalBiayaTambahan;
+        return $totalBahan + $totalParam + $totalBiayaTambahan + $totalKomponen;
      }
 
     public function updateTotalModal(): void

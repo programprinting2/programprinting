@@ -325,7 +325,9 @@ $(function () {
                 renderDocumentsPreview();
                 renderEditTabelBahanBaku();
                 toggleEditJenisProduk();
-                hitungTotalModalBahanEdit();
+                // hitungTotalModalBahanEdit();
+                editTotalModalKeseluruhanNumeric = 0;
+                updateTotalModalKeseluruhanEdit();
                 editHargaBertingkatList = Array.isArray(p.harga_bertingkat_json)
                     ? p.harga_bertingkat_json
                     : [];
@@ -874,6 +876,7 @@ $(function () {
         updateTotalItemModalEdit();
     });
 
+    let editTotalModalKeseluruhanNumeric = 0;
     // Fungsi update total modal keseluruhan (EDIT)
     function updateTotalModalKeseluruhanEdit() {
         const jenisProduk = $("#edit_jenis_produk").val();
@@ -920,6 +923,7 @@ $(function () {
         const totalKeseluruhan =
             totalBahan + totalKomponen + totalParam + totalBiayaTambahan;
 
+        editTotalModalKeseluruhanNumeric = totalKeseluruhan;
         $("#editTotalBahanBakuText").text(
             `Rp ${totalBahan.toLocaleString("id-ID")}`,
         );
@@ -1048,25 +1052,11 @@ $(function () {
             return;
         }
         editHargaBertingkatList.forEach((row, idx) => {
-            const profitRp =
-                row.harga -
-                (parseInt(
-                    $("#editTotalModalKeseluruhan")
-                        .text()
-                        .replace(/[^\d]/g, ""),
-                ) || 0);
+            const profitRp = row.harga - editTotalModalKeseluruhanNumeric;
             const profitPersen =
-                row.harga > 0
-                    ? (
-                          (profitRp /
-                              parseInt(
-                                  $("#editTotalModalKeseluruhan")
-                                      .text()
-                                      .replace(/[^\d]/g, ""),
-                              )) *
-                          100
-                      ).toFixed(1)
-                    : 0;
+            editTotalModalKeseluruhanNumeric > 0
+                ? ((profitRp / editTotalModalKeseluruhanNumeric) * 100).toFixed(1)
+                : 0;
             tbody.append(` <tr>
                 <td><input type="number" class="form-control form-control-sm min-qty" value="${
                     row.min_qty
@@ -1097,24 +1087,10 @@ $(function () {
             return;
         }
         editHargaResellerList.forEach((row, idx) => {
-            const profitRp =
-                row.harga -
-                (parseInt(
-                    $("#editTotalModalKeseluruhan")
-                        .text()
-                        .replace(/[^\d]/g, ""),
-                ) || 0);
+            const profitRp = row.harga - editTotalModalKeseluruhanNumeric;
             const profitPersen =
-                row.harga > 0
-                    ? (
-                          (profitRp /
-                              parseInt(
-                                  $("#editTotalModalKeseluruhan")
-                                      .text()
-                                      .replace(/[^\d]/g, ""),
-                              )) *
-                          100
-                      ).toFixed(1)
+                editTotalModalKeseluruhanNumeric > 0
+                    ? ((profitRp / editTotalModalKeseluruhanNumeric) * 100).toFixed(1)
                     : 0;
             tbody.append(` <tr>
                 <td><input type="number" class="form-control form-control-sm min-qty" value="${
@@ -1220,14 +1196,10 @@ $(function () {
     });
 
     function updateEditProfitCalculation(tableSelector, idx, rowData) {
-        const totalModalKeseluruhan =
-            parseInt(
-                $("#editTotalModalKeseluruhan").text().replace(/[^\d]/g, ""),
-            ) || 0;
-        const profitRp = rowData.harga - totalModalKeseluruhan;
+        const profitRp = rowData.harga - editTotalModalKeseluruhanNumeric;
         const profitPersen =
-            totalModalKeseluruhan > 0
-                ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1)
+            editTotalModalKeseluruhanNumeric > 0
+                ? ((profitRp / editTotalModalKeseluruhanNumeric) * 100).toFixed(1)
                 : 0;
         const row = $(`${tableSelector} tbody tr`).eq(idx);
         row.find("td")
@@ -1462,8 +1434,8 @@ $(function () {
         updateTotalItemModalEdit();
 
         // Re-render profit calculations
-        renderEditHargaBertingkat();
-        renderEditHargaReseller();
+        // renderEditHargaBertingkat();
+        // renderEditHargaReseller();
     }
 
     function hitungTotalModalKomponenEdit() {

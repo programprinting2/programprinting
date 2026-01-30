@@ -148,6 +148,7 @@
                                         <input type="hidden" name="dokumen_pendukung_json" id="dokumen_pendukung_json">
                                         <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
                                         <input type="hidden" name="biaya_tambahan_json" id="biaya_tambahan_json" value="">
+                                        <input type="hidden" name="parameter_modal_json" id="parameter_modal_json" value="[]">
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
@@ -777,8 +778,8 @@
                                 // Hitung total saat jumlah berubah
                                 $(document).on('input', '.jumlah-bahan', function () {
                                     const row = $(this).closest('tr');
-                                    const harga = parseInt(row.find('input[name="harga_bahan[]"]').val()) || 0;
-                                    const jumlah = parseInt(row.find('.jumlah-bahan').val()) || 0;
+                                    const harga = parseFloat(row.find('input[name="harga_bahan[]"]').val()) || 0;
+                                    const jumlah = parseFloat(row.find('.jumlah-bahan').val()) || 0;
                                     const total = harga * jumlah;
                                     row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
                                     hitungTotalModalBahan();

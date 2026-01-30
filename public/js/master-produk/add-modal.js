@@ -14,6 +14,7 @@ $(function () {
     let alurProduksiList = [];
     let produkKomponenList = [];
     let isModalForParameter = false;
+    let totalModalKeseluruhanNumeric = 0;
 
     // Pastikan array tidak ter-reset
     if (
@@ -52,6 +53,7 @@ $(function () {
         renderTabelBahanBaku();
         renderParameterMesinTable();
         renderTabelProdukKomponen();
+        totalModalKeseluruhanNumeric = 0;
         // Cleanup: remove event listener saat modal ditutup
         window.removeEventListener("mesinDipilih", handleMesinDipilihTambah);
         window.removeEventListener("produkKomponenDipilih", handleProdukKomponenDipilih);
@@ -703,6 +705,7 @@ $(function () {
                  totalKomponen + totalBiayaTambahan + totalParam + totalBahan
                 // : totalBahan + totalParam + totalBiayaTambahan;
 
+        totalModalKeseluruhanNumeric = totalKeseluruhan;
         $("#totalModalKeseluruhan").text(
             "Rp " + totalKeseluruhan.toLocaleString("id-ID"),
         );
@@ -1027,22 +1030,10 @@ $(function () {
         }
 
         hargaBertingkatList.forEach((row, idx) => {
-            const profitRp =
-                row.harga -
-                (parseInt(
-                    $("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""),
-                ) || 0);
+            const profitRp = row.harga - totalModalKeseluruhanNumeric;
             const profitPersen =
-                row.harga > 0
-                    ? (
-                          (profitRp /
-                              parseInt(
-                                  $("#totalModalKeseluruhan")
-                                      .text()
-                                      .replace(/[^\d]/g, ""),
-                              )) *
-                          100
-                      ).toFixed(1)
+                totalModalKeseluruhanNumeric > 0
+                    ? ((profitRp / totalModalKeseluruhanNumeric) * 100).toFixed(1)
                     : 0;
 
             tbody.append(`
@@ -1080,22 +1071,10 @@ $(function () {
         }
 
         hargaResellerList.forEach((row, idx) => {
-            const profitRp =
-                row.harga -
-                (parseInt(
-                    $("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""),
-                ) || 0);
+            const profitRp = row.harga - totalModalKeseluruhanNumeric;
             const profitPersen =
-                row.harga > 0
-                    ? (
-                          (profitRp /
-                              parseInt(
-                                  $("#totalModalKeseluruhan")
-                                      .text()
-                                      .replace(/[^\d]/g, ""),
-                              )) *
-                          100
-                      ).toFixed(1)
+                totalModalKeseluruhanNumeric > 0
+                    ? ((profitRp / totalModalKeseluruhanNumeric) * 100).toFixed(1)
                     : 0;
 
             tbody.append(`
@@ -1200,14 +1179,10 @@ $(function () {
     });
 
     function updateProfitCalculation(tableSelector, idx, rowData) {
-        const totalModalKeseluruhan =
-            parseInt(
-                $("#totalModalKeseluruhan").text().replace(/[^\d]/g, ""),
-            ) || 0;
-        const profitRp = rowData.harga - totalModalKeseluruhan;
+        const profitRp = rowData.harga - totalModalKeseluruhanNumeric;
         const profitPersen =
-            totalModalKeseluruhan > 0
-                ? ((profitRp / totalModalKeseluruhan) * 100).toFixed(1)
+            totalModalKeseluruhanNumeric > 0
+                ? ((profitRp / totalModalKeseluruhanNumeric) * 100).toFixed(1)
                 : 0;
 
         const row = $(`${tableSelector} tbody tr`).eq(idx);
@@ -1503,6 +1478,15 @@ $(function () {
             const tagsString = $('#tags').val(); 
             const tagsArray = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
             formData.append('tags', JSON.stringify(tagsArray));
+
+            bahanBakuData.forEach((item, index) => {
+                formData.append(`bahan_baku[${index}][id]`, item.id);
+                formData.append(
+                    `bahan_baku[${index}][jumlah]`,
+                    item.jumlah,
+                );
+                formData.append(`bahan_baku[${index}][harga]`, item.harga);
+            });
             
             const jenisProduk = $("#jenis_produk").val();
             if (jenisProduk === "rakitan") {
@@ -1544,16 +1528,17 @@ $(function () {
                 });
 
                 // formData.append('produk_komponen', JSON.stringify(produkKomponenData));
-            } else {
-                bahanBakuData.forEach((item, index) => {
-                    formData.append(`bahan_baku[${index}][id]`, item.id);
-                    formData.append(
-                        `bahan_baku[${index}][jumlah]`,
-                        item.jumlah,
-                    );
-                    formData.append(`bahan_baku[${index}][harga]`, item.harga);
-                });
-            }
+            } 
+            // else {
+            //     bahanBakuData.forEach((item, index) => {
+            //         formData.append(`bahan_baku[${index}][id]`, item.id);
+            //         formData.append(
+            //             `bahan_baku[${index}][jumlah]`,
+            //             item.jumlah,
+            //         );
+            //         formData.append(`bahan_baku[${index}][harga]`, item.harga);
+            //     });
+            // }
 
             selectedPhotos.forEach((file) => {
                 formData.append("foto_pendukung_new[]", file);
