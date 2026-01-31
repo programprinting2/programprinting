@@ -241,10 +241,15 @@ $(function () {
                 $("#edit_jenis_produk").val(p.jenis_produk);
                 $("#edit_keterangan").val(p.keterangan || "");
                 $("#edit_warna_id").val(p.warna_id || "");
+                var $editTags = $('#edit_tags');
+                $editTags.empty();
                 if (Array.isArray(p.tags) && p.tags.length > 0) {
-                    $('#edit_tags').importTags(p.tags.join(','));
+                    p.tags.forEach(function(tag) {
+                        $editTags.append(new Option(tag, tag, true, true));
+                    });
+                    $editTags.val(p.tags).trigger('change');
                 } else {
-                    $('#edit_tags').importTags(''); 
+                    $editTags.val(null).trigger('change');
                 }
 
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
@@ -1775,8 +1780,7 @@ $(function () {
             var form = $(this)[0];
             var formData = new FormData(form);
             formData.append("_method", "PUT");
-            const tagsString = $('#edit_tags').val(); 
-            const tagsArray = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            const tagsArray = $('#edit_tags').val() || [];
             formData.append('tags', JSON.stringify(tagsArray));
             // bahanBakuData.forEach((item, index) => {
             //     formData.append(`bahan_baku[${index}][id]`, item.id);
@@ -2112,14 +2116,34 @@ $(function () {
         updateEditWarnaPreviewModal(hexCode, "editWarnaPreviewModal");
     });
 
-    $('#edit_tags').tagsInput({
-        'width': '100%',
-        'height': '75%',
-        'interactive': true,
-        'defaultText': 'Add More',
-        'removeWithBackspace': true,
-        'minChars': 0,
-        'maxChars': 20,
-        'placeholderColor': '#666666'
-    });
+    if (!$('#edit_tags').hasClass('select2-hidden-accessible')) {
+        $('#edit_tags').select2({
+            width: '100%',
+            dropdownParent: $('#editProdukModal'),
+            dropdownAutoWidth: true,
+            placeholder: 'Ketik tags...',
+            tags: true,
+            tokenSeparators: [','],
+            ajax: {
+                url: '/api/tags/search',
+                dataType: 'json',
+                delay: 300,
+                data: function (params) {
+                    return {
+                        q: params.term
+                    };
+                },
+                processResults: function (data) {
+                    return {
+                        results: data.map(function (item) {
+                            return {
+                                id: item.value,
+                                text: item.label
+                            };
+                        })
+                    };
+                }
+            },
+        });
+    }
 });

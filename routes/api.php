@@ -21,3 +21,7 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 
 // Karyawan API
 Route::get('/karyawan/{id}', [KaryawanController::class, 'show']);
+
+// Tags API autocomplete
+Route::get('/tags/search', [App\Http\Controllers\TagController::class, 'search']);
+Route::get('/tags', [App\Http\Controllers\TagController::class, 'index']);

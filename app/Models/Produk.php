@@ -310,6 +310,20 @@ class Produk extends Model
         return $this->attributes['total_modal_keseluruhan'] ?? 0;
     }
 
+    public function getTagNamesAttribute()
+    {
+        if (empty($this->tags)) return [];
+        
+        return DetailParameter::whereIn('id', $this->tags)
+            ->pluck('nama_detail_parameter')
+            ->toArray();
+    }
+
+    public function getTags()
+    {
+        return DetailParameter::whereIn('id', $this->tags)->get();
+    }
+
     protected static function booted()
     {
         static::updated(function ($produk) {

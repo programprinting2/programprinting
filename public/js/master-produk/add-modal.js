@@ -1475,8 +1475,7 @@ $(function () {
             var form = $(this)[0];
             var formData = new FormData(form);
             formData.append('warna_id', document.getElementById('warna_id').value || '');
-            const tagsString = $('#tags').val(); 
-            const tagsArray = tagsString ? tagsString.split(',').map(tag => tag.trim()).filter(tag => tag) : [];
+            const tagsArray = $('#tags').val() || []; 
             formData.append('tags', JSON.stringify(tagsArray));
 
             bahanBakuData.forEach((item, index) => {
@@ -1823,6 +1822,38 @@ $(function () {
             $("#jenis_produk").trigger("change");
         } else {
             $("#jenis-produk-description").text("Pilih jenis produk terlebih dahulu");
+        }
+        if (!$('#tags').hasClass('select2-hidden-accessible')) {
+
+            $('#tags').select2({
+                width: '100%',
+                dropdownParent: $('#tambahProduk'),
+                dropdownAutoWidth: true,
+                placeholder: 'Ketik tags...',
+                tags: true,
+                tokenSeparators: [','],
+                ajax: {
+                    url: '/api/tags/search',
+                    dataType: 'json',
+                    delay: 300,
+                    data: function (params) {
+                        return {
+                            q: params.term
+                        };
+                    },
+                    processResults: function (data) {
+                        return {
+                            results: data.map(function (item) {
+                                return {
+                                    id: item.value,
+                                    text: item.label
+                                };
+                            })
+                        };
+                    }
+                },
+            });
+    
         }
     });
 });

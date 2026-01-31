@@ -178,7 +178,8 @@
                                         <div class="col-md-6">
                                             <label for="tags" class="form-label">Tags</label>
                                             <div>
-                                                <input name="tags" id="tags" />
+                                                <!-- <input name="tags" id="tags" /> -->
+                                                <select id="tags" name="tags[]" multiple style="width: 100%"></select>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -816,7 +817,7 @@
 </div>
 
 @push('plugin-styles')
-<link href="{{ asset('assets/plugins/jquery-tags-input/jquery.tagsinput.min.css') }}" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 @endpush
 
 @push('custom-styles')
@@ -831,15 +832,35 @@
 .warna-preview-modal:hover {
     transform: scale(1.02);
 }
+.select2-container--open .select2-dropdown {
+    top: 100% !important;
+    bottom: auto !important;
+}
+.select2-container--default .select2-search--inline .select2-search__field {
+    height: 28px;          
+    line-height: 28px;
+    padding: 0 2px;
+    margin-top: 5px;       
+}
+.select2-container--default .select2-selection--multiple {
+    height: 38px;
+    min-height: 38px;      
+    overflow-y: auto;      
+}
+
+.select2-container--default .select2-selection--multiple .select2-selection__rendered {
+    padding: 2px 5px;
+}
+
+.select2-container--default .select2-search--inline .select2-search__field {
+    min-height: 30px;
+    line-height: 30px;
+}
 </style>
 @endpush
 
 @push('plugin-scripts')
-    <script src="{{ asset('assets/plugins/jquery-tags-input/jquery.tagsinput.min.js') }}"></script>
-@endpush
-
-@push('custom-scripts')
-    <script src="{{ asset('assets/js/tags-input.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 @endpush
 
 @include('backend.general-form.cari-bahanbaku', [

@@ -7,6 +7,7 @@ use App\Exceptions\InvalidProdukDataException;
 use App\Models\Produk;
 use App\Repositories\Interfaces\ProdukRepositoryInterface;
 use App\Services\SupabaseStorageService;
+use App\Services\TagService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -73,6 +74,13 @@ class ProdukService
             if (isset($data['bahan_baku'])) {
                 $bahanBakuData = $data['bahan_baku'];
                 unset($data['bahan_baku']);
+            }
+
+            if (isset($data['tags']) && is_array($data['tags'])) {
+                $tagIds = TagService::processTagNames($data['tags']);
+                $data['tags'] = $tagIds;
+            } else {
+                $data['tags'] = [];
             }
 
             unset($data['produk_komponen'], $data['bahan_baku']);
@@ -169,6 +177,13 @@ class ProdukService
                 $data['dokumen_pendukung_json'] = array_merge($existingDokumens, $newDokumens);
             }
 
+            if (isset($data['tags']) && is_array($data['tags'])) {
+                $tagIds = TagService::processTagNames($data['tags']);
+                $data['tags'] = $tagIds;
+            } else {
+                $data['tags'] = [];
+            }
+
             $produkKomponenData = null;
             if ($data['jenis_produk'] === 'rakitan' && isset($data['produk_komponen'])) {
                 $produkKomponenData = $data['produk_komponen'];
@@ -239,6 +254,7 @@ class ProdukService
         if (!$produk) {
             throw new ProdukNotFoundException();
         }
+        $produk->tags = TagService::getTagNamesFromIds($produk->tags ?? []);
         return $produk;
     }
 
