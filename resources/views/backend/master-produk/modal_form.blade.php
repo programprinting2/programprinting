@@ -699,9 +699,15 @@
                                     <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
                                     <div class="row mb-2">
                                         <div class="col-md-6">
-                                            <label class="form-label">Nama Mesin</label>
-                                            <input type="text" class="form-control" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ''}" placeholder="Nama mesin" required>
-                                            <small class="text-muted">Tipe: <span>${data.tipe_mesin || 'Tidak diketahui'}</span></small>
+                                            <label class="form-label">Divisi Mesin</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control divisi-mesin-input" name="alur_produksi[${index}][divisi_mesin]" value="${data.divisi_mesin || ""}" placeholder="Pilih divisi mesin..." readonly style="cursor: pointer; background-color: #fff;">
+                                                <input type="hidden" class="divisi-mesin-id-input" name="alur_produksi[${index}][divisi_mesin_id]" value="${data.divisi_mesin_id || ""}">
+                                                <button type="button" class="btn btn-outline-secondary btn-cari-divisi-mesin" title="Cari Divisi Mesin"><i class="fa fa-search"></i></button>
+                                            </div>
+                                            <small class="text-muted">Keterangan: <span class="keterangan-divisi-span">${
+                                                data.keterangan_divisi || "Tidak ada keterangan"
+                                            }</span></small>
                                         </div>
                                         <div class="col-md-6">
                                             <label class="form-label">Estimasi Waktu (menit)</label>
@@ -893,4 +899,12 @@
     'tableId' => 'tabelCariProdukRakitanTambah',
     'paginationId' => 'paginationProdukRakitanTambah',
     'clearBtnId' => 'clearSearchProdukRakitanTambah',
+])
+
+@include('backend.general-form.cari-divisi-mesin', [
+    'modalId' => 'modalCariDivisiMesinProdukTambah',
+    'inputId' => 'searchDivisiMesinProdukTambah',
+    'tableId' => 'tabelCariDivisiMesinProdukTambah',
+    'paginationId' => 'paginationDivisiMesinProdukTambah',
+    'clearBtnId' => 'clearSearchDivisiMesinProdukTambah',
 ])

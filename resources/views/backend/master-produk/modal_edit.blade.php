@@ -635,3 +635,11 @@
     'paginationId' => 'paginationProdukRakitanEdit',
     'clearBtnId' => 'clearSearchProdukRakitanEdit',
 ])
+
+@include('backend.general-form.cari-divisi-mesin', [
+    'modalId' => 'modalCariDivisiMesinProdukEdit',
+    'inputId' => 'searchDivisiMesinProdukEdit',
+    'tableId' => 'tabelCariDivisiMesinProdukEdit',
+    'paginationId' => 'paginationDivisiMesinProdukEdit',
+    'clearBtnId' => 'clearSearchDivisiMesinProdukEdit',
+])

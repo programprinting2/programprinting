@@ -6,6 +6,7 @@ use App\Models\BahanBaku;
 use App\Models\Pemasok;
 use App\Models\Produk; 
 use App\Models\DetailParameter;
+use App\Models\MasterParameter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -108,6 +109,41 @@ class CariController extends Controller
         });
 
         return response()->json($mesins);
+    }
+    public function cariDivisiMesin(Request $request)
+    {
+        try {
+            $masterTipeMesin = MasterParameter::where('nama_parameter', 'TIPE MESIN')->first();
+            $divisiMesin = $masterTipeMesin ? $masterTipeMesin->details()->where('aktif', 1)->get() : collect();
+
+            $perPage = 10;
+            $page = $request->get('page', 1);
+            $search = $request->get('search', '');
+            
+            $query = $divisiMesin;
+            
+            if ($search) {
+                $query = $query->filter(function($item) use ($search) {
+                    return stripos($item->nama_detail_parameter, $search) !== false;
+                });
+            }
+            
+            $total = $query->count();
+            $paginated = $query->forPage($page, $perPage);
+            
+            return response()->json([
+                'data' => $paginated->values(),
+                'total' => $total,
+                'per_page' => $perPage,
+                'current_page' => $page,
+                'last_page' => ceil($total / $perPage)
+            ]);
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'error' => 'Gagal mengambil data divisi mesin'
+            ], 500);
+        }
     }
 
     public function cariPelanggan(Request $request)

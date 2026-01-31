@@ -718,7 +718,52 @@ $(function () {
         renderHargaBertingkat();
         renderHargaReseller();
     }
+    
+    // Handler untuk divisi mesin dipilih
+    window.addEventListener('divisiMesinDipilih', function (e) {
+        if (!$('#modalCariDivisiMesinProdukTambah').hasClass('show')) return;
+        const data = e.detail;
+        
+        // Cari mesin item yang sedang aktif
+        const mesinItem = $('.mesin-item').filter(function() {
+            return $(this).find('.divisi-mesin-input').is(':focus') || 
+                $(this).find('.btn-cari-divisi-mesin').hasClass('active');
+        });
+        
+        if (mesinItem.length > 0) {
+            mesinItem.find('.divisi-mesin-input').val(data.nama);
+            mesinItem.find('.divisi-mesin-id-input').val(parseInt(data.id));
+            mesinItem.find('.keterangan-divisi-span').text(data.keterangan || 'Tidak ada keterangan');
+        }
+    });
 
+    // Handler klik input divisi mesin untuk membuka modal
+    $(document).on('click', '.divisi-mesin-input, .btn-cari-divisi-mesin', function () {
+        if ($('#modalCariDivisiMesinProdukTambah').hasClass('show')) {
+            $('#modalCariDivisiMesinProdukTambah').modal('hide');
+            return;
+        }
+        
+        // Mark button as active untuk tracking
+        $(this).closest('.mesin-item').find('.btn-cari-divisi-mesin').addClass('active');
+        
+        var modalDivisi = new bootstrap.Modal(document.getElementById('modalCariDivisiMesinProdukTambah'), {
+            backdrop: 'static',
+            keyboard: false,
+            focus: true
+        });
+        modalDivisi.show();
+        setTimeout(function () {
+            if ($('#tambahProduk').hasClass('show')) {
+                $('body').addClass('modal-open');
+            }
+        }, 200);
+    });
+
+    // Remove active class when modal closes
+    $('#modalCariDivisiMesinProdukTambah').on('hidden.bs.modal', function() {
+        $('.btn-cari-divisi-mesin').removeClass('active');
+    });
     // Tombol tambah produk komponen
     $(document).on("click", "#btnTambahProdukKomponen", function () {
         if ($("#modalCariProdukRakitanTambah").hasClass("show")) {
@@ -817,14 +862,14 @@ $(function () {
             <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
             <div class="row mb-2">
                 <div class="col-md-6">
-                    <label class="form-label">Nama Mesin</label>
+                    <label class="form-label">Divisi Mesin</label>
                     <div class="input-group">
-                        <input type="text" class="form-control nama-mesin-input" name="alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." readonly style="cursor: pointer; background-color: #fff;">
-                        <input type="hidden" class="mesin-id-input" name="alur_produksi[${index}][mesin_id]" value="${data.id || ""}">
-                        <button type="button" class="btn btn-outline-secondary btn-cari-mesin" title="Cari Mesin"><i class="fa fa-search"></i></button>
+                        <input type="text" class="form-control divisi-mesin-input" name="alur_produksi[${index}][divisi_mesin]" value="${data.divisi_mesin || ""}" placeholder="Pilih divisi mesin..." readonly style="cursor: pointer; background-color: #fff;">
+                        <input type="hidden" class="divisi-mesin-id-input" name="alur_produksi[${index}][divisi_mesin_id]" value="${data.divisi_mesin_id || ""}">
+                        <button type="button" class="btn btn-outline-secondary btn-cari-divisi-mesin" title="Cari Divisi Mesin"><i class="fa fa-search"></i></button>
                     </div>
-                    <small class="text-muted">Tipe: <span class="tipe-mesin-span">${
-                        data.tipe_mesin || "Tidak diketahui"
+                    <small class="text-muted">Keterangan: <span class="keterangan-divisi-span">${
+                        data.keterangan_divisi || "Tidak ada keterangan"
                     }</span></small>
                 </div>
                 <div class="col-md-6">
@@ -1393,9 +1438,9 @@ $(function () {
             const alurArr = [];
             $("#daftarMesin .mesin-item").each(function () {
                 alurArr.push({
-                    nama_mesin:
-                        $(this).find('input[name*="[nama_mesin]"]').val() || "",
-                    tipe_mesin: $(this).find("span").text() || "",
+                    divisi_mesin: $(this).find('input[name*="[divisi_mesin]"]').val() || "",
+                    divisi_mesin_id: parseInt($(this).find('.divisi-mesin-id-input').val() || ""),
+                    keterangan_divisi: $(this).find('.keterangan-divisi-span').text() || "",
                     estimasi_waktu:
                         parseInt(
                             $(this)

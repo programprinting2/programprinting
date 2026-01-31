@@ -145,6 +145,7 @@ Route::group(['prefix' => 'backend'], function () {
     Route::get('/cari-bahanbaku/', [CariController::class, 'cariBahanBaku'])->name('backend.cari-bahanbaku');
     Route::get('/cari-pemasok', [CariController::class, 'cariPemasok'])->name('backend.cari-pemasok');
     Route::get('/cari-mesin', [CariController::class, 'cariMesin'])->name('backend.cari-mesin');
+    Route::get('/cari-divisi-mesin', [CariController::class, 'cariDivisiMesin'])->name('cari-divisi-mesin');
     Route::get('/cari-pelanggan', [CariController::class, 'cariPelanggan'])->name('backend.cari-pelanggan');
     Route::get('/cari-karyawan', [CariController::class, 'cariKaryawan'])->name('backend.cari-karyawan');
     Route::get('/cari-parameter', [CariController::class, 'cariParameter'])->name('backend.cari-parameter');

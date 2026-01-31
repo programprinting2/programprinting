@@ -343,11 +343,11 @@ $(function () {
                 renderEditHargaReseller();
                 editAlurProduksiList = Array.isArray(p.alur_produksi_json)
                     ? p.alur_produksi_json.map((row) => ({
-                          id: row.id || "",
-                          nama_mesin: row.nama_mesin,
-                          tipe_mesin: row.tipe_mesin,
-                          estimasi_waktu: row.estimasi_waktu,
-                          catatan: row.catatan,
+                        divisi_mesin: row.divisi_mesin || row.nama_mesin || "", 
+                        divisi_mesin_id: parseInt(row.divisi_mesin_id || ""),
+                        keterangan_divisi: row.keterangan_divisi || row.tipe_mesin || "",
+                        estimasi_waktu: row.estimasi_waktu,
+                        catatan: row.catatan,
                       }))
                     : [];
                 renderEditAlurProduksi();
@@ -590,6 +590,26 @@ $(function () {
         }
     }
 
+    function handleEditDivisiMesinDipilih(e) {
+        const data = e.detail;
+        const index = window.currentMesinIndex;
+        
+        if (typeof index !== "undefined") {
+            $(`.mesin-item[data-index="${index}"] .divisi-mesin-input`).val(data.nama_detail_parameter || data.nama);
+            $(`.mesin-item[data-index="${index}"] .divisi-mesin-id-input`).val(data.id);
+            $(`.mesin-item[data-index="${index}"] .keterangan-divisi-span`).text(data.keterangan || 'Tidak ada keterangan');
+            
+            // Update array data
+            if (editAlurProduksiList[index]) {
+                editAlurProduksiList[index].divisi_mesin = data.nama_detail_parameter || data.nama;
+                editAlurProduksiList[index].divisi_mesin_id = parseInt(data.id);
+                editAlurProduksiList[index].keterangan_divisi = data.keterangan || '';
+                editAlurProduksiList[index].estimasi_waktu = editAlurProduksiList[index].estimasi_waktu || 0;
+                editAlurProduksiList[index].catatan = editAlurProduksiList[index].catatan || '';
+            }
+        }
+    }
+
     // Named function untuk handle mesinDipilih
     function handleEditMesinDipilih(e) {
         if (!$("#editProdukModal").hasClass("show")) return;
@@ -763,6 +783,8 @@ $(function () {
             "produkKomponenDipilih",
             handleEditProdukKomponenDipilih,
         );
+        window.removeEventListener("divisiMesinDipilih", handleEditDivisiMesinDipilih);
+        window.addEventListener("divisiMesinDipilih", handleEditDivisiMesinDipilih);
     });
 
     // Cleanup saat modal edit ditutup
@@ -773,6 +795,7 @@ $(function () {
             "produkKomponenDipilih",
             handleEditProdukKomponenDipilih,
         );
+        window.removeEventListener("divisiMesinDipilih", handleEditDivisiMesinDipilih);
         $("#editProdukModalLabel").text("Edit Produk");
         $("#editProdukForm")[0].reset();
         editProdukKomponenList = [];
@@ -998,23 +1021,18 @@ $(function () {
             $(this)
                 .find(".fw-semibold")
                 .text("Mesin " + (i + 1));
-            $(this)
-                .find(".nama-mesin-input")
-                .attr("name", `edit_alur_produksi[${i}][nama_mesin]`);
-            $(this)
-                .find(
-                    'input[name^="edit_alur_produksi"][name$="[estimasi_waktu]"]',
-                )
-                .attr("name", `edit_alur_produksi[${i}][estimasi_waktu]`);
-            $(this)
-                .find('textarea[name^="edit_alur_produksi"][name$="[catatan]"]')
-                .attr("name", `edit_alur_produksi[${i}][catatan]`);
+            $(this).find(".divisi-mesin-input").attr("name", `edit_alur_produksi[${i}][divisi_mesin]`);
+            $(this).find(".divisi-mesin-id-input").attr("name", `edit_alur_produksi[${i}][divisi_mesin_id]`);
+            $(this).find('input[name*="[estimasi_waktu]"]').attr("name", `edit_alur_produksi[${i}][estimasi_waktu]`);
+            $(this).find('textarea[name*="[catatan]"]').attr("name", `edit_alur_produksi[${i}][catatan]`);
         });
     }
 
     // Handler hapus mesin-item (edit)
     $(document).on("click", ".btnHapusEditMesin", function () {
+        const idx = $(this).closest(".mesin-item").data("index");
         $(this).closest(".mesin-item").remove();
+        editAlurProduksiList.splice(idx, 1);
         reindexEditMesinItems();
         feather.replace();
     });
@@ -1237,14 +1255,14 @@ $(function () {
             <div class="mb-2 fw-semibold">Mesin ${index + 1}</div>
             <div class="row mb-2">
                 <div class="col-md-6">
-                    <label class="form-label">Nama Mesin</label>
+                    <label class="form-label">Divisi Mesin</label>
                     <div class="input-group">
-                        <input type="text" class="form-control nama-mesin-input" name="edit_alur_produksi[${index}][nama_mesin]" value="${data.nama_mesin || ""}" placeholder="Pilih mesin..." style="cursor: pointer;">
-                        <input type="hidden" class="mesin-id-input" name="edit_alur_produksi[${index}][id]" value="${data.id || ""}">
-                        <button type="button" class="btn btn-outline-secondary btn-cari-mesin" title="Cari Mesin"><i class="fa fa-search"></i></button>
+                        <input type="text" class="form-control divisi-mesin-input" name="edit_alur_produksi[${index}][divisi_mesin]" value="${data.divisi_mesin || ""}" placeholder="Pilih divisi mesin..." style="cursor: pointer;">
+                        <input type="hidden" class="divisi-mesin-id-input" name="edit_alur_produksi[${index}][divisi_mesin_id]" value="${data.divisi_mesin_id || ""}">
+                        <button type="button" class="btn btn-outline-secondary btn-cari-divisi-mesin" title="Cari Divisi Mesin"><i class="fa fa-search"></i></button>
                     </div>
-                    <small class="text-muted">Tipe: <span class="tipe-mesin-span">${
-                        data.tipe_mesin || "Tidak diketahui"
+                    <small class="text-muted">Keterangan: <span class="keterangan-divisi-span">${
+                        data.keterangan_divisi || "Tidak ada keterangan"
                     }</span></small>
                 </div>
                 <div class="col-md-6">
@@ -1269,7 +1287,14 @@ $(function () {
             return;
         }
         editAlurProduksiList.forEach((row, idx) => {
-            container.append(mesinTemplateEdit(idx, row));
+            const mesinHtml = mesinTemplateEdit(idx, {
+                divisi_mesin: row.divisi_mesin || row.nama_mesin || "",
+                divisi_mesin_id: row.divisi_mesin_id || "",
+                keterangan_divisi: row.keterangan_divisi || row.tipe_mesin || "",
+                estimasi_waktu: row.estimasi_waktu || 0,
+                catatan: row.catatan || "",
+            });
+            container.append(mesinHtml);
         });
         feather.replace();
     }
@@ -1307,14 +1332,48 @@ $(function () {
             }, 200);
         });
 
+        $(document).off("click", ".divisi-mesin-input, .btn-cari-divisi-mesin")
+        .on("click", ".divisi-mesin-input, .btn-cari-divisi-mesin", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        // Cek apakah modal sudah terbuka
+        if ($("#modalCariDivisiMesinProdukEdit").hasClass("show")) {
+            return;
+        }
+        const mesinItem = $(this).closest(".mesin-item");
+        const index = mesinItem.data("index");
+        window.currentMesinIndex = index;
+        
+        // Buka modal cari divisi mesin
+        var modalDivisi = new bootstrap.Modal(
+            document.getElementById("modalCariDivisiMesinProdukEdit"),
+            {
+                backdrop: "static",
+                keyboard: false,
+                focus: true,
+            },
+        );
+        modalDivisi.show();
+        // Tambahkan class stack untuk modal
+        setTimeout(function () {
+            if ($("#editProdukModal").hasClass("show")) {
+                $("body").addClass("modal-open");
+            }
+        }, 200);
+    });
+
+    $('#modalCariDivisiMesinProdukEdit').on('hidden.bs.modal', function() {
+        $('.btn-cari-divisi-mesin').removeClass('active');
+    });
+
     $(document)
         .off("click", "#editBtnTambahMesin")
         .on("click", "#editBtnTambahMesin", function () {
             editAlurProduksiList.push({
-                id: "",
-                nama_mesin: "",
-                tipe_mesin: "",
-                estimasi_waktu: "",
+                divisi_mesin: "",
+                divisi_mesin_id: 0,
+                keterangan_divisi: "",
+                estimasi_waktu: 0,
                 catatan: "",
             });
             renderEditAlurProduksi();
@@ -1329,19 +1388,11 @@ $(function () {
             const idx = mesinDiv.data("index");
             if (typeof idx === "undefined" || !editAlurProduksiList[idx])
                 return;
-            editAlurProduksiList[idx].nama_mesin =
-                mesinDiv.find('input[name*="[nama_mesin]"]').val() || "";
-            editAlurProduksiList[idx].estimasi_waktu =
-                parseInt(
-                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val(),
-                ) || 0;
-            editAlurProduksiList[idx].catatan =
-                mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
-            // Tipe mesin (jika ada span)
-            editAlurProduksiList[idx].tipe_mesin =
-                mesinDiv.find("span").text() || "";
-            editAlurProduksiList[idx].id =
-                mesinDiv.find(".mesin-id-input").val() || "";
+            editAlurProduksiList[idx].divisi_mesin = mesinDiv.find('input[name*="[divisi_mesin]"]').val() || "";
+            editAlurProduksiList[idx].divisi_mesin_id = parseInt(mesinDiv.find('.divisi-mesin-id-input').val() || "");
+            editAlurProduksiList[idx].keterangan_divisi = mesinDiv.find('.keterangan-divisi-span').text() || "";
+            editAlurProduksiList[idx].estimasi_waktu = parseInt(mesinDiv.find('input[name*="[estimasi_waktu]"]').val()) || 0;
+            editAlurProduksiList[idx].catatan = mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
         },
     );
 
@@ -1466,19 +1517,11 @@ $(function () {
             const idx = mesinDiv.data("index");
             if (typeof idx === "undefined" || !editAlurProduksiList[idx])
                 return;
-            editAlurProduksiList[idx].nama_mesin =
-                mesinDiv.find('input[name*="[nama_mesin]"]').val() || "";
-            editAlurProduksiList[idx].estimasi_waktu =
-                parseInt(
-                    mesinDiv.find('input[name*="[estimasi_waktu]"]').val(),
-                ) || 0;
-            editAlurProduksiList[idx].catatan =
-                mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
-            // Tipe mesin (jika ada span)
-            editAlurProduksiList[idx].tipe_mesin =
-                mesinDiv.find("span").text() || "";
-            editAlurProduksiList[idx].id =
-                mesinDiv.find(".mesin-id-input").val() || "";
+            editAlurProduksiList[idx].divisi_mesin = mesinDiv.find('input[name*="[divisi_mesin]"]').val() || "";
+            editAlurProduksiList[idx].divisi_mesin_id = parseInt(mesinDiv.find('.divisi-mesin-id-input').val() || "");
+            editAlurProduksiList[idx].keterangan_divisi = mesinDiv.find('.keterangan-divisi-span').text() || "";
+            editAlurProduksiList[idx].estimasi_waktu = parseInt(mesinDiv.find('input[name*="[estimasi_waktu]"]').val()) || 0;
+            editAlurProduksiList[idx].catatan = mesinDiv.find('textarea[name*="[catatan]"]').val() || "";
         },
     );
 
