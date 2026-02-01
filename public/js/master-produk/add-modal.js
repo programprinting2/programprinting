@@ -78,7 +78,9 @@ $(function () {
 
     // Update sub-kategori saat kategori utama berubah
     $(document).on("change", "#kategori_utama", function () {
+        const selectedKategoriId = $(this).val();
         updateSubKategoriOptions($(this).val(), "#sub_kategori_id_produk");
+        toggleFinishingTab(selectedKategoriId, false); 
     });
 
     $(document).on("change", "#satuanBarang", function () {
@@ -95,6 +97,10 @@ $(function () {
         const selectedSatuan = $("#satuanBarang").val();
         if (selectedSatuan) {
             toggleDimensiFields(selectedSatuan, "add");
+        }
+        const selectedKategori = $("#kategori_utama").val();
+        if (selectedKategori) {
+            toggleFinishingTab(selectedKategori, false);
         }
     });
 
@@ -1514,6 +1520,23 @@ $(function () {
                 }
             });
             $("#biaya_tambahan_json").val(JSON.stringify(biayaTambahanArr));
+            const finishingArr = [];
+            $("#tabelFinishing tbody tr").each(function() {
+                const finishingId = $(this).data('id');
+                const kodeProduk = $(this).find('td').eq(0).text().trim();
+                const namaProduk = $(this).find('td').eq(1).text().trim();
+                // const hargaModal = $(this).find('td').eq(2).text().trim().replace(/[^\d]/g, '');
+                
+                if (finishingId) {
+                    finishingArr.push({
+                        id: parseInt(finishingId),
+                        kode_produk: kodeProduk,
+                        nama_produk: namaProduk,
+                        // harga_modal: parseFloat(hargaModal) || 0
+                    });
+                }
+            });
+            $("#finishing_json").val(JSON.stringify(finishingArr));
             $("#lebar").val(parseFloat($("#lebar").val()) || 0);
             $("#panjang").val(parseFloat($("#panjang").val()) || 0);
 
@@ -1900,5 +1923,117 @@ $(function () {
             });
     
         }
+    });
+
+    // Function untuk render tabel finishing
+    function renderTabelFinishing(finishingData, isEdit = false) {
+        const prefix = isEdit ? 'edit' : '';
+        const tbody = $(`#${prefix}tabelFinishing tbody`);
+        
+        if (finishingData && finishingData.length > 0) {
+            let html = '';
+            finishingData.forEach(function(item, index) {
+                html += `
+                    <tr data-id="${item.id}" data-index="${index}">
+                        <td>${item.kode_produk || '-'}</td>
+                        <td>${item.nama_produk || '-'}</td>
+                        <!-- <td class="text-end">Rp ${item.harga_modal ? parseFloat(item.harga_modal).toLocaleString('id-ID') : '0'}</td> -->
+                        <td>
+                            <button type="button" class="btn btn-danger btn-xs ${prefix}btnHapusFinishing" 
+                                    data-id="${item.id}" title="Hapus Finishing">
+                                <i data-feather="trash-2" class="icon-sm"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.html(html);
+        } else {
+            tbody.html('<tr><td colspan="4" class="text-center text-muted">Belum ada finishing ditambahkan</td></tr>');
+        }
+        
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+
+    // Event listener untuk tombol tambah finishing
+    $(document).on('click', '#btnTambahFinishing', function () {
+        var modalFinishing = new bootstrap.Modal(document.getElementById('modalCariFinishing'), {
+            backdrop: 'static',
+            keyboard: false,
+            focus: true
+        });
+        modalFinishing.show();
+        setTimeout(function () {
+            if ($('#tambahProduk').hasClass('show')) {
+                $('body').addClass('modal-open');
+            }
+        }, 200);
+    });
+
+    // Event listener untuk tombol tambah finishing di edit modal
+    $(document).on('click', '#editBtnTambahFinishing', function () {
+        var modalFinishing = new bootstrap.Modal(document.getElementById('modalCariFinishingEdit'), {
+            backdrop: 'static',
+            keyboard: false,
+            focus: true
+        });
+        modalFinishing.show();
+        setTimeout(function () {
+            if ($('#editProdukModal').hasClass('show')) {
+                $('body').addClass('modal-open');
+            }
+        }, 200);
+    });
+
+    window.addEventListener('finishingDipilih', function (e) {
+        const data = e.detail;
+        const isEdit = data.sourceModal === 'edit';
+        const prefix = isEdit ? 'edit_' : '';
+        const jsonField = $(`#${prefix}finishing_json`);
+        
+        let finishingData = [];
+        try {
+            finishingData = JSON.parse(jsonField.val() || '[]');
+        } catch (e) {
+            finishingData = [];
+        }
+        
+        if (finishingData.some(item => parseInt(item.id) === parseInt(data.id))) {
+            // Swal.fire('Info', 'Finishing sudah ditambahkan.', 'info');
+            return;
+        }
+        
+        finishingData.push({
+            id: parseInt(data.id),
+            kode_produk: data.kode_produk,
+            nama_produk: data.nama_produk,
+            // harga_modal: data.harga_modal
+        });
+        
+        jsonField.val(JSON.stringify(finishingData));
+        
+        renderTabelFinishing(finishingData, isEdit);
+        
+        Swal.fire('Berhasil', 'Finishing berhasil ditambahkan.', 'success');
+    });
+
+    // Event listener untuk hapus finishing
+    $(document).on('click', '.btnHapusFinishing, .editBtnHapusFinishing', function () {
+        const isEdit = $(this).hasClass('editBtnHapusFinishing');
+        const prefix = isEdit ? 'edit_' : '';
+        const jsonField = $(`#${prefix}finishing_json`);
+        const finishingId = $(this).data('id');
+        
+        let finishingData = [];
+        try {
+            finishingData = JSON.parse(jsonField.val() || '[]');
+        } catch (e) {
+            finishingData = [];
+        }
+        finishingData = finishingData.filter(item => item.id !== finishingId);
+        
+        jsonField.val(JSON.stringify(finishingData));
+        
+        renderTabelFinishing(finishingData, isEdit);
     });
 });

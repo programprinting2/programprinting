@@ -78,3 +78,22 @@ function updateEditSubKategoriOptions(selectedKategoriId, currentSubKategoriId =
     }
   }
 }
+
+function toggleFinishingTab(selectedKategoriId, isEdit = false) {
+  const prefix = isEdit ? 'edit-' : '';
+  const finishingTab = $(`#${prefix}tab-finishing`);
+  
+  const isFinishingCategory = window.kategoriList?.some(kategori => 
+      kategori.id == selectedKategoriId && 
+      kategori.nama_detail_parameter?.toUpperCase() === 'FINISHING'
+  );
+  
+  if (isFinishingCategory) {
+      finishingTab.hide();
+      if (finishingTab.hasClass('active')) {
+          $(`#${prefix}tab-umum`).tab('show');
+      }
+  } else {
+      finishingTab.show();
+  }
+}

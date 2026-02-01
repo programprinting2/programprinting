@@ -1,5 +1,5 @@
 <div class="modal fade" id="tambahProduk" tabindex="-1" aria-labelledby="tambahProdukLabel" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-centered"><!-- Tambahkan modal-dialog-centered di sini -->
+    <div class="modal-dialog modal-xl modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="tambahProdukLabel">Tambah Produk Baru</h5>
@@ -38,6 +38,12 @@
                             <button class="nav-link" id="tab-media-dokumen" data-bs-toggle="tab"
                                 data-bs-target="#media-dokumen" type="button" role="tab">
                                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="tab-finishing" data-bs-toggle="tab"
+                                data-bs-target="#finishing" type="button" role="tab" style="display: none;">
+                                <i data-feather="layers" class="me-1 icon-sm"></i> Finishing
                             </button>
                         </li>
                     </ul>
@@ -149,6 +155,7 @@
                                         <input type="hidden" name="alur_produksi_json" id="alur_produksi_json">
                                         <input type="hidden" name="biaya_tambahan_json" id="biaya_tambahan_json" value="">
                                         <input type="hidden" name="parameter_modal_json" id="parameter_modal_json" value="[]">
+                                        <input type="hidden" name="finishing_json" id="finishing_json" value="[]">
                                     </div>
                                     <div class="row mb-3">
                                         <div class="col-md-6">
@@ -688,6 +695,48 @@
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Finishing Tab   -->
+                        <div class="tab-pane fade" id="finishing" role="tabpanel">
+                            <div class="card mb-0">
+                                <div class="card-body">
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="fw-semibold">Daftar Finishing</span>
+                                                <div class="small text-muted">Pilih produk finishing yang tersedia untuk produk ini</div>
+                                            </div>
+                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                id="btnTambahFinishing">
+                                                <i data-feather="plus" class="me-1"></i> Tambah Finishing
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="table-responsive">
+                                        <table class="table table-bordered align-middle mb-0"
+                                            id="tabelFinishing">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                        Kode Produk</th>
+                                                    <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                        Nama Produk</th>
+                                                    <!-- <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                        Harga Modal</th> -->
+                                                    <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                        Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td colspan="3" class="text-center text-muted">Belum ada finishing ditambahkan</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         @push('custom-scripts')
                             <script>
                                 let mesinIndex = 0;
@@ -907,4 +956,12 @@
     'tableId' => 'tabelCariDivisiMesinProdukTambah',
     'paginationId' => 'paginationDivisiMesinProdukTambah',
     'clearBtnId' => 'clearSearchDivisiMesinProdukTambah',
+])
+
+@include('backend.general-form.cari-finishing', [
+    'modalId' => 'modalCariFinishing',
+    'inputId' => 'searchFinishing',
+    'tableId' => 'tabelCariFinishing',
+    'paginationId' => 'paginationFinishing',
+    'clearBtnId' => 'clearSearchFinishing',
 ])

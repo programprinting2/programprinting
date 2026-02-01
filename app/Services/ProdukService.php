@@ -42,6 +42,7 @@ class ProdukService
             $data['spesifikasi_teknis_json'] = $this->processJsonField($data['spesifikasi_teknis_json'] ?? null);
             $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
             $data['tags'] = $data['tags'] ?? [];
+            $data['finishing_json'] = $this->processJsonField($data['finishing_json'] ?? null);
 
             // Process file uploads - menggunakan method yang mengembalikan URL
             $data['foto_pendukung_json'] = $this->uploadFilesWithUrl(
@@ -142,6 +143,7 @@ class ProdukService
             $data['spesifikasi_teknis_json'] = $this->processJsonField($data['spesifikasi_teknis_json'] ?? null);
             $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
             $data['tags'] = $data['tags'] ?? [];
+            $data['finishing_json'] = $this->processJsonField($data['finishing_json'] ?? null);
             
             // Handle existing files
             // $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);

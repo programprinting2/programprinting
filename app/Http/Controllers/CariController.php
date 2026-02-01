@@ -241,6 +241,47 @@ class CariController extends Controller
         return response()->json($parameters);
     }
 
+    public function cariFinishing(Request $request)
+    {
+        $search = $request->input('search');
+        
+        $finishingCategory = MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
+        $finishingDetail = $finishingCategory ? 
+            $finishingCategory->details()->where('nama_detail_parameter', 'FINISHING')->first() : null;
+        
+        $query = Produk::where('status_aktif', true)
+                    ->where('jenis_produk', 'produk'); 
+        
+        if ($finishingDetail) {
+            $query->where('kategori_utama_id', $finishingDetail->id);
+        }
+        
+        if ($search) {
+            $search = strtolower($search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(kode_produk) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(nama_produk) LIKE ?', ["%{$search}%"]);
+            });
+        }
+
+        $produks = $query->with(['kategoriUtama', 'subKategori', 'satuan'])
+                        ->orderBy('nama_produk')
+                        ->paginate(10);
+
+        $produks->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'kode_produk' => $item->kode_produk,
+                'nama_produk' => $item->nama_produk,
+                'kategori' => $item->kategoriUtama ? $item->kategoriUtama->nama_detail_parameter : '-',
+                'sub_kategori' => $item->subKategori ? $item->subKategori->nama_sub_detail_parameter : '-',
+                'harga_modal' => $item->total_modal_keseluruhan ?? 0,
+            ];
+        });
+
+        return response()->json($produks);
+    }
+
     public function cariProdukKomponen(Request $request)
     {
         $search = $request->input('search');

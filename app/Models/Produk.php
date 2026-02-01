@@ -35,7 +35,8 @@ class Produk extends Model
         'alur_produksi_json',
         'parameter_modal_json',
         'spesifikasi_teknis_json',
-        'biaya_tambahan_json',           
+        'biaya_tambahan_json',
+        'finishing_json',           
         'total_modal_keseluruhan',
         'needs_recalc',
     ];
@@ -58,6 +59,7 @@ class Produk extends Model
         'needs_recalc' => 'boolean',
         'warna_id' => 'integer',
         'tags' => 'array',
+        'finishing_json' => 'array'
     ];
 
     // Relationship dengan bahan baku

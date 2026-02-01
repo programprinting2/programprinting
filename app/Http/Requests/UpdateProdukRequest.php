@@ -51,6 +51,7 @@ class UpdateProdukRequest extends FormRequest
             'parameter_modal_json' => 'nullable|json',
             'spesifikasi_teknis_json' => 'nullable|json',
             'biaya_tambahan_json' => 'nullable|json',
+            'finishing_json' => 'nullable|json',
         ];
         if ($this->input('jenis_produk') === 'rakitan') {
             $rules['produk_komponen'] = 'required|array|min:1';

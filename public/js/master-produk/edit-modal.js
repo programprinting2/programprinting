@@ -10,6 +10,7 @@ $(function () {
         deletedVideoIndexes = [],
         deletedDocumentIndexes = [];
     let editAlurProduksiList = [];
+    let editFinishingList = [];
 
     // === BAHAN BAKU (EDIT) ===
     let editBahanBakuList = [];
@@ -230,6 +231,7 @@ $(function () {
                     p.kategori_utama_id,
                     p.sub_kategori_id,
                 );
+                toggleFinishingTab(p.kategori_utama_id, true);
                 $("#edit_satuanBarang").val(p.satuan_id);
                 updateEditDetailSatuanOptions(p.satuan_id, p.sub_satuan_id);
                 $("#edit_lebar").val(p.lebar);
@@ -290,6 +292,16 @@ $(function () {
                     : [];
                 }
                 renderEditTabelProdukKomponen();
+                editFinishingList = Array.isArray(res.finishing_data) 
+                    ? res.finishing_data.map(item => ({
+                        id: parseInt(item.id),
+                        kode_produk: item.kode_produk || '',
+                        nama_produk: item.nama_produk || '',
+                        // harga_modal: parseFloat(item.harga_modal) || 0
+                    }))
+                    : [];
+                $("#edit_finishing_json").val(JSON.stringify(editFinishingList));
+                renderEditTabelFinishing();
                 $("#edit_harga_bertingkat_json").val(
                     JSON.stringify(p.harga_bertingkat_json || []),
                 );
@@ -384,6 +396,7 @@ $(function () {
     $(document).on("change", "#edit_kategori_utama", function () {
         const selectedKategoriId = $(this).val();
         updateEditSubKategoriOptions(selectedKategoriId);
+        toggleFinishingTab(selectedKategoriId, true);
     });
 
     $(document).on("change", "#edit_satuanBarang", function () {
@@ -435,6 +448,9 @@ $(function () {
 
         if (selectedSatuanOnShow) {
             toggleDimensiFieldsEdit(selectedSatuanOnShow);
+        }
+        if (selectedKategoriOnShow) {
+            toggleFinishingTab(selectedKategoriOnShow, true);
         }
     });
 
@@ -785,7 +801,29 @@ $(function () {
         );
         window.removeEventListener("divisiMesinDipilih", handleEditDivisiMesinDipilih);
         window.addEventListener("divisiMesinDipilih", handleEditDivisiMesinDipilih);
+        window.removeEventListener("finishingDipilih", handleEditFinishingDipilih);
+        window.addEventListener("finishingDipilih", handleEditFinishingDipilih);
     });
+
+    function handleEditFinishingDipilih(e) {
+        const data = e.detail;
+        
+        if (editFinishingList.some(item => item.id === data.id)) {
+            // Swal.fire('Info', 'Finishing sudah ditambahkan.', 'info');
+            return;
+        }
+        
+        editFinishingList.push({
+            id: data.id,
+            kode_produk: data.kode_produk,
+            nama_produk: data.nama_produk,
+            // harga_modal: data.harga_modal
+        });
+        
+        $('#edit_finishing_json').val(JSON.stringify(editFinishingList));
+        renderEditTabelFinishing();n
+        Swal.fire('Berhasil', 'Finishing berhasil ditambahkan.', 'success');
+    }
 
     // Cleanup saat modal edit ditutup
     $("#editProdukModal").on("hidden.bs.modal", function () {
@@ -800,6 +838,8 @@ $(function () {
         $("#editProdukForm")[0].reset();
         editProdukKomponenList = [];
         renderEditTabelProdukKomponen();
+        editFinishingList = [];
+        renderEditTabelFinishing();
     });
 
     // Tombol + Tambah Parameter (edit)
@@ -2189,4 +2229,42 @@ $(function () {
             },
         });
     }
+
+    function renderEditTabelFinishing() {
+        const tbody = $("#editTabelFinishing tbody");
+        tbody.empty();
+        
+        if (!editFinishingList || editFinishingList.length === 0) {
+            tbody.append(
+                '<tr><td colspan="4" class="text-center text-muted">Belum ada finishing ditambahkan</td></tr>',
+            );
+            return;
+        }
+        
+        editFinishingList.forEach(function(item, index) {
+            tbody.append(`
+                <tr data-id="${item.id}" data-index="${index}">
+                    <td>${item.kode_produk || '-'}</td>
+                    <td>${item.nama_produk || '-'}</td>
+                    <!-- <td class="text-end">Rp ${item.harga_modal ? parseFloat(item.harga_modal).toLocaleString('id-ID') : '0'}</td> -->
+                    <td>
+                        <button type="button" class="btn btn-danger btn-xs editBtnHapusFinishing" 
+                                data-id="${item.id}" title="Hapus Finishing">
+                            <i data-feather="trash-2" class="icon-sm"></i>
+                        </button>
+                    </td>
+                </tr>
+            `);
+        });
+        
+        if (typeof feather !== 'undefined') feather.replace();
+    }
+    
+    $(document).on('click', '.editBtnHapusFinishing', function () {
+        const finishingId = $(this).data('id');
+        editFinishingList = editFinishingList.filter(item => item.id !== finishingId);
+        
+        $('#edit_finishing_json').val(JSON.stringify(editFinishingList));
+        renderEditTabelFinishing();
+    });
 });

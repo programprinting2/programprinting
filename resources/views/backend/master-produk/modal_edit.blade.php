@@ -42,6 +42,12 @@
                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
               </button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="edit-tab-finishing" data-bs-toggle="tab"
+                    data-bs-target="#edit-finishing" type="button" role="tab" style="display: none;">
+                    <i data-feather="layers" class="me-1 icon-sm"></i> Finishing
+                </button>
+            </li>
           </ul>
           <div class="tab-content" id="EditProdukTabContent">
             <!-- Tab Detail Produk -->
@@ -145,6 +151,7 @@
                       id="edit_dokumen_pendukung_existing_json">
                     <input type="hidden" name="parameter_modal_json" id="edit_parameter_modal_json">
                     <input type="hidden" name="biaya_tambahan_json" id="edit_biaya_tambahan_json" value="">
+                    <input type="hidden" name="finishing_json" id="edit_finishing_json" value="">
                   </div>
                   <div class="row mb-3">
                     <div class="col-md-6">
@@ -538,6 +545,48 @@
                 </div>
               </div>
             </div>
+
+            <!-- Finishing Tab -->
+            <div class="tab-pane fade" id="edit-finishing" role="tabpanel">
+                <div class="card mb-0">
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-semibold">Daftar Finishing</span>
+                                    <div class="small text-muted">Pilih produk finishing yang tersedia untuk produk ini</div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline-primary"
+                                    id="editBtnTambahFinishing">
+                                    <i data-feather="plus" class="me-1"></i> Tambah Finishing
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table table-bordered align-middle mb-0"
+                                id="editTabelFinishing">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                            Kode Produk</th>
+                                        <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                            Nama Produk</th>
+                                        <!-- <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                            Harga Modal</th> -->
+                                        <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                            Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="3" class="text-center text-muted">Belum ada finishing ditambahkan</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
           </div>
         </div>
         <div class="modal-footer">
@@ -602,6 +651,7 @@
   }
 </style>
 @endpush
+
 @push('plugin-styles')
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 @endpush
@@ -642,4 +692,12 @@
     'tableId' => 'tabelCariDivisiMesinProdukEdit',
     'paginationId' => 'paginationDivisiMesinProdukEdit',
     'clearBtnId' => 'clearSearchDivisiMesinProdukEdit',
+])
+
+@include('backend.general-form.cari-finishing', [
+    'modalId' => 'modalCariFinishingEdit',
+    'inputId' => 'searchFinishingEdit',
+    'tableId' => 'tabelCariFinishingEdit',
+    'paginationId' => 'paginationFinishingEdit',
+    'clearBtnId' => 'clearSearchFinishingEdit',
 ])

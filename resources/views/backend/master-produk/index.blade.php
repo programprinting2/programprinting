@@ -164,7 +164,7 @@
 @push('custom-scripts')
   <script>
     window.subKategoriList = @json($subKategoriList ?? []);
-    window.kategoriList = @json($kategoriList ?? []);
+    window.kategoriList = @json($kategoriProdukList ?? []);
     window.masterMesinList = @json($masterMesinList ?? []);
     window.satuanDetailList = @json($satuanDetailList ?? []);
   </script>

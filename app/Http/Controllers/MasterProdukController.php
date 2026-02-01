@@ -152,7 +152,8 @@ class MasterProdukController extends Controller
             $produk = $this->produkService->getProduk($id);
             $produk->lebar = (float) $produk->lebar;
             $produk->panjang = (float) $produk->panjang;
-            return response()->json(['success' => true, 'produk' => $produk]);
+            return response()->json(['success' => true, 'produk' => $produk, 'finishing_data' => $produk->finishing_json ?? []
+        ]);
         } catch (ProdukNotFoundException $e) {
             return response()->json([
                 'success' => false,
