@@ -118,6 +118,9 @@
                           </div>
                         </div>
                         <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
+                        <button type="button" class="btn btn-outline-info btn-sm" id="btnTambahItemTab">
+                          <i class="fa fa-plus"></i> Tambah Item (Versi Tab)
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -379,6 +382,638 @@
                 </div>
             </div>
 
+            <!-- OPSI 1 -->
+            <div class="modal fade" id="modalTambahItemPesanan" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalTambahItemPesananLabel" aria-hidden="true">
+              <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header border-bottom">
+                    <h5 class="modal-title" id="modalTambahItemPesananLabel">
+                      <i class="fa fa-plus-circle me-2"></i>Tambah Item Pesanan
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-0">
+                    <div class="row g-0">
+                      <!-- Left Panel: Form Sections -->
+                      <div class="col-lg-8 border-end">
+                        <div class="p-4">
+                          <!-- Section 1: Detail Pesanan -->
+                          <div class="section-item mb-4" id="sectionDetailPesanan">
+                            <div class="d-flex align-items-center mb-3">
+                              <span class="section-number me-2">1</span>
+                              <h6 class="mb-0 fw-bold">Detail Pesanan</h6>
+                            </div>
+                            <div class="ps-4">
+                              <div class="row g-3">
+                                <div class="col-md-12">
+                                  <label class="form-label">Produk <span class="text-danger">*</span></label>
+                                  <select class="form-select" id="modalProdukSelect">
+                                    <option value="">-- Pilih Produk --</option>
+                                    <option value="1">Banner</option>
+                                    <option value="2">Spanduk</option>
+                                    <option value="3">Brosur</option>
+                                    <option value="4">Kartu Nama</option>
+                                    <option value="5">Sticker</option>
+                                    <option value="6">X-Banner</option>
+                                  </select>
+                                </div>
+                                <div class="col-md-12">
+                                  <label class="form-label">Keterangan</label>
+                                  <textarea class="form-control" id="modalKeteranganInput" rows="2" placeholder="Masukkan keterangan pesanan..."></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Jumlah <span class="text-danger">*</span></label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control" id="modalJumlahInput" min="1" value="1" placeholder="0">
+                                    <select class="form-select" id="modalSatuanSelect" style="max-width: 120px;">
+                                      <option value="pcs">Pcs</option>
+                                      <option value="lembar">Lembar</option>
+                                      <option value="meter">Meter</option>
+                                      <option value="set">Set</option>
+                                    </select>
+                                  </div>
+                                </div>
+                                <div class="col-md-6">
+                                  <label class="form-label">Deadline <span class="text-danger">*</span></label>
+                                  <input type="date" class="form-control" id="modalDeadlineInput">
+                                </div>
+                                <div class="col-12">
+                                  <label class="form-label">Ukuran</label>
+                                  <div class="row g-2">
+                                    <div class="col-6">
+                                      <div class="input-group">
+                                        <span class="input-group-text">P</span>
+                                        <input type="number" class="form-control" id="modalPanjangInput" min="0" step="0.1" value="0" placeholder="Panjang">
+                                        <span class="input-group-text">cm</span>
+                                      </div>
+                                    </div>
+                                    <div class="col-6">
+                                      <div class="input-group">
+                                        <span class="input-group-text">L</span>
+                                        <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
+                                        <span class="input-group-text">cm</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <hr class="my-4">
+
+                          <!-- Section 2: Files -->
+                          <div class="section-item mb-4" id="sectionFiles">
+                            <div class="d-flex align-items-center mb-3">
+                              <span class="section-number me-2">2</span>
+                              <h6 class="mb-0 fw-bold">Files</h6>
+                            </div>
+                            <div class="ps-4">
+                              <!-- Tab untuk pilih sumber file -->
+                              <ul class="nav nav-tabs nav-tabs-sm mb-3" id="fileSourceTabs">
+                                <li class="nav-item">
+                                  <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabFileLokal">
+                                    <i class="fa fa-folder me-1"></i> File Lokal
+                                  </button>
+                                </li>
+                                <li class="nav-item">
+                                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabFileLAN">
+                                    <i class="fa fa-network-wired me-1"></i> LAN Location
+                                  </button>
+                                </li>
+                              </ul>
+                              <div class="tab-content">
+                                <!-- Tab File Lokal -->
+                                <div class="tab-pane fade show active" id="tabFileLokal">
+                                  <div class="dropzone-area border-2 border-dashed rounded p-4 text-center mb-3" id="modalDropZone">
+                                    <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
+                                    <p class="mb-1">Drag & drop file di sini atau <span class="text-primary fw-semibold" style="cursor:pointer;" id="modalBtnBrowseFile">klik untuk pilih file</span></p>
+                                    <small class="text-muted">Maksimal 10MB per file. Format: PDF, JPG, PNG, AI, PSD, CDR</small>
+                                    <input type="file" id="modalInputFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd,.cdr" style="display:none;">
+                                  </div>
+                                </div>
+                                <!-- Tab LAN Location -->
+                                <div class="tab-pane fade" id="tabFileLAN">
+                                  <div class="mb-3">
+                                    <label class="form-label">Path LAN</label>
+                                    <div class="input-group">
+                                      <span class="input-group-text"><i class="fa fa-server"></i></span>
+                                      <input type="text" class="form-control" id="modalLANPathInput" placeholder="\\192.168.1.100\shared\designs\file.pdf">
+                                      <button type="button" class="btn btn-outline-primary" id="modalBtnAddLANFile">
+                                        <i class="fa fa-plus"></i> Tambah
+                                      </button>
+                                    </div>
+                                    <small class="text-muted">Contoh: \\SERVER\folder\namafile.pdf</small>
+                                  </div>
+                                </div>
+                              </div>
+                              <!-- Daftar File yang Diupload -->
+                              <div class="uploaded-files-list" id="modalUploadedFilesList">
+                                <!-- File items akan ditambahkan di sini via JS -->
+                              </div>
+                            </div>
+                          </div>
+
+                          <hr class="my-4">
+
+                          <!-- Section 3: Finishing -->
+                          <div class="section-item mb-4" id="sectionFinishing">
+                            <div class="d-flex align-items-center mb-3">
+                              <span class="section-number me-2">3</span>
+                              <h6 class="mb-0 fw-bold">Finishing</h6>
+                            </div>
+                            <div class="ps-4">
+                              <p class="text-muted small mb-3">Pilih finishing yang tersedia untuk produk yang dipilih</p>
+                              
+                              <!-- Group Finishing -->
+                              <div class="finishing-groups" id="modalFinishingGroups">
+                                <!-- Group: Laminasi -->
+                                <div class="finishing-group mb-3">
+                                  <label class="form-label fw-semibold small text-uppercase text-muted">Laminasi</label>
+                                  <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishLaminasiGlossy" value="laminasi_glossy" data-harga="5000">
+                                      <label class="form-check-label" for="finishLaminasiGlossy">
+                                        <span class="badge bg-light text-dark">Glossy</span>
+                                        <small class="text-muted d-block">Rp 5.000/lembar</small>
+                                      </label>
+                                    </div>
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishLaminasiDoff" value="laminasi_doff" data-harga="5500">
+                                      <label class="form-check-label" for="finishLaminasiDoff">
+                                        <span class="badge bg-light text-dark">Doff</span>
+                                        <small class="text-muted d-block">Rp 5.500/lembar</small>
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Group: Cutting -->
+                                <div class="finishing-group mb-3">
+                                  <label class="form-label fw-semibold small text-uppercase text-muted">Cutting</label>
+                                  <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishCuttingManual" value="cutting_manual" data-harga="2000">
+                                      <label class="form-check-label" for="finishCuttingManual">
+                                        <span class="badge bg-light text-dark">Manual</span>
+                                        <small class="text-muted d-block">Rp 2.000/pcs</small>
+                                      </label>
+                                    </div>
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishCuttingMesin" value="cutting_mesin" data-harga="3500">
+                                      <label class="form-check-label" for="finishCuttingMesin">
+                                        <span class="badge bg-light text-dark">Mesin</span>
+                                        <small class="text-muted d-block">Rp 3.500/pcs</small>
+                                      </label>
+                                    </div>
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishCuttingKontur" value="cutting_kontur" data-harga="7500">
+                                      <label class="form-check-label" for="finishCuttingKontur">
+                                        <span class="badge bg-light text-dark">Kontur</span>
+                                        <small class="text-muted d-block">Rp 7.500/pcs</small>
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <!-- Group: Tambahan -->
+                                <div class="finishing-group mb-3">
+                                  <label class="form-label fw-semibold small text-uppercase text-muted">Tambahan</label>
+                                  <div class="d-flex flex-wrap gap-2">
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishMata" value="mata_ayam" data-harga="1000">
+                                      <label class="form-check-label" for="finishMata">
+                                        <span class="badge bg-light text-dark">Mata Ayam</span>
+                                        <small class="text-muted d-block">Rp 1.000/pcs</small>
+                                      </label>
+                                    </div>
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishPond" value="pond" data-harga="15000">
+                                      <label class="form-check-label" for="finishPond">
+                                        <span class="badge bg-light text-dark">Pond</span>
+                                        <small class="text-muted d-block">Rp 15.000/lembar</small>
+                                      </label>
+                                    </div>
+                                    <div class="form-check form-check-inline finishing-option">
+                                      <input class="form-check-input" type="checkbox" id="finishLipat" value="lipat" data-harga="500">
+                                      <label class="form-check-label" for="finishLipat">
+                                        <span class="badge bg-light text-dark">Lipat</span>
+                                        <small class="text-muted d-block">Rp 500/lembar</small>
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Kalkulasi Finishing -->
+                              <div class="finishing-calculation bg-light rounded p-3 mt-3" id="modalFinishingCalc">
+                                <div class="d-flex justify-content-between align-items-center">
+                                  <span class="text-muted">Finishing dipilih:</span>
+                                  <span class="fw-semibold" id="modalFinishingCount">0 item</span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                  <span class="text-muted">Total biaya finishing:</span>
+                                  <span class="fw-bold text-primary" id="modalFinishingTotal">Rp 0</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Right Panel: Section 4 - Detail Orderan (Summary) -->
+                      <div class="col-lg-4 bg-light">
+                        <div class="p-4 sticky-top" style="top: 0;">
+                          <div class="d-flex align-items-center mb-3">
+                            <span class="section-number me-2">4</span>
+                            <h6 class="mb-0 fw-bold">Detail Orderan</h6>
+                          </div>
+                          
+                          <div class="order-summary">
+                            <!-- Produk Info -->
+                            <div class="summary-item mb-3 pb-3 border-bottom">
+                              <small class="text-muted text-uppercase">Produk</small>
+                              <p class="mb-0 fw-semibold" id="summaryProduk">-</p>
+                            </div>
+
+                            <!-- Jumlah & Ukuran -->
+                            <div class="summary-item mb-3 pb-3 border-bottom">
+                              <div class="row">
+                                <div class="col-6">
+                                  <small class="text-muted text-uppercase">Jumlah</small>
+                                  <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
+                                </div>
+                                <div class="col-6">
+                                  <small class="text-muted text-uppercase">Ukuran</small>
+                                  <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Deadline -->
+                            <div class="summary-item mb-3 pb-3 border-bottom">
+                              <small class="text-muted text-uppercase">Deadline</small>
+                              <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
+                            </div>
+
+                            <!-- Files -->
+                            <div class="summary-item mb-3 pb-3 border-bottom">
+                              <small class="text-muted text-uppercase">Files</small>
+                              <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
+                            </div>
+
+                            <!-- Finishing List -->
+                            <div class="summary-item mb-3 pb-3 border-bottom">
+                              <small class="text-muted text-uppercase">Finishing</small>
+                              <div id="summaryFinishingList" class="mt-1">
+                                <span class="text-muted">-</span>
+                              </div>
+                            </div>
+
+                            <!-- Rincian Harga -->
+                            <div class="summary-pricing mt-4">
+                              <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal Cetak</span>
+                                <span id="summarySubtotalCetak">Rp 0</span>
+                              </div>
+                              <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Biaya Finishing</span>
+                                <span id="summaryBiayaFinishing">Rp 0</span>
+                              </div>
+                              <hr>
+                              <div class="d-flex justify-content-between">
+                                <span class="fw-bold">Total</span>
+                                <span class="fw-bold text-primary fs-5" id="summaryTotalAkhir">Rp 0</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                      <i class="fa fa-times me-1"></i> Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" id="modalBtnSimpanItem">
+                      <i class="fa fa-plus me-1"></i> Tambah Item
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- OPSI 2 -->
+            <div class="modal fade" id="modalTambahItemPesananTab" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalTambahItemPesananTabLabel" aria-hidden="true">
+              <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                  <div class="modal-header border-bottom">
+                    <h5 class="modal-title" id="modalTambahItemPesananTabLabel">
+                      <i class="fa fa-plus-circle me-2"></i>Tambah Item Pesanan (Versi Tab)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body p-0">
+                    <!-- Tab Navigation -->
+                    <ul class="nav nav-tabs nav-tabs-sm px-4 pt-3" id="modalTabNavigation">
+                      <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabDetailPesanan">
+                          <span class="tab-number me-1">1</span> Detail Pesanan
+                        </button>
+                      </li>
+                      <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabFiles">
+                          <span class="tab-number me-1">2</span> Files
+                        </button>
+                      </li>
+                      <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabFinishing">
+                          <span class="tab-number me-1">3</span> Finishing
+                        </button>
+                      </li>
+                      <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabSummary">
+                          <span class="tab-number me-1">4</span> Detail Orderan
+                        </button>
+                      </li>
+                    </ul>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content p-4">
+                      <!-- Tab 1: Detail Pesanan -->
+                      <div class="tab-pane fade show active" id="tabDetailPesanan">
+                        <div class="row g-3">
+                          <div class="col-md-12">
+                            <label class="form-label">Produk <span class="text-danger">*</span></label>
+                            <select class="form-select" id="modalTabProdukSelect">
+                              <option value="">-- Pilih Produk --</option>
+                              <option value="1">Banner</option>
+                              <option value="2">Spanduk</option>
+                              <option value="3">Brosur</option>
+                              <option value="4">Kartu Nama</option>
+                              <option value="5">Sticker</option>
+                              <option value="6">X-Banner</option>
+                            </select>
+                          </div>
+                          <div class="col-md-12">
+                            <label class="form-label">Keterangan</label>
+                            <textarea class="form-control" id="modalTabKeteranganInput" rows="2" placeholder="Masukkan keterangan pesanan..."></textarea>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label">Jumlah <span class="text-danger">*</span></label>
+                            <div class="input-group">
+                              <input type="number" class="form-control" id="modalTabJumlahInput" min="1" value="1" placeholder="0">
+                              <select class="form-select" id="modalTabSatuanSelect" style="max-width: 120px;">
+                                <option value="pcs">Pcs</option>
+                                <option value="lembar">Lembar</option>
+                                <option value="meter">Meter</option>
+                                <option value="set">Set</option>
+                              </select>
+                            </div>
+                          </div>
+                          <div class="col-md-6">
+                            <label class="form-label">Deadline <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="modalTabDeadlineInput">
+                          </div>
+                          <div class="col-12">
+                            <label class="form-label">Ukuran</label>
+                            <div class="row g-2">
+                              <div class="col-6">
+                                <div class="input-group">
+                                  <span class="input-group-text">P</span>
+                                  <input type="number" class="form-control" id="modalTabPanjangInput" min="0" step="0.1" value="0" placeholder="Panjang">
+                                  <span class="input-group-text">cm</span>
+                                </div>
+                              </div>
+                              <div class="col-6">
+                                <div class="input-group">
+                                  <span class="input-group-text">L</span>
+                                  <input type="number" class="form-control" id="modalTabLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
+                                  <span class="input-group-text">cm</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab 2: Files -->
+                      <div class="tab-pane fade" id="tabFiles">
+                        <!-- Tab untuk pilih sumber file -->
+                        <ul class="nav nav-tabs nav-tabs-sm mb-3" id="fileSourceTabsTab">
+                          <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabFileLokalTab">
+                              <i class="fa fa-folder me-1"></i> File Lokal
+                            </button>
+                          </li>
+                          <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabFileLANTab">
+                              <i class="fa fa-network-wired me-1"></i> LAN Location
+                            </button>
+                          </li>
+                        </ul>
+                        <div class="tab-content">
+                          <!-- Tab File Lokal -->
+                          <div class="tab-pane fade show active" id="tabFileLokalTab">
+                            <div class="dropzone-area border-2 border-dashed rounded p-4 text-center mb-3" id="modalTabDropZone">
+                              <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
+                              <p class="mb-1">Drag & drop file di sini atau <span class="text-primary fw-semibold" style="cursor:pointer;" id="modalTabBtnBrowseFile">klik untuk pilih file</span></p>
+                              <small class="text-muted">Maksimal 10MB per file. Format: PDF, JPG, PNG, AI, PSD, CDR</small>
+                              <input type="file" id="modalTabInputFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd,.cdr" style="display:none;">
+                            </div>
+                          </div>
+                          <!-- Tab LAN Location -->
+                          <div class="tab-pane fade" id="tabFileLANTab">
+                            <div class="mb-3">
+                              <label class="form-label">Path LAN</label>
+                              <div class="input-group">
+                                <span class="input-group-text"><i class="fa fa-server"></i></span>
+                                <input type="text" class="form-control" id="modalTabLANPathInput" placeholder="\\192.168.1.100\shared\designs\file.pdf">
+                                <button type="button" class="btn btn-outline-primary" id="modalTabBtnAddLANFile">
+                                  <i class="fa fa-plus"></i> Tambah
+                                </button>
+                              </div>
+                              <small class="text-muted">Contoh: \\SERVER\folder\namafile.pdf</small>
+                            </div>
+                          </div>
+                        </div>
+                        <!-- Daftar File yang Diupload -->
+                        <div class="uploaded-files-list" id="modalTabUploadedFilesList">
+                          <!-- File items akan ditambahkan di sini via JS -->
+                        </div>
+                      </div>
+
+                      <!-- Tab 3: Finishing -->
+                      <div class="tab-pane fade" id="tabFinishing">
+                        <p class="text-muted small mb-3">Pilih finishing yang tersedia untuk produk yang dipilih</p>
+                        
+                        <!-- Group Finishing -->
+                        <div class="finishing-groups" id="modalTabFinishingGroups">
+                          <!-- Group: Laminasi -->
+                          <div class="finishing-group mb-3">
+                            <label class="form-label fw-semibold small text-uppercase text-muted">Laminasi</label>
+                            <div class="d-flex flex-wrap gap-2">
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabLaminasiGlossy" value="laminasi_glossy" data-harga="5000">
+                                <label class="form-check-label" for="finishTabLaminasiGlossy">
+                                  <span class="badge bg-light text-dark">Glossy</span>
+                                  <small class="text-muted d-block">Rp 5.000/lembar</small>
+                                </label>
+                              </div>
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabLaminasiDoff" value="laminasi_doff" data-harga="5500">
+                                <label class="form-check-label" for="finishTabLaminasiDoff">
+                                  <span class="badge bg-light text-dark">Doff</span>
+                                  <small class="text-muted d-block">Rp 5.500/lembar</small>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Group: Cutting -->
+                          <div class="finishing-group mb-3">
+                            <label class="form-label fw-semibold small text-uppercase text-muted">Cutting</label>
+                            <div class="d-flex flex-wrap gap-2">
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabCuttingManual" value="cutting_manual" data-harga="2000">
+                                <label class="form-check-label" for="finishTabCuttingManual">
+                                  <span class="badge bg-light text-dark">Manual</span>
+                                  <small class="text-muted d-block">Rp 2.000/pcs</small>
+                                </label>
+                              </div>
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabCuttingMesin" value="cutting_mesin" data-harga="3500">
+                                <label class="form-check-label" for="finishTabCuttingMesin">
+                                  <span class="badge bg-light text-dark">Mesin</span>
+                                  <small class="text-muted d-block">Rp 3.500/pcs</small>
+                                </label>
+                              </div>
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabCuttingKontur" value="cutting_kontur" data-harga="7500">
+                                <label class="form-check-label" for="finishTabCuttingKontur">
+                                  <span class="badge bg-light text-dark">Kontur</span>
+                                  <small class="text-muted d-block">Rp 7.500/pcs</small>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Group: Tambahan -->
+                          <div class="finishing-group mb-3">
+                            <label class="form-label fw-semibold small text-uppercase text-muted">Tambahan</label>
+                            <div class="d-flex flex-wrap gap-2">
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabMata" value="mata_ayam" data-harga="1000">
+                                <label class="form-check-label" for="finishTabMata">
+                                  <span class="badge bg-light text-dark">Mata Ayam</span>
+                                  <small class="text-muted d-block">Rp 1.000/pcs</small>
+                                </label>
+                              </div>
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabPond" value="pond" data-harga="15000">
+                                <label class="form-check-label" for="finishTabPond">
+                                  <span class="badge bg-light text-dark">Pond</span>
+                                  <small class="text-muted d-block">Rp 15.000/lembar</small>
+                                </label>
+                              </div>
+                              <div class="form-check form-check-inline finishing-option">
+                                <input class="form-check-input" type="checkbox" id="finishTabLipat" value="lipat" data-harga="500">
+                                <label class="form-check-label" for="finishTabLipat">
+                                  <span class="badge bg-light text-dark">Lipat</span>
+                                  <small class="text-muted d-block">Rp 500/lembar</small>
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Kalkulasi Finishing -->
+                        <div class="finishing-calculation bg-light rounded p-3 mt-3" id="modalTabFinishingCalc">
+                          <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted">Finishing dipilih:</span>
+                            <span class="fw-semibold" id="modalTabFinishingCount">0 item</span>
+                          </div>
+                          <div class="d-flex justify-content-between align-items-center mt-2">
+                            <span class="text-muted">Total biaya finishing:</span>
+                            <span class="fw-bold text-primary" id="modalTabFinishingTotal">Rp 0</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Tab 4: Detail Orderan (Summary) -->
+                      <div class="tab-pane fade" id="tabSummary">
+                        <div class="order-summary">
+                          <!-- Produk Info -->
+                          <div class="summary-item mb-3 pb-3 border-bottom">
+                            <small class="text-muted text-uppercase">Produk</small>
+                            <p class="mb-0 fw-semibold" id="summaryTabProduk">-</p>
+                          </div>
+
+                          <!-- Jumlah & Ukuran -->
+                          <div class="summary-item mb-3 pb-3 border-bottom">
+                            <div class="row">
+                              <div class="col-6">
+                                <small class="text-muted text-uppercase">Jumlah</small>
+                                <p class="mb-0 fw-semibold" id="summaryTabJumlah">0 pcs</p>
+                              </div>
+                              <div class="col-6">
+                                <small class="text-muted text-uppercase">Ukuran</small>
+                                <p class="mb-0 fw-semibold" id="summaryTabUkuran">0 x 0 cm</p>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Deadline -->
+                          <div class="summary-item mb-3 pb-3 border-bottom">
+                            <small class="text-muted text-uppercase">Deadline</small>
+                            <p class="mb-0 fw-semibold" id="summaryTabDeadline">-</p>
+                          </div>
+
+                          <!-- Files -->
+                          <div class="summary-item mb-3 pb-3 border-bottom">
+                            <small class="text-muted text-uppercase">Files</small>
+                            <p class="mb-0 fw-semibold" id="summaryTabFiles">0 file</p>
+                          </div>
+
+                          <!-- Finishing List -->
+                          <div class="summary-item mb-3 pb-3 border-bottom">
+                            <small class="text-muted text-uppercase">Finishing</small>
+                            <div id="summaryTabFinishingList" class="mt-1">
+                              <span class="text-muted">-</span>
+                            </div>
+                          </div>
+
+                          <!-- Rincian Harga -->
+                          <div class="summary-pricing mt-4">
+                            <div class="d-flex justify-content-between mb-2">
+                              <span class="text-muted">Subtotal Cetak</span>
+                              <span id="summaryTabSubtotalCetak">Rp 0</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                              <span class="text-muted">Biaya Finishing</span>
+                              <span id="summaryTabBiayaFinishing">Rp 0</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                              <span class="fw-bold">Total</span>
+                              <span class="fw-bold text-primary fs-5" id="summaryTabTotalAkhir">Rp 0</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+                      <i class="fa fa-times me-1"></i> Batal
+                    </button>
+                    <button type="button" class="btn btn-primary" id="modalTabBtnSimpanItem">
+                      <i class="fa fa-plus me-1"></i> Tambah Item
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
   <style>
     /* Style untuk input field yang sedang difokuskan */
     .form-control:focus {
@@ -506,6 +1141,145 @@
         height: 28px;
       }
     }
+
+    
+    /* OPSI 1  */
+    .section-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.dropzone-area {
+  background: #f8fafc;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.dropzone-area:hover,
+.dropzone-area.dragover {
+  background: #e8f4ff;
+  border-color: #007bff !important;
+}
+
+.finishing-option {
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin: 0 !important;
+  transition: all 0.2s ease;
+}
+
+.finishing-option:hover {
+  border-color: #007bff;
+  box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+}
+
+.finishing-option .form-check-input:checked ~ .form-check-label .badge {
+  background: #007bff !important;
+  color: white !important;
+}
+
+.uploaded-files-list .file-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  background: #fff;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  margin-bottom: 8px;
+}
+
+.uploaded-files-list .file-item .file-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f0f4f8;
+  border-radius: 6px;
+  margin-right: 12px;
+}
+
+.uploaded-files-list .file-item .file-info {
+  flex: 1;
+}
+
+.uploaded-files-list .file-item .file-name {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.uploaded-files-list .file-item .file-meta {
+  font-size: 0.75rem;
+  color: #6c757d;
+}
+
+.uploaded-files-list .file-item .btn-remove-file {
+  opacity: 0.5;
+  transition: opacity 0.2s;
+}
+
+.uploaded-files-list .file-item:hover .btn-remove-file {
+  opacity: 1;
+}
+
+.order-summary .summary-item small {
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+}
+
+#modalTambahItemPesanan .modal-body {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+}
+
+
+/* OPSI 2 */
+.tab-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  margin-right: 0.25rem;
+}
+
+.nav-tabs-sm .nav-link {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  border: none;
+  background: transparent;
+  color: #6c757d;
+}
+
+.nav-tabs-sm .nav-link.active {
+  background: #007bff;
+  color: white;
+  border: 1px solid #007bff;
+}
+
+.nav-tabs-sm .nav-link.active .tab-number {
+  background: rgba(255,255,255,0.2);
+}
+
+.nav-tabs-sm .nav-link:hover:not(.active) {
+  background: #f8f9fa;
+  color: #007bff;
+}
   </style>
 @endsection
 
