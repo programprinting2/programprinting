@@ -25,6 +25,12 @@
               </button>
             </li>
             <li class="nav-item" role="presentation">
+                <button class="nav-link" id="edit-tab-finishing" data-bs-toggle="tab"
+                    data-bs-target="#edit-finishing" type="button" role="tab">
+                    <i data-feather="layers" class="me-1 icon-sm"></i> Finishing
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
               <button class="nav-link" id="edit-tab-harga" data-bs-toggle="tab" data-bs-target="#edit-harga"
                 type="button" role="tab">
                 <i data-feather="map-pin" class="me-1 icon-sm"></i> Harga
@@ -41,12 +47,6 @@
                 data-bs-target="#edit-media-dokumen" type="button" role="tab">
                 <i data-feather="shopping-cart" class="me-1 icon-sm"></i> Media & Dokumen
               </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="edit-tab-finishing" data-bs-toggle="tab"
-                    data-bs-target="#edit-finishing" type="button" role="tab" style="display: none;">
-                    <i data-feather="layers" class="me-1 icon-sm"></i> Finishing
-                </button>
             </li>
           </ul>
           <div class="tab-content" id="EditProdukTabContent">
