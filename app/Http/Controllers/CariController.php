@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\BahanBaku;
 use App\Models\Pemasok;
 use App\Models\Produk; 
-use App\Models\DetailParameter;
+use App\Models\SubDetailParameter;
 use App\Models\MasterParameter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -243,43 +243,38 @@ class CariController extends Controller
 
     public function cariFinishing(Request $request)
     {
-        $search = $request->input('search');
-        
         $finishingCategory = MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
         $finishingDetail = $finishingCategory ? 
             $finishingCategory->details()->where('nama_detail_parameter', 'FINISHING')->first() : null;
         
-        $query = Produk::where('status_aktif', true)
-                    ->where('jenis_produk', 'produk'); 
-        
-        if ($finishingDetail) {
-            $query->where('kategori_utama_id', $finishingDetail->id);
+        if (!$finishingDetail) {
+            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
         }
         
-        if ($search) {
-            $search = strtolower($search);
+        $query = SubDetailParameter::where('detail_parameter_id', $finishingDetail->id)
+                                ->where('aktif', 1);
+        
+        if ($request->search) {
+            $search = strtolower($request->search);
             $query->where(function($q) use ($search) {
-                $q->whereRaw('LOWER(kode_produk) LIKE ?', ["%{$search}%"])
-                ->orWhereRaw('LOWER(nama_produk) LIKE ?', ["%{$search}%"]);
+                $q->whereRaw('LOWER(nama_sub_detail_parameter) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(keterangan) LIKE ?', ["%{$search}%"]);
             });
         }
-
-        $produks = $query->with(['kategoriUtama', 'subKategori', 'satuan'])
-                        ->orderBy('nama_produk')
-                        ->paginate(10);
-
-        $produks->getCollection()->transform(function ($item) {
+        
+        $subDetails = $query->orderBy('nama_sub_detail_parameter')
+                            ->paginate(10);
+        
+        $subDetails->getCollection()->transform(function ($item) {
             return [
                 'id' => $item->id,
-                'kode_produk' => $item->kode_produk,
-                'nama_produk' => $item->nama_produk,
-                'kategori' => $item->kategoriUtama ? $item->kategoriUtama->nama_detail_parameter : '-',
-                'sub_kategori' => $item->subKategori ? $item->subKategori->nama_sub_detail_parameter : '-',
-                'harga_modal' => $item->total_modal_keseluruhan ?? 0,
+                'nama' => $item->nama_sub_detail_parameter,
+                'keterangan' => $item->keterangan,
+                'detail_parameter' => $item->detailParameter->nama_detail_parameter ?? '-',
             ];
         });
-
-        return response()->json($produks);
+        
+        return response()->json($subDetails);
     }
 
     public function cariProdukKomponen(Request $request)

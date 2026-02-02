@@ -295,9 +295,8 @@ $(function () {
                 editFinishingList = Array.isArray(res.finishing_data) 
                     ? res.finishing_data.map(item => ({
                         id: parseInt(item.id),
-                        kode_produk: item.kode_produk || '',
-                        nama_produk: item.nama_produk || '',
-                        // harga_modal: parseFloat(item.harga_modal) || 0
+                        nama: item.nama || '',
+                        keterangan: item.keterangan || '',
                     }))
                     : [];
                 $("#edit_finishing_json").val(JSON.stringify(editFinishingList));
@@ -815,13 +814,12 @@ $(function () {
         
         editFinishingList.push({
             id: data.id,
-            kode_produk: data.kode_produk,
-            nama_produk: data.nama_produk,
-            // harga_modal: data.harga_modal
+            nama: data.nama,
+            keterangan: data.keterangan,
         });
         
         $('#edit_finishing_json').val(JSON.stringify(editFinishingList));
-        renderEditTabelFinishing();n
+        renderEditTabelFinishing();
         Swal.fire('Berhasil', 'Finishing berhasil ditambahkan.', 'success');
     }
 
@@ -2244,9 +2242,8 @@ $(function () {
         editFinishingList.forEach(function(item, index) {
             tbody.append(`
                 <tr data-id="${item.id}" data-index="${index}">
-                    <td>${item.kode_produk || '-'}</td>
-                    <td>${item.nama_produk || '-'}</td>
-                    <!-- <td class="text-end">Rp ${item.harga_modal ? parseFloat(item.harga_modal).toLocaleString('id-ID') : '0'}</td> -->
+                    <td>${item.nama || '-'}</td>
+                    <td>${item.keterangan || '-'}</td>
                     <td>
                         <button type="button" class="btn btn-danger btn-xs editBtnHapusFinishing" 
                                 data-id="${item.id}" title="Hapus Finishing">

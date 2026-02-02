@@ -2004,10 +2004,9 @@ $(function () {
         }
         
         finishingData.push({
-            id: parseInt(data.id),
-            kode_produk: data.kode_produk,
-            nama_produk: data.nama_produk,
-            // harga_modal: data.harga_modal
+            id: data.id,
+            nama: data.nama,
+            keterangan: data.keterangan,
         });
         
         jsonField.val(JSON.stringify(finishingData));

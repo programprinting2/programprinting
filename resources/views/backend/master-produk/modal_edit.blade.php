@@ -27,7 +27,7 @@
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="edit-tab-finishing" data-bs-toggle="tab"
                     data-bs-target="#edit-finishing" type="button" role="tab">
-                    <i data-feather="layers" class="me-1 icon-sm"></i> Finishing
+                    <i data-feather="layers" class="me-1 icon-sm"></i> Group Finishing
                 </button>
             </li>
             <li class="nav-item" role="presentation">
@@ -554,11 +554,11 @@
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <span class="fw-semibold">Daftar Finishing</span>
-                                    <div class="small text-muted">Pilih produk finishing yang tersedia untuk produk ini</div>
+                                    <div class="small text-muted">Pilih group finishing yang tersedia untuk produk ini</div>
                                 </div>
                                 <button type="button" class="btn btn-sm btn-outline-primary"
                                     id="editBtnTambahFinishing">
-                                    <i data-feather="plus" class="me-1"></i> Tambah Finishing
+                                    <i data-feather="plus" class="me-1"></i> Tambah Group Finishing
                                 </button>
                             </div>
                         </div>
@@ -568,9 +568,9 @@
                                 <thead class="table-light">
                                     <tr>
                                         <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
-                                            Kode Produk</th>
+                                            Nama Group Finishing</th>
                                         <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
-                                            Nama Produk</th>
+                                            Keterangan</th>
                                         <!-- <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
                                             Harga Modal</th> -->
                                         <th class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">

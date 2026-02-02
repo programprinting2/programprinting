@@ -28,11 +28,9 @@
           <table class="table table-bordered align-middle mb-0" id="{{ $tableId }}">
             <thead class="table-light">
               <tr>
-                <th>Kode Produk</th>
-                <th>Nama Produk</th>
-                <th>Kategori</th>
-                <th>Sub Kategori</th>
-                <th>Harga Modal</th>
+                <th>Nama Sub Kategori</th>
+                <th>Keterangan</th>
+                <!-- <th>Kategori Utama</th> -->
               </tr>
             </thead>
             <tbody><!-- Data AJAX --></tbody>
@@ -116,18 +114,14 @@
           success: function(response) {
               if (response.data && response.data.length > 0) {
                   let html = '';
-                  response.data.forEach(function(produk) {
+                  response.data.forEach(function(item) {
                       html += `
                           <tr class="pilih-finishing" 
-                              data-id="${produk.id}" 
-                              data-kode="${produk.kode_produk}"
-                              data-nama="${produk.nama_produk}"
-                              data-harga="${produk.harga_modal}">
-                              <td>${produk.kode_produk ?? '-'}</td>
-                              <td>${produk.nama_produk ?? '-'}</td>
-                              <td>${produk.kategori ?? '-'}</td>
-                              <td>${produk.sub_kategori ?? '-'}</td>
-                              <td class="text-end">Rp ${produk.harga_modal ? parseFloat(produk.harga_modal).toLocaleString('id-ID') : '0'}</td>
+                              data-id="${item.id}" 
+                              data-nama="${item.nama}"
+                              data-keterangan="${item.keterangan}">
+                              <td>${item.nama ?? '-'}</td>
+                              <td>${item.keterangan || '-'}</td>
                           </tr>
                       `;
                   });
@@ -170,9 +164,8 @@
   $(document).on('click', '.pilih-finishing', function() {
       const data = {
           id: parseInt($(this).data('id')) || 0,
-          kode_produk: $(this).data('kode'),
-          nama_produk: $(this).data('nama'),
-          harga_modal: parseFloat($(this).data('harga')) || 0,
+          nama: $(this).data('nama'),
+          keterangan: $(this).data('keterangan'),
           sourceModal: $('#editProdukModal').hasClass('show') ? 'edit' : 'add'
       };
 
