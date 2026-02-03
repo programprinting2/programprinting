@@ -43,6 +43,8 @@ class ProdukService
             $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
             $data['tags'] = $data['tags'] ?? [];
             $data['finishing_json'] = $this->processJsonField($data['finishing_json'] ?? null);
+            $data['lebar_locked'] = $data['lebar_locked'] ?? false;
+            $data['panjang_locked'] = $data['panjang_locked'] ?? false;
 
             // Process file uploads - menggunakan method yang mengembalikan URL
             $data['foto_pendukung_json'] = $this->uploadFilesWithUrl(
@@ -144,7 +146,12 @@ class ProdukService
             $data['biaya_tambahan_json'] = $this->processJsonField($data['biaya_tambahan_json'] ?? null);
             $data['tags'] = $data['tags'] ?? [];
             $data['finishing_json'] = $this->processJsonField($data['finishing_json'] ?? null);
-            
+            if (isset($data['lebar_locked'])) {
+                $data['lebar_locked'] = (bool) $data['lebar_locked'];
+            }
+            if (isset($data['panjang_locked'])) {
+                $data['panjang_locked'] = (bool) $data['panjang_locked'];
+            }
             // Handle existing files
             // $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);
             // $existingVideo = $this->processExistingFiles($data['video_pendukung_existing_json'] ?? null);

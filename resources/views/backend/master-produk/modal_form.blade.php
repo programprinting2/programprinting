@@ -130,15 +130,44 @@
                                         <div class="col-md-6">
                                             <label class="form-label">Dimensi</label>
                                             <div class="row">
-                                                <div id="dimensi_luas" class="col-md-6">
+                                                <div id="dimensi_luas" class="col-md-4">
                                                     <input type="number" class="form-control" id="lebar" name="lebar"
                                                         min="0" step="0.01" value="0" placeholder="Lebar">
                                                     <small class="text-muted">Lebar</small>
                                                 </div>
-                                                <div id="dimensi_panjang" class="col-md-6">
+                                                <div id="dimensi_panjang" class="col-md-4">
                                                     <input type="number" class="form-control" id="panjang"
                                                         name="panjang" min="0" step="0.01" value="0" placeholder="Panjang">
                                                     <small class="text-muted">Panjang</small>
+                                                </div>
+                                                <div id="luas_container" class="col-md-4" style="display: none;">
+                                                    <div class="input-group">
+                                                        <input type="number" class="form-control" id="luas" name="luas" 
+                                                            readonly step="0.01" value="0" placeholder="0.00">
+                                                    </div>
+                                                    <small class="text-muted">Lebar × Panjang</small>
+                                                </div>
+                                            </div>
+                                           
+                                            <div class="row mt-2">
+                                                <div class="col-md-4">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="lebar_locked" name="lebar_locked" value="1">
+                                                        <label class="form-check-label small" for="lebar_locked">
+                                                            <i class="fa fa-lock me-1"></i>Lock lebar
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-check form-switch">
+                                                        <input class="form-check-input" type="checkbox" id="panjang_locked" name="panjang_locked" value="1">
+                                                        <label class="form-check-label small" for="panjang_locked">
+                                                            <i class="fa fa-lock me-1"></i>Lock panjang
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <!-- Kosongkan untuk konsistensi layout -->
                                                 </div>
                                             </div>
                                         </div>

@@ -104,6 +104,27 @@ $(function () {
         }
     });
 
+    function calculateLuas(mode = "add") {
+        const lebarInput = mode === "add" ? "#lebar" : "#edit_lebar";
+        const panjangInput = mode === "add" ? "#panjang" : "#edit_panjang";
+        const luasInput = mode === "add" ? "#luas" : "#edit_luas";
+        
+        const lebar = parseFloat($(lebarInput).val()) || 0;
+        const panjang = parseFloat($(panjangInput).val()) || 0;
+        const luas = lebar * panjang;
+        
+        $(luasInput).val(luas.toFixed(2));
+    }
+    
+    $(document).on("input", "#lebar, #panjang", function() {
+        const selectedOption = $("#satuanBarang option:selected");
+        const satuanName = selectedOption.text().trim();
+        
+        if (satuanName === "SATUAN LUAS") {
+            calculateLuas("add");
+        }
+    });
+
     // Fungsi untuk toggle field dimensi
     function toggleDimensiFields(selectedSatuanId, mode = "add") {
         const containerId =
@@ -111,8 +132,15 @@ $(function () {
         const luasId = mode === "add" ? "#dimensi_luas" : "#edit_dimensi_luas";
         const panjangId =
             mode === "add" ? "#dimensi_panjang" : "#edit_dimensi_panjang";
-
-        // Dapatkan nama satuan dari opsi yang dipilih
+        const luasContainerId = mode === "add" ? "#luas_container" : "#edit_luas_container";
+        const lockContainerId = mode === "add" ? ".row.mt-2" : ".row.mt-2";
+        const lockLebarContainer = mode === "add" 
+        ? $(lockContainerId).find('.col-md-4').first()  
+        : $(lockContainerId).find('.col-md-4').first();
+        const lockPanjangContainer = mode === "add" 
+        ? $(lockContainerId).find('.col-md-4').eq(1)    
+        : $(lockContainerId).find('.col-md-4').eq(1);
+        
         const selectedOption = $(
             `#${mode === "add" ? "satuanBarang" : "edit_satuanBarang"} option:selected`,
         );
@@ -123,14 +151,30 @@ $(function () {
             $(containerId).show();
             $(luasId).show();
             $(panjangId).show();
+            $(luasContainerId).show();
+            if ($(lockContainerId).length > 0) {
+                lockLebarContainer.show();
+                lockPanjangContainer.show();
+            }
+            calculateLuas(mode);
         } else if (satuanName === "SATUAN LEBAR") {
             // Tampilkan hanya field lebar
             $(containerId).show();
             $(luasId).show();
             $(panjangId).hide();
+            $(luasContainerId).hide();
+            if ($(lockContainerId).length > 0) {
+                lockLebarContainer.show();
+                lockPanjangContainer.hide();
+            }
         } else {
             // Sembunyikan seluruh field dimensi
             $(containerId).hide();
+            $(luasContainerId).hide();
+            if ($(lockContainerId).length > 0) {
+                lockLebarContainer.hide();
+                lockPanjangContainer.hide();
+            }
         }
     }
 
@@ -1542,6 +1586,8 @@ $(function () {
 
             var form = $(this)[0];
             var formData = new FormData(form);
+            // formData.append('lebar_locked', $('#lebar_locked').is(':checked') ? 1 : 0);
+            // formData.append('panjang_locked', $('#panjang_locked').is(':checked') ? 1 : 0);
             formData.append('warna_id', document.getElementById('warna_id').value || '');
             const tagsArray = $('#tags').val() || []; 
             formData.append('tags', JSON.stringify(tagsArray));

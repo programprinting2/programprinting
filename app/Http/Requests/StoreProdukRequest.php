@@ -52,6 +52,8 @@ class StoreProdukRequest extends FormRequest
             'spesifikasi_teknis_json' => 'nullable|json',
             'biaya_tambahan_json' => 'nullable|json',
             'finishing_json' => 'nullable|json',
+            'lebar_locked' => 'boolean',
+            'panjang_locked' => 'boolean',
         ];
 
         if ($this->input('jenis_produk') === 'rakitan') {

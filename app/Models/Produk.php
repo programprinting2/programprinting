@@ -39,6 +39,8 @@ class Produk extends Model
         'finishing_json',           
         'total_modal_keseluruhan',
         'needs_recalc',
+        'lebar_locked',
+        'panjang_locked',
     ];
 
     protected $casts = [
@@ -59,7 +61,9 @@ class Produk extends Model
         'needs_recalc' => 'boolean',
         'warna_id' => 'integer',
         'tags' => 'array',
-        'finishing_json' => 'array'
+        'finishing_json' => 'array',
+        'lebar_locked' => 'boolean',
+        'panjang_locked' => 'boolean',
     ];
 
     // Relationship dengan bahan baku

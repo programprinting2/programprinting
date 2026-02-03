@@ -238,11 +238,18 @@ $(function () {
                 $("#edit_panjang").val(p.panjang);
                 setTimeout(() => {
                     toggleDimensiFieldsEdit(p.satuan_id);
+                    const selectedOption = $("#edit_satuanBarang option:selected");
+                    const satuanName = selectedOption.text().trim();
+                    if (satuanName === "SATUAN LUAS") {
+                        calculateLuas("edit");
+                    }
                 }, 100);
                 $("#edit_status_aktif").prop("checked", !!p.status_aktif);
                 $("#edit_jenis_produk").val(p.jenis_produk);
                 $("#edit_keterangan").val(p.keterangan || "");
                 $("#edit_warna_id").val(p.warna_id || "");
+                $('#edit_lebar_locked').prop('checked', !!p.lebar_locked);
+                $('#edit_panjang_locked').prop('checked', !!p.panjang_locked);
                 var $editTags = $('#edit_tags');
                 $editTags.empty();
                 if (Array.isArray(p.tags) && p.tags.length > 0) {
@@ -403,11 +410,36 @@ $(function () {
         toggleDimensiFieldsEdit($(this).val());
     });
 
+    function calculateLuas(mode = "add") {
+        const lebarInput = mode === "add" ? "#lebar" : "#edit_lebar";
+        const panjangInput = mode === "add" ? "#panjang" : "#edit_panjang";
+        const luasInput = mode === "add" ? "#luas" : "#edit_luas";
+        
+        const lebar = parseFloat($(lebarInput).val()) || 0;
+        const panjang = parseFloat($(panjangInput).val()) || 0;
+        const luas = lebar * panjang;
+        
+        $(luasInput).val(luas.toFixed(2));
+    }
+    
+    $(document).on("input", "#edit_lebar, #edit_panjang", function() {
+        const selectedOption = $("#edit_satuanBarang option:selected");
+        const satuanName = selectedOption.text().trim();
+        
+        if (satuanName === "SATUAN LUAS") {
+            calculateLuas("edit");
+        }
+    });
+
     // Fungsi untuk toggle field dimensi berdasarkan jenis satuan
     function toggleDimensiFieldsEdit(selectedSatuanId) {
         const containerId = "#edit_dimensi_container";
         const luasId = "#edit_dimensi_luas";
         const panjangId = "#edit_dimensi_panjang";
+        const luasContainerId = "#edit_luas_container";
+
+        const lockLebarContainer = $('#edit_lebar_locked').closest('.col-md-4');
+        const lockPanjangContainer = $('#edit_panjang_locked').closest('.col-md-4');
 
         // Dapatkan nama satuan dari opsi yang dipilih
         const selectedOption = $("#edit_satuanBarang option:selected");
@@ -418,14 +450,24 @@ $(function () {
             $(containerId).show();
             $(luasId).show();
             $(panjangId).show();
+            $(luasContainerId).show();
+            lockLebarContainer.show();
+            lockPanjangContainer.show();
+            calculateLuas("edit");
         } else if (satuanName === "SATUAN LEBAR") {
             // Tampilkan hanya field lebar
             $(containerId).show();
             $(luasId).show();
             $(panjangId).hide();
+            $(luasContainerId).hide();
+            lockLebarContainer.show();
+            lockPanjangContainer.hide();
         } else {
             // Sembunyikan seluruh field dimensi
             $(containerId).hide();
+            $(luasContainerId).hide();
+            lockLebarContainer.hide();
+            lockPanjangContainer.hide();
         }
     }
 
@@ -1861,6 +1903,8 @@ $(function () {
             var form = $(this)[0];
             var formData = new FormData(form);
             formData.append("_method", "PUT");
+            formData.append('lebar_locked', $('#edit_lebar_locked').is(':checked') ? 1 : 0);
+            formData.append('panjang_locked', $('#edit_panjang_locked').is(':checked') ? 1 : 0);
             const tagsArray = $('#edit_tags').val() || [];
             formData.append('tags', JSON.stringify(tagsArray));
             // bahanBakuData.forEach((item, index) => {
