@@ -1,24 +1,24 @@
 @php
-  $modalId = $modalId ?? 'modalCariProdukRakitan';
-  $inputId = $inputId ?? 'searchProdukRakitan';
-  $tableId = $tableId ?? 'tabelCariProdukRakitan';
-  $paginationId = $paginationId ?? 'paginationProdukRakitan';
-  $clearBtnId = $clearBtnId ?? 'clearSearchProdukRakitan';
+  $modalId = $modalId ?? 'modalCariAllProduk';
+  $inputId = $inputId ?? 'searchAllProduk';
+  $tableId = $tableId ?? 'tabelCariAllProduk';
+  $paginationId = $paginationId ?? 'paginationAllProduk';
+  $clearBtnId = $clearBtnId ?? 'clearSearchAllProduk';
 @endphp
 
-<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-bs-focus="false">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content border border-primary">
       <div class="modal-header">
-        <h5 class="modal-title" id="{{ $modalId }}Label">Cari Produk Komponen</h5>
+        <h5 class="modal-title" id="{{ $modalId }}Label">Cari Semua Produk</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label for="{{ $inputId }}" class="form-label">Cari Produk Komponen</label>
+          <label for="{{ $inputId }}" class="form-label">Cari Produk</label>
           <div class="input-group">
             <span class="input-group-text bg-light"><i data-feather="search" class="icon-sm"></i></span>
-            <input type="text" class="form-control" id="{{ $inputId }}" placeholder="Cari berdasarkan kode, nama produk...">
+            <input type="text" class="form-control" id="{{ $inputId }}" placeholder="Cari berdasarkan kode, nama produk..." tabindex="1" autocomplete="off">
             <span class="input-group-text input-group-addon" id="{{ $clearBtnId }}" style="cursor:pointer;"><i data-feather="delete"></i></span>
           </div>
         </div>
@@ -29,6 +29,8 @@
                 <th>Kode Produk</th>
                 <th>Nama Produk</th>
                 <th>Jenis</th>
+                <th>Kategori</th>
+                <th>Satuan</th> 
                 <th>Total Modal</th>
               </tr>
             </thead>
@@ -46,7 +48,7 @@
 
 @push('custom-scripts')
 <style>
-  .pilih-produk-komponen:hover {
+  .pilih-semua-produk:hover {
     background: #f0f6ff !important;
     cursor: pointer;
   }
@@ -69,7 +71,7 @@
   function renderPagination(data, search) {
       let html = '';
       if (data.last_page > 1) {
-          html += '<nav><ul class="pagination pagination-sm">';  // Tambah pagination-sm
+          html += '<nav><ul class="pagination pagination-sm">';
           
           // Previous button dengan &laquo; dan disabled state
           if (data.current_page > 1) {
@@ -100,14 +102,14 @@
   }
 
   // Fungsi utama load data
-  function loadProdukKomponen(page = 1) {
+  function loadSemuaProduk(page = 1) {
       const searchTerm = $('#' + inputId).val();
       const tbody = $('#' + tableId + ' tbody');
       
-      tbody.html('<tr><td colspan="5" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Memuat...</td></tr>');
+      tbody.html('<tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Memuat...</td></tr>');
 
       $.ajax({
-          url: '{{ route('backend.cari-produk') }}',
+          url: '{{ route('backend.cari-semua-produk') }}',
           method: 'GET',
           data: {
               search: searchTerm,
@@ -118,16 +120,18 @@
                   let html = '';
                   response.data.forEach(function(produk) {
                       html += `
-                          <tr class="pilih-produk-komponen" 
+                          <tr class="pilih-semua-produk" 
                               data-id="${produk.id}" 
                               data-kode="${produk.kode_produk}"
                               data-nama="${produk.nama_produk}"
                               data-modal="${produk.total_modal_keseluruhan || 0}"
                               data-panjang="${produk.panjang || 0}"
                               data-lebar="${produk.lebar || 0}"
-                              data-panjang-locked="${produk.panjang_locked || false}"
-                              data-lebar-locked="${produk.lebar_locked || false}"
-                              >
+                              data-panjangLocked="${produk.panjang_locked || false}"
+                              data-lebarLocked="${produk.lebar_locked || false}"
+                              data-kategori="${produk.kategori_nama || '-'}"
+                              data-jenis="${produk.jenis_produk || 'produk'}"
+                              data-satuan="${produk.satuan_nama || 'pcs'}">
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>
@@ -135,6 +139,8 @@
                                       ${produk.jenis_produk === 'produk' ? 'Produk' : 'Jasa'}
                                   </span>
                               </td>
+                              <td>${produk.kategori_nama ?? '-'}</td>
+                              <td>${produk.satuan_nama ?? '-'}</td>    
                               <td class="text-end">Rp ${produk.total_modal_keseluruhan ? parseFloat(produk.total_modal_keseluruhan).toLocaleString('id-ID') : '0'}</td>
                           </tr>
                       `;
@@ -147,12 +153,12 @@
                   // Re-initialize feather icons
                   if (typeof feather !== 'undefined') feather.replace();
               } else {
-                  tbody.html('<tr><td colspan="5" class="text-center text-muted">Tidak ada produk komponen ditemukan</td></tr>');
+                  tbody.html('<tr><td colspan="6" class="text-center text-muted">Tidak ada produk ditemukan</td></tr>');
                   $('#' + paginationId).html('');
               }
           },
           error: function(xhr) {
-            $('#' + tableId + ' tbody').html('<tr><td colspan="5" class="text-center">Gagal memuat data</td></tr>');
+            $('#' + tableId + ' tbody').html('<tr><td colspan="6" class="text-center">Gagal memuat data</td></tr>');
             $('#' + paginationId).html('');
           }
       });
@@ -162,13 +168,13 @@
   $(document).on('input', '#' + inputId, function() {
       clearTimeout(window.searchTimeout);
       window.searchTimeout = setTimeout(function() {
-          loadProdukKomponen();
+          loadSemuaProduk();
       }, 300);
   });
 
   $(document).on('click', '#' + clearBtnId, function() {
       $('#' + inputId).val('');
-      loadProdukKomponen();
+      loadSemuaProduk();
   });
 
   $(document).on('click', '#' + paginationId + ' .page-link', function(e) {
@@ -176,34 +182,35 @@
       if ($(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
       const page = $(this).data('page');
       const search = $('#' + inputId).val();
-      loadProdukKomponen(search, page);
+      loadSemuaProduk(search, page);
   });
 
-  $(document).on('click', '.pilih-produk-komponen', function() {
-      const data = {
+  $(document).on('click', '.pilih-semua-produk', function() {
+        const panjangLockedRaw = $(this).attr('data-panjang-locked') || $(this).attr('data-panjangLocked');
+        const lebarLockedRaw = $(this).attr('data-lebar-locked') || $(this).attr('data-lebarLocked');
+        const data = {
           id: parseInt($(this).data('id')) || 0,
           kode_produk: $(this).data('kode'),
           nama_produk: $(this).data('nama'),
-          total_modal_keseluruhan: parseFloat($(this).data('modal')) || 0 ,
+          total_modal_keseluruhan: parseFloat($(this).data('modal')) || 0,
           panjang: parseFloat($(this).data('panjang')) || 0,
           lebar: parseFloat($(this).data('lebar')) || 0,
-          panjang_locked: $(this).data('panjang-locked') === 'true' || $(this).data('panjang-locked') === true,
-          lebar_locked: $(this).data('lebar-locked') === 'true' || $(this).data('lebar-locked') === true,
-          sourceModal: $('#editProdukModal').hasClass('show') ? 'edit' : 'add'
+          panjang_locked: panjangLockedRaw === 'true' || panjangLockedRaw === '1' || panjangLockedRaw === true,
+          lebar_locked: lebarLockedRaw === 'true' || lebarLockedRaw === '1' || lebarLockedRaw === true,
+          kategori_nama: $(this).data('kategori'),
+          jenis_produk: $(this).data('jenis'),
+          satuan_nama: $(this).data('satuan') || 'pcs',
+          sourceModal: 'spk'
       };
 
-      // Cek apakah ini dari modal edit atau add
-      // const isEditModal = $('#editProdukModal').hasClass('show');
-      
-      
       // Close modal
-      window.dispatchEvent(new CustomEvent('produkKomponenDipilih', { detail: data }));
+      window.dispatchEvent(new CustomEvent('produkDipilih', { detail: data }));
       $('#' + modalId).modal('hide');
   });
 
   // Load initial data when modal is shown
   $(document).on('shown.bs.modal', '#' + modalId, function() {
-      loadProdukKomponen();
+      loadSemuaProduk();
   });
 })();
 </script>

@@ -296,14 +296,6 @@ class CariController extends Controller
         // $query->with(['kategoriUtama', 'subKategori', 'satuan', 'subSatuan']);
 
         $produks = $query->orderBy('nama_produk')->paginate(10);
-        \Log::info('CariProdukKomponen Debug', [
-            'search_term' => $search,
-            'total_records' => $produks->total(),
-            'current_page' => $produks->currentPage(),
-            'per_page' => $produks->perPage(),
-            'data_count_in_response' => count($produks->items()),
-            'has_data' => count($produks->items()) > 0
-        ]); 
 
         $produks->getCollection()->transform(function ($item) {
             return [
@@ -312,6 +304,90 @@ class CariController extends Controller
                 'nama_produk' => $item->nama_produk,
                 'jenis_produk' => $item->jenis_produk,
                 'total_modal_keseluruhan' => $item->total_modal_keseluruhan ?? 0,
+            ];
+        });
+
+        return response()->json($produks);
+    }
+
+    public function cariProdukFinishing(Request $request)
+    {
+        $produkId = $request->input('produk_id');
+        
+        if (!$produkId) {
+            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+        }
+        
+        $produkUtama = Produk::find($produkId);
+        
+        if (!$produkUtama || !is_array($produkUtama->finishing_json) || count($produkUtama->finishing_json) === 0) {
+            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+        }
+        
+        $finishingIds = collect($produkUtama->finishing_json)->pluck('id')->filter()->all();
+        
+        if (empty($finishingIds)) {
+            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+        }
+        
+        $query = Produk::whereIn('id', $finishingIds)
+                    ->where('status_aktif', true)
+                    ->with(['kategoriUtama', 'subSatuan']);
+        
+        if ($request->search) {
+            $search = strtolower($request->search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(kode_produk) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(nama_produk) LIKE ?', ["%{$search}%"]);
+            });
+        }
+        
+        $produks = $query->orderBy('nama_produk')->paginate(10);
+        
+        $produks->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'kode_produk' => $item->kode_produk,
+                'nama_produk' => $item->nama_produk,
+                'jenis_produk' => $item->jenis_produk,
+                'total_modal_keseluruhan' => $item->total_modal_keseluruhan ?? 0,
+                'kategori_nama' => $item->kategoriUtama?->nama_detail_parameter ?? '-',
+                'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
+            ];
+        });
+        
+        return response()->json($produks);
+    }
+
+    public function cariSemuaProduk(Request $request)
+    {
+        $search = $request->input('search');
+        $query = Produk::where('status_aktif', true);
+
+        if ($search) {
+            $search = strtolower($search);
+            $query->where(function($q) use ($search) {
+                $q->whereRaw('LOWER(kode_produk) LIKE ?', ["%{$search}%"])
+                ->orWhereRaw('LOWER(nama_produk) LIKE ?', ["%{$search}%"]);
+            });
+        }
+
+        $produks = $query->with(['kategoriUtama', 'subSatuan'])->orderBy('nama_produk')->paginate(10);
+
+        $produks->getCollection()->transform(function ($item) {
+            return [
+                'id' => $item->id,
+                'kode_produk' => $item->kode_produk,
+                'nama_produk' => $item->nama_produk,
+                'jenis_produk' => $item->jenis_produk,
+                'total_modal_keseluruhan' => $item->total_modal_keseluruhan ?? 0,
+                'kategori_nama' => $item->kategoriUtama?->nama_detail_parameter ?? '-',
+                'panjang' => $item->panjang,
+                'lebar' => $item->lebar,
+                'panjang_locked' => $item->panjang_locked ?? false,
+                'lebar_locked' => $item->lebar_locked ?? false,
+                'satuan_id' => $item->sub_satuan_id,
+                'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
             ];
         });
 

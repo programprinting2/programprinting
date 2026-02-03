@@ -1,21 +1,21 @@
 @php
-  $modalId = $modalId ?? 'modalCariProdukRakitan';
-  $inputId = $inputId ?? 'searchProdukRakitan';
-  $tableId = $tableId ?? 'tabelCariProdukRakitan';
-  $paginationId = $paginationId ?? 'paginationProdukRakitan';
-  $clearBtnId = $clearBtnId ?? 'clearSearchProdukRakitan';
+  $modalId = $modalId ?? 'modalCariProdukFinishing';
+  $inputId = $inputId ?? 'searchProdukFinishing';
+  $tableId = $tableId ?? 'tabelCariProdukFinishing';
+  $paginationId = $paginationId ?? 'paginationProdukFinishing';
+  $clearBtnId = $clearBtnId ?? 'clearSearchProdukFinishing';
 @endphp
 
-<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false" data-bs-focus="false">
+<div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border border-primary">
       <div class="modal-header">
-        <h5 class="modal-title" id="{{ $modalId }}Label">Cari Produk Komponen</h5>
+        <h5 class="modal-title" id="{{ $modalId }}Label">Cari Produk Finishing</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
         <div class="mb-3">
-          <label for="{{ $inputId }}" class="form-label">Cari Produk Komponen</label>
+          <label for="{{ $inputId }}" class="form-label">Cari Produk Finishing</label>
           <div class="input-group">
             <span class="input-group-text bg-light"><i data-feather="search" class="icon-sm"></i></span>
             <input type="text" class="form-control" id="{{ $inputId }}" placeholder="Cari berdasarkan kode, nama produk...">
@@ -28,8 +28,9 @@
               <tr>
                 <th>Kode Produk</th>
                 <th>Nama Produk</th>
-                <th>Jenis</th>
-                <th>Total Modal</th>
+                <th>Kategori</th>
+                <th>Satuan</th>
+                <th>Harga</th>
               </tr>
             </thead>
             <tbody><!-- Data AJAX --></tbody>
@@ -46,7 +47,7 @@
 
 @push('custom-scripts')
 <style>
-  .pilih-produk-komponen:hover {
+  .pilih-produk-finishing:hover {
     background: #f0f6ff !important;
     cursor: pointer;
   }
@@ -69,16 +70,14 @@
   function renderPagination(data, search) {
       let html = '';
       if (data.last_page > 1) {
-          html += '<nav><ul class="pagination pagination-sm">';  // Tambah pagination-sm
+          html += '<nav><ul class="pagination pagination-sm">';
           
-          // Previous button dengan &laquo; dan disabled state
           if (data.current_page > 1) {
               html += `<li class="page-item"><a class="page-link" href="#" data-page="${data.current_page - 1}" data-search="${search}">&laquo;</a></li>`;
           } else {
               html += '<li class="page-item disabled"><span class="page-link">&laquo;</span></li>';
           }
           
-          // Loop penuh dari 1 sampai last_page (bukan range)
           for (let i = 1; i <= data.last_page; i++) {
               if (i === data.current_page) {
                   html += `<li class="page-item active"><span class="page-link">${i}</span></li>`;
@@ -87,7 +86,6 @@
               }
           }
           
-          // Next button dengan &raquo; dan disabled state
           if (data.current_page < data.last_page) {
               html += `<li class="page-item"><a class="page-link" href="#" data-page="${data.current_page + 1}" data-search="${search}">&raquo;</a></li>`;
           } else {
@@ -100,59 +98,52 @@
   }
 
   // Fungsi utama load data
-  function loadProdukKomponen(page = 1) {
+  function loadProdukFinishing(page = 1) {
       const searchTerm = $('#' + inputId).val();
       const tbody = $('#' + tableId + ' tbody');
       
-      tbody.html('<tr><td colspan="5" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Memuat...</td></tr>');
+      tbody.html('<tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Memuat...</td></tr>');
 
       $.ajax({
-          url: '{{ route('backend.cari-produk') }}',
+          url: '{{ route('backend.cari-produk-finishing') }}',
           method: 'GET',
           data: {
               search: searchTerm,
-              page: page
+              page: page,
+              produk_id: window.SPKCurrentProdukIdForFinishing || null
           },
           success: function(response) {
               if (response.data && response.data.length > 0) {
                   let html = '';
                   response.data.forEach(function(produk) {
                       html += `
-                          <tr class="pilih-produk-komponen" 
+                          <tr class="pilih-produk-finishing" 
                               data-id="${produk.id}" 
                               data-kode="${produk.kode_produk}"
                               data-nama="${produk.nama_produk}"
-                              data-modal="${produk.total_modal_keseluruhan || 0}"
-                              data-panjang="${produk.panjang || 0}"
-                              data-lebar="${produk.lebar || 0}"
-                              data-panjang-locked="${produk.panjang_locked || false}"
-                              data-lebar-locked="${produk.lebar_locked || false}"
-                              >
+                              data-satuan="${produk.satuan_nama || 'pcs'}"
+                              data-harga="${produk.total_modal_keseluruhan || 0}"
+                              data-kategori="${produk.kategori_nama || '-'}">
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
-                              <td>
-                                  <span class="badge bg-${produk.jenis_produk === 'produk' ? 'primary' : 'secondary'}">
-                                      ${produk.jenis_produk === 'produk' ? 'Produk' : 'Jasa'}
-                                  </span>
-                              </td>
+                              <td>${produk.kategori_nama ?? '-'}</td>
+                              <td>${produk.satuan_nama ?? 'pcs'}</td>
                               <td class="text-end">Rp ${produk.total_modal_keseluruhan ? parseFloat(produk.total_modal_keseluruhan).toLocaleString('id-ID') : '0'}</td>
                           </tr>
                       `;
                   });
                   tbody.html(html);
 
-                  // Render pagination
                   renderPagination(response, searchTerm);
 
-                  // Re-initialize feather icons
                   if (typeof feather !== 'undefined') feather.replace();
               } else {
-                  tbody.html('<tr><td colspan="5" class="text-center text-muted">Tidak ada produk komponen ditemukan</td></tr>');
+                  tbody.html('<tr><td colspan="6" class="text-center text-muted">Tidak ada produk finishing ditemukan</td></tr>');
                   $('#' + paginationId).html('');
               }
           },
           error: function(xhr) {
-            $('#' + tableId + ' tbody').html('<tr><td colspan="5" class="text-center">Gagal memuat data</td></tr>');
+            $('#' + tableId + ' tbody').html('<tr><td colspan="6" class="text-center">Gagal memuat data</td></tr>');
             $('#' + paginationId).html('');
           }
       });
@@ -162,13 +153,13 @@
   $(document).on('input', '#' + inputId, function() {
       clearTimeout(window.searchTimeout);
       window.searchTimeout = setTimeout(function() {
-          loadProdukKomponen();
+          loadProdukFinishing();
       }, 300);
   });
 
   $(document).on('click', '#' + clearBtnId, function() {
       $('#' + inputId).val('');
-      loadProdukKomponen();
+      loadProdukFinishing();
   });
 
   $(document).on('click', '#' + paginationId + ' .page-link', function(e) {
@@ -176,34 +167,27 @@
       if ($(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
       const page = $(this).data('page');
       const search = $('#' + inputId).val();
-      loadProdukKomponen(search, page);
+      loadProdukFinishing(search, page);
   });
 
-  $(document).on('click', '.pilih-produk-komponen', function() {
+  $(document).on('click', '.pilih-produk-finishing', function() {
       const data = {
           id: parseInt($(this).data('id')) || 0,
           kode_produk: $(this).data('kode'),
           nama_produk: $(this).data('nama'),
-          total_modal_keseluruhan: parseFloat($(this).data('modal')) || 0 ,
-          panjang: parseFloat($(this).data('panjang')) || 0,
-          lebar: parseFloat($(this).data('lebar')) || 0,
-          panjang_locked: $(this).data('panjang-locked') === 'true' || $(this).data('panjang-locked') === true,
-          lebar_locked: $(this).data('lebar-locked') === 'true' || $(this).data('lebar-locked') === true,
-          sourceModal: $('#editProdukModal').hasClass('show') ? 'edit' : 'add'
+          satuan_nama: $(this).data('satuan') || 'pcs',
+          harga_satuan: parseFloat($(this).data('harga')) || 0,
+          kategori_nama: $(this).data('kategori'),
+          sourceModal: 'spk'
       };
 
-      // Cek apakah ini dari modal edit atau add
-      // const isEditModal = $('#editProdukModal').hasClass('show');
-      
-      
-      // Close modal
-      window.dispatchEvent(new CustomEvent('produkKomponenDipilih', { detail: data }));
+      window.dispatchEvent(new CustomEvent('produkFinishingDipilih', { detail: data }));
       $('#' + modalId).modal('hide');
   });
 
   // Load initial data when modal is shown
   $(document).on('shown.bs.modal', '#' + modalId, function() {
-      loadProdukKomponen();
+      loadProdukFinishing();
   });
 })();
 </script>

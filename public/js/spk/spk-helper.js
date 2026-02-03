@@ -120,9 +120,15 @@ if (typeof SPKHelper === 'undefined') {
          */
         showNotification: function(title, message, type = 'info') {
             if (typeof Swal !== 'undefined') {
-                Swal.fire(title, message, type);
+                Swal.fire({
+                    title: title,
+                    text: message,
+                    icon: type,
+                    confirmButtonText: 'OK',
+                    timer: 3000, 
+                    timerProgressBar: true
+                });
             } else {
-                // Fallback ke alert biasa jika SweetAlert tidak tersedia
                 alert(`${title}: ${message}`);
             }
         },
@@ -136,24 +142,28 @@ if (typeof SPKHelper === 'undefined') {
          * @returns {Promise<boolean>} Promise yang resolve ke boolean
          */
         confirmDialog: function(title, message, confirmText = 'Ya', cancelText = 'Batal') {
-            if (typeof Swal !== 'undefined') {
-                return Swal.fire({
-                    title: title,
-                    text: message,
-                    icon: 'question',
-                    showCancelButton: true,
-                    confirmButtonText: confirmText,
-                    cancelButtonText: cancelText,
-                    reverseButtons: true
-                }).then((result) => {
-                    return result.isConfirmed;
-                });
-            } else {
-                // Fallback ke confirm biasa
-                return Promise.resolve(confirm(`${title}: ${message}`));
-            }
+            return new Promise((resolve) => {
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        title: title,
+                        text: message,
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonColor: '#3085d6',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: confirmText,
+                        cancelButtonText: cancelText
+                    }).then((result) => {
+                        resolve(result.isConfirmed);
+                    });
+                } else {
+                    // Fallback ke confirm biasa
+                    const result = confirm(`${title}\n\n${message}`);
+                    resolve(result);
+                }
+            });
         },
-
+        
         /**
          * Inisialisasi helper
          */
