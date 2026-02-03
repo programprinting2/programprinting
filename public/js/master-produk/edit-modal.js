@@ -493,10 +493,14 @@ $(function () {
         if (selectedKategoriOnShow) {
             toggleFinishingTab(selectedKategoriOnShow, true);
         }
+
+        $('#edit_lebar_locked, #edit_panjang_locked').each(function() {
+            const checkboxId = $(this).attr('id');
+            updateLockIcon(checkboxId);
+        });
     });
 
     // === MEDIA & DOKUMEN (EDIT) ===
-    // (Sudah clean, tidak ada kode tidak terpakai)
     // Fungsi render preview media/dokumen (khusus edit)
     function renderPhotosPreview() {
         const previewContainer = $("#editFotoPendukungPreview");
@@ -2307,5 +2311,23 @@ $(function () {
         
         $('#edit_finishing_json').val(JSON.stringify(editFinishingList));
         renderEditTabelFinishing();
+    });
+
+    function updateLockIcon(checkboxId) {
+        const checkbox = $(`#${checkboxId}`);
+        const icon = $(`.lock-icon[data-target="${checkboxId}"]`);
+        
+        if (checkbox.is(':checked')) {
+            icon.removeClass('fa-unlock').addClass('fa-lock');
+            icon.css('color', '#dc3545'); 
+        } else {
+            icon.removeClass('fa-lock').addClass('fa-unlock');
+            icon.css('color', '#28a745'); 
+        }
+    }
+    
+    $(document).on('change', '#edit_lebar_locked, #edit_panjang_locked', function() {
+        const checkboxId = $(this).attr('id');
+        updateLockIcon(checkboxId);
     });
 });

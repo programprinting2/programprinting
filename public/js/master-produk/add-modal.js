@@ -1586,8 +1586,8 @@ $(function () {
 
             var form = $(this)[0];
             var formData = new FormData(form);
-            // formData.append('lebar_locked', $('#lebar_locked').is(':checked') ? 1 : 0);
-            // formData.append('panjang_locked', $('#panjang_locked').is(':checked') ? 1 : 0);
+            formData.append('lebar_locked', $('#lebar_locked').is(':checked') ? 1 : 0);
+            formData.append('panjang_locked', $('#panjang_locked').is(':checked') ? 1 : 0);
             formData.append('warna_id', document.getElementById('warna_id').value || '');
             const tagsArray = $('#tags').val() || []; 
             formData.append('tags', JSON.stringify(tagsArray));
@@ -1937,6 +1937,10 @@ $(function () {
         } else {
             $("#jenis-produk-description").text("Pilih jenis produk terlebih dahulu");
         }
+        $('#lebar_locked, #panjang_locked').each(function() {
+            const checkboxId = $(this).attr('id');
+            updateLockIcon(checkboxId);
+        });
         if (!$('#tags').hasClass('select2-hidden-accessible')) {
 
             $('#tags').select2({
@@ -2080,5 +2084,23 @@ $(function () {
         jsonField.val(JSON.stringify(finishingData));
         
         renderTabelFinishing(finishingData, isEdit);
+    });
+
+    function updateLockIcon(checkboxId) {
+        const checkbox = $(`#${checkboxId}`);
+        const icon = $(`.lock-icon[data-target="${checkboxId}"]`);
+        
+        if (checkbox.is(':checked')) {
+            icon.removeClass('fa-unlock').addClass('fa-lock');
+            icon.css('color', '#dc3545'); 
+        } else {
+            icon.removeClass('fa-lock').addClass('fa-unlock');
+            icon.css('color', '#28a745'); 
+        }
+    }
+    
+    $(document).on('change', '#lebar_locked, #panjang_locked', function() {
+        const checkboxId = $(this).attr('id');
+        updateLockIcon(checkboxId);
     });
 });

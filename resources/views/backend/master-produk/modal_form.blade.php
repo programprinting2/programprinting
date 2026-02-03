@@ -154,7 +154,7 @@
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="lebar_locked" name="lebar_locked" value="1">
                                                         <label class="form-check-label small" for="lebar_locked">
-                                                            <i class="fa fa-lock me-1"></i>Lock lebar
+                                                            <i class="fa fa-unlock lock-icon me-1" data-target="lebar_locked"></i>Lock lebar
                                                         </label>
                                                     </div>
                                                 </div>
@@ -162,7 +162,7 @@
                                                     <div class="form-check form-switch">
                                                         <input class="form-check-input" type="checkbox" id="panjang_locked" name="panjang_locked" value="1">
                                                         <label class="form-check-label small" for="panjang_locked">
-                                                            <i class="fa fa-lock me-1"></i>Lock panjang
+                                                            <i class="fa fa-unlock lock-icon me-1" data-target="panjang_locked"></i>Lock panjang
                                                         </label>
                                                     </div>
                                                 </div>
