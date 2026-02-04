@@ -126,40 +126,63 @@
                                                 sama</small>
                                         </div>
                                     </div>
-                                    <div id="dimensi_container" class="row mb-3" style="display: none;">
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" id="gunakan_dimensi" name="is_metric" value="1">
+                                                <label class="form-check-label" for="gunakan_dimensi">Gunakan dimensi produk</label>
+                                                <div class="form-text">Aktifkan untuk menambahkan informasi dimensi lebar dan panjang</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3" id="metric_unit_container" style="display: none;">
+                                        <div class="col-md-6">
+                                            <label for="metric_unit" class="form-label">Satuan Metric</label>
+                                            <select class="form-select" id="metric_unit" name="metric_unit" disabled>
+                                                <option value="cm">Centimeter (cm)</option>
+                                                <option value="mm">Millimeter (mm)</option>
+                                                <option value="m">Meter (m)</option>
+                                            </select>
+                                            <small class="text-muted">Satuan pengukuran dimensi produk</small>
+                                        </div>
+                                    </div>
+                                    <div class="row mb-3">
                                         <div class="col-md-12">
                                             <label class="form-label">Dimensi</label>
                                             <div class="row">
-                                                <div id="dimensi_luas" class="col-md-4">
+                                                <div class="col-md-4">
                                                     <div class="input-group">
                                                         <span class="input-group-text">L</span>
                                                         <input type="number" class="form-control" id="lebar" name="lebar"
-                                                            min="0" step="0.01" value="0" placeholder="Lebar">
+                                                            min="0" step="0.01" value="0" placeholder="Lebar" disabled>
+                                                        <span class="input-group-text" id="label_metric_lebar">cm</span>
                                                     </div>
                                                     <small class="text-muted">Lebar produk</small>
                                                 </div>
-                                                <div id="dimensi_panjang" class="col-md-4">
+                                                <div class="col-md-4">
                                                     <div class="input-group">
                                                         <span class="input-group-text">P</span>
                                                         <input type="number" class="form-control" id="panjang"
-                                                            name="panjang" min="0" step="0.01" value="0" placeholder="Panjang">
+                                                            name="panjang" min="0" step="0.01" value="0" placeholder="Panjang" disabled>
+                                                        <span class="input-group-text" id="label_metric_panjang">cm</span>
                                                     </div>
                                                     <small class="text-muted">Panjang produk</small>
                                                 </div>
-                                                <div id="luas_container" class="col-md-4" style="display: none;">
+                                                <div class="col-md-4">
                                                     <div class="input-group">
                                                         <span class="input-group-text">Luas</span>
                                                         <input type="number" class="form-control" id="luas" name="luas" 
-                                                            readonly step="0.01" value="0" placeholder="0.00">
+                                                            readonly step="0.01" value="0" placeholder="0.00" disabled>
+                                                        <span class="input-group-text" id="label_metric_luas">cm²</span>
                                                     </div>
                                                     <small class="text-muted">Lebar × Panjang</small>
                                                 </div>
                                             </div>
-                                           
+                                            
                                             <div class="row mt-2">
                                                 <div class="col-md-4">
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="lebar_locked" name="lebar_locked" value="1">
+                                                        <input class="form-check-input" type="checkbox" id="lebar_locked" name="lebar_locked" value="1" disabled>
                                                         <label class="form-check-label small" for="lebar_locked">
                                                             <i class="fa fa-unlock lock-icon me-1" data-target="lebar_locked"></i>Lock lebar
                                                         </label>
@@ -167,13 +190,14 @@
                                                 </div>
                                                 <div class="col-md-4">
                                                     <div class="form-check form-switch">
-                                                        <input class="form-check-input" type="checkbox" id="panjang_locked" name="panjang_locked" value="1">
+                                                        <input class="form-check-input" type="checkbox" id="panjang_locked" name="panjang_locked" value="1" disabled>
                                                         <label class="form-check-label small" for="panjang_locked">
                                                             <i class="fa fa-unlock lock-icon me-1" data-target="panjang_locked"></i>Lock panjang
                                                         </label>
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
+                                
                                                 </div>
                                             </div>
                                         </div>

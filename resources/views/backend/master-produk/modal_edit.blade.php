@@ -118,57 +118,82 @@
                       </select>
                       <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
                     </div>
-                    <div id="edit_dimensi_container" class="row mb-3" style="display: none;">
-                        <div class="col-md-12">
-                            <label class="form-label">Dimensi</label>
-                            <div class="row">
-                              <div id="edit_dimensi_luas" class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-text">L</span>
-                                    <input type="number" class="form-control" id="edit_lebar" name="lebar" 
-                                        min="0" step="0.01" placeholder="Lebar">
-                                </div>
-                                <small class="text-muted">Lebar produk</small>
-                            </div>
-                            <div id="edit_dimensi_panjang" class="col-md-4">
-                                <div class="input-group">
-                                    <span class="input-group-text">P</span>
-                                    <input type="number" class="form-control" id="edit_panjang" name="panjang" 
-                                        min="0" step="0.01" placeholder="Panjang">
-                                </div>
-                                <small class="text-muted">Panjang produk</small>
-                            </div>
-                            <div id="edit_luas_container" class="col-md-4" style="display: none;">
-                                <div class="input-group">
-                                    <span class="input-group-text">Luas</span>
-                                    <input type="number" class="form-control" id="edit_luas" name="luas" 
-                                        readonly step="0.01" value="0" placeholder="0.00">
-                                </div>
-                                <small class="text-muted">Lebar × Panjang</small>
-                            </div>
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                          <div class="form-check form-switch">
+                              <input class="form-check-input" type="checkbox" id="edit_gunakan_dimensi" name="is_metric" value="1">
+                              <label class="form-check-label" for="edit_gunakan_dimensi">Gunakan dimensi produk</label>
+                              <div class="form-text">Aktifkan untuk mengisi informasi dimensi lebar dan panjang</div>
                           </div>
+                      </div>
+                    </div>
+                    <div class="row mb-3" id="edit_metric_unit_container" style="display: none;">
+                      <div class="col-md-6">
+                          <label for="edit_metric_unit" class="form-label">Satuan Metric</label>
+                          <select class="form-select" id="edit_metric_unit" name="metric_unit" disabled>
+                              <option value="cm">Centimeter (cm)</option>
+                              <option value="mm">Millimeter (mm)</option>
+                              <option value="m">Meter (m)</option>
+                          </select>
+                          <small class="text-muted">Satuan pengukuran dimensi produk</small>
+                      </div>
+                  </div>
+
+                  <div class="row mb-3">
+                      <div class="col-md-12">
+                          <label class="form-label">Dimensi</label>
+                          <div class="row">
+                              <div class="col-md-4">
+                                  <div class="input-group">
+                                      <span class="input-group-text">L</span>
+                                      <input type="number" class="form-control" id="edit_lebar" name="lebar" 
+                                          min="0" step="0.01" placeholder="Lebar" disabled>
+                                      <span class="input-group-text" id="edit_label_metric_lebar">cm</span>
+                                  </div>
+                                  <small class="text-muted">Lebar produk</small>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="input-group">
+                                      <span class="input-group-text">P</span>
+                                      <input type="number" class="form-control" id="edit_panjang" name="panjang" 
+                                          min="0" step="0.01" placeholder="Panjang" disabled>
+                                      <span class="input-group-text" id="edit_label_metric_panjang">cm</span>
+                                  </div>
+                                  <small class="text-muted">Panjang produk</small>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="input-group">
+                                      <span class="input-group-text">Luas</span>
+                                      <input type="number" class="form-control" id="edit_luas" name="luas" 
+                                          readonly step="0.01" value="0" placeholder="0.00" disabled>
+                                      <span class="input-group-text" id="edit_label_metric_luas">cm²</span>
+                                  </div>
+                                  <small class="text-muted">Lebar × Panjang</small>
+                              </div>
+                          </div>
+                          
                           <div class="row mt-2">
                               <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="edit_lebar_locked" name="lebar_locked" value="1">
-                                    <label class="form-check-label small" for="edit_lebar_locked">
-                                        <i class="fa fa-unlock lock-icon me-1" data-target="edit_lebar_locked"></i>Lock lebar
-                                    </label>
-                                </div>
+                                  <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="edit_lebar_locked" name="lebar_locked" value="1" disabled>
+                                      <label class="form-check-label small" for="edit_lebar_locked">
+                                          <i class="fa fa-unlock lock-icon me-1" data-target="edit_lebar_locked"></i>Lock lebar
+                                      </label>
+                                  </div>
                               </div>
                               <div class="col-md-4">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="edit_panjang_locked" name="panjang_locked" value="1">
-                                    <label class="form-check-label small" for="edit_panjang_locked">
-                                        <i class="fa fa-unlock lock-icon me-1" data-target="edit_panjang_locked"></i>Lock panjang
-                                    </label>
-                                </div>
+                                  <div class="form-check form-switch">
+                                      <input class="form-check-input" type="checkbox" id="edit_panjang_locked" name="panjang_locked" value="1" disabled>
+                                      <label class="form-check-label small" for="edit_panjang_locked">
+                                          <i class="fa fa-unlock lock-icon me-1" data-target="edit_panjang_locked"></i>Lock panjang
+                                      </label>
+                                  </div>
                               </div>
                               <div class="col-md-4">
                               </div>
                           </div>
-                        </div>
-                    </div>
+                      </div>
+                  </div>
                   </div>
                   <div class="row mb-3">
                     <!-- HIDDEN INPUT UNTUK JSON -->

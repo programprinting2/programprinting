@@ -45,6 +45,7 @@ class ProdukService
             $data['finishing_json'] = $this->processJsonField($data['finishing_json'] ?? null);
             $data['lebar_locked'] = $data['lebar_locked'] ?? false;
             $data['panjang_locked'] = $data['panjang_locked'] ?? false;
+            $data['is_metric'] = $data['is_metric'] ?? false;
 
             // Process file uploads - menggunakan method yang mengembalikan URL
             $data['foto_pendukung_json'] = $this->uploadFilesWithUrl(
@@ -151,6 +152,9 @@ class ProdukService
             }
             if (isset($data['panjang_locked'])) {
                 $data['panjang_locked'] = (bool) $data['panjang_locked'];
+            }
+            if (isset($data['is_metric'])) {
+                $data['is_metric'] = (bool) $data['is_metric'];  
             }
             // Handle existing files
             // $existingFoto = $this->processExistingFiles($data['foto_pendukung_existing_json'] ?? null);

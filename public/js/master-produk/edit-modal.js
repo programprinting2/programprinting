@@ -236,14 +236,6 @@ $(function () {
                 updateEditDetailSatuanOptions(p.satuan_id, p.sub_satuan_id);
                 $("#edit_lebar").val(p.lebar);
                 $("#edit_panjang").val(p.panjang);
-                setTimeout(() => {
-                    toggleDimensiFieldsEdit(p.satuan_id);
-                    const selectedOption = $("#edit_satuanBarang option:selected");
-                    const satuanName = selectedOption.text().trim();
-                    if (satuanName === "SATUAN METRIC") {
-                        calculateLuas("edit");
-                    }
-                }, 100);
                 $("#edit_status_aktif").prop("checked", !!p.status_aktif);
                 $("#edit_jenis_produk").val(p.jenis_produk);
                 $("#edit_keterangan").val(p.keterangan || "");
@@ -260,6 +252,16 @@ $(function () {
                 } else {
                     $editTags.val(null).trigger('change');
                 }
+                $('#edit_gunakan_dimensi').prop('checked', !!p.is_metric);
+                $('#edit_metric_unit').val(p.metric_unit);
+                updateEditMetricLabels();
+                setTimeout(() => {
+                    toggleDimensiByCheckbox("edit");
+                    $('#edit_lebar_locked, #edit_panjang_locked').each(function() {
+                        const checkboxId = $(this).attr('id');
+                        updateLockIcon(checkboxId);
+                    });
+                }, 100);
 
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
                     ? p.bahan_bakus.map((bahanBaku) => {
@@ -407,7 +409,6 @@ $(function () {
 
     $(document).on("change", "#edit_satuanBarang", function () {
         updateEditDetailSatuanOptions($(this).val());
-        toggleDimensiFieldsEdit($(this).val());
     });
 
     function calculateLuas(mode = "add") {
@@ -422,47 +423,73 @@ $(function () {
         $(luasInput).val(luas.toFixed(2));
     }
     
-    $(document).on("input", "#edit_lebar, #edit_panjang", function() {
-        const selectedOption = $("#edit_satuanBarang option:selected");
-        const satuanName = selectedOption.text().trim();
+    function toggleDimensiByCheckbox(mode = "edit") {
+        const checkboxId = "#edit_gunakan_dimensi";
+        const containerId ="#edit_metric_unit_container";
+        const metricUnitId = "#edit_metric_unit";
+        const lebarInput = "#edit_lebar";
+        const panjangInput = "#edit_panjang";
+        const luasInput = "#edit_luas";
+        const lebarLockedId = "#edit_lebar_locked";
+        const panjangLockedId = "#edit_panjang_locked";
         
-        if (satuanName === "SATUAN METRIC") {
+        const isChecked = $(checkboxId).is(':checked');
+        
+        if (isChecked) {
+            $(containerId).show();
+            $(metricUnitId).prop('disabled', false);
+            $(lebarInput).prop('disabled', false);
+            $(panjangInput).prop('disabled', false);
+            $(luasInput).prop('disabled', false);
+            $(lebarLockedId).prop('disabled', false);
+            $(panjangLockedId).prop('disabled', false);
+            
+            calculateLuas("edit");
+        } else {
+            $(containerId).hide();
+            $(metricUnitId).prop('disabled', true);
+            $(lebarInput).prop('disabled', true);
+            $(panjangInput).prop('disabled', true);
+            $(luasInput).prop('disabled', true);
+            $(lebarLockedId).prop('disabled', true);
+            $(panjangLockedId).prop('disabled', true);
+            
+            $(lebarInput).val('0');
+            $(panjangInput).val('0');
+            $(luasInput).val('0');
+        }
+    }
+    
+    $(document).on('change', '#edit_gunakan_dimensi', function() {
+        toggleDimensiByCheckbox("edit");
+    });
+
+    $(document).on("input", "#edit_lebar, #edit_panjang", function() {
+        const isEnabled = $('#edit_gunakan_dimensi').is(':checked');
+        if (isEnabled) {
             calculateLuas("edit");
         }
     });
 
-    // Fungsi untuk toggle field dimensi berdasarkan jenis satuan
-    function toggleDimensiFieldsEdit(selectedSatuanId) {
-        const containerId = "#edit_dimensi_container";
-        const luasId = "#edit_dimensi_luas";
-        const panjangId = "#edit_dimensi_panjang";
-        const luasContainerId = "#edit_luas_container";
-
-        const lockLebarContainer = $('#edit_lebar_locked').closest('.col-md-4');
-        const lockPanjangContainer = $('#edit_panjang_locked').closest('.col-md-4');
-
-        // Dapatkan nama satuan dari opsi yang dipilih
-        const selectedOption = $("#edit_satuanBarang option:selected");
-        const satuanName = selectedOption.text().trim();
-
-        if (satuanName === "SATUAN METRIC") {
-            // Tampilkan kedua field (lebar dan panjang)
-            $(containerId).show();
-            $(luasId).show();
-            $(panjangId).show();
-            $(luasContainerId).show();
-            lockLebarContainer.show();
-            lockPanjangContainer.show();
-            calculateLuas("edit");
-        } 
-        else {
-            // Sembunyikan seluruh field dimensi
-            $(containerId).hide();
-            $(luasContainerId).hide();
-            lockLebarContainer.hide();
-            lockPanjangContainer.hide();
+    function updateEditMetricLabels() {
+        const unit = $('#edit_metric_unit').val() || 'cm';
+    
+        $('#edit_label_metric_lebar').text(unit);
+        $('#edit_label_metric_panjang').text(unit);
+    
+        if (unit === 'm') {
+            $('#edit_label_metric_luas').text('m²');
+        } else if (unit === 'mm') {
+            $('#edit_label_metric_luas').text('mm²');
+        } else {
+            $('#edit_label_metric_luas').text('cm²');
         }
     }
+
+    $(document).on('change', '#edit_metric_unit', function () {
+        updateEditMetricLabels();
+    });
+    
 
     $("#editProdukModal").on("shown.bs.modal", function () {
         const selectedKategoriOnShow = $("#edit_kategori_utama").val();
@@ -480,9 +507,6 @@ $(function () {
             currentSubSatuanOnShow,
         );
 
-        if (selectedSatuanOnShow) {
-            toggleDimensiFieldsEdit(selectedSatuanOnShow);
-        }
         if (selectedKategoriOnShow) {
             toggleFinishingTab(selectedKategoriOnShow, true);
         }

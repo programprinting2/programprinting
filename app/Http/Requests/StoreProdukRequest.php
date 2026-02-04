@@ -52,6 +52,8 @@ class StoreProdukRequest extends FormRequest
             'spesifikasi_teknis_json' => 'nullable|json',
             'biaya_tambahan_json' => 'nullable|json',
             'finishing_json' => 'nullable|json',
+            'is_metric' => 'boolean',
+            'metric_unit' => 'nullable|in:m,mm,cm',
             'lebar_locked' => 'boolean',
             'panjang_locked' => 'boolean',
         ];

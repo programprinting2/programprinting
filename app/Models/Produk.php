@@ -39,6 +39,8 @@ class Produk extends Model
         'finishing_json',           
         'total_modal_keseluruhan',
         'needs_recalc',
+        'is_metric',
+        'metric_unit',
         'lebar_locked',
         'panjang_locked',
     ];
@@ -62,6 +64,7 @@ class Produk extends Model
         'warna_id' => 'integer',
         'tags' => 'array',
         'finishing_json' => 'array',
+        'is_metric' => 'boolean',
         'lebar_locked' => 'boolean',
         'panjang_locked' => 'boolean',
     ];

@@ -85,7 +85,6 @@ $(function () {
 
     $(document).on("change", "#satuanBarang", function () {
         updateDetailSatuanOptions($(this).val(), "#detail_satuan");
-        toggleDimensiFields($(this).val(), "add");
     });
 
     $("#tambahProduk").on("shown.bs.modal", function () {
@@ -94,10 +93,6 @@ $(function () {
             "#sub_kategori_id_produk",
         );
         updateDetailSatuanOptions($("#satuanBarang").val(), "#detail_satuan");
-        const selectedSatuan = $("#satuanBarang").val();
-        if (selectedSatuan) {
-            toggleDimensiFields(selectedSatuan, "add");
-        }
         const selectedKategori = $("#kategori_utama").val();
         if (selectedKategori) {
             toggleFinishingTab(selectedKategori, false);
@@ -115,70 +110,70 @@ $(function () {
         
         $(luasInput).val(luas.toFixed(2));
     }
+
+    function toggleDimensiByCheckbox(mode = "add") {
+        const checkboxId = mode === "add" ? "#gunakan_dimensi" : "#edit_gunakan_dimensi";
+        const containerId = mode === "add" ? "#metric_unit_container" : "#edit_metric_unit_container";
+        const metricUnitId = mode === "add" ? "#metric_unit" : "#edit_metric_unit";
+        const lebarInput = mode === "add" ? "#lebar" : "#edit_lebar";
+        const panjangInput = mode === "add" ? "#panjang" : "#edit_panjang";
+        const luasInput = mode === "add" ? "#luas" : "#edit_luas";
+        const lebarLockedId = mode === "add" ? "#lebar_locked" : "#edit_lebar_locked";
+        const panjangLockedId = mode === "add" ? "#panjang_locked" : "#edit_panjang_locked";
+        
+        const isChecked = $(checkboxId).is(':checked');
+        
+        if (isChecked) {
+            $(containerId).show();
+            $(metricUnitId).prop('disabled', false);
+            $(lebarInput).prop('disabled', false);
+            $(panjangInput).prop('disabled', false);
+            $(luasInput).prop('disabled', false);
+            $(lebarLockedId).prop('disabled', false);
+            $(panjangLockedId).prop('disabled', false);
+            
+            calculateLuas(mode);
+        } else {
+            $(containerId).hide();
+            $(metricUnitId).prop('disabled', true);
+            $(lebarInput).prop('disabled', true);
+            $(panjangInput).prop('disabled', true);
+            $(luasInput).prop('disabled', true);
+            $(lebarLockedId).prop('disabled', true);
+            $(panjangLockedId).prop('disabled', true);
+
+            $(lebarInput).val('0');
+            $(panjangInput).val('0');
+            $(luasInput).val('0');
+        }
+    }
+
+    $(document).on('change', '#gunakan_dimensi', function() {
+        toggleDimensiByCheckbox("add");
+    });
     
     $(document).on("input", "#lebar, #panjang", function() {
-        const selectedOption = $("#satuanBarang option:selected");
-        const satuanName = selectedOption.text().trim();
-        
-        if (satuanName === "SATUAN METRIC") {
+        const isDimensiEnabled = $('#gunakan_dimensi').is(':checked');
+        if (isDimensiEnabled) {
             calculateLuas("add");
         }
     });
 
-    // Fungsi untuk toggle field dimensi
-    function toggleDimensiFields(selectedSatuanId, mode = "add") {
-        const containerId =
-            mode === "add" ? "#dimensi_container" : "#edit_dimensi_container";
-        const luasId = mode === "add" ? "#dimensi_luas" : "#edit_dimensi_luas";
-        const panjangId =
-            mode === "add" ? "#dimensi_panjang" : "#edit_dimensi_panjang";
-        const luasContainerId = mode === "add" ? "#luas_container" : "#edit_luas_container";
-        const lockContainerId = mode === "add" ? ".row.mt-2" : ".row.mt-2";
-        const lockLebarContainer = mode === "add" 
-        ? $(lockContainerId).find('.col-md-4').first()  
-        : $(lockContainerId).find('.col-md-4').first();
-        const lockPanjangContainer = mode === "add" 
-        ? $(lockContainerId).find('.col-md-4').eq(1)    
-        : $(lockContainerId).find('.col-md-4').eq(1);
-        
-        const selectedOption = $(
-            `#${mode === "add" ? "satuanBarang" : "edit_satuanBarang"} option:selected`,
-        );
-        const satuanName = selectedOption.text().trim();
-
-        if (satuanName === "SATUAN METRIC") {
-            // Tampilkan kedua field
-            $(containerId).show();
-            $(luasId).show();
-            $(panjangId).show();
-            $(luasContainerId).show();
-            if ($(lockContainerId).length > 0) {
-                lockLebarContainer.show();
-                lockPanjangContainer.show();
-            }
-            calculateLuas(mode);
-        } 
-        // else if (satuanName === "SATUAN LEBAR") {
-        //     // Tampilkan hanya field lebar
-        //     $(containerId).show();
-        //     $(luasId).show();
-        //     $(panjangId).hide();
-        //     $(luasContainerId).hide();
-        //     if ($(lockContainerId).length > 0) {
-        //         lockLebarContainer.show();
-        //         lockPanjangContainer.hide();
-        //     }
-        // } 
-        else {
-            // Sembunyikan seluruh field dimensi
-            $(containerId).hide();
-            $(luasContainerId).hide();
-            if ($(lockContainerId).length > 0) {
-                lockLebarContainer.hide();
-                lockPanjangContainer.hide();
-            }
+    function updateMetricLabels() {
+        const unit = $('#metric_unit').val() || 'cm';
+        $('#label_metric_lebar').text(unit);
+        $('#label_metric_panjang').text(unit);
+        if (unit === 'm') {
+            $('#label_metric_luas').text('m²');
+        } else if (unit === 'mm') {
+            $('#label_metric_luas').text('mm²');
+        } else {
+            $('#label_metric_luas').text('cm²');
         }
     }
+    $(document).on('change', '#metric_unit', function () {
+        updateMetricLabels();
+    });
 
     // Handler untuk penambahan bahan baku
     window.addEventListener("bahanBakuDipilih", function (e) {
@@ -1943,6 +1938,7 @@ $(function () {
             const checkboxId = $(this).attr('id');
             updateLockIcon(checkboxId);
         });
+        updateMetricLabels();
         if (!$('#tags').hasClass('select2-hidden-accessible')) {
 
             $('#tags').select2({
