@@ -660,7 +660,7 @@
 <!-- Modal Preview Media (Foto/Video) -->
 <div class="modal fade" id="editMediaPreviewModal" tabindex="-1" aria-labelledby="editMediaPreviewModalLabel"
   aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-lg">
+  <div class="modal-dialog modal-dialog-scrollable modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="editMediaPreviewModalLabel">Preview Media</h5>

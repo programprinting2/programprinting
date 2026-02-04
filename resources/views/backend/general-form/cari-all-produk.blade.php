@@ -131,7 +131,9 @@
                               data-lebarLocked="${produk.lebar_locked || false}"
                               data-kategori="${produk.kategori_nama || '-'}"
                               data-jenis="${produk.jenis_produk || 'produk'}"
-                              data-satuan="${produk.satuan_nama || 'pcs'}">
+                              data-satuan="${produk.satuan_nama || 'pcs'}"
+                              data-is_metric="${produk.is_metric || false}"
+                              data-metric_unit="${produk.metric_unit || '-'}">
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>
@@ -200,6 +202,8 @@
           kategori_nama: $(this).data('kategori'),
           jenis_produk: $(this).data('jenis'),
           satuan_nama: $(this).data('satuan') || 'pcs',
+          is_metric: $(this).data('is_metric') === 'true' || $(this).data('is_metric') === true,
+          metric_unit: $(this).data('metric_unit') || '-',
           sourceModal: 'spk'
       };
 

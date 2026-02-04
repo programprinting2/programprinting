@@ -388,10 +388,36 @@ class CariController extends Controller
                 'lebar_locked' => $item->lebar_locked ?? false,
                 'satuan_id' => $item->sub_satuan_id,
                 'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
+                'is_metric' => $item->is_metric ?? false,
+                'metric_unit' => $item->metric_unit ?? '-'
             ];
         });
 
         return response()->json($produks);
+    }
+
+    public function cariRelasiProduk(Produk $produk)
+    {
+        $produk->load(['bahanBakus', 'produkKomponen']);
+
+        return response()->json([
+            'id' => $produk->id,
+            'jenis_produk' => $produk->jenis_produk,
+            'bahan_baku' => $produk->bahanBakus->map(function ($bahan) {
+                return [
+                    'id' => $bahan->id,
+                    'nama' => $bahan->nama_bahan ?? $bahan->nama ?? '-',
+                    'kode' => $bahan->kode_bahan ?? null,
+                ];
+            }),
+            'komponen' => $produk->produkKomponen->map(function ($komp) {
+                return [
+                    'id' => $komp->id,
+                    'nama' => $komp->nama_produk,
+                    'kode' => $komp->kode_produk,
+                ];
+            }),
+        ]);
     }
 }
 

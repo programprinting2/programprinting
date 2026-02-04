@@ -430,29 +430,65 @@
                                 </div>
                                 <div class="col-md-4">
                                   <label class="form-label">Urgent</label>
-                                  <select class="form-select" id="modalUrgentSelect">
-                                    <option value="false">Tidak</option>
-                                    <option value="true">Ya</option>
-                                  </select>
+                                  <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" id="modalUrgentToggle">
+                                    <label class="form-check-label" for="modalUrgentToggle" id="modalUrgentLabel">
+                                      <span class="urgent-status">Tidak</span>
+                                    </label>
+                                  </div>
+                                  <input type="hidden" id="modalUrgentValue" value="false">
                                 </div>
-                                <div class="col-12">
-                                  <label class="form-label">Ukuran</label>
-                                  <div class="row g-2">
-                                  <div class="col-6">
-                                      <div class="input-group">
-                                        <span class="input-group-text">L</span>
-                                        <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
-                                        <span class="input-group-text" id="modalSatuanLebar">-</span>
-                                      </div>
-                                      <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
-                                    </div>
+                                <div id="sectionUkuran" style="display: none;">
+                                  <div class="col-12">
+                                    <label class="form-label">Ukuran</label>
+                                    <div class="row g-2">
                                     <div class="col-6">
-                                      <div class="input-group">
-                                        <span class="input-group-text">P</span>
-                                        <input type="number" class="form-control" id="modalPanjangInput" min="0" step="0.1" value="0" placeholder="Panjang">
-                                        <span class="input-group-text" id="modalSatuanPanjang">-</span>
+                                        <div class="input-group">
+                                          <span class="input-group-text">L</span>
+                                          <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
+                                          <span class="input-group-text" id="modalSatuanLebar">-</span>
+                                        </div>
+                                        <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
                                       </div>
-                                      <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
+                                      <div class="col-6">
+                                        <div class="input-group">
+                                          <span class="input-group-text">P</span>
+                                          <input type="number" class="form-control" id="modalPanjangInput" min="0" step="0.1" value="0" placeholder="Panjang">
+                                          <span class="input-group-text" id="modalSatuanPanjang">-</span>
+                                        </div>
+                                        <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="mt-3" id="sectionRelasiProduk" style="display:none;">
+                                  <div class="accordion" id="accordionRelasiProduk">
+                                    <!-- Panel: Bahan Baku Terkait -->
+                                    <div class="accordion-item">
+                                      <h2 class="accordion-header" id="headingBahanBaku">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBahanBaku" aria-expanded="false" aria-controls="collapseBahanBaku">
+                                          Bahan Baku Terkait
+                                        </button>
+                                      </h2>
+                                      <div id="collapseBahanBaku" class="accordion-collapse collapse" aria-labelledby="headingBahanBaku" data-bs-parent="#accordionRelasiProduk">
+                                        <div class="accordion-body" id="relasiBahanBakuBody">
+                                          <p class="text-muted mb-0 small">Belum ada informasi bahan baku untuk produk ini.</p>
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    <!-- Panel: Produk Komponen (Rakitan) -->
+                                    <div class="accordion-item">
+                                      <h2 class="accordion-header" id="headingKomponen">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseKomponen" aria-expanded="false" aria-controls="collapseKomponen">
+                                          Produk Komponen (Rakitan)
+                                        </button>
+                                      </h2>
+                                      <div id="collapseKomponen" class="accordion-collapse collapse" aria-labelledby="headingKomponen" data-bs-parent="#accordionRelasiProduk">
+                                        <div class="accordion-body" id="relasiKomponenBody">
+                                          <p class="text-muted mb-0 small">Belum ada informasi komponen rakitan untuk produk ini.</p>
+                                        </div>
+                                      </div>
                                     </div>
                                   </div>
                                 </div>
@@ -586,7 +622,7 @@
                                   <small class="text-muted text-uppercase">Jumlah</small>
                                   <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
                                 </div>
-                                <div class="col-6">
+                                <div class="col-6" id="summaryUkuranContainer" style="display: none;">
                                   <small class="text-muted text-uppercase">Ukuran</small>
                                   <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
                                 </div>
@@ -870,6 +906,30 @@
     #modalTambahItemPesanan .modal-body {
       max-height: calc(100vh - 200px);
       overflow-y: auto;
+    }
+
+    .form-check-input:checked {
+    background-color: #198754 !important; 
+    border-color: #198754 !important;
+    }
+
+    .form-check-input:not(:checked) {
+        background-color: #dc3545 !important; 
+        border-color: #dc3545 !important;
+    }
+
+    .urgent-status {
+        font-weight: 500;
+        transition: color 0.3s ease;
+        margin-left: 8px;
+    }
+
+    .form-check-input:checked ~ .form-check-label .urgent-status {
+        color: #198754; 
+    }
+
+    .form-check-input:not(:checked) ~ .form-check-label .urgent-status {
+        color: #dc3545; 
     }
   </style>
 @endsection
