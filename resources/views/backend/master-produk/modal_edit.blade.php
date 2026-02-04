@@ -123,24 +123,30 @@
                             <label class="form-label">Dimensi</label>
                             <div class="row">
                               <div id="edit_dimensi_luas" class="col-md-4">
-                                  <input type="number" class="form-control" id="edit_lebar" name="lebar" 
-                                      min="0" step="0.01" placeholder="Lebar">
-                                  <small class="text-muted">Lebar</small>
-                              </div>
-                              <div id="edit_dimensi_panjang" class="col-md-4">
-                                  <input type="number" class="form-control" id="edit_panjang" name="panjang" 
-                                      min="0" step="0.01" placeholder="Panjang">
-                                  <small class="text-muted">Panjang</small>
-                              </div>
-                              <div id="edit_luas_container" class="col-md-4" style="display: none;">
-                                  <div class="input-group">
-                                      <input type="number" class="form-control" id="edit_luas" name="luas" 
-                                          readonly step="0.01" value="0" placeholder="0.00">
-                                  </div>
-                                  <small class="text-muted">Lebar × Panjang</small>
-                              </div>
+                                <div class="input-group">
+                                    <span class="input-group-text">L</span>
+                                    <input type="number" class="form-control" id="edit_lebar" name="lebar" 
+                                        min="0" step="0.01" placeholder="Lebar">
+                                </div>
+                                <small class="text-muted">Lebar produk</small>
+                            </div>
+                            <div id="edit_dimensi_panjang" class="col-md-4">
+                                <div class="input-group">
+                                    <span class="input-group-text">P</span>
+                                    <input type="number" class="form-control" id="edit_panjang" name="panjang" 
+                                        min="0" step="0.01" placeholder="Panjang">
+                                </div>
+                                <small class="text-muted">Panjang produk</small>
+                            </div>
+                            <div id="edit_luas_container" class="col-md-4" style="display: none;">
+                                <div class="input-group">
+                                    <span class="input-group-text">Luas</span>
+                                    <input type="number" class="form-control" id="edit_luas" name="luas" 
+                                        readonly step="0.01" value="0" placeholder="0.00">
+                                </div>
+                                <small class="text-muted">Lebar × Panjang</small>
+                            </div>
                           </div>
-                          <!-- Hapus baris lock checkboxes yang lama dan ganti dengan yang baru -->
                           <div class="row mt-2">
                               <div class="col-md-4">
                                 <div class="form-check form-switch">
@@ -159,7 +165,6 @@
                                 </div>
                               </div>
                               <div class="col-md-4">
-                                  <!-- Kosongkan untuk konsistensi layout -->
                               </div>
                           </div>
                         </div>

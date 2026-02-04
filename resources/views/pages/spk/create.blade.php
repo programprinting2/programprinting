@@ -438,6 +438,14 @@
                                 <div class="col-12">
                                   <label class="form-label">Ukuran</label>
                                   <div class="row g-2">
+                                  <div class="col-6">
+                                      <div class="input-group">
+                                        <span class="input-group-text">L</span>
+                                        <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
+                                        <span class="input-group-text" id="modalSatuanLebar">-</span>
+                                      </div>
+                                      <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
+                                    </div>
                                     <div class="col-6">
                                       <div class="input-group">
                                         <span class="input-group-text">P</span>
@@ -445,14 +453,6 @@
                                         <span class="input-group-text" id="modalSatuanPanjang">-</span>
                                       </div>
                                       <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
-                                    </div>
-                                    <div class="col-6">
-                                      <div class="input-group">
-                                        <span class="input-group-text">L</span>
-                                        <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
-                                        <span class="input-group-text" id="modalSatuanLebar">-</span>
-                                      </div>
-                                      <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
                                     </div>
                                   </div>
                                 </div>

@@ -240,7 +240,7 @@ $(function () {
                     toggleDimensiFieldsEdit(p.satuan_id);
                     const selectedOption = $("#edit_satuanBarang option:selected");
                     const satuanName = selectedOption.text().trim();
-                    if (satuanName === "SATUAN LUAS") {
+                    if (satuanName === "SATUAN METRIC") {
                         calculateLuas("edit");
                     }
                 }, 100);
@@ -426,7 +426,7 @@ $(function () {
         const selectedOption = $("#edit_satuanBarang option:selected");
         const satuanName = selectedOption.text().trim();
         
-        if (satuanName === "SATUAN LUAS") {
+        if (satuanName === "SATUAN METRIC") {
             calculateLuas("edit");
         }
     });
@@ -445,7 +445,7 @@ $(function () {
         const selectedOption = $("#edit_satuanBarang option:selected");
         const satuanName = selectedOption.text().trim();
 
-        if (satuanName === "SATUAN LUAS") {
+        if (satuanName === "SATUAN METRIC") {
             // Tampilkan kedua field (lebar dan panjang)
             $(containerId).show();
             $(luasId).show();
@@ -454,15 +454,8 @@ $(function () {
             lockLebarContainer.show();
             lockPanjangContainer.show();
             calculateLuas("edit");
-        } else if (satuanName === "SATUAN LEBAR") {
-            // Tampilkan hanya field lebar
-            $(containerId).show();
-            $(luasId).show();
-            $(panjangId).hide();
-            $(luasContainerId).hide();
-            lockLebarContainer.show();
-            lockPanjangContainer.hide();
-        } else {
+        } 
+        else {
             // Sembunyikan seluruh field dimensi
             $(containerId).hide();
             $(luasContainerId).hide();

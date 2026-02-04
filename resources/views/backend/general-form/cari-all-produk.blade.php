@@ -7,7 +7,7 @@
 @endphp
 
 <div class="modal fade" id="{{ $modalId }}" tabindex="-1" aria-labelledby="{{ $modalId }}Label" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content border border-primary">
       <div class="modal-header">
         <h5 class="modal-title" id="{{ $modalId }}Label">Cari Semua Produk</h5>
@@ -31,7 +31,7 @@
                 <th>Jenis</th>
                 <th>Kategori</th>
                 <th>Satuan</th> 
-                <th>Total Modal</th>
+                <!-- <th>Total Modal</th> -->
               </tr>
             </thead>
             <tbody><!-- Data AJAX --></tbody>
@@ -141,7 +141,7 @@
                               </td>
                               <td>${produk.kategori_nama ?? '-'}</td>
                               <td>${produk.satuan_nama ?? '-'}</td>    
-                              <td class="text-end">Rp ${produk.total_modal_keseluruhan ? parseFloat(produk.total_modal_keseluruhan).toLocaleString('id-ID') : '0'}</td>
+                              <!-- <td class="text-end">Rp ${produk.total_modal_keseluruhan ? parseFloat(produk.total_modal_keseluruhan).toLocaleString('id-ID') : '0'}</td> -->
                           </tr>
                       `;
                   });

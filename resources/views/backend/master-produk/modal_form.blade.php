@@ -127,21 +127,28 @@
                                         </div>
                                     </div>
                                     <div id="dimensi_container" class="row mb-3" style="display: none;">
-                                        <div class="col-md-6">
+                                        <div class="col-md-12">
                                             <label class="form-label">Dimensi</label>
                                             <div class="row">
                                                 <div id="dimensi_luas" class="col-md-4">
-                                                    <input type="number" class="form-control" id="lebar" name="lebar"
-                                                        min="0" step="0.01" value="0" placeholder="Lebar">
-                                                    <small class="text-muted">Lebar</small>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">L</span>
+                                                        <input type="number" class="form-control" id="lebar" name="lebar"
+                                                            min="0" step="0.01" value="0" placeholder="Lebar">
+                                                    </div>
+                                                    <small class="text-muted">Lebar produk</small>
                                                 </div>
                                                 <div id="dimensi_panjang" class="col-md-4">
-                                                    <input type="number" class="form-control" id="panjang"
-                                                        name="panjang" min="0" step="0.01" value="0" placeholder="Panjang">
-                                                    <small class="text-muted">Panjang</small>
+                                                    <div class="input-group">
+                                                        <span class="input-group-text">P</span>
+                                                        <input type="number" class="form-control" id="panjang"
+                                                            name="panjang" min="0" step="0.01" value="0" placeholder="Panjang">
+                                                    </div>
+                                                    <small class="text-muted">Panjang produk</small>
                                                 </div>
                                                 <div id="luas_container" class="col-md-4" style="display: none;">
                                                     <div class="input-group">
+                                                        <span class="input-group-text">Luas</span>
                                                         <input type="number" class="form-control" id="luas" name="luas" 
                                                             readonly step="0.01" value="0" placeholder="0.00">
                                                     </div>
@@ -167,7 +174,6 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-md-4">
-                                                    <!-- Kosongkan untuk konsistensi layout -->
                                                 </div>
                                             </div>
                                         </div>
