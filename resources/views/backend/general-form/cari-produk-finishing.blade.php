@@ -21,6 +21,12 @@
             <input type="text" class="form-control" id="{{ $inputId }}" placeholder="Cari berdasarkan kode, nama produk...">
             <span class="input-group-text input-group-addon" id="{{ $clearBtnId }}" style="cursor:pointer;"><i data-feather="delete"></i></span>
           </div>
+          <div class="form-check mt-2">
+            <input class="form-check-input" type="checkbox" id="{{ $modalId }}ShowAll">
+            <label class="form-check-label" for="{{ $modalId }}ShowAll">
+              <small>Tampilkan semua produk finishing</small>
+            </label>
+          </div>
         </div>
         <div class="table-responsive">
           <table class="table table-bordered align-middle mb-0" id="{{ $tableId }}">
@@ -100,6 +106,7 @@
   // Fungsi utama load data
   function loadProdukFinishing(page = 1) {
       const searchTerm = $('#' + inputId).val();
+      const showAll = $('#' + modalId + 'ShowAll').is(':checked');
       const tbody = $('#' + tableId + ' tbody');
       
       tbody.html('<tr><td colspan="6" class="text-center"><div class="spinner-border spinner-border-sm" role="status"></div> Memuat...</td></tr>');
@@ -110,7 +117,8 @@
           data: {
               search: searchTerm,
               page: page,
-              produk_id: window.SPKCurrentProdukIdForFinishing || null
+              produk_id: window.SPKCurrentProdukIdForFinishing || null,
+              show_all: showAll ? 1 : 0 
           },
           success: function(response) {
               if (response.data && response.data.length > 0) {
@@ -188,6 +196,9 @@
   // Load initial data when modal is shown
   $(document).on('shown.bs.modal', '#' + modalId, function() {
       loadProdukFinishing();
+  });
+  $(document).on('change', '#' + modalId + 'ShowAll', function() {
+    loadProdukFinishing();
   });
 })();
 </script>

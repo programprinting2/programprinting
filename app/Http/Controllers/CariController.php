@@ -313,26 +313,42 @@ class CariController extends Controller
     public function cariProdukFinishing(Request $request)
     {
         $produkId = $request->input('produk_id');
+        $showAll = $request->boolean('show_all', false); 
         
-        if (!$produkId) {
-            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+        if (!$showAll) {
+            if (!$produkId) {
+                return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+            }
+            
+            $produkUtama = Produk::find($produkId);
+            
+            if (!$produkUtama || !is_array($produkUtama->finishing_json) || count($produkUtama->finishing_json) === 0) {
+                return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+            }
+            
+            $subKategoriIds = collect($produkUtama->finishing_json)->pluck('id')->filter()->all();
+            
+            if (empty($subKategoriIds)) {
+                return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+            }
+            
+            // Filter berdasarkan sub_kategori_id
+            $query = Produk::whereIn('sub_kategori_id', $subKategoriIds)
+                        ->where('status_aktif', true)
+                        ->with(['kategoriUtama', 'subSatuan']);
+        } else {
+            $finishingCategory = MasterParameter::where('nama_parameter', 'KATEGORI PRODUK')->first();
+            $finishingDetail = $finishingCategory ? 
+                $finishingCategory->details()->where('nama_detail_parameter', 'FINISHING')->first() : null;
+            
+            if (!$finishingDetail) {
+                return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
+            }
+            
+            $query = Produk::where('kategori_utama_id', $finishingDetail->id)
+                        ->where('status_aktif', true)
+                        ->with(['kategoriUtama', 'subSatuan']);
         }
-        
-        $produkUtama = Produk::find($produkId);
-        
-        if (!$produkUtama || !is_array($produkUtama->finishing_json) || count($produkUtama->finishing_json) === 0) {
-            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
-        }
-        
-        $finishingIds = collect($produkUtama->finishing_json)->pluck('id')->filter()->all();
-        
-        if (empty($finishingIds)) {
-            return response()->json(['data' => [], 'total' => 0, 'per_page' => 10, 'current_page' => 1, 'last_page' => 0]);
-        }
-        
-        $query = Produk::whereIn('id', $finishingIds)
-                    ->where('status_aktif', true)
-                    ->with(['kategoriUtama', 'subSatuan']);
         
         if ($request->search) {
             $search = strtolower($request->search);
@@ -353,6 +369,8 @@ class CariController extends Controller
                 'total_modal_keseluruhan' => $item->total_modal_keseluruhan ?? 0,
                 'kategori_nama' => $item->kategoriUtama?->nama_detail_parameter ?? '-',
                 'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
+                'is_metric' => $item->is_metric ?? false,
+                'metric_unit' => $item->metric_unit ?? 'cm'
             ];
         });
         
