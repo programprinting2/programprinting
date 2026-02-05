@@ -394,11 +394,11 @@
                       <!-- Left Panel: Form Sections -->
                       <div class="col-lg-8 border-end">
                         <div class="p-4">
-                          <!-- Section 1: Detail Pesanan -->
+                          <!-- Section 1: Detail Produk -->
                           <div class="section-item mb-4" id="sectionDetailPesanan">
                             <div class="d-flex align-items-center mb-3">
                               <span class="section-number me-2">1</span>
-                              <h6 class="mb-0 fw-bold">Detail Pesanan</h6>
+                              <h6 class="mb-0 fw-bold">Detail Produk</h6>
                             </div>
                             <div class="ps-4">
                               <!-- ... isi Detail Pesanan sama seperti sebelumnya ... -->
@@ -442,7 +442,7 @@
                                   <div class="col-12">
                                     <label class="form-label">Ukuran</label>
                                     <div class="row g-2">
-                                    <div class="col-6">
+                                      <div class="col-4">
                                         <div class="input-group">
                                           <span class="input-group-text">L</span>
                                           <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
@@ -450,13 +450,21 @@
                                         </div>
                                         <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
                                       </div>
-                                      <div class="col-6">
+                                      <div class="col-4">
                                         <div class="input-group">
                                           <span class="input-group-text">P</span>
                                           <input type="number" class="form-control" id="modalPanjangInput" min="0" step="0.1" value="0" placeholder="Panjang">
                                           <span class="input-group-text" id="modalSatuanPanjang">-</span>
                                         </div>
                                         <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
+                                      </div>
+                                      <div class="col-4">
+                                        <div class="input-group">
+                                          <span class="input-group-text">Luas</span>
+                                          <input type="text" class="form-control" id="modalLuasInput" readonly>
+                                          <span class="input-group-text" id="modalSatuanLuas">cm²</span>
+                                        </div>
+                                        <!-- <small class="text-muted mt-1">Panjang × Lebar</small> -->
                                       </div>
                                     </div>
                                   </div>
@@ -513,7 +521,7 @@
                               </div>
                               
                               <!-- Table Finishing -->
-                              <div class="table-responsive">
+                              <!-- <div class="table-responsive">
                                 <table class="table table-bordered align-middle mb-0" id="modalTabelFinishing">
                                   <thead class="table-light">
                                     <tr>
@@ -532,6 +540,13 @@
                                     </tr>
                                   </tbody>
                                 </table>
+                              </div> -->
+
+                              <!-- Accordion Finishing Items -->
+                              <div class="accordion mt-3" id="accordionFinishingItems">
+                                <div class="text-center text-muted py-3" id="noFinishingMessage">
+                                  <i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan
+                                </div>
                               </div>
 
                               <!-- Total Finishing -->
@@ -908,14 +923,14 @@
       overflow-y: auto;
     }
 
-    .form-check-input:checked {
-    background-color: #198754 !important; 
-    border-color: #198754 !important;
+    #modalUrgentToggle.form-check-input:checked {
+      background-color: #dc3545 !important; 
+      border-color: #dc3545 !important;
     }
 
-    .form-check-input:not(:checked) {
-        background-color: #dc3545 !important; 
-        border-color: #dc3545 !important;
+    #modalUrgentToggle.form-check-input:not(:checked) {
+      background-color: #198754 !important; 
+      border-color: #198754 !important;
     }
 
     .urgent-status {
@@ -925,11 +940,11 @@
     }
 
     .form-check-input:checked ~ .form-check-label .urgent-status {
-        color: #198754; 
+        color: #dc3545; 
     }
 
     .form-check-input:not(:checked) ~ .form-check-label .urgent-status {
-        color: #dc3545; 
+        color: #198754; 
     }
   </style>
 @endsection
