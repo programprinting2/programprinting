@@ -298,6 +298,36 @@ function loadBahanBakuData(id) {
     $('#edit_keterangan').val(data.keterangan);
     $('#edit_warna_id').val(data.warna_id);
     $('#edit_warna_id').trigger('change');
+
+    $('#edit_gunakan_dimensi').prop('checked', data.is_metric || false);
+    
+    $('#edit_metric_unit').val(data.metric_unit || 'cm');
+    $('#edit_lebar').val(data.lebar || '');
+    $('#edit_panjang').val(data.panjang || '');
+    
+    const lebar = parseFloat(data.lebar) || 0;
+    const panjang = parseFloat(data.panjang) || 0;
+    const luas = lebar * panjang;
+    $('#edit_luas').val(luas.toFixed(2));
+    
+    const unit = data.metric_unit || 'cm';
+    const unitMap = {
+        'cm': { label: 'cm', area: 'cm²' },
+        'mm': { label: 'mm', area: 'mm²' },
+        'm': { label: 'm', area: 'm²' }
+    };
+    $('#edit_label_metric_lebar, #edit_label_metric_panjang').text(unitMap[unit].label);
+    $('#edit_label_metric_luas').text(unitMap[unit].area);
+    
+    if (data.is_metric) {
+        $('#edit_metric_unit_container').show();
+        $('#edit_metric_unit').prop('disabled', false);
+        $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', false);
+    } else {
+        $('#edit_metric_unit_container').hide();
+        $('#edit_metric_unit').prop('disabled', true);
+        $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', true);
+    }
     
     // Spesifikasi Teknis
     // $('#edit_pilihan_warna').val(data.pilihan_warna);
@@ -1151,5 +1181,41 @@ $(document).ready(function() {
   // Bersihkan konten modal preview media saat ditutup agar video berhenti total
   $('#editMediaPreviewModal').on('hidden.bs.modal', function() {
     $('#editMediaPreviewModalBody').html('');
+  });
+
+  $('#edit_gunakan_dimensi').on('change', function() {
+    const isChecked = $(this).is(':checked');
+    
+    if (isChecked) {
+        $('#edit_metric_unit_container').show();
+        $('#edit_metric_unit').prop('disabled', false);
+        $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', false);
+    } else {
+        $('#edit_metric_unit_container').hide();
+        $('#edit_metric_unit').prop('disabled', true);
+        $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', true);
+        // Reset values
+        $('#edit_lebar, #edit_panjang, #edit_luas').val('0');
+        $('#edit_metric_unit').val('cm');
+    }
+  });
+
+  $('#edit_metric_unit').on('change', function() {
+      const unit = $(this).val();
+      const unitMap = {
+          'cm': { label: 'cm', area: 'cm²' },
+          'mm': { label: 'mm', area: 'mm²' },
+          'm': { label: 'm', area: 'm²' }
+      };
+      
+      $('#edit_label_metric_lebar, #edit_label_metric_panjang').text(unitMap[unit].label);
+      $('#edit_label_metric_luas').text(unitMap[unit].area);
+  });
+
+  $('#edit_lebar, #edit_panjang').on('input', function() {
+      const lebar = parseFloat($('#edit_lebar').val()) || 0;
+      const panjang = parseFloat($('#edit_panjang').val()) || 0;
+      const luas = lebar * panjang;
+      $('#edit_luas').val(luas.toFixed(2));
   });
 }); 

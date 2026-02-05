@@ -761,4 +761,41 @@ $(document).ready(function() {
     updateStokInfo();
     updateSubSatuanOptions($("#satuanUtama").val(), "#sub_satuan"); // Update sub satuan options
   });
+
+  $('#gunakan_dimensi').on('change', function() {
+    const isChecked = $(this).is(':checked');
+    
+    if (isChecked) {
+        $('#metric_unit_container').show();
+        $('#metric_unit').prop('disabled', false);
+        $('#lebar, #panjang, #luas').prop('disabled', false);
+    } else {
+        $('#metric_unit_container').hide();
+        $('#metric_unit').prop('disabled', true);
+        $('#lebar, #panjang, #luas').prop('disabled', true);
+        // Reset values
+        $('#lebar, #panjang, #luas').val('0');
+        $('#metric_unit').val('cm');
+    }
+  });
+
+  // Handle satuan metric change
+  $('#metric_unit').on('change', function() {
+    const unit = $(this).val();
+    const unitMap = {
+        'cm': { label: 'cm', area: 'cm²' },
+        'mm': { label: 'mm', area: 'mm²' },
+        'm': { label: 'm', area: 'm²' }
+    };
+    
+    $('#label_metric_lebar, #label_metric_panjang').text(unitMap[unit].label);
+    $('#label_metric_luas').text(unitMap[unit].area);
+  });
+
+  $('#lebar, #panjang').on('input', function() {
+    const lebar = parseFloat($('#lebar').val()) || 0;
+    const panjang = parseFloat($('#panjang').val()) || 0;
+    const luas = lebar * panjang;
+    $('#luas').val(luas.toFixed(2));
+  });
 }); 

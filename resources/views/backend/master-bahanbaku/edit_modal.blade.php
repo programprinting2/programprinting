@@ -179,6 +179,65 @@
                     </div>
                   </div>
 
+                  <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="edit_gunakan_dimensi" name="is_metric" value="1">
+                            <label class="form-check-label" for="edit_gunakan_dimensi">Gunakan dimensi bahan baku</label>
+                            <div class="form-text">Aktifkan untuk mengisi informasi dimensi lebar dan panjang</div>
+                        </div>
+                    </div>
+                  </div>
+
+                  <!-- Container untuk satuan metric -->
+                  <div class="row mb-3" id="edit_metric_unit_container" style="display: none;">
+                    <div class="col-md-6">
+                        <label for="edit_metric_unit" class="form-label">Satuan Metric</label>
+                        <select class="form-select" id="edit_metric_unit" name="metric_unit" disabled>
+                            <option value="cm">Centimeter (cm)</option>
+                            <option value="mm">Millimeter (mm)</option>
+                            <option value="m">Meter (m)</option>
+                        </select>
+                        <small class="text-muted">Satuan pengukuran dimensi bahan baku</small>
+                    </div>
+                  </div>
+
+                  <!-- Field dimensi -->
+                  <div class="row mb-3">
+                      <div class="col-md-12">
+                          <label class="form-label">Dimensi</label>
+                          <div class="row">
+                              <div class="col-md-4">
+                                  <div class="input-group">
+                                      <span class="input-group-text">L</span>
+                                      <input type="number" class="form-control" id="edit_lebar" name="lebar" 
+                                          min="0" value="0" step="0.01" placeholder="Lebar" disabled>
+                                      <span class="input-group-text" id="edit_label_metric_lebar">cm</span>
+                                  </div>
+                                  <small class="text-muted">Lebar bahan baku</small>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="input-group">
+                                      <span class="input-group-text">P</span>
+                                      <input type="number" class="form-control" id="edit_panjang" name="panjang" 
+                                          min="0" value="0" step="0.01" placeholder="Panjang" disabled>
+                                      <span class="input-group-text" id="edit_label_metric_panjang">cm</span>
+                                  </div>
+                                  <small class="text-muted">Panjang bahan baku</small>
+                              </div>
+                              <div class="col-md-4">
+                                  <div class="input-group">
+                                      <span class="input-group-text">Luas</span>
+                                      <input type="number" class="form-control" id="edit_luas" name="luas" 
+                                          readonly step="0.01" value="0" placeholder="0.00" disabled>
+                                      <span class="input-group-text" id="edit_label_metric_luas">cm²</span>
+                                  </div>
+                                  <small class="text-muted">Lebar × Panjang</small>
+                              </div>
+                          </div>
+                      </div>
+                  </div>
+
                   <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                       <h6 class="mb-0">Konversi Satuan</h6>

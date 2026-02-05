@@ -38,6 +38,9 @@ class BahanBakuService
             $data['stok_minimum'] = isset($data['stok_minimum']) ? (int) $data['stok_minimum'] : 0;
             $data['stok_maksimum'] = isset($data['stok_maksimum']) ? (int) $data['stok_maksimum'] : 0;
             $data['status_aktif'] = (bool) ($data['status_aktif'] ?? false);
+            $data['is_metric'] = (bool) ($data['is_metric'] ?? false);
+            $data['lebar'] = isset($data['lebar']) ? (float) $data['lebar'] : null;
+            $data['panjang'] = isset($data['panjang']) ? (float) $data['panjang'] : null;
 
             // Process file uploads
             $data['foto_pendukung_json'] = $this->uploadFiles(
@@ -91,7 +94,10 @@ class BahanBakuService
             $data['konversi_satuan_json'] = $this->processKonversiSatuan($data['konversi_satuan_json'] ?? null);
             $data['detail_spesifikasi_json'] = $this->processJsonField($data['detail_spesifikasi_json'] ?? null);
             $data['link_pendukung_json'] = $this->processLinkPendukung($data['link_pendukung_json'] ?? null);
-            
+            $data['is_metric'] = (bool) ($data['is_metric'] ?? false);
+            $data['lebar'] = isset($data['lebar']) ? (float) $data['lebar'] : null;
+            $data['panjang'] = isset($data['panjang']) ? (float) $data['panjang'] : null;
+
             // Process numeric fields
             $data['stok_saat_ini'] = isset($data['stok_saat_ini']) ? (float) $data['stok_saat_ini'] : 0;
             $data['stok_minimum'] = isset($data['stok_minimum']) ? (float) $data['stok_minimum'] : 0;
