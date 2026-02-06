@@ -26,24 +26,46 @@ $(function () {
             return;
         }
         editBahanBakuList.forEach((row, idx) => {
-            tbody.append(` <tr>
-                <td>${
-                    row.nama || ""
-                }<input type="hidden" name="bahan_baku_id[]" value="${
-                    row.id || ""
-                }"></td>
-                <td>${row.satuan || ""}</td>
-                <td class="text-end">Rp ${(row.harga || 0).toLocaleString("id-ID")}<input type="hidden" name="harga_bahan[]" value="${
-                    row.harga || 0
-                }"></td>
-                <td><input type="number" class="form-control form-control-sm jumlah_bahan_edit" name="jumlah_bahan[]" value="${
-                    row.jumlah || 0
-                }" min="0" step="0.01" data-idx="${idx}"></td>
-                <td class="text-success fw-semibold text-end">Rp ${(
-                    row.total || 0
-                ).toLocaleString("id-ID")}</td>
-                <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-edit-bahan-baku" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
-            </tr> `);
+            const isMetric = row.is_metric || false;
+            const panjangDisabled = isMetric ? '' : 'disabled';
+            const lebarDisabled = isMetric ? '' : 'disabled';
+            const panjangValue = isMetric ? (row.panjang || '') : '';
+            const lebarValue = isMetric ? (row.lebar || '') : '';
+            const panjangPlaceholder = isMetric ? 'Panjang' : 'Tidak berlaku';
+            const lebarPlaceholder = isMetric ? 'Lebar' : 'Tidak berlaku';
+            
+            tbody.append(`
+                <tr>
+                    <td>${
+                        row.nama || ""
+                    }<input type="hidden" name="bahan_baku_id[]" value="${
+                        row.id || ""
+                    }"></td>
+                    <td>${row.satuan || ""}</td>
+                    <td class="text-end">Rp ${(row.harga || 0).toLocaleString(
+                        "id-ID",
+                    )}<input type="hidden" name="harga_bahan[]" value="${
+                        row.harga || 0
+                    }"></td>
+                    <td><input type="number" class="form-control form-control-sm jumlah_bahan_edit" name="jumlah_bahan[]" value="${
+                        row.jumlah || 1
+                    }" min="0" step="0.01" data-idx="${idx}"></td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm panjang_bahan_edit" name="panjang_bahan[]" 
+                               value="${panjangValue}" ${panjangDisabled} placeholder="${panjangPlaceholder}" 
+                               data-idx="${idx}" step="0.01" min="0">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm lebar_bahan_edit" name="lebar_bahan[]" 
+                               value="${lebarValue}" ${lebarDisabled} placeholder="${lebarPlaceholder}" 
+                               data-idx="${idx}" step="0.01" min="0">
+                    </td>
+                    <td class="text-success fw-semibold text-end">Rp ${(
+                        row.total || 0
+                    ).toLocaleString("id-ID")}</td>
+                    <td><button type="button" class="btn btn-link text-danger p-0 btn-hapus-edit-bahan-baku" data-idx="${idx}"><i data-feather="trash-2"></i></button></td>
+                </tr>
+            `);
         });
         feather.replace();
         hitungTotalModalBahanEdit();
@@ -265,6 +287,10 @@ $(function () {
 
                 editBahanBakuList = Array.isArray(p.bahan_bakus)
                     ? p.bahan_bakus.map((bahanBaku) => {
+                        const harga = bahanBaku.pivot.harga_snapshot;
+                        const jumlah = bahanBaku.pivot.jumlah;
+                        const panjang = bahanBaku.pivot.panjang;
+                        const lebar = bahanBaku.pivot.lebar;
                           return {
                               id: bahanBaku.id,
                               nama: bahanBaku.nama_bahan,
@@ -274,9 +300,10 @@ $(function () {
                                   "",
                               harga: bahanBaku.pivot.harga_snapshot,
                               jumlah: bahanBaku.pivot.jumlah,
-                              total:
-                                  bahanBaku.pivot.harga_snapshot *
-                                  bahanBaku.pivot.jumlah,
+                              is_metric: bahanBaku.is_metric || false,
+                              panjang: panjang,
+                              lebar: lebar,
+                              total: harga * jumlah * panjang * lebar,
                           };
                       })
                     : [];
@@ -1034,7 +1061,7 @@ $(function () {
         }
         // Hitung total bahan baku untuk produk biasa
         totalBahan = editBahanBakuList.reduce((sum, row) => {
-            return sum + (row.harga || 0) * (row.jumlah || 1);
+            return sum + (row.total || 0);
         }, 0);
 
         // Hitung total biaya tambahan
@@ -1530,10 +1557,14 @@ $(function () {
             satuan: data.satuan,
             harga: data.harga || 0,
             jumlah: 1,
+            is_metric: !!data.is_metric,
+            panjang: data.is_metric ? (data.panjang || null) : null,
+            lebar: data.is_metric ? (data.lebar || null) : null,
             total: parseFloat(data.harga || 0),
         });
         renderEditTabelBahanBaku();
         updateTotalModalKeseluruhanEdit();
+        updateTotalItemModalEdit();
     });
 
     $(document).on("click", ".btn-hapus-edit-bahan-baku", function () {
@@ -1551,14 +1582,16 @@ $(function () {
                 $(this).closest("tr").find('input[name="harga_bahan[]"]').val(),
             ) || 0;
         const jumlah = parseFloat($(this).val()) || 0;
+        const panjang = parseFloat($(`.panjang_bahan_edit[data-idx="${idx}"]`).val()) || 1;
+        const lebar = parseFloat($(`.lebar_bahan_edit[data-idx="${idx}"]`).val()) || 1;
         editBahanBakuList[idx].harga = harga;
         editBahanBakuList[idx].jumlah = jumlah;
-        editBahanBakuList[idx].total = harga * jumlah;
+        editBahanBakuList[idx].total = harga * jumlah * panjang * lebar;
         const total = harga * jumlah;
         $(this)
             .closest("tr")
             .find("td")
-            .eq(4)
+            .eq(6)
             .html(
                 `<span class="text-success fw-semibold text-end">Rp ${total.toLocaleString(
                     "id-ID",
@@ -1566,6 +1599,43 @@ $(function () {
             );
         // hitungTotalModalBahanEdit();
         updateTotalModalKeseluruhanEdit();
+        updateTotalItemModalEdit();
+    });
+
+    $(document).on("input", ".panjang_bahan_edit", function () {
+        const idx = $(this).data("idx");
+        const panjang = parseFloat($(this).val()) || 1;
+        const lebar = parseFloat($(`.lebar_bahan_edit[data-idx="${idx}"]`).val()) || 1;
+        const jumlah = parseFloat($(`.jumlah_bahan_edit[data-idx="${idx}"]`).val()) || 0;
+        const harga = editBahanBakuList[idx].harga || 0;
+        
+        editBahanBakuList[idx].panjang = panjang;
+        editBahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+        
+        $(this).closest("tr").find("td").eq(6).html(
+            `<span class="text-success fw-semibold text-end">Rp ${editBahanBakuList[idx].total.toLocaleString("id-ID")}</span>`
+        );
+        
+        updateTotalModalKeseluruhanEdit();
+        updateTotalItemModalEdit();
+    });
+
+    $(document).on("input", ".lebar_bahan_edit", function () {
+        const idx = $(this).data("idx");
+        const lebar = parseFloat($(this).val()) || 1;
+        const panjang = parseFloat($(`.panjang_bahan_edit[data-idx="${idx}"]`).val()) || 1;
+        const jumlah = parseFloat($(`.jumlah_bahan_edit[data-idx="${idx}"]`).val()) || 0;
+        const harga = editBahanBakuList[idx].harga || 0;
+        
+        editBahanBakuList[idx].lebar = lebar;
+        editBahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+        
+        $(this).closest("tr").find("td").eq(6).html(
+            `<span class="text-success fw-semibold text-end">Rp ${editBahanBakuList[idx].total.toLocaleString("id-ID")}</span>`
+        );
+        
+        updateTotalModalKeseluruhanEdit();
+        updateTotalItemModalEdit();
     });
 
     $(document).on("blur", ".jumlah_bahan_edit", function () {
@@ -1852,12 +1922,16 @@ $(function () {
                     .find('input[name="jumlah_bahan[]"]')
                     .val();
                 const harga = $(this).find('input[name="harga_bahan[]"]').val();
+                const panjang = $(this).find('input[name="panjang_bahan[]"]').val();  
+                const lebar = $(this).find('input[name="lebar_bahan[]"]').val();      
 
                 if (bahanBakuId && jumlah && harga) {
                     bahanBakuData.push({
                         id: parseInt(bahanBakuId),
                         jumlah: parseFloat(jumlah),
                         harga: parseInt(harga),
+                        panjang: panjang !== '' ? parseFloat(panjang) : null,
+                        lebar: lebar !== '' ? parseFloat(lebar) : null,
                     });
                 }
             });
@@ -1991,6 +2065,12 @@ $(function () {
                         item.jumlah,
                     );
                     formData.append(`bahan_baku[${index}][harga]`, item.harga);
+                    if (item.panjang !== null) {
+                        formData.append(`bahan_baku[${index}][panjang]`, item.panjang);
+                    }
+                    if (item.lebar !== null) {
+                        formData.append(`bahan_baku[${index}][lebar]`, item.lebar);
+                    }
                 });
             } else {
                 formData.append('bahan_baku', []);

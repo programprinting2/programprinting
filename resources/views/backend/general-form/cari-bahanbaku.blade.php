@@ -118,6 +118,9 @@ function loadBahanBaku(search = '', page = 1) {
                         data-kode="${item.kode_bahan ?? '-'}"
                         data-konversi_satuan='${JSON.stringify(item.konversi_satuan ?? [])}'
                         data-warna_detail='${JSON.stringify(item.warna_detail)}'
+                        data-is_metric="${item.is_metric ?? 0}"
+                        data-panjang="${item.panjang ?? 0}"
+                        data-lebar="${item.lebar ?? 0}"
                         >
                         <td>${item.kode_bahan ?? '-'}</td>
                         <td>${item.nama_bahan ?? '-'}</td>
@@ -203,6 +206,9 @@ function renderPagination(data, search) {
         kode: $(this).data('kode') || '-',
         konversi_satuan: $(this).data('konversi_satuan') || [],
         warna_detail: $(this).data('warna_detail') || null,
+        is_metric: $(this).data('is_metric') == 1 || $(this).data('is_metric') === true,
+        panjang: $(this).data('panjang') || 0,
+        lebar: $(this).data('lebar') || 0,
     };
     // Emit event custom ke window
     window.dispatchEvent(new CustomEvent('bahanBakuDipilih', { detail: data }));

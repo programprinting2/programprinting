@@ -348,7 +348,7 @@
                                         <li class="nav-item" role="presentation">
                                             <button class="nav-link active" id="modal-tab" data-bs-toggle="tab"
                                                 data-bs-target="#modal-tab-pane" type="button" role="tab">
-                                                Modal
+                                                Modal dan Komposisi
                                             </button>
                                         </li>
                                         <li class="nav-item" role="presentation">
@@ -412,6 +412,12 @@
                                                                     Jumlah</th>
                                                                 <th
                                                                     class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Panjang</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
+                                                                    Lebar</th>
+                                                                <th
+                                                                    class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
                                                                     Total</th>
                                                                 <th
                                                                     class="text-uppercase text-secondary text-xs font-weight-bolder opacity-7">
@@ -420,15 +426,15 @@
                                                         </thead>
                                                         <tbody>
                                                             <tr>
-                                                                <td colspan="6" class="text-center text-muted">Belum ada
+                                                                <td colspan="8" class="text-center text-muted">Belum ada
                                                                     bahan baku ditambahkan</td>
                                                             </tr>
                                                         </tbody>
                                                         <tfoot>
                                                             <tr>
-                                                                <td colspan="4" class="text-end fw-bold">Total Modal
+                                                                <td colspan="6" class="text-end fw-bold">Total Modal
                                                                     Bahan:</td>
-                                                                <td colspan="2" class="fw-bold" id="totalModalBahan">Rp
+                                                                <td colspan="4" class="fw-bold" id="totalModalBahan">Rp
                                                                     0</td>
                                                             </tr>
                                                         </tfoot>
@@ -872,13 +878,29 @@
                                         Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
                                         return;
                                     }
-                                    // Tambahkan baris ke tabelBahanBaku
+                                    
+                                    const isMetric = data.is_metric || false;
+                                    const panjangDisabled = isMetric ? '' : 'disabled';
+                                    const lebarDisabled = isMetric ? '' : 'disabled';
+                                    const panjangValue = isMetric ? (data.panjang || '') : '';
+                                    const lebarValue = isMetric ? (data.lebar || '') : '';
+                                    const panjangPlaceholder = isMetric ? 'Panjang' : 'Tidak berlaku';
+                                    const lebarPlaceholder = isMetric ? 'Lebar' : 'Tidak berlaku';
+
                                     let row = `
                                     <tr data-id="${data.id}">
                                         <td>${data.nama}<input type="hidden" name="bahan_baku_id[]" value="${data.id}"></td>
                                         <td>${data.satuan}</td>
                                         <td class="text-end">Rp ${data.harga.toLocaleString('id-ID')}<input type="hidden" name="harga_bahan[]" value="${data.harga}"></td>
                                         <td><input type="number" class="form-control form-control-sm jumlah-bahan" name="jumlah_bahan[]" value="1" min="1"></td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm panjang-bahan" name="panjang_bahan[]" 
+                                                value="${panjangValue}" ${panjangDisabled} placeholder="${panjangPlaceholder}" step="0.01" min="0">
+                                        </td>
+                                        <td>
+                                            <input type="number" class="form-control form-control-sm lebar-bahan" name="lebar_bahan[]" 
+                                                value="${lebarValue}" ${lebarDisabled} placeholder="${lebarPlaceholder}" step="0.01" min="0">
+                                        </td>
                                         <td class="total-bahan text-success fw-semibold text-end">Rp ${data.harga}</td>
                                         <td><button type="button" class="btn btn-danger btn-xs btn-hapus-bahan"><i data-feather="trash-2" class="icon-sm"></i></button></td>
                                     </tr>
@@ -894,8 +916,35 @@
                                 $(document).on('input', '.jumlah-bahan', function () {
                                     const row = $(this).closest('tr');
                                     const harga = parseFloat(row.find('input[name="harga_bahan[]"]').val()) || 0;
+                                    const jumlah = parseFloat($(this).val()) || 0;
+                                    const panjang = parseFloat(row.find('.panjang-bahan').val()) || 1;
+                                    const lebar = parseFloat(row.find('.lebar-bahan').val()) || 1;
+                                    
+                                    const total = harga * jumlah * panjang * lebar;
+                                    row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
+                                    hitungTotalModalBahan();
+                                });
+
+                                $(document).on('input', '.panjang-bahan', function () {
+                                    const row = $(this).closest('tr');
+                                    const harga = parseFloat(row.find('input[name="harga_bahan[]"]').val()) || 0;
                                     const jumlah = parseFloat(row.find('.jumlah-bahan').val()) || 0;
-                                    const total = harga * jumlah;
+                                    const panjang = parseFloat($(this).val()) || 1;
+                                    const lebar = parseFloat(row.find('.lebar-bahan').val()) || 1;
+                                    
+                                    const total = harga * jumlah * panjang * lebar;
+                                    row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
+                                    hitungTotalModalBahan();
+                                });
+
+                                $(document).on('input', '.lebar-bahan', function () {
+                                    const row = $(this).closest('tr');
+                                    const harga = parseFloat(row.find('input[name="harga_bahan[]"]').val()) || 0;
+                                    const jumlah = parseFloat(row.find('.jumlah-bahan').val()) || 0;
+                                    const panjang = parseFloat(row.find('.panjang-bahan').val()) || 1;
+                                    const lebar = parseFloat($(this).val()) || 1;
+                                    
+                                    const total = harga * jumlah * panjang * lebar;
                                     row.find('.total-bahan').html('<span class="text-success fw-semibold">Rp ' + total.toLocaleString('id-ID') + '</span>');
                                     hitungTotalModalBahan();
                                 });
@@ -912,7 +961,9 @@
                                     $('#tabelBahanBaku tbody tr').each(function () {
                                         const harga = parseInt($(this).find('input[name="harga_bahan[]"]').val()) || 0;
                                         const jumlah = parseInt($(this).find('.jumlah-bahan').val()) || 0;
-                                        total += harga * jumlah;
+                                        const panjang = parseFloat($(this).find('.panjang-bahan').val()) || 1;
+                                        const lebar = parseFloat($(this).find('.lebar-bahan').val()) || 1;
+                                        total += harga * jumlah * panjang * lebar;
                                     });
                                     $('#totalModalBahan').text('Rp ' + total.toLocaleString('id-ID'));
                                 }

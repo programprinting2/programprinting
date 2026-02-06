@@ -200,6 +200,9 @@ $(function () {
             satuan: data.sub_satuan,
             harga: parseFloat(data.harga || 0),
             jumlah: 1,
+            is_metric: !!data.is_metric,
+            panjang: data.is_metric ? (data.panjang || null) : null,
+            lebar: data.is_metric ? (data.lebar || null) : null,
             total: parseFloat(data.harga || 0),
         });
 
@@ -218,12 +221,20 @@ $(function () {
 
         if (!bahanBakuList || bahanBakuList.length === 0) {
             tbody.append(
-                '<tr class="text-muted"><td colspan="6" class="text-center">Belum ada bahan baku</td></tr>',
+                '<tr class="text-muted"><td colspan="8" class="text-center">Belum ada bahan baku</td></tr>',
             );
             return;
         }
 
         bahanBakuList.forEach((row, idx) => {
+            const isMetric = row.is_metric || false;
+            const panjangDisabled = isMetric ? '' : 'disabled';
+            const lebarDisabled = isMetric ? '' : 'disabled';
+            const panjangValue = isMetric ? (row.panjang || '') : '';
+            const lebarValue = isMetric ? (row.lebar || '') : '';
+            const panjangPlaceholder = isMetric ? 'Panjang' : 'Tidak berlaku';
+            const lebarPlaceholder = isMetric ? 'Lebar' : 'Tidak berlaku';
+            
             tbody.append(`
                 <tr>
                     <td>${
@@ -238,8 +249,18 @@ $(function () {
                         row.harga || 0
                     }"></td>
                     <td><input type="number" class="form-control form-control-sm jumlah_bahan" name="jumlah_bahan[]" value="${
-                        row.jumlah || 0
+                        row.jumlah || 1
                     }" min="0" data-idx="${idx}" step="0.01"></td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm panjang_bahan" name="panjang_bahan[]" 
+                               value="${panjangValue}" ${panjangDisabled} placeholder="${panjangPlaceholder}" 
+                               data-idx="${idx}" step="0.01" min="0">
+                    </td>
+                    <td>
+                        <input type="number" class="form-control form-control-sm lebar_bahan" name="lebar_bahan[]" 
+                               value="${lebarValue}" ${lebarDisabled} placeholder="${lebarPlaceholder}" 
+                               data-idx="${idx}" step="0.01" min="0">
+                    </td>
                     <td class="text-success fw-semibold text-end">Rp ${(
                         row.total || 0
                     ).toLocaleString("id-ID")}</td>
@@ -251,12 +272,50 @@ $(function () {
         feather.replace();
     }
 
+    $(document).on("input", ".panjang_bahan", function () {
+        const idx = $(this).data("idx");
+        const panjang = $(this).val() === '' ? null : parseFloat($(this).val()) || null;
+        const lebar = parseFloat($(`.lebar_bahan[data-idx="${idx}"]`).val()) || 1;
+        const jumlah = parseFloat($(`.jumlah_bahan[data-idx="${idx}"]`).val()) || 0;
+        const harga = bahanBakuList[idx].harga || 0;
+        
+        bahanBakuList[idx].panjang = panjang;
+        bahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+
+        $(`.jumlah_bahan[data-idx="${idx}"]`).closest("tr").find("td").eq(6).html(
+            `<span class="text-success fw-semibold text-end">Rp ${bahanBakuList[idx].total.toLocaleString("id-ID")}</span>`
+        );
+        
+        updateTotalModalKeseluruhan();
+        updateTotalItemModal();
+    });
+    
+    $(document).on("input", ".lebar_bahan", function () {
+        const idx = $(this).data("idx");
+        const lebar = $(this).val() === '' ? null : parseFloat($(this).val()) || null;
+        const panjang = parseFloat($(`.panjang_bahan[data-idx="${idx}"]`).val()) || 1;
+        const jumlah = parseFloat($(`.jumlah_bahan[data-idx="${idx}"]`).val()) || 0;
+        const harga = bahanBakuList[idx].harga || 0;
+        
+        bahanBakuList[idx].lebar = lebar;
+        bahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+
+        $(`.jumlah_bahan[data-idx="${idx}"]`).closest("tr").find("td").eq(6).html(
+            `<span class="text-success fw-semibold text-end">Rp ${bahanBakuList[idx].total.toLocaleString("id-ID")}</span>`
+        );
+        
+        updateTotalModalKeseluruhan();
+        updateTotalItemModal();
+    });
+
     // Handler untuk input jumlah bahan baku
     $(document).on("input", ".jumlah_bahan", function () {
         const idx = $(this).data("idx");
         const harga =
             parseInt($(`input[name="harga_bahan[]"]`).eq(idx).val()) || 0;
         const jumlah = parseFloat($(this).val()) || 0;
+        const panjang = parseFloat($(`.panjang_bahan[data-idx="${idx}"]`).val()) || 1;
+        const lebar = parseFloat($(`.lebar_bahan[data-idx="${idx}"]`).val()) || 1;
 
         // Pastikan array terdefinisi
         if (
@@ -269,18 +328,19 @@ $(function () {
         if (bahanBakuList[idx]) {
             bahanBakuList[idx].harga = harga;
             bahanBakuList[idx].jumlah = jumlah;
-            bahanBakuList[idx].total = harga * jumlah;
-            const total = harga * jumlah;
+            bahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+            const total = harga * jumlah * panjang * lebar;
             $(this)
                 .closest("tr")
                 .find("td")
-                .eq(4)
+                .eq(6)
                 .html(
                     `<span class="text-success fw-semibold text-end">Rp ${total.toLocaleString(
                         "id-ID",
                     )}</span>`,
                 );
             updateTotalModalKeseluruhan();
+            updateTotalItemModal();
         }
     });
 
@@ -701,7 +761,7 @@ $(function () {
         // } else {
             // Hitung dari bahan baku (existing logic)
             totalBahan = bahanBakuList.reduce(
-                (sum, row) => sum + (row.harga || 0) * (row.jumlah || 1),
+                (sum, row) => sum + (row.total || 0),
                 0,
             );
             totalParam = parameterMesinList.reduce((sum, row) => {
@@ -1510,12 +1570,16 @@ $(function () {
                     .val();
                 const jumlah = $(this).find(".jumlah_bahan").val();
                 const harga = $(this).find('input[name="harga_bahan[]"]').val();
+                const panjang = $(this).find('input[name="panjang_bahan[]"]').val();  
+                const lebar = $(this).find('input[name="lebar_bahan[]"]').val(); 
 
                 if (bahanBakuId && jumlah && harga) {
                     bahanBakuData.push({
                         id: parseInt(bahanBakuId),
                         jumlah: parseFloat(jumlah),
                         harga: parseInt(harga),
+                        panjang: panjang !== '' ? parseFloat(panjang) : null,
+                        lebar: lebar !== '' ? parseFloat(lebar) : null,
                     });
                 }
             });
@@ -1596,6 +1660,12 @@ $(function () {
                     item.jumlah,
                 );
                 formData.append(`bahan_baku[${index}][harga]`, item.harga);
+                if (item.panjang !== null) {
+                    formData.append(`bahan_baku[${index}][panjang]`, item.panjang);
+                }
+                if (item.lebar !== null) {
+                    formData.append(`bahan_baku[${index}][lebar]`, item.lebar);
+                }
             });
             
             const jenisProduk = $("#jenis_produk").val();

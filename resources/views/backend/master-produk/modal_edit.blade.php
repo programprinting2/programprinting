@@ -262,7 +262,7 @@
                   <ul class="nav nav-tabs nav-tabs-line mb-3" id="editLineTab" role="tablist">
                     <li class="nav-item" role="presentation">
                       <button class="nav-link active" id="edit-modal-tab" data-bs-toggle="tab"
-                        data-bs-target="#edit-modal-tab-pane" type="button" role="tab">Modal</button>
+                        data-bs-target="#edit-modal-tab-pane" type="button" role="tab">Modal dan Komposisi</button>
                     </li>
                     <li class="nav-item" role="presentation">
                       <button class="nav-link" id="edit-harga-jual-tab" data-bs-toggle="tab"
@@ -308,19 +308,21 @@
                                 <th>Satuan</th>
                                 <th>Harga</th>
                                 <th>Jumlah</th>
+                                <th>Panjang</th>  
+                                <th>Lebar</th>
                                 <th>Total</th>
                                 <th>Aksi</th>
                               </tr>
                             </thead>
                             <tbody>
                               <tr>
-                                <td colspan="6" class="text-center text-muted">Belum ada bahan baku ditambahkan</td>
+                                <td colspan="8" class="text-center text-muted">Belum ada bahan baku ditambahkan</td>
                               </tr>
                             </tbody>
                             <tfoot>
                               <tr>
-                                <td colspan="4" class="text-end fw-bold">Total Modal Bahan:</td>
-                                <td colspan="2" class="fw-bold" id="editTotalModalBahan">Rp 0</td>
+                                <td colspan="6" class="text-end fw-bold">Total Modal Bahan:</td>
+                                <td colspan="4" class="fw-bold" id="editTotalModalBahan">Rp 0</td>
                               </tr>
                             </tfoot>
                           </table>

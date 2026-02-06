@@ -30,8 +30,6 @@ class UpdateProdukRequest extends FormRequest
             'sub_kategori_id' => 'nullable|exists:sub_detail_parameter,id',
             'satuan_id' => 'required|exists:detail_parameters,id',
             'sub_satuan_id' => 'required|exists:sub_detail_parameter,id',
-            'lebar' => 'nullable|numeric|min:0',
-            'panjang' => 'nullable|numeric|min:0',
             'jenis_produk' => 'required|in:produk,jasa,rakitan',
             'status_aktif' => 'required|boolean',
             // 'bahan_baku' => 'required|array|min:1',
@@ -72,6 +70,8 @@ class UpdateProdukRequest extends FormRequest
             $rules['bahan_baku.*.id'] = 'required|integer|exists:bahan_baku,id';
             $rules['bahan_baku.*.jumlah'] = 'required|numeric|min:0';
             $rules['bahan_baku.*.harga'] = 'required|integer|min:0';
+            $rules['bahan_baku.*.panjang'] = 'nullable|numeric|min:0'; 
+            $rules['bahan_baku.*.lebar'] = 'nullable|numeric|min:0'; 
         }
         return $rules;
     }

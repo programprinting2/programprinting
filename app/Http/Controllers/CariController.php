@@ -47,6 +47,9 @@ class CariController extends Controller
                     'nama_detail_parameter' => $item->warnaDetail->nama_detail_parameter,
                     'keterangan' => $item->warnaDetail->keterangan
                 ] : null,
+                'is_metric' => $item->is_metric,
+                'panjang' => $item->panjang,
+                'lebar' => $item->lebar,
             ];
         });
 

@@ -73,7 +73,7 @@ class Produk extends Model
     public function bahanBakus(): BelongsToMany
     {
         return $this->belongsToMany(BahanBaku::class, 'produk_bahan_baku')
-            ->withPivot(['jumlah', 'harga_snapshot', 'harga_updated_at'])
+            ->withPivot(['jumlah', 'harga_snapshot', 'harga_updated_at','panjang', 'lebar'])
             ->withTimestamps();
     }
 
@@ -103,6 +103,8 @@ class Produk extends Model
                 'jumlah' => $item['jumlah'] ?? 1,
                 'harga_snapshot' => $item['harga'] ?? 0,
                 'harga_updated_at' => now(),
+                'panjang' => $item['panjang'] ?? null,
+                'lebar' => $item['lebar'] ?? null,
             ];
         }
         
