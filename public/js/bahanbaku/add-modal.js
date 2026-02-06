@@ -779,17 +779,22 @@ $(document).ready(function() {
     }
   });
 
+  $('#metric_unit').data('previous-unit', $('#metric_unit').val() || 'cm');
   // Handle satuan metric change
   $('#metric_unit').on('change', function() {
-    const unit = $(this).val();
-    const unitMap = {
-        'cm': { label: 'cm', area: 'cm²' },
-        'mm': { label: 'mm', area: 'mm²' },
-        'm': { label: 'm', area: 'm²' }
-    };
+    const newUnit = $(this).val();
+    const oldUnit = $(this).data('previous-unit') || 'cm';
     
-    $('#label_metric_lebar, #label_metric_panjang').text(unitMap[unit].label);
-    $('#label_metric_luas').text(unitMap[unit].area);
+    BahanBakuHelper.updateMetricDimensions(newUnit, oldUnit, {
+        lebar: '#lebar',
+        panjang: '#panjang', 
+        luas: '#luas',
+        labelLebar: '#label_metric_lebar',
+        labelPanjang: '#label_metric_panjang',
+        labelLuas: '#label_metric_luas'
+    });
+    
+    $(this).data('previous-unit', newUnit);
   });
 
   $('#lebar, #panjang').on('input', function() {

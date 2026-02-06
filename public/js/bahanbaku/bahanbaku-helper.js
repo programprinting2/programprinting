@@ -52,6 +52,85 @@ if (typeof BahanBakuHelper === 'undefined') {
         },
 
         /**
+         * Konversi nilai metric unit
+         * @param {number} value - Nilai yang akan dikonversi
+         * @param {string} fromUnit - Satuan asal ('cm', 'mm', 'm')
+         * @param {string} toUnit - Satuan tujuan ('cm', 'mm', 'm')
+         * @param {boolean} isArea - Apakah konversi untuk luas (default: false)
+         * @returns {number} Nilai hasil konversi
+         */
+        convertMetricUnit: function(value, fromUnit, toUnit, isArea = false) {
+          const conversionFactors = {
+              'cm_to_mm': 10,    // 1 cm = 10 mm
+              'cm_to_m': 0.01,   // 1 cm = 0.01 m
+              'mm_to_cm': 0.1,   // 1 mm = 0.1 cm
+              'mm_to_m': 0.001,  // 1 mm = 0.001 m
+              'm_to_cm': 100,    // 1 m = 100 cm
+              'm_to_mm': 1000    // 1 m = 1000 mm
+          };
+      
+          const key = `${fromUnit}_to_${toUnit}`;
+      
+          if (conversionFactors[key]) {
+              if (isArea) {
+                  // Untuk luas, kuadratkan faktor konversi
+                  return value * (conversionFactors[key] * conversionFactors[key]);
+              } else {
+                  return value * conversionFactors[key];
+              }
+          }
+          return value;
+        },
+
+        /**
+        * Update dimensi berdasarkan perubahan satuan metric
+        * @param {string} newUnit - Satuan baru ('cm', 'mm', 'm')
+        * @param {string} oldUnit - Satuan lama ('cm', 'mm', 'm')
+        * @param {Object} selectors - Object berisi selector untuk input dimensi
+        * @param {string} selectors.lebar - Selector input lebar
+        * @param {string} selectors.panjang - Selector input panjang
+        * @param {string} selectors.luas - Selector input luas
+        * @param {string} selectors.labelLebar - Selector label lebar
+        * @param {string} selectors.labelPanjang - Selector label panjang
+        * @param {string} selectors.labelLuas - Selector label luas
+        */
+        updateMetricDimensions: function(newUnit, oldUnit, selectors) {
+          // Update labels
+          const unitMap = {
+              'cm': { label: 'cm', area: 'cm²' },
+              'mm': { label: 'mm', area: 'mm²' },
+              'm': { label: 'm', area: 'm²' }
+          };
+
+          $(selectors.labelLebar).text(unitMap[newUnit].label);
+          $(selectors.labelPanjang).text(unitMap[newUnit].label);
+          $(selectors.labelLuas).text(unitMap[newUnit].area);
+
+          // Konversi nilai dimensi jika satuan berbeda
+          if (oldUnit && oldUnit !== newUnit) {
+              // Konversi lebar
+              const currentLebar = parseFloat($(selectors.lebar).val()) || 0;
+              if (currentLebar > 0) {
+                  const newLebar = this.convertMetricUnit(currentLebar, oldUnit, newUnit);
+                  $(selectors.lebar).val(newLebar.toFixed(2));
+              }
+
+              // Konversi panjang
+              const currentPanjang = parseFloat($(selectors.panjang).val()) || 0;
+              if (currentPanjang > 0) {
+                  const newPanjang = this.convertMetricUnit(currentPanjang, oldUnit, newUnit);
+                  $(selectors.panjang).val(newPanjang.toFixed(2));
+              }
+
+              // Hitung ulang luas setelah konversi
+              const newLebar = parseFloat($(selectors.lebar).val()) || 0;
+              const newPanjang = parseFloat($(selectors.panjang).val()) || 0;
+              const newLuas = newLebar * newPanjang;
+              $(selectors.luas).val(newLuas.toFixed(2));
+          }
+        },
+
+        /**
          * Persiapan data form sebelum submit
          * @param {string} formSelector - Selector form
          */
