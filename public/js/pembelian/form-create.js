@@ -42,10 +42,10 @@
     updateWarnaPreview(warnaHex);
 
     // Cek duplikat berbasis value hidden input
-    if (checkBahanBakuDuplikat(data.id)) {
-      Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
-      return;
-    }
+    // if (checkBahanBakuDuplikat(data.id)) {
+    //   Swal.fire('Info', 'Bahan baku sudah ditambahkan.', 'info');
+    //   return;
+    // }
     document.getElementById('bahanbakuIdInput').value = data.id;
     document.getElementById('namaBahanBakuInput').value = data.nama;
     // Format harga dengan pemisah ribuan

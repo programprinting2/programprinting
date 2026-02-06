@@ -52,15 +52,15 @@
     const data = e.detail;
     
     // Cek duplikasi menggunakan fungsi helper
-    if (checkBahanBakuDuplikat(data.id)) {
-      Swal.fire({
-        title: 'Bahan Baku Sudah Ada',
-        text: `Bahan baku "${data.nama}" sudah ada dalam daftar pembelian.`,
-        icon: 'warning',
-        confirmButtonText: 'OK'
-      });
-      return;
-    }
+    // if (checkBahanBakuDuplikat(data.id)) {
+    //   Swal.fire({
+    //     title: 'Bahan Baku Sudah Ada',
+    //     text: `Bahan baku "${data.nama}" sudah ada dalam daftar pembelian.`,
+    //     icon: 'warning',
+    //     confirmButtonText: 'OK'
+    //   });
+    //   return;
+    // }
     
     // Jika tidak duplikat, isi form input
     document.getElementById('bahanbakuIdInput').value = data.id;
