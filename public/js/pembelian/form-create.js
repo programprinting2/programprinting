@@ -49,7 +49,7 @@
     document.getElementById('bahanbakuIdInput').value = data.id;
     document.getElementById('namaBahanBakuInput').value = data.nama;
     // Format harga dengan pemisah ribuan
-    document.getElementById('hargaInput').value = PembelianHelper.formatNumber(data.harga);
+    document.getElementById('hargaInput').value = parseFloat(data.harga).toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
     window.hargaSatuanUtama = parseFloat(data.harga) || 0; // Simpan harga satuan utama
     document.getElementById('kodeBahanBakuInput') && (document.getElementById('kodeBahanBakuInput').value = data.kode);
     var satuanInput = document.getElementById('satuanInput');
