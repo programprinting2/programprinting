@@ -180,11 +180,10 @@
   });
 
   $(document).on('click', '#' + paginationId + ' .page-link', function(e) {
-      e.preventDefault();
-      if ($(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
-      const page = $(this).data('page');
-      const search = $('#' + inputId).val();
-      loadSemuaProduk(search, page);
+    e.preventDefault();
+    if ($(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
+    const page = $(this).data('page');
+    loadSemuaProduk(page);
   });
 
   $(document).on('click', '.pilih-semua-produk', function() {

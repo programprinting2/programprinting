@@ -418,13 +418,6 @@
                                   <textarea class="form-control" id="modalKeteranganInput" rows="2" placeholder="Masukkan keterangan pesanan..."></textarea>
                                 </div>
                                 <div class="col-md-4">
-                                  <label class="form-label">Jumlah <span class="text-danger">*</span></label>
-                                  <div class="input-group">
-                                    <input type="number" class="form-control" id="modalJumlahInput" min="0" step="0.01" placeholder="0">
-                                    <span class="input-group-text" id="modalSatuanDisplay">pcs</span>
-                                  </div>
-                                </div>
-                                <div class="col-md-4">
                                   <label class="form-label">Deadline <span class="text-danger">*</span></label>
                                   <input type="datetime-local" class="form-control" id="modalDeadlineInput">
                                 </div>
@@ -437,6 +430,13 @@
                                     </label>
                                   </div>
                                   <input type="hidden" id="modalUrgentValue" value="false">
+                                </div>
+                                <div class="col-md-4">
+                                  <label class="form-label">Jumlah <span class="text-danger">*</span></label>
+                                  <div class="input-group">
+                                    <input type="number" class="form-control text-end" id="modalJumlahInput" min="0" step="0.01" placeholder="0">
+                                    <span class="input-group-text" id="modalSatuanDisplay">pcs</span>
+                                  </div>
                                 </div>
                                 <div id="sectionUkuran" style="display: none;">
                                   <div class="col-12">
@@ -902,6 +902,12 @@
     .uploaded-files-list .file-item .file-meta {
       font-size: 0.75rem;
       color: #6c757d;
+    }
+
+    .uploaded-files-list .file-item .file-path {
+      font-size: 0.7rem;
+      color: #adb5bd;
+      max-width: 100%;
     }
 
     .uploaded-files-list .file-item .btn-remove-file {
