@@ -131,7 +131,15 @@
                               data-nama="${produk.nama_produk}"
                               data-satuan="${produk.satuan_nama || 'pcs'}"
                               data-harga="${produk.total_modal_keseluruhan || 0}"
-                              data-kategori="${produk.kategori_nama || '-'}">
+                              data-kategori="${produk.kategori_nama || '-'}"
+                              data-jenis="${produk.jenis_produk || 'produk'}"
+                              data-satuan="${produk.satuan_nama || 'pcs'}"
+                              data-panjang="${produk.panjang || 0}"
+                              data-lebar="${produk.lebar || 0}"
+                              data-panjangLocked="${produk.panjang_locked || false}"
+                              data-lebarLocked="${produk.lebar_locked || false}"
+                              data-is_metric="${produk.is_metric || false}"        
+                              data-metric_unit="${produk.metric_unit || '-'}">
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>${produk.kategori_nama ?? '-'}</td>
@@ -179,6 +187,8 @@
   });
 
   $(document).on('click', '.pilih-produk-finishing', function() {
+      const panjangLockedRaw = $(this).attr('data-panjang-locked') || $(this).attr('data-panjangLocked');
+      const lebarLockedRaw = $(this).attr('data-lebar-locked') || $(this).attr('data-lebarLocked');
       const data = {
           id: parseInt($(this).data('id')) || 0,
           kode_produk: $(this).data('kode'),
@@ -186,6 +196,12 @@
           satuan_nama: $(this).data('satuan') || 'pcs',
           harga_satuan: parseFloat($(this).data('harga')) || 0,
           kategori_nama: $(this).data('kategori'),
+          is_metric: $(this).data('is_metric') === 'true' || $(this).data('is_metric') === true,
+          panjang_locked: panjangLockedRaw === 'true' || panjangLockedRaw === '1' || panjangLockedRaw === true,
+          lebar_locked: lebarLockedRaw === 'true' || lebarLockedRaw === '1' || lebarLockedRaw === true,
+          panjang: parseFloat($(this).data('panjang')) || 0,
+          lebar: parseFloat($(this).data('lebar')) || 0, 
+          metric_unit: $(this).data('metric_unit') || 'cm',
           sourceModal: 'spk'
       };
 

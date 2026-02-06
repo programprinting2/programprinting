@@ -370,6 +370,10 @@ class CariController extends Controller
                 'kategori_nama' => $item->kategoriUtama?->nama_detail_parameter ?? '-',
                 'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
                 'is_metric' => $item->is_metric ?? false,
+                'panjang' => $item->panjang,  
+                'lebar' => $item->lebar,  
+                'panjang_locked' => $item->panjang_locked ?? false, 
+                'lebar_locked' => $item->lebar_locked ?? false,     
                 'metric_unit' => $item->metric_unit ?? 'cm'
             ];
         });
