@@ -50,7 +50,7 @@
 
                                 <!-- Pagination -->
                                 <div class="d-flex justify-content-center mt-3">
-                                    {{ $mesin->links('pagination::bootstrap-4') }}
+                                    {{ $mesin->appends(request()->query())->links('pagination::bootstrap-4') }}
                             </div>
                         </div>
                     </div>

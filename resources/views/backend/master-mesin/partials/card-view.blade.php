@@ -84,7 +84,7 @@
                     </div>
                     @if(count($item->detail_mesin) > 4)
                         <div class="mt-1">
-                            <small><a href="#" data-bs-toggle="modal" data-bs-target="#detailMesinModal{{ $item->id }}">Lihat semua spesifikasi</a></small>
+                            <small><a href="#" class="btn-detail-mesin" data-id="{{ $item->id }}">Lihat semua spesifikasi</a></small>
                         </div>
                     @endif
                 </div>
@@ -105,10 +105,10 @@
                         </button>
                     </div>
                     <div>
-                        <button class="btn btn-sm btn-outline-primary me-1" data-bs-toggle="modal" data-bs-target="#detailMesinModal{{ $item->id }}">
+                        <button class="btn btn-sm btn-outline-primary me-1 btn-detail-mesin" data-id="{{ $item->id }}">
                             <i data-feather="eye" class="icon-sm"></i> Detail
                         </button>
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#editMesinModal{{ $item->id }}">
+                        <button class="btn btn-sm btn-outline-secondary btn-edit-mesin" data-id="{{ $item->id }}">
                             <i data-feather="edit" class="icon-sm"></i> Edit
                         </button>
                     </div>
