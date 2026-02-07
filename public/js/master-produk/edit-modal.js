@@ -2000,6 +2000,10 @@ $(function () {
             formData.append("_method", "PUT");
             formData.append('lebar_locked', $('#edit_lebar_locked').is(':checked') ? 1 : 0);
             formData.append('panjang_locked', $('#edit_panjang_locked').is(':checked') ? 1 : 0);
+            formData.append('lebar', $('#edit_lebar').val() || 0);
+            formData.append('panjang', $('#edit_panjang').val() || 0);
+            formData.append('is_metric', $('#edit_gunakan_dimensi').is(':checked') ? 1 : 0);
+            formData.append('metric_unit', $('#edit_metric_unit').val() || null);
             const tagsArray = $('#edit_tags').val() || [];
             formData.append('tags', JSON.stringify(tagsArray));
             // bahanBakuData.forEach((item, index) => {

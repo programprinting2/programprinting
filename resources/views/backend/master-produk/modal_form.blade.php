@@ -139,8 +139,8 @@
                                         <div class="col-md-6">
                                             <label for="metric_unit" class="form-label">Satuan Metric</label>
                                             <select class="form-select" id="metric_unit" name="metric_unit" disabled>
-                                                <option value="cm">Centimeter (cm)</option>
                                                 <option value="mm">Millimeter (mm)</option>
+                                                <option value="cm">Centimeter (cm)</option>
                                                 <option value="m">Meter (m)</option>
                                             </select>
                                             <small class="text-muted">Satuan pengukuran dimensi produk</small>

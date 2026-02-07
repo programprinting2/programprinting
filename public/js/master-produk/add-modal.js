@@ -1649,6 +1649,10 @@ $(function () {
             var formData = new FormData(form);
             formData.append('lebar_locked', $('#lebar_locked').is(':checked') ? 1 : 0);
             formData.append('panjang_locked', $('#panjang_locked').is(':checked') ? 1 : 0);
+            formData.append('lebar', $('#lebar').val() || 0);
+            formData.append('panjang', $('#panjang').val() || 0);
+            formData.append('is_metric', $('#gunakan_dimensi').is(':checked') ? 1 : 0);
+            formData.append('metric_unit', $('#metric_unit').val() || null);
             formData.append('warna_id', document.getElementById('warna_id').value || '');
             const tagsArray = $('#tags').val() || []; 
             formData.append('tags', JSON.stringify(tagsArray));

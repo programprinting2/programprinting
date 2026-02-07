@@ -54,6 +54,8 @@ class UpdateProdukRequest extends FormRequest
             'metric_unit' => 'nullable|in:m,mm,cm',
             'lebar_locked' => 'boolean',
             'panjang_locked' => 'boolean',
+            'lebar' => 'nullable|numeric|min:0',
+            'panjang' => 'nullable|numeric|min:0',
         ];
         if ($this->input('jenis_produk') === 'rakitan') {
             $rules['produk_komponen'] = 'required|array|min:1';
