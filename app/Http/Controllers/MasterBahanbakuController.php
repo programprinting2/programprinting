@@ -60,13 +60,7 @@ class MasterBahanbakuController extends Controller
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
             $satuanMaster = MasterParameter::where('nama_parameter', 'JENIS SATUAN')->first();
-            $satuanList = [];
-            if ($satuanMaster) {
-                $satuanList = \App\Models\DetailParameter::where('master_parameter_id', $satuanMaster->id)
-                    ->where('aktif', 1)
-                    ->orderBy('nama_detail_parameter')
-                    ->get();
-            }
+            $satuanId = $this->getSatuanId();
             $subSatuanList = \App\Models\SubDetailParameter::with('detailParameter')
                 ->whereHas('detailParameter', function($query) use ($satuanMaster) {
                     $query->where('master_parameter_id', $satuanMaster->id);
@@ -84,7 +78,7 @@ class MasterBahanbakuController extends Controller
                     ->get();
             }
 
-            return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'satuanList', 'subSatuanList', 'modeWarnaOptions'));
+            return view('backend.master-bahanbaku.index', compact('bahanbaku', 'pemasok', 'kategoriList', 'subKategoriList', 'subSatuanList', 'modeWarnaOptions', 'satuanId'));
         } catch (\Exception $e) {
             Log::error('Error loading Bahan Baku index', ['error' => $e->getMessage()]);
             return view('backend.master-bahanbaku.index', [
@@ -96,6 +90,19 @@ class MasterBahanbakuController extends Controller
                 'modeWarnaOptions' => collect(),
             ])->with('error', 'Gagal memuat data bahan baku');
         }
+    }
+
+    private function getSatuanId(): ?int
+    {
+        $satuanMaster = MasterParameter::where('nama_parameter', 'JENIS SATUAN')->first();
+        if ($satuanMaster) {
+            $satuanDetail = $satuanMaster->details()
+                ->where('nama_detail_parameter', 'SATUAN')
+                ->where('aktif', 1)
+                ->first();
+            return $satuanDetail ? $satuanDetail->id : null;
+        }
+        return null;
     }
 
     public function store(StoreBahanBakuRequest $request)

@@ -72,10 +72,6 @@ $(document).ready(function() {
 
   // Event listener untuk perubahan input stok dan harga
   $('#stokSaatIni, #stokMinimum, #stokMaksimum, #hargaTerakhir').on('input', updateStokInfo);
-  $('#satuanUtama').on('change', function(){
-    updateStockUnitLabels();
-    updateStokInfo();
-  });
 
   // Panggil saat modal ditampilkan (setelah data bahan baku dimuat jika edit)
   $('#addMaterialModal').on('shown.bs.modal', function () {
@@ -208,33 +204,6 @@ $(document).ready(function() {
     const selectedKategori = $(this).val();
     updateStockUnitLabels();
   });
-
-  $(document).on("change", "#satuanUtama", function () {
-    updateSubSatuanOptions($(this).val(), "#sub_satuan");
-  });
-
-
-  // Function untuk update sub satuan options
-  function updateSubSatuanOptions(selectedSatuanId, selector) {
-    const subSatuanSelect = $(selector);
-    subSatuanSelect.empty();
-    subSatuanSelect.prop('disabled', true);
-    subSatuanSelect.append('<option value="" selected disabled>Pilih detail satuan</option>');
-
-    if (selectedSatuanId && subSatuanList) {
-        const filtered = subSatuanList.filter(sub => sub.detail_parameter_id == selectedSatuanId);
-        filtered.forEach(sub => {
-            subSatuanSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
-        });
-        if (filtered.length > 0) {
-            subSatuanSelect.prop('disabled', false);
-        } else {
-            subSatuanSelect.prop('disabled', true);
-        }
-    } else {
-        subSatuanSelect.prop('disabled', true);
-    }
-  }
 
   // Fungsi untuk mempersiapkan data sebelum submit
   function prepareFormData(formData) {
@@ -748,18 +717,23 @@ $(document).ready(function() {
   }
   $('#sub_satuan').on('change', updateLabelSatuanHargaTerakhir);
   // $('#satuanUtama').on('change', updateLabelSatuanHargaTerakhir);
-  $('#satuanUtama').on('change', function() {
-    $('#sub_satuan').empty().append('<option value="" selected disabled>Pilih detail satuan</option>');
-    $('#conversionUnitsContainer').empty();
-    updateNoConversionMessage();
-    updateLabelSatuanHargaTerakhir();
-  });
   // $('#addMaterialModal').on('shown.bs.modal', updateLabelSatuanHargaTerakhir);
   $('#addMaterialModal').on('shown.bs.modal', function () {
     updateStockUnitLabels();
     updateLabelSatuanHargaTerakhir();
     updateStokInfo();
-    updateSubSatuanOptions($("#satuanUtama").val(), "#sub_satuan"); // Update sub satuan options
+    const subSatuanSelect = $("#sub_satuan");
+    subSatuanSelect.empty();
+    subSatuanSelect.append('<option value="" selected disabled>Pilih detail satuan</option>');
+    
+    if (subSatuanList && subSatuanList.length > 0) {
+        subSatuanList.forEach(sub => {
+            subSatuanSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
+        });
+        subSatuanSelect.prop('disabled', false);
+    } else {
+        subSatuanSelect.prop('disabled', true);
+    }
   });
 
   $('#gunakan_dimensi').on('change', function() {

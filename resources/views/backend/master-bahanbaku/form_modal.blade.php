@@ -145,16 +145,7 @@
                 <div class="card-body">
 
                   <div class="row mb-3">
-                    <div class="col-md-4">
-                      <label for="satuanUtama" class="form-label">Satuan Utama <span class="text-danger">*</span></label>
-                      <select class="form-select" id="satuanUtama" name="satuan_utama_id" required>
-                        <option value="" selected disabled>Pilih satuan</option>
-                        @foreach($satuanList as $satuan)
-                          <option value="{{ $satuan->id }}">{{ $satuan->nama_detail_parameter }}</option>
-                        @endforeach
-                      </select>
-                      <small class="text-muted">Satuan utama untuk perhitungan stok</small>
-                    </div>
+                    <input type="hidden" id="satuanUtama" name="satuan_utama_id" value="{{ $satuanId ?? '' }}">
 
                     <div class="col-md-4">
                       <label for="sub_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>

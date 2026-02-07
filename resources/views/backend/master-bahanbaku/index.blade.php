@@ -197,7 +197,6 @@
   <script>
     // window.kategoriList = @json($kategoriList);
     window.subKategoriList = @json($subKategoriList);
-    window.satuanList = @json($satuanList);
     window.subSatuanList = @json($subSatuanList ?? []);
     function updateSubKategoriFilterOptions(selectedKategoriId, selectedSubKategori = null) {
       const subKategoriSelect = $('#sub_kategori_filter');
