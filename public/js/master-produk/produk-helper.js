@@ -98,3 +98,10 @@ function toggleFinishingTab(selectedKategoriId, isEdit = false) {
     finishingTabBtn.off('click.disabled');
   }
 }
+
+function calculateBahanBakuTotal(harga, jumlah, panjang, lebar) {
+  let total = harga * jumlah;
+  if (panjang > 0) total *= panjang;
+  if (lebar > 0) total *= lebar;
+  return total;
+}

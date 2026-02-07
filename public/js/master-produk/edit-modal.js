@@ -303,7 +303,7 @@ $(function () {
                               is_metric: bahanBaku.is_metric || false,
                               panjang: panjang,
                               lebar: lebar,
-                              total: harga * jumlah * panjang * lebar,
+                              total: calculateBahanBakuTotal(harga, jumlah, panjang, lebar),
                           };
                       })
                     : [];
@@ -1604,13 +1604,13 @@ $(function () {
 
     $(document).on("input", ".panjang_bahan_edit", function () {
         const idx = $(this).data("idx");
-        const panjang = parseFloat($(this).val()) || 1;
-        const lebar = parseFloat($(`.lebar_bahan_edit[data-idx="${idx}"]`).val()) || 1;
+        const panjang = parseFloat($(this).val()) || 0;
+        const lebar = parseFloat($(`.lebar_bahan_edit[data-idx="${idx}"]`).val()) || 0;
         const jumlah = parseFloat($(`.jumlah_bahan_edit[data-idx="${idx}"]`).val()) || 0;
         const harga = editBahanBakuList[idx].harga || 0;
         
         editBahanBakuList[idx].panjang = panjang;
-        editBahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+        editBahanBakuList[idx].total = calculateBahanBakuTotal(harga, jumlah, panjang, lebar);
         
         $(this).closest("tr").find("td").eq(6).html(
             `<span class="text-success fw-semibold text-end">Rp ${editBahanBakuList[idx].total.toLocaleString("id-ID")}</span>`
@@ -1622,13 +1622,13 @@ $(function () {
 
     $(document).on("input", ".lebar_bahan_edit", function () {
         const idx = $(this).data("idx");
-        const lebar = parseFloat($(this).val()) || 1;
-        const panjang = parseFloat($(`.panjang_bahan_edit[data-idx="${idx}"]`).val()) || 1;
+        const lebar = parseFloat($(this).val()) || 0;
+        const panjang = parseFloat($(`.panjang_bahan_edit[data-idx="${idx}"]`).val()) || 0;
         const jumlah = parseFloat($(`.jumlah_bahan_edit[data-idx="${idx}"]`).val()) || 0;
         const harga = editBahanBakuList[idx].harga || 0;
         
         editBahanBakuList[idx].lebar = lebar;
-        editBahanBakuList[idx].total = harga * jumlah * panjang * lebar;
+        editBahanBakuList[idx].total = calculateBahanBakuTotal(harga, jumlah, panjang, lebar);
         
         $(this).closest("tr").find("td").eq(6).html(
             `<span class="text-success fw-semibold text-end">Rp ${editBahanBakuList[idx].total.toLocaleString("id-ID")}</span>`
