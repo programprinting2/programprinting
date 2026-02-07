@@ -145,33 +145,6 @@
               <div class="card mb-0">
                 <div class="card-body">
                   <div class="row mb-3">
-                  <input type="hidden" id="edit_satuan_utama" name="satuan_utama_id" value="{{ $satuanId ?? '' }}">
-                    <div class="col-md-4">
-                      <label for="edit_sub_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>
-                      <select class="form-select" id="edit_sub_satuan" name="sub_satuan_id" required>
-                          <option value="" selected disabled>Pilih detail satuan</option>
-                          <!-- Options akan diisi dinamis oleh JS -->
-                      </select>
-                      <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
-                    </div>
-                    <div class="col-md-4">
-                      <label class="form-label">Harga Terakhir 
-                      <button type="button" class="btn btn-sm btn-link p-0 ms-2" id="edit-info-harga-terakhir" 
-                              data-bs-toggle="tooltip" title="Lihat produk yang menggunakan bahan baku ini">
-                        <i class="fas fa-info-circle text-info"></i>
-                      </button>
-                      </label>
-                      <div class="input-group">
-                        <span class="input-group-text">Rp</span>
-                        <!-- <input type="number" class="form-control" id="edit_harga_terakhir" name="harga_terakhir" value="0" step="0.01" min="0"> -->
-                        <input class="form-control" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true, 'removeMaskOnSubmit':true" id="edit_harga_terakhir" name="harga_terakhir" value="0" >
-                        <span class="input-group-text" id="editLabelSatuanHargaTerakhir"></span>
-                        <input type="hidden" id="edit_id" name="id" value="">
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="row mb-3">
                     <div class="col-md-6">
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="edit_gunakan_dimensi" name="is_metric" value="1">
@@ -228,6 +201,33 @@
                               </div>
                           </div>
                       </div>
+                  </div>
+
+                  <div class="row mb-3">
+                    <input type="hidden" id="edit_satuan_utama" name="satuan_utama_id" value="{{ $satuanId ?? '' }}">
+                    <div class="col-md-4">
+                      <label for="edit_sub_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>
+                      <select class="form-select" id="edit_sub_satuan" name="sub_satuan_id" required>
+                          <option value="" selected disabled>Pilih detail satuan</option>
+                          <!-- Options akan diisi dinamis oleh JS -->
+                      </select>
+                      <small class="text-muted">Detail lebih spesifik dari satuan yang dipilih</small>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">Harga Terakhir 
+                      <button type="button" class="btn btn-sm btn-link p-0 ms-2" id="edit-info-harga-terakhir" 
+                              data-bs-toggle="tooltip" title="Lihat produk yang menggunakan bahan baku ini">
+                        <i class="fas fa-info-circle text-info"></i>
+                      </button>
+                      </label>
+                      <div class="input-group">
+                        <span class="input-group-text">Rp</span>
+                        <!-- <input type="number" class="form-control" id="edit_harga_terakhir" name="harga_terakhir" value="0" step="0.01" min="0"> -->
+                        <input class="form-control" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true, 'removeMaskOnSubmit':true" id="edit_harga_terakhir" name="harga_terakhir" value="0" >
+                        <span class="input-group-text" id="editLabelSatuanHargaTerakhir"></span>
+                        <input type="hidden" id="edit_id" name="id" value="">
+                      </div>
+                    </div>
                   </div>
 
                   <div class="d-flex justify-content-between align-items-center mb-3">
