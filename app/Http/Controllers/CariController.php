@@ -174,6 +174,7 @@ class CariController extends Controller
                 'handphone' => $item->handphone,
                 'email' => $item->email,
                 'status' => $item->status,
+                'kategori_harga' => $item->kategori_harga ?? 'Umum',
             ];
         });
 
@@ -370,6 +371,8 @@ class CariController extends Controller
                 'nama_produk' => $item->nama_produk,
                 'jenis_produk' => $item->jenis_produk,
                 'total_modal_keseluruhan' => $item->total_modal_keseluruhan ?? 0,
+                'harga_bertingkat_json' => $item->harga_bertingkat_json ?? [],
+                'harga_reseller_json' => $item->harga_reseller_json ?? [],
                 'kategori_nama' => $item->kategoriUtama?->nama_detail_parameter ?? '-',
                 'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
                 'is_metric' => $item->is_metric ?? false,

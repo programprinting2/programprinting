@@ -38,7 +38,58 @@
     <input type="hidden" name="items" id="itemsInput">
     <input type="hidden" name="tugas_produksi" id="tugasProduksiInput">
     <div class="row">
-      <!-- Kiri: Item Pekerjaan -->
+      <!-- Sidebar kiri: informasi pelanggan -->
+      <div class="col-md-3">
+                <div class="mb-4 p-3 border rounded bg-light">
+                    <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pelanggan</div>
+                    <div class="mb-3">
+                        <label class="form-label">Pelanggan</label>
+                        <div class="input-group">
+              <input type="text" class="form-control" id="namaCustomerInput" placeholder="Pilih pelanggan..." readonly style="background:#fff;cursor:pointer;">
+              <input type="hidden" id="customerIdInput" name="customer_id">
+              <input type="hidden" id="customerKategoriHarga" name="customer_kategori_harga" value="">
+              <button class="btn btn-outline-secondary" type="button" id="btnCariCustomer"><i class="fa fa-search"></i></button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tanggal SPK</label>
+            <input type="date" class="form-control" name="tanggal_spk" id="tanggalSPK" value="{{ date('Y-m-d') }}" required>
+                    </div>
+                </div>
+                <div class="mb-4 p-3 border rounded bg-light">
+                    <div class="fw-semibold mb-2"><i class="fa fa-flag me-1"></i> Status & Prioritas</div>
+                    <div class="mb-3">
+                        <label class="form-label">Status SPK</label>
+            <select class="form-select" name="status" id="statusSPK">
+              <option value="draft" selected>Draft</option>
+              <option value="menunggu persetujuan">Menunggu Persetujuan</option>
+              <option value="disetujui">Disetujui</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Prioritas</label>
+            <select class="form-select" name="prioritas" id="prioritasSPK">
+              <option value="normal" selected>Normal</option>
+              <option value="rendah">Rendah</option>
+              <option value="tinggi">Tinggi</option>
+              <option value="mendesak">Mendesak</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mb-4 p-3 border rounded bg-light">
+                    <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
+          <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk SPK ini"></textarea>
+                </div>
+        <div class="p-3 border rounded bg-light">
+          <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
+          <div class="d-flex justify-content-between small mb-1"><span>Total Item:</span><span class="ringkasan-total-item">0</span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Total Biaya:</span><span class="ringkasan-total-biaya">Rp 0</span></div>
+          <hr class="my-2">
+          <div class="d-flex justify-content-between fw-bold"><span>Total SPK:</span><span class="ringkasan-total-spk">Rp 0</span></div>
+                </div>
+      </div>
+
+      <!-- Kanan: Item Pekerjaan -->
       <div class="col-md-9">
         <div class="card border-0 shadow-none">
           <div class="card-body p-0">
@@ -271,57 +322,7 @@
           </button>
         </div>
       </div>
-
-      <!-- Sidebar kanan: informasi pelanggan -->
-            <div class="col-md-3">
-                <div class="mb-4 p-3 border rounded bg-light">
-                    <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pelanggan</div>
-                    <div class="mb-3">
-                        <label class="form-label">Pelanggan</label>
-                        <div class="input-group">
-              <input type="text" class="form-control" id="namaCustomerInput" placeholder="Pilih pelanggan..." readonly style="background:#fff;cursor:pointer;">
-              <input type="hidden" id="customerIdInput" name="customer_id">
-              <button class="btn btn-outline-secondary" type="button" id="btnCariCustomer"><i class="fa fa-search"></i></button>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tanggal SPK</label>
-            <input type="date" class="form-control" name="tanggal_spk" id="tanggalSPK" value="{{ date('Y-m-d') }}" required>
-                    </div>
-                </div>
-                <div class="mb-4 p-3 border rounded bg-light">
-                    <div class="fw-semibold mb-2"><i class="fa fa-flag me-1"></i> Status & Prioritas</div>
-                    <div class="mb-3">
-                        <label class="form-label">Status SPK</label>
-            <select class="form-select" name="status" id="statusSPK">
-              <option value="draft" selected>Draft</option>
-              <option value="menunggu persetujuan">Menunggu Persetujuan</option>
-              <option value="disetujui">Disetujui</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Prioritas</label>
-            <select class="form-select" name="prioritas" id="prioritasSPK">
-              <option value="normal" selected>Normal</option>
-              <option value="rendah">Rendah</option>
-              <option value="tinggi">Tinggi</option>
-              <option value="mendesak">Mendesak</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="mb-4 p-3 border rounded bg-light">
-                    <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
-          <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk SPK ini"></textarea>
-                </div>
-        <div class="p-3 border rounded bg-light">
-          <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
-          <div class="d-flex justify-content-between small mb-1"><span>Total Item:</span><span class="ringkasan-total-item">0</span></div>
-          <div class="d-flex justify-content-between small mb-1"><span>Total Biaya:</span><span class="ringkasan-total-biaya">Rp 0</span></div>
-          <hr class="my-2">
-          <div class="d-flex justify-content-between fw-bold"><span>Total SPK:</span><span class="ringkasan-total-spk">Rp 0</span></div>
-                </div>
-            </div>
-        </div>
+    </div>
     </form>
 
   <!-- Modal Tambah/Edit Tugas Produksi -->

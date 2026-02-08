@@ -133,13 +133,14 @@
                               data-harga="${produk.total_modal_keseluruhan || 0}"
                               data-kategori="${produk.kategori_nama || '-'}"
                               data-jenis="${produk.jenis_produk || 'produk'}"
-                              data-satuan="${produk.satuan_nama || 'pcs'}"
                               data-panjang="${produk.panjang || 0}"
                               data-lebar="${produk.lebar || 0}"
                               data-panjangLocked="${produk.panjang_locked || false}"
                               data-lebarLocked="${produk.lebar_locked || false}"
                               data-is_metric="${produk.is_metric || false}"        
-                              data-metric_unit="${produk.metric_unit || '-'}">
+                              data-metric_unit="${produk.metric_unit || '-'}"
+                              data-harga-bertingkat-json='${JSON.stringify(produk.harga_bertingkat_json || [])}'
+                              data-harga-reseller-json='${JSON.stringify(produk.harga_reseller_json || [])}'>
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>${produk.kategori_nama ?? '-'}</td>
@@ -202,6 +203,8 @@
           panjang: parseFloat($(this).data('panjang')) || 0,
           lebar: parseFloat($(this).data('lebar')) || 0, 
           metric_unit: $(this).data('metric_unit') || 'cm',
+          harga_bertingkat_json: JSON.parse($(this).attr('data-harga-bertingkat-json').replace(/&#39;/g, "'") || '[]'),
+          harga_reseller_json: JSON.parse($(this).attr('data-harga-reseller-json').replace(/&#39;/g, "'") || '[]'),
           sourceModal: 'spk'
       };
 
