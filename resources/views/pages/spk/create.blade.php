@@ -576,11 +576,6 @@
                                     <i class="fa fa-folder me-1"></i> File Lokal
                                   </button>
                                 </li>
-                                <li class="nav-item">
-                                  <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabFileLAN">
-                                    <i class="fa fa-network-wired me-1"></i> LAN Location
-                                  </button>
-                                </li>
                               </ul>
                               <div class="tab-content">
                                 <!-- Tab File Lokal -->
@@ -590,20 +585,6 @@
                                     <p class="mb-1">Drag & drop file di sini atau <span class="text-primary fw-semibold" style="cursor:pointer;" id="modalBtnBrowseFile">klik untuk pilih file</span></p>
                                     <small class="text-muted">Maksimal 10MB per file. Format: PDF, JPG, PNG, AI, PSD, CDR</small>
                                     <input type="file" id="modalInputFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd,.cdr" style="display:none;">
-                                  </div>
-                                </div>
-                                <!-- Tab LAN Location -->
-                                <div class="tab-pane fade" id="tabFileLAN">
-                                  <div class="mb-3">
-                                    <label class="form-label">Path LAN</label>
-                                    <div class="input-group">
-                                      <span class="input-group-text"><i class="fa fa-server"></i></span>
-                                      <input type="text" class="form-control" id="modalLANPathInput" placeholder="\\192.168.1.100\shared\designs\file.pdf">
-                                      <button type="button" class="btn btn-outline-primary" id="modalBtnAddLANFile">
-                                        <i class="fa fa-plus"></i> Tambah
-                                      </button>
-                                    </div>
-                                    <small class="text-muted">Contoh: \\SERVER\folder\namafile.pdf</small>
                                   </div>
                                 </div>
                               </div>
@@ -634,13 +615,13 @@
                             <!-- Jumlah & Ukuran -->
                             <div class="summary-item mb-3 pb-3 border-bottom">
                               <div class="row">
-                                <div class="col-6">
-                                  <small class="text-muted text-uppercase">Jumlah</small>
-                                  <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
-                                </div>
                                 <div class="col-6" id="summaryUkuranContainer" style="display: none;">
                                   <small class="text-muted text-uppercase">Ukuran</small>
                                   <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
+                                </div>
+                                <div class="col-6">
+                                  <small class="text-muted text-uppercase">Jumlah</small>
+                                  <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
                                 </div>
                               </div>
                             </div>
