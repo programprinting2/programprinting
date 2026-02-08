@@ -372,10 +372,19 @@ function loadBahanBakuData(id) {
       konversiData.forEach(konversi => {
         const subSatuanUtamaId = data.sub_satuan_id;
         const subSatuanUtamaNama = getNamaSubSatuanById(subSatuanUtamaId);
+        const hasDefaultRow = konversiData.some(konversi => 
+          String(konversi.satuan_dari) === String(subSatuanUtamaId) && Number(konversi.jumlah) === 1
+        );
+        
+        if (!hasDefaultRow) {
+          createEditDefaultConversionRow();
+        }
+
+        const isDefaultRow = (String(konversi.satuan_dari) === String(subSatuanUtamaId) && Number(konversi.jumlah) === 1);
         const newRow = `
-          <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row">
+          <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row ${isDefaultRow ? 'default-row' : ''}" ${isDefaultRow ? 'data-default="true"' : ''}>
             <div class="col-md-3">
-              <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]">
+              <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]" ${isDefaultRow ? 'disabled' : ''}>
                 ${optionsHtml}
               </select>
             </div>
@@ -384,7 +393,7 @@ function loadBahanBakuData(id) {
             </div>
             <div class="col-md-4">
               <div class="input-group">
-                <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="${konversi.jumlah}" min="1" step="0.01">
+                <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="${konversi.jumlah}" min="1" step="0.01" ${isDefaultRow ? 'disabled readonly' : ''}>
                 <span class="input-group-text">${subSatuanUtamaNama}</span>
               </div>
             </div>
@@ -394,7 +403,7 @@ function loadBahanBakuData(id) {
                 <input class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" value="0" readonly disabled>
                 <span class="input-group-text satuan-total-konversi"></span>
               </div>
-              <button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>
+              ${isDefaultRow ? '<span class="badge bg-secondary">Default</span>' : '<button type="button" class="btn btn-outline-danger btn-sm delete-conversion-row"><i data-feather="trash" class="icon-sm"></i></button>'}
             </div>
           </div>
         `;
@@ -652,6 +661,56 @@ function updateEditNoConversionMessage() {
   }
 }
 
+function createEditDefaultConversionRow() {
+  const subSatuanId = $('#edit_sub_satuan').val();
+  if (!subSatuanId) return;
+  
+  const subSatuanNama = getNamaSubSatuanById(subSatuanId);
+  const optionsHtml = getSatuanOptionsFromList();
+  
+  const defaultRow = `
+    <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row default-row" data-default="true">
+      <div class="col-md-3">
+        <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]" disabled>
+          ${optionsHtml}
+        </select>
+      </div>
+      <div class="col-auto">
+        <span>=</span>
+      </div>
+      <div class="col-md-4">
+        <div class="input-group">
+          <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01" disabled readonly>
+          <span class="input-group-text">${subSatuanNama}</span>
+        </div>
+      </div>
+      <div class="col-auto d-flex align-items-center gap-4">
+        <div class="input-group">
+          <span class="input-group-text">Rp</span>
+          <input class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" value="0" readonly disabled>
+          <span class="input-group-text satuan-total-konversi"></span>
+        </div>
+        <span class="badge bg-secondary">Default</span>
+      </div>
+    </div>
+  `;
+  
+  const existingRows = $('#editConversionUnitsContainer .conversion-row');
+  if (existingRows.length === 0) {
+    $('#editConversionUnitsContainer').append(defaultRow);
+  } else if (existingRows.length === 1) {
+    $(defaultRow).insertAfter(existingRows.first());
+  } else {
+    $(defaultRow).insertAfter(existingRows.first());
+  }
+  
+  $('#editConversionUnitsContainer .conversion-row.default-row select[name*="[satuan_dari]"]').val(subSatuanId);
+  
+  feather.replace();
+  updateEditConversionTotals();
+  updateEditNoConversionMessage();
+}
+
 // Fungsi untuk update sub satuan options di edit modal
 function updateEditSubSatuanOptions(selectedSatuanId, currentSubSatuanId = null) {
   const subSatuanSelect = $('#edit_sub_satuan');
@@ -725,10 +784,11 @@ $('#editTambahKonversi').off('click').on('click', function() {
 
 // Update semua satuan ke jika satuan utama berubah
 $('#edit_sub_satuan').on('change', function() {
+  $('#editConversionUnitsContainer .conversion-row.default-row').remove();
+  createEditDefaultConversionRow();
   const subSatuanId = $(this).val();
   const subSatuanNama = getNamaSubSatuanById(subSatuanId);
   $('#editConversionUnitsContainer .conversion-row .input-group .input-group-text').each(function(idx, el) {
-    // Hanya update label satuan pada kolom jumlah (bukan label Rp)
     if ($(el).prev('input.jumlah-konversi').length > 0) {
       $(el).text(subSatuanNama);
     }
@@ -1222,5 +1282,12 @@ $(document).ready(function() {
       const panjang = parseFloat($('#edit_panjang').val()) || 0;
       const luas = lebar * panjang;
       $('#edit_luas').val(luas.toFixed(2));
+  });
+
+  $('#modalEditBahanBaku').on('shown.bs.modal', function() {
+    if ($('#edit_sub_satuan').val()) {
+      createEditDefaultConversionRow();
+    }
+    updateEditNoConversionMessage();
   });
 }); 

@@ -101,6 +101,56 @@ $(document).ready(function() {
     }
   }
 
+  function createDefaultConversionRow() {
+    const subSatuanId = $('#sub_satuan').val();
+    if (!subSatuanId) return;
+    
+    const subSatuanNama = getNamaSubSatuanById(subSatuanId);
+    const optionsHtml = getSubSatuanOptionsFromList();
+    
+    const defaultRow = `
+      <div class="row g-2 mb-2 align-items-center border p-2 rounded conversion-row default-row" data-default="true">
+        <div class="col-md-3">
+          <select class="form-select form-select-sm" name="konversi_satuan_json[][satuan_dari]" disabled>
+            ${optionsHtml}
+          </select>
+        </div>
+        <div class="col-auto">
+          <span>=</span>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group">
+            <input type="number" class="form-control form-control-sm jumlah-konversi" name="konversi_satuan_json[][jumlah]" value="1" min="1" step="0.01" disabled readonly>
+            <span class="input-group-text">${subSatuanNama}</span>
+          </div>
+        </div>
+        <div class="col-auto d-flex align-items-center gap-4">
+          <div class="input-group">
+            <span class="input-group-text">Rp</span>
+            <input class="form-control form-control-sm total-konversi-harga fw-bold ps-2 text-end" data-inputmask="'alias': 'currency', 'groupSeparator':',', 'radixPoint':'.', 'digits':2, 'autoGroup':true" value="0" readonly disabled>
+            <span class="input-group-text satuan-total-konversi"></span>
+          </div>
+          <span class="badge bg-secondary">Default</span>
+        </div>
+      </div>
+    `;
+    
+    const existingRows = $('#conversionUnitsContainer .conversion-row');
+    if (existingRows.length === 0) {
+      $('#conversionUnitsContainer').append(defaultRow);
+    } else if (existingRows.length === 1) {
+      $(defaultRow).insertAfter(existingRows.first());
+    } else {
+      $(defaultRow).insertAfter(existingRows.first());
+    }
+    
+    $('#conversionUnitsContainer .conversion-row.default-row select[name*="[satuan_dari]"]').val(subSatuanId);
+    
+    feather.replace();
+    updateAddConversionTotals();
+    updateNoConversionMessage();
+  }
+
   // Panggil saat halaman siap
   updateNoConversionMessage();
 
@@ -181,8 +231,10 @@ $(document).ready(function() {
     updateNoConversionMessage();
   });
 
-  // Update label satuan pada seluruh baris konversi jika satuan utama berubah
+  // Update label satuan pada seluruh baris konversi
   $('#sub_satuan').on('change', function() {
+    $('#conversionUnitsContainer .conversion-row.default-row').remove();
+    createDefaultConversionRow();
     const subSatuanId = $(this).val();
     const subSatuanNama = getNamaSubSatuanById(subSatuanId);
     $('#conversionUnitsContainer .conversion-row .input-group .input-group-text').each(function(idx, el) {
@@ -776,5 +828,12 @@ $(document).ready(function() {
     const panjang = parseFloat($('#panjang').val()) || 0;
     const luas = lebar * panjang;
     $('#luas').val(luas.toFixed(2));
+  });
+
+  $('#modalAddBahanBaku').on('shown.bs.modal', function() {
+    if ($('#sub_satuan').val()) {
+      createDefaultConversionRow();
+    }
+    updateNoConversionMessage();
   });
 }); 
