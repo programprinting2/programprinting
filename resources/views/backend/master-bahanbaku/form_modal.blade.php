@@ -155,7 +155,7 @@
 
 
                   <!-- Container untuk satuan metric -->
-                  <div class="row mb-3" id="metric_unit_container" style="display: none;">
+                  <div class="row mb-3" id="metric_unit_container">
                     <div class="col-md-6">
                         <label for="metric_unit" class="form-label">Satuan Metric</label>
                         <select class="form-select" id="metric_unit" name="metric_unit" disabled>
@@ -229,6 +229,16 @@
                         <span class="input-group-text" id="labelSatuanHargaTerakhir"></span>
                       </div>
                       <small class="text-muted">Harga beli terakhir dari pemasok utama</small>
+                    </div>
+
+                    <div class="col-md-4" id="hargaSatuanLariContainer" style="display: none;">
+                      <label class="form-label">Harga Satuan Lari</label>
+                      <div class="input-group">
+                        <span class="input-group-text">Rp</span>
+                        <input type="text" class="form-control fw-bold text-end" id="hargaSatuanLari" readonly>
+                        <span class="input-group-text">/cm</span>
+                      </div>
+                      <small class="text-muted">Lebar × Harga Terakhir</small>
                     </div>
                   </div>
                   <div class="d-flex justify-content-between align-items-center mb-3">

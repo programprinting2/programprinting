@@ -1243,17 +1243,21 @@ $(document).ready(function() {
     $('#editMediaPreviewModalBody').html('');
   });
 
+  $('#edit_lebar, #edit_harga_terakhir').on('input', updateEditHargaSatuanLari);
+
   $('#edit_gunakan_dimensi').on('change', function() {
     const isChecked = $(this).is(':checked');
     
     if (isChecked) {
-        $('#edit_metric_unit_container').show();
         $('#edit_metric_unit').prop('disabled', false);
         $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', false);
+        $('#edit_hargaSatuanLariContainer').show();
+        updateEditHargaSatuanLari();
     } else {
-        $('#edit_metric_unit_container').hide();
         $('#edit_metric_unit').prop('disabled', true);
         $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', true);
+        $('#edit_hargaSatuanLariContainer').hide();
+        $('#edit_hargaSatuanLari').val('');
         // Reset values
         $('#edit_lebar, #edit_panjang, #edit_luas').val('0');
         $('#edit_metric_unit').val('cm');
@@ -1288,6 +1292,28 @@ $(document).ready(function() {
     if ($('#edit_sub_satuan').val()) {
       createEditDefaultConversionRow();
     }
+
+    const isMetric = $('#edit_gunakan_dimensi').is(':checked');
+    if (isMetric) {
+        $('#edit_hargaSatuanLariContainer').show();
+        updateEditHargaSatuanLari();
+        updateEditSatuanLariLabel();
+    }
     updateEditNoConversionMessage();
   });
+
+  function updateEditHargaSatuanLari() {
+    const lebar = parseFloat($('#edit_lebar').val()) || 0;
+    const hargaTerakhir = parseFloat($('#edit_harga_terakhir').val().replace(/,/g, '')) || 0;
+    const hargaSatuanLari = lebar * hargaTerakhir;
+    
+    $('#edit_hargaSatuanLari').val(hargaSatuanLari.toLocaleString('id-ID'));
+  }
+
+  function updateEditSatuanLariLabel() {
+    const metricUnit = $('#edit_metric_unit').val() || 'cm';
+    $('#edit_hargaSatuanLari').next('.input-group-text').text('/' + metricUnit);
+  }
+
+  $('#edit_metric_unit').on('change', updateEditSatuanLariLabel);
 }); 
