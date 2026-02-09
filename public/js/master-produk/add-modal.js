@@ -124,7 +124,6 @@ $(function () {
         const isChecked = $(checkboxId).is(':checked');
         
         if (isChecked) {
-            $(containerId).show();
             $(metricUnitId).prop('disabled', false);
             $(lebarInput).prop('disabled', false);
             $(panjangInput).prop('disabled', false);
@@ -134,7 +133,6 @@ $(function () {
             
             calculateLuas(mode);
         } else {
-            $(containerId).hide();
             $(metricUnitId).prop('disabled', true);
             $(lebarInput).prop('disabled', true);
             $(panjangInput).prop('disabled', true);
@@ -161,17 +159,25 @@ $(function () {
     });
 
     function updateMetricLabels() {
-        const unit = $('#metric_unit').val() || 'cm';
-        $('#label_metric_lebar').text(unit);
-        $('#label_metric_panjang').text(unit);
-        if (unit === 'm') {
-            $('#label_metric_luas').text('m²');
-        } else if (unit === 'mm') {
-            $('#label_metric_luas').text('mm²');
-        } else {
-            $('#label_metric_luas').text('cm²');
+        const newUnit = $('#metric_unit').val() || 'cm';
+        const oldUnit = $('#metric_unit').data('previous-unit') || 'cm';
+
+        produkUpdateMetricDimensions(newUnit, oldUnit, {
+            lebar: '#lebar',
+            panjang: '#panjang',
+            luas: '#luas',
+            labelLebar: '#label_metric_lebar',
+            labelPanjang: '#label_metric_panjang',
+            labelLuas: '#label_metric_luas',
+        });
+
+        $('#metric_unit').data('previous-unit', newUnit);
+        if (typeof updateTotalModalPerDimensi === 'function') {
+            updateTotalModalPerDimensi();
         }
     }
+
+    $('#metric_unit').data('previous-unit', $('#metric_unit').val() || 'cm');
     $(document).on('change', '#metric_unit', function () {
         updateMetricLabels();
     });

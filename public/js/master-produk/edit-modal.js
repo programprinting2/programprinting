@@ -463,7 +463,6 @@ $(function () {
         const isChecked = $(checkboxId).is(':checked');
         
         if (isChecked) {
-            $(containerId).show();
             $(metricUnitId).prop('disabled', false);
             $(lebarInput).prop('disabled', false);
             $(panjangInput).prop('disabled', false);
@@ -473,7 +472,6 @@ $(function () {
             
             calculateLuas("edit");
         } else {
-            $(containerId).hide();
             $(metricUnitId).prop('disabled', true);
             $(lebarInput).prop('disabled', true);
             $(panjangInput).prop('disabled', true);
@@ -491,11 +489,9 @@ $(function () {
         const isChecked = $(this).is(':checked');
     
         if (isChecked) {
-            $('#edit_metric_unit_container').show();
             $('#edit_metric_unit').prop('disabled', false);
             $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', false);
         } else {
-            $('#edit_metric_unit_container').hide();
             $('#edit_metric_unit').prop('disabled', true);
             $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', true);
             // Reset values
@@ -514,20 +510,25 @@ $(function () {
     });
 
     function updateEditMetricLabels() {
-        const unit = $('#edit_metric_unit').val() || 'cm';
-    
-        $('#edit_label_metric_lebar').text(unit);
-        $('#edit_label_metric_panjang').text(unit);
-    
-        if (unit === 'm') {
-            $('#edit_label_metric_luas').text('m²');
-        } else if (unit === 'mm') {
-            $('#edit_label_metric_luas').text('mm²');
-        } else {
-            $('#edit_label_metric_luas').text('cm²');
+        const newUnit = $('#edit_metric_unit').val() || 'cm';
+        const oldUnit = $('#edit_metric_unit').data('previous-unit') || 'cm';
+
+        produkUpdateMetricDimensions(newUnit, oldUnit, {
+            lebar: '#edit_lebar',
+            panjang: '#edit_panjang',
+            luas: '#edit_luas',
+            labelLebar: '#edit_label_metric_lebar',
+            labelPanjang: '#edit_label_metric_panjang',
+            labelLuas: '#edit_label_metric_luas',
+        });
+
+        $('#edit_metric_unit').data('previous-unit', newUnit);
+        if (typeof updateTotalModalPerDimensiEdit === 'function') {
+            updateTotalModalPerDimensiEdit();
         }
     }
 
+    $('#edit_metric_unit').data('previous-unit', $('#edit_metric_unit').val() || 'cm');
     $(document).on('change', '#edit_metric_unit', function () {
         updateEditMetricLabels();
     });
@@ -557,11 +558,6 @@ $(function () {
             const checkboxId = $(this).attr('id');
             updateLockIcon(checkboxId);
         });
-        if (typeof feather !== 'undefined' && feather.replace) {
-            setTimeout(() => {
-                feather.replace();
-            }, 100);
-        }
     });
 
     // === MEDIA & DOKUMEN (EDIT) ===

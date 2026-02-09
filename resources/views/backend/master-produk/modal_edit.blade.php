@@ -127,7 +127,7 @@
                           </div>
                       </div>
                     </div>
-                    <div class="row mb-3" id="edit_metric_unit_container" style="display: none;">
+                    <div class="row mb-3" id="edit_metric_unit_container">
                       <div class="col-md-6">
                           <label for="edit_metric_unit" class="form-label">Satuan Metric</label>
                           <select class="form-select" id="edit_metric_unit" name="metric_unit" disabled>
