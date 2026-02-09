@@ -133,7 +133,9 @@
                               data-jenis="${produk.jenis_produk || 'produk'}"
                               data-satuan="${produk.satuan_nama || 'pcs'}"
                               data-is_metric="${produk.is_metric || false}"
-                              data-metric_unit="${produk.metric_unit || '-'}">
+                              data-metric_unit="${produk.metric_unit || '-'}"
+                              data-harga_bertingkat_json='${JSON.stringify(produk.harga_bertingkat_json || [])}'
+                              data-harga_reseller_json='${JSON.stringify(produk.harga_reseller_json || [])}'>
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>
@@ -203,6 +205,8 @@
           satuan_nama: $(this).data('satuan') || 'pcs',
           is_metric: $(this).data('is_metric') === 'true' || $(this).data('is_metric') === true,
           metric_unit: $(this).data('metric_unit') || '-',
+          harga_bertingkat_json: $(this).data('harga_bertingkat_json') || [],
+          harga_reseller_json: $(this).data('harga_reseller_json') || [],
           sourceModal: 'spk'
       };
 
