@@ -109,142 +109,11 @@
             </ul>
             <div class="tab-content" id="tabSPKContent">
               <div class="tab-pane fade show active" id="itemPekerjaan" role="tabpanel">
-                <div class="row">
-                  <!-- Form Input Item -->
-                  <div class="col-md-8">
-                    <div class="card mb-3 border-primary">
-                      <div class="card-body">
-                        <div class="mb-2">
-                          <!-- <label class="form-label mb-0">Tambah Item Pekerjaan ke SPK</label> -->
-                          <small class="text-muted d-block mb-2">Tambahkan detail item pekerjaan yang akan dikerjakan.</small>
-                        </div>
-                        <div class="row g-2 mb-2 align-items-end">
-                          <div class="col-md-4">
-                            <label class="form-label small mb-1">Nama Produk</label>
-                            <input type="text" class="form-control" id="namaProdukInput" placeholder="Masukkan nama produk...">
-                          </div>
-                          <div class="col-md-2">
-                            <label for="jumlahInput" class="form-label small mb-1">Jumlah</label>
-                            <input type="number" class="form-control text-end" id="jumlahInput" placeholder="0" min="0" step="0.01">
-                          </div>
-                          <div class="col-md-2">
-                            <label for="satuanInput" class="form-label small mb-1">Satuan</label>
-                            <select class="form-select" id="satuanInput">
-                              <option value="pcs">Pcs</option>
-                              <option value="lembar">Lembar</option>
-                              <option value="meter">Meter</option>
-                              <option value="set">Set</option>
-                              <option value="desain">Desain</option>
-                            </select>
-                          </div>
-                          <div class="col-md-2">
-                            <label for="biayaDesainInput" class="form-label small mb-1">Biaya Desain (Rp)</label>
-                            <input type="number" class="form-control text-end" id="biayaDesainInput" placeholder="0" min="0" value="0">
-                          </div>
-                          <div class="col-md-2">
-                            <label for="biayaFinishingInput" class="form-label small mb-1">Biaya Finishing (Rp)</label>
-                            <input type="number" class="form-control text-end" id="biayaFinishingInput" placeholder="0" min="0" value="0">
-                          </div>
-                        </div>
-                        <div class="row g-2 mb-2">
-                          <div class="col-md-4">
-                            <label class="form-label small mb-1">Bahan baku</label>
-                            <div class="input-group">
-                              <input type="text" class="form-control" id="namaBahanInput" placeholder="Pilih bahan..." readonly>
-                              <input type="hidden" id="bahanIdInput">
-                              <button type="button" class="btn btn-outline-secondary" id="btnCariBahan"><i class="fa fa-search"></i></button>
-                            </div>
-                          </div>
-                          <div class="col-md-2">
-                            <label for="lebarInput" class="form-label small mb-1">Lebar (cm)</label>
-                            <input type="number" class="form-control text-end" id="lebarInput" placeholder="0" min="0" step="0.1" value="0">
-                          </div>
-                          <div class="col-md-2">
-                            <label for="panjangInput" class="form-label small mb-1">Panjang (cm)</label>
-                            <input type="number" class="form-control text-end" id="panjangInput" placeholder="0" min="0" step="0.1" value="0">
-                          </div>
-                          <div class="col-md-4">
-                            <label for="keteranganInput" class="form-label small mb-1">Keterangan</label>
-                            <input type="text" class="form-control" id="keteranganInput" placeholder="Tambahkan keterangan...">
-                          </div>
-                        </div>
-                        <button type="button" class="btn btn-outline-primary" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <!-- Preview Image -->
-                  <div class="col-md-4">
-                    <div class="card border-0 shadow-sm">
-                      <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <span class="fw-semibold"><i class="fa fa-eye me-1"></i> Preview</span>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" id="btnRefreshPreview" title="Refresh Preview">
-                          <i data-feather="refresh-cw" class="icon-sm"></i>
-                        </button>
-                      </div>
-                      <div class="card-body">
-                        <!-- Image Preview Box -->
-                        <div class="border-2 border-dashed rounded p-3 text-center mb-3" id="imagePreviewBox" style="min-height: 180px; background: #f8f9fa; position:relative;">
-                          <input type="file" id="inputPreviewGambar" accept="image/*" style="display:none;">
-                          <!-- <div class="d-flex justify-content-between mb-2">
-                            <small class="text-muted">←→ <span id="previewWidth">0</span> cm</small>
-                            <small class="text-muted"><span id="previewHeight">0</span> cm ↑</small>
-                          </div> -->
-                          <div class="d-flex justify-content-center align-items-center" style="height: 120px;">
-                            <div class="text-center" id="previewImageContainer">
-                              <i class="fa fa-file-image-o fa-3x text-muted mb-2" id="iconNoPreview"></i>
-                              <img id="previewImage" src="" alt="Preview" style="max-width:100%;max-height:110px;display:none;object-fit:contain;" />
-                              <p class="text-muted mb-2 small" id="previewText">Tidak ada preview</p>
-                              <button type="button" class="btn btn-outline-primary btn-sm" id="btnUploadGambar">
-                                <i class="fa fa-upload me-1"></i> Upload Gambar
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                        
-                        <!-- Image Properties -->
-                        <div class="mb-3">
-                          <div class="d-flex justify-content-between small mb-1">
-                            <span class="text-muted">DPI</span>
-                            <span id="imageDPI">0 DPI</span>
-                          </div>
-                          <div class="d-flex justify-content-between small mb-1">
-                            <span class="text-muted">Color Mode</span>
-                            <span id="imageColorMode">CMYK</span>
-                          </div>
-                          <div class="d-flex justify-content-between small mb-1">
-                            <span class="text-muted">File Size</span>
-                            <span id="imageFileSize">0 MB</span>
-                          </div>
-                        </div>
-                        
-                        <!-- Finishing Options -->
-                        <div class="mb-3">
-                          <label class="form-label small fw-semibold mb-2">Opsi Finishing</label>
-                          <div class="d-flex flex-wrap gap-1" id="finishingOptions">
-                            <button type="button" class="btn btn-outline-secondary btn-sm option-btn" data-option="laminating">
-                              <i class="fa fa-bookmark me-1"></i> Laminating
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm option-btn" data-option="cutting">
-                              <i class="far fa-hand-scissors me-1"></i> Cutting
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm option-btn" data-option="binding">
-                              <i class="fa fa-book me-1"></i> Binding
-                            </button>
-                            <button type="button" class="btn btn-outline-secondary btn-sm option-btn" data-option="a3+">
-                              <i class="far fa-file me-1"></i> A3+
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Tabel Item SPK - Diganti dengan Card Layout -->
+                <!-- Tabel Item SPK -->
                 <div class="card border-0 shadow-sm">
-                  <div class="card-header">
+                  <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 fw-semibold"><i class="fa fa-list me-2"></i>Daftar Item Pekerjaan</h6>
+                    <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
                   </div>
                   <div class="card-body p-0">
                     <!-- Header Table-like -->
@@ -314,14 +183,15 @@
             </div>
           </div>
         </div>
-        <div class="d-flex justify-content-end gap-2 mt-4">
+        <!-- <div class="d-flex justify-content-end gap-2 mt-4">
           <button type="button" class="btn btn-light" id="btnBatalSPK">Batal</button>
           <button type="submit" class="btn btn-primary" id="btnSimpanSPK">
             <span class="spinner-border spinner-border-sm me-1 d-none" id="spinnerSimpanSPK" role="status" aria-hidden="true"></span>
             <span class="label-simpan">Simpan SPK</span>
           </button>
-        </div>
+        </div> -->
       </div>
+
     </div>
     </form>
 
@@ -626,24 +496,12 @@
                               </div>
                             </div>
 
-                            <!-- Deadline -->
-                            <div class="summary-item mb-3 pb-3 border-bottom">
-                              <small class="text-muted text-uppercase">Deadline</small>
-                              <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
-                            </div>
-
                             <!-- Finishing -->
                             <div class="summary-item mb-3 pb-3 border-bottom">
                               <small class="text-muted text-uppercase">Finishing</small>
                               <div id="summaryFinishingList" class="mt-1">
                                 <span class="text-muted">-</span>
                               </div>
-                            </div>
-
-                            <!-- Files -->
-                            <div class="summary-item mb-3 pb-3 border-bottom">
-                              <small class="text-muted text-uppercase">Files</small>
-                              <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
                             </div>
 
                             <!-- Rincian Harga -->
@@ -661,6 +519,18 @@
                                 <span class="fw-bold">Total</span>
                                 <span class="fw-bold text-primary fs-5" id="summaryTotalAkhir">Rp 0</span>
                               </div>
+                            </div>
+
+                            <!-- Deadline -->
+                            <div class="summary-item mt-3 mb-3 pb-3 border-bottom">
+                              <small class="text-muted text-uppercase">Deadline</small>
+                              <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
+                            </div>
+
+                            <!-- Files -->
+                            <div class="summary-item mb-3 pb-3 border-bottom">
+                              <small class="text-muted text-uppercase">Files</small>
+                              <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
                             </div>
                           </div>
                         </div>
