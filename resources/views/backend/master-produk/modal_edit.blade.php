@@ -279,6 +279,9 @@
                           <span class="badge bg-light text-primary ms-2" id="editTotalItemModal">0 item</span>
                         </div>
                         <div class="fs-4 fw-bold" id="editTotalModalKeseluruhan">Rp 0</div>
+                        <div class="small text-primary fw-semibold mt-1" id="edit_totalModalPerDimensi" style="display: none;">
+                            Rp 0 / <span id="edit_satuanDimensiTotal">cm</span>
+                        </div>
                         <div class="small text-muted mt-1">
                           Bahan Baku: <span id="editTotalBahanBakuText" class="fw-bold">Rp 0</span>
                           &nbsp;|&nbsp;

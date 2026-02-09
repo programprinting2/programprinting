@@ -150,6 +150,7 @@ $(function () {
 
     $(document).on('change', '#gunakan_dimensi', function() {
         toggleDimensiByCheckbox("add");
+        updateTotalModalPerDimensi();
     });
     
     $(document).on("input", "#lebar, #panjang", function() {
@@ -822,6 +823,7 @@ $(function () {
                  "Rp " + totalBahan.toLocaleString("id-ID"),
         );
 
+        updateTotalModalPerDimensi();
         renderHargaBertingkat();
         renderHargaReseller();
     }
@@ -2174,5 +2176,28 @@ $(function () {
     $(document).on('change', '#lebar_locked, #panjang_locked', function() {
         const checkboxId = $(this).attr('id');
         updateLockIcon(checkboxId);
+    });
+
+    function updateTotalModalPerDimensi() {
+        const isMetric = $('#gunakan_dimensi').is(':checked');
+        const container = $('#totalModalPerDimensi');
+        
+        if (isMetric) {
+            const lebar = parseFloat($('#lebar').val()) || 0;
+            const metricUnit = $('#metric_unit').val() || 'cm';
+            const totalPerDimensi = totalModalKeseluruhanNumeric * lebar;
+            
+            $('#totalModalPerDimensi').text(
+                'Harga Per Satuan Lari: Rp ' + totalPerDimensi.toLocaleString('id-ID') + ' / ' + metricUnit
+            );
+            $('#satuanDimensiTotal').text(metricUnit);
+            container.show();
+        } else {
+            container.hide();
+        }
+    }
+
+    $('#lebar, #metric_unit').on('input change', function() {
+        updateTotalModalPerDimensi();
     });
 });
