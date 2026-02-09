@@ -417,7 +417,9 @@ class CariController extends Controller
                 'satuan_id' => $item->sub_satuan_id,
                 'satuan_nama' => $item->subSatuan?->nama_sub_detail_parameter ?? '-',
                 'is_metric' => $item->is_metric ?? false,
-                'metric_unit' => $item->metric_unit ?? '-'
+                'metric_unit' => $item->metric_unit ?? '-',
+                'harga_bertingkat_json' => $item->harga_bertingkat_json ?? [],
+                'harga_reseller_json' => $item->harga_reseller_json ?? [],
             ];
         });
 
