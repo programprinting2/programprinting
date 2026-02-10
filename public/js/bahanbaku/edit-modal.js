@@ -698,10 +698,8 @@ function createEditDefaultConversionRow() {
   const existingRows = $('#editConversionUnitsContainer .conversion-row');
   if (existingRows.length === 0) {
     $('#editConversionUnitsContainer').append(defaultRow);
-  } else if (existingRows.length === 1) {
-    $(defaultRow).insertAfter(existingRows.first());
   } else {
-    $(defaultRow).insertAfter(existingRows.first());
+    $('#editConversionUnitsContainer').prepend(defaultRow);
   }
   
   $('#editConversionUnitsContainer .conversion-row.default-row select[name*="[satuan_dari]"]').val(subSatuanId);
@@ -1317,7 +1315,10 @@ $(document).ready(function() {
     const hargaTerakhir = parseFloat($('#edit_harga_terakhir').val().replace(/,/g, '')) || 0;
     const hargaSatuanLari = lebar * hargaTerakhir;
     
-    $('#edit_hargaSatuanLari').val(hargaSatuanLari.toLocaleString('id-ID'));
+    $('#edit_hargaSatuanLari').val(hargaSatuanLari.toLocaleString('id-ID', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }));
   }
 
   function updateEditSatuanLariLabel() {
