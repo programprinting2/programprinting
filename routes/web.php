@@ -177,6 +177,8 @@ Route::group(['prefix' => 'backend'], function () {
         'destroy' => 'backend.master-rak.destroy',
     ]);
 
+    // File Explorer helper
+    Route::get('/file-explorer', [App\Http\Controllers\FileExplorerController::class, 'index'])->name('backend.file-explorer');
 
 });
 

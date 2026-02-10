@@ -153,15 +153,24 @@
                 </div>
               </div>
               <!-- Modal Tambah/Edit Tugas Produksi -->
-              <div class="tab-pane fade" id="filePendukung" role="tabpanel">
+              <div class="tab-pane fade px-3" id="filePendukung" role="tabpanel">
+                <div class="mb-4 d-flex justify-content-between align-items-center">
+                  <div>
+                    <h6 class="fw-semibold mb-1">File Pendukung SPK</h6>
+                    <p class="text-muted small mb-0">Hanya menyimpan path file, tidak melakukan upload ke server.</p>
+                  </div>
+                  <button type="button" class="btn btn-primary" id="btnOpenExplorerSPK">
+                    <i class="fa fa-folder-open me-1"></i> Pilih File dari Drive
+                  </button>
+                </div>
+
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Upload File Pendukung</label>
-                  <div id="dropZone" class="border-2 border-dashed rounded p-4 text-center bg-light mb-3" style="cursor:pointer;">
+                  <!-- <div id="dropZone" class="border-2 border-dashed rounded p-4 text-center bg-light mb-3" style="cursor:pointer;">
                     <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
                     <div class="mb-2">Drag & drop file di sini atau <span class="text-primary" style="text-decoration:underline;cursor:pointer;" id="btnBrowseFile">klik untuk pilih file</span></div>
                     <small class="text-muted">Maksimal 10MB per file. Tipe: PDF, JPG, PNG, DOCX, XLSX, ZIP, dll.</small>
                     <input type="file" id="inputFilePendukung" multiple style="display:none;">
-                  </div>
+                  </div> -->
                 </div>
                 <div class="table-responsive mb-3">
                   <table class="table table-bordered align-middle mb-0" id="tabelFilePendukung">
@@ -432,15 +441,20 @@
 
                           <hr class="my-4">
 
-                          <!-- Section 3: Files -->
                           <div class="section-item mb-4" id="sectionFiles">
                             <div class="d-flex align-items-center mb-3">
                               <span class="section-number me-2">3</span>
-                              <h6 class="mb-0 fw-bold">Files</h6>
+                              <h6 class="mb-0 fw-bold">Files Path</h6>
                             </div>
                             <div class="ps-4">
-                              <!-- Tab untuk pilih sumber file -->
-                              <ul class="nav nav-tabs nav-tabs-sm mb-3" id="fileSourceTabs">
+                              <div class="mb-3">
+                                <p class="text-muted small mb-3">Tentukan path file desain atau file pendukung lainnya.</p>
+                                <button type="button" class="btn btn-outline-primary w-100 py-3 border-2 border-dashed" id="btnOpenExplorerModalItem">
+                                  <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
+                                  <span>Pilih File dari Drive</span>
+                                </button>
+                              </div>
+                              <!-- <ul class="nav nav-tabs nav-tabs-sm mb-3" id="fileSourceTabs">
                                 <li class="nav-item">
                                   <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabFileLokal">
                                     <i class="fa fa-folder me-1"></i> File Lokal
@@ -448,7 +462,6 @@
                                 </li>
                               </ul>
                               <div class="tab-content">
-                                <!-- Tab File Lokal -->
                                 <div class="tab-pane fade show active" id="tabFileLokal">
                                   <div class="dropzone-area border-2 border-dashed rounded p-4 text-center mb-3" id="modalDropZone">
                                     <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
@@ -457,9 +470,9 @@
                                     <input type="file" id="modalInputFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd,.cdr" style="display:none;">
                                   </div>
                                 </div>
-                              </div>
+                              </div> -->
                               <!-- Daftar File yang Diupload -->
-                              <div class="uploaded-files-list" id="modalUploadedFilesList">
+                              <div class="uploaded-files-list mt-3" id="modalUploadedFilesList">
                                 <!-- File items akan ditambahkan di sini via JS -->
                               </div>
                             </div>
@@ -803,6 +816,84 @@
 
     .form-check-input:not(:checked) ~ .form-check-label .urgent-status {
         color: #198754; 
+    }
+  </style>
+  <!-- Modal File Explorer -->
+  <div class="modal fade" id="modalFileExplorer" tabindex="-1" aria-labelledby="modalFileExplorerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalFileExplorerLabel"><i class="fa fa-search me-2"></i>Pilih File</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="explorer-container">
+            <div class="explorer-address-bar p-2 bg-light border-bottom d-flex align-items-center">
+              <button class="btn btn-sm btn-outline-secondary me-2" id="btnExplorerBack" title="Kembali">
+                <i class="fa fa-arrow-left"></i>
+              </button>
+              <input type="text" class="form-control form-control-sm" id="inputExplorerPath" readonly>
+            </div>
+            <div class="explorer-content" id="explorerContent" style="height: 400px; overflow-y: auto;">
+              <!-- Content loaded via AJAX -->
+              <div class="p-4 text-center text-muted">
+                <i class="fa fa-spinner fa-spin fa-2x mb-2"></i>
+                <p>Memuat direktori...</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .explorer-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 15px;
+      border-bottom: 1px solid #f1f1f1;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .explorer-item:hover {
+      background-color: #e8f4ff;
+    }
+    .explorer-item .icon {
+      width: 30px;
+      font-size: 1.2rem;
+      text-align: center;
+      margin-right: 12px;
+    }
+    .explorer-item .name {
+      flex: 1;
+      font-size: 0.9rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .explorer-item .meta {
+      font-size: 0.75rem;
+      color: #999;
+      width: 100px;
+      text-align: right;
+    }
+    .file-icon { color: #6c757d; }
+    .folder-icon { color: #ffca28; }
+    
+    /* Custom style for dashed button */
+    .border-dashed {
+        border-style: dashed !important;
+    }
+    
+    .uploaded-files-list .file-item {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 8px;
     }
   </style>
 @endsection
