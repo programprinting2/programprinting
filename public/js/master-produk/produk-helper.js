@@ -1,17 +1,23 @@
-// produk-helper.js
 // Fungsi utilitas umum produk
 
 function updateDetailSatuanOptions(selectedSatuanId, selector) {
   const detailSatuanSelect = $(selector);
   detailSatuanSelect.empty();
-  detailSatuanSelect.prop('disabled', true);
   detailSatuanSelect.append('<option value="" selected disabled>Pilih detail satuan</option>');
 
-  if (selectedSatuanId && window.satuanDetailList) {
-    const filtered = window.satuanDetailList.filter(sub => sub.detail_parameter_id == selectedSatuanId);
+  if (window.satuanDetailList) {
+    let filtered;
+    
+    if (selectedSatuanId) {
+      filtered = window.satuanDetailList.filter(sub => sub.detail_parameter_id == selectedSatuanId);
+    } else {
+      filtered = window.satuanDetailList;
+    }
+    
     filtered.forEach(sub => {
       detailSatuanSelect.append(`<option value="${sub.id}">${sub.nama_sub_detail_parameter}</option>`);
     });
+    
     if (filtered.length > 0) {
       detailSatuanSelect.prop('disabled', false);
     } else {

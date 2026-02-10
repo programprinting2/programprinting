@@ -45,6 +45,7 @@ class MasterProdukController extends Controller
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
             $satuanList = \App\Services\ParameterService::getParameterDetails('JENIS SATUAN');
+            $satuanId = $this->getSatuanId();
             $satuanDetailList = SubDetailParameter::with('detailParameter')
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
@@ -58,7 +59,7 @@ class MasterProdukController extends Controller
             // Ambil data master mesin untuk window.masterMesinList
             $masterMesinList = MasterMesin::select('id', 'nama_mesin', 'tipe_mesin', 'biaya_perhitungan_profil')->get();
             
-            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'satuanDetailList','masterMesinList', 'modeWarnaOptions'));
+            return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'satuanDetailList','masterMesinList', 'modeWarnaOptions', 'satuanId'));
         } catch (\Exception $e) {
             Log::error('Error loading Produk index', ['error' => $e->getMessage()]);
             return view('backend.master-produk.index', [
@@ -68,6 +69,19 @@ class MasterProdukController extends Controller
                 'satuanList' => collect()
             ])->with('error', 'Gagal memuat data produk');
         }
+    }
+
+    private function getSatuanId(): ?int
+    {
+        $satuanMaster = MasterParameter::where('nama_parameter', 'JENIS SATUAN')->first();
+        if ($satuanMaster) {
+            $satuanDetail = $satuanMaster->details()
+                ->where('nama_detail_parameter', 'SATUAN')
+                ->where('aktif', 1)
+                ->first();
+            return $satuanDetail ? $satuanDetail->id : null;
+        }
+        return null;
     }
 
     public function create()
@@ -87,8 +101,15 @@ class MasterProdukController extends Controller
         //     ->where('aktif', 1)
         //     ->orderBy('nama_sub_detail_parameter')
         //     ->get();
-
-        return view('backend.master-produk.modal_form', compact('kategoriProdukList', 'subKategoriList'));
+        $satuanDetailList = SubDetailParameter::with('detailParameter')
+            ->where('aktif', 1)
+            ->orderBy('nama_sub_detail_parameter')
+            ->get();
+        $detailParameters = DetailParameter::where('aktif', 1)
+            ->orderBy('nama_detail_parameter')
+            ->get();
+        
+        return view('backend.master-produk.modal_form', compact('detailParameters', 'satuanDetailList'));
     }
 
     

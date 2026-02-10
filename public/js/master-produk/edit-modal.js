@@ -434,10 +434,6 @@ $(function () {
         toggleFinishingTab(selectedKategoriId, true);
     });
 
-    $(document).on("change", "#edit_satuanBarang", function () {
-        updateEditDetailSatuanOptions($(this).val());
-    });
-
     function calculateLuas(mode = "add") {
         const lebarInput = mode === "add" ? "#lebar" : "#edit_lebar";
         const panjangInput = mode === "add" ? "#panjang" : "#edit_panjang";

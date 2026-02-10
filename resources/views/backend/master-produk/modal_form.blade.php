@@ -74,17 +74,7 @@
                                     </div>
 
                                     <div class="row mb-3">
-                                        <div class="col-md-6">
-                                            <label for="satuan" class="form-label">Jenis Satuan <span class="text-danger">
-                                                    *</span></label>
-                                            <select class="form-select" id="satuanBarang" name="satuan_id" required>
-                                                <option value="" selected disabled>Pilih satuan</option>
-                                                @foreach($satuanList as $detail)
-                                                    <option value="{{ $detail->id }}">{{ $detail->nama_detail_parameter }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
+                                        <input type="hidden" id="satuanBarang" name="satuan_id" value="{{ $satuanId ?? '' }}">
                                         <div class="col-md-6">
                                             <label for="detail_satuan" class="form-label">Detail Satuan <span class="text-danger">*</span></label>
                                             <select class="form-select" id="detail_satuan" name="sub_satuan_id" required>

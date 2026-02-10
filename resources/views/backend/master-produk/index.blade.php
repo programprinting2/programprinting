@@ -165,8 +165,10 @@
   <script>
     window.subKategoriList = @json($subKategoriList ?? []);
     window.kategoriList = @json($kategoriProdukList ?? []);
+    window.detailParameters = @json($detailParameters ?? []);
     window.masterMesinList = @json($masterMesinList ?? []);
     window.satuanDetailList = @json($satuanDetailList ?? []);
+    window.satuanIdDefault = @json($satuanId ?? null);
   </script>
   <script src="{{ asset('assets/plugins/feather-icons/feather.min.js') }}"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

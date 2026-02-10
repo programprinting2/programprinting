@@ -83,16 +83,21 @@ $(function () {
         toggleFinishingTab(selectedKategoriId, false); 
     });
 
-    $(document).on("change", "#satuanBarang", function () {
-        updateDetailSatuanOptions($(this).val(), "#detail_satuan");
-    });
-
     $("#tambahProduk").on("shown.bs.modal", function () {
+        var defaultSatuanId = window.satuanIdDefault;
+        if (defaultSatuanId) {
+            $("#satuanBarang").val(defaultSatuanId);
+        }
         updateSubKategoriOptions(
             $("#kategori_utama").val(),
             "#sub_kategori_id_produk",
         );
-        updateDetailSatuanOptions($("#satuanBarang").val(), "#detail_satuan");
+        setTimeout(() => {
+            const satuanId = $("#satuanBarang").val();
+            if (satuanId) {
+                updateDetailSatuanOptions(satuanId, "#detail_satuan");
+            }
+        }, 100);
         const selectedKategori = $("#kategori_utama").val();
         if (selectedKategori) {
             toggleFinishingTab(selectedKategori, false);
@@ -2022,7 +2027,6 @@ $(function () {
         });
         updateMetricLabels();
         if (!$('#tags').hasClass('select2-hidden-accessible')) {
-
             $('#tags').select2({
                 width: '100%',
                 dropdownParent: $('#tambahProduk'),
