@@ -360,9 +360,6 @@
                                                         item</span>
                                                 </div>
                                                 <div class="fs-4 fw-bold" id="totalModalKeseluruhan">Rp 0</div>
-                                                <div class="small text-primary fw-semibold mt-1" id="totalModalPerDimensi" style="display: none;">
-                                                    Rp 0 / <span id="satuanDimensiTotal">cm</span>
-                                                </div>
                                                 <div class="small text-muted mt-1">
                                                     Bahan Baku: <span id="totalBahanBakuText" class="fw-bold">Rp
                                                         0</span>

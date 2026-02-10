@@ -1115,7 +1115,6 @@ $(function () {
         );
 
         // Update jumlah item
-        updateTotalModalPerDimensiEdit();
         updateTotalItemModalEdit();
 
         // Update profit di tabel harga bertingkat & reseller secara realtime
@@ -1654,10 +1653,6 @@ $(function () {
 
     $(document).on("blur", ".jumlah_bahan_edit", function () {
         renderEditTabelBahanBaku();
-    });
-
-    $('#edit_lebar, #edit_metric_unit').on('input change', function() {
-        updateTotalModalPerDimensiEdit();
     });
 
     function hitungTotalModalBahanEdit() {
@@ -2449,23 +2444,4 @@ $(function () {
         const checkboxId = $(this).attr('id');
         updateLockIcon(checkboxId);
     });
-
-    function updateTotalModalPerDimensiEdit() {
-        const isMetric = $('#edit_gunakan_dimensi').is(':checked');
-        const container = $('#edit_totalModalPerDimensi');
-        
-        if (isMetric) {
-            const lebar = parseFloat($('#edit_lebar').val()) || 0;
-            const metricUnit = $('#edit_metric_unit').val() || 'cm';
-            const totalPerDimensi = editTotalModalKeseluruhanNumeric * lebar;
-            
-            $('#edit_totalModalPerDimensi').html(
-                'Harga Per Satuan Lari: Rp ' + totalPerDimensi.toLocaleString('id-ID') + ' / ' + metricUnit
-            );
-            $('#edit_satuanDimensiTotal').text(metricUnit);
-            container.show();
-        } else {
-            container.hide();
-        }
-    }
 });
