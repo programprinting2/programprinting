@@ -478,6 +478,7 @@ $(function () {
             $(lebarInput).val('0');
             $(panjangInput).val('0');
             $(luasInput).val('0');
+            $(metricUnitId).val('');
         }
     }
     
@@ -492,7 +493,7 @@ $(function () {
             $('#edit_lebar, #edit_panjang, #edit_luas').prop('disabled', true);
             // Reset values
             $('#edit_lebar, #edit_panjang, #edit_luas').val('0');
-            $('#edit_metric_unit').val('cm');
+            $('#edit_metric_unit').val('');
         }
         updateTotalModalPerDimensiEdit();
         toggleDimensiByCheckbox("edit");
@@ -2020,7 +2021,7 @@ $(function () {
             formData.append('lebar', $('#edit_lebar').val() || 0);
             formData.append('panjang', $('#edit_panjang').val() || 0);
             formData.append('is_metric', $('#edit_gunakan_dimensi').is(':checked') ? 1 : 0);
-            formData.append('metric_unit', $('#edit_metric_unit').val() || null);
+            formData.append('metric_unit', $('#edit_metric_unit').val() || '');
             const tagsArray = $('#edit_tags').val() || [];
             formData.append('tags', JSON.stringify(tagsArray));
             // bahanBakuData.forEach((item, index) => {

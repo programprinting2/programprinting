@@ -148,6 +148,7 @@ $(function () {
             $(lebarInput).val('0');
             $(panjangInput).val('0');
             $(luasInput).val('0');
+            $(metricUnitId).val('');
         }
     }
 
@@ -1665,7 +1666,7 @@ $(function () {
             formData.append('lebar', $('#lebar').val() || 0);
             formData.append('panjang', $('#panjang').val() || 0);
             formData.append('is_metric', $('#gunakan_dimensi').is(':checked') ? 1 : 0);
-            formData.append('metric_unit', $('#metric_unit').val() || null);
+            formData.append('metric_unit', $('#metric_unit').val() || '');
             formData.append('warna_id', document.getElementById('warna_id').value || '');
             const tagsArray = $('#tags').val() || []; 
             formData.append('tags', JSON.stringify(tagsArray));

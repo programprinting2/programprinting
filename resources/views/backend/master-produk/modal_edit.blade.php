@@ -122,6 +122,7 @@
                       <div class="col-md-6">
                           <label for="edit_metric_unit" class="form-label">Satuan Metric</label>
                           <select class="form-select" id="edit_metric_unit" name="metric_unit" disabled>
+                              <option value="" selected disabled>Pilih Satuan</option>
                               <option value="mm">Millimeter (mm)</option>
                               <option value="cm">Centimeter (cm)</option>
                               <option value="m">Meter (m)</option>

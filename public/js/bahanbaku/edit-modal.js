@@ -1092,6 +1092,16 @@ $(document).ready(function() {
   $('#editModal').on('shown.bs.modal', function () {
     updateEditStockUnitLabels();
     updateEditStokInfo();
+    
+    const isMetric = $('#edit_gunakan_dimensi').is(':checked');
+    if (isMetric) {
+      $('#edit_hargaSatuanLariContainer').show();
+      updateEditHargaSatuanLari();
+      updateEditSatuanLariLabel();
+    } else {
+      $('#edit_hargaSatuanLariContainer').hide();
+      $('#edit_hargaSatuanLari').val('');
+    }
   });
 
   // Event listener untuk menghapus baris konversi pada modal edit
