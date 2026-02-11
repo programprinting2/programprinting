@@ -1787,19 +1787,19 @@
     }
     
     function tambahModalFinishing(nama, jumlah, finishingId = null, keterangan = '', isMetric = false, panjangLocked = false, lebarLocked = false, metricUnit = '-', panjangFinishing = 0, lebarFinishing = 0, satuan = '-', hargaBertingkatJson = [], hargaResellerJson = []) {
-        const isDuplicate = modalFinishingData.some(item => 
-            (finishingId && item.finishing_id === finishingId) || 
-            (!finishingId && item.nama === nama)
-        );
+        // const isDuplicate = modalFinishingData.some(item => 
+        //     (finishingId && item.finishing_id === finishingId) || 
+        //     (!finishingId && item.nama === nama)
+        // );
         
-        if (isDuplicate) {
-            if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
-                SPKHelper.showNotification('Item sudah ada', 'Finishing ini sudah ditambahkan ke daftar.', 'warning');
-            } else {
-                alert('Finishing ini sudah ditambahkan ke daftar.');
-            }
-            return;
-        }
+        // if (isDuplicate) {
+        //     if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
+        //         SPKHelper.showNotification('Item sudah ada', 'Finishing ini sudah ditambahkan ke daftar.', 'warning');
+        //     } else {
+        //         alert('Finishing ini sudah ditambahkan ke daftar.');
+        //     }
+        //     return;
+        // }
 
         const dimensiValid = panjangFinishing > 0 && lebarFinishing > 0;
         const luas = dimensiValid ? panjangFinishing * lebarFinishing : 0;
