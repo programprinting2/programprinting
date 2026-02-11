@@ -242,6 +242,13 @@
             lebarInput.style.backgroundColor = data.lebar_locked ? '#f8f9fa' : '';
             lebarInput.style.cursor = data.lebar_locked ? 'not-allowed' : '';
         }
+
+        const luasColumn = document.getElementById('luasColumn');
+        if (luasColumn) {
+            const isAnyLocked = Boolean(data.panjang_locked || data.lebar_locked);
+            luasColumn.style.display = isAnyLocked ? 'none' : '';
+        }
+
         if (typeof updateLuas === 'function') {
             updateLuas();
         }
@@ -1228,9 +1235,22 @@
         // Ukuran
         const panjang = document.getElementById('modalPanjangInput')?.value || '0';
         const lebar = document.getElementById('modalLebarInput')?.value || '0';
-        const luas = (panjang * lebar).toFixed(2);
-        document.getElementById('summaryUkuran').textContent = lebar + ' x ' + panjang + ' ' + currentMetricUnit + ' = ' + luas + ' ' + currentMetricUnit + '²';
-        
+
+        const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
+        const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
+        const isAnyLocked = panjangLocked || lebarLocked;
+
+        const summaryUkuranEl = document.getElementById('summaryUkuran');
+        if (summaryUkuranEl) {
+            const ukuranText = `${lebar} x ${panjang} ${currentMetricUnit}`;
+            if (isAnyLocked) {
+                summaryUkuranEl.textContent = ukuranText;
+            } else {
+                const luas = (parseFloat(panjang || '0') * parseFloat(lebar || '0') || 0).toFixed(2);
+                summaryUkuranEl.textContent = `${ukuranText} = ${luas} ${currentMetricUnit}²`;
+            }
+        }
+                
         // Deadline
         const deadlineInput = document.getElementById('modalDeadlineInput');
         if (deadlineInput && deadlineInput.value) {
@@ -1276,22 +1296,46 @@
                 const total = parseFloat(f.total) || 0;
                 const panjang = parseFloat(f.panjang) || 0;
                 const lebar = parseFloat(f.lebar) || 0;
-                const dimensiValid = panjang > 0 && lebar > 0;
-                
-                let hargaPerUnit = 0;
-                if (f.is_metric && dimensiValid) {
-                    const luas = panjang * lebar;
-                    hargaPerUnit = qty > 0 && luas > 0 ? total / (qty * luas) : 0;
-                } else {
-                    hargaPerUnit = qty > 0 ? total / qty : 0;
+    
+                const panjangLocked = f.panjang_locked === true || f.panjang_locked === 'true';
+                const lebarLocked   = f.lebar_locked === true || f.lebar_locked === 'true';
+    
+                let dimensiValid = false;
+                let faktorDimensi = 1;
+    
+                if (f.is_metric) {
+                    if (!panjangLocked && !lebarLocked) {
+                        dimensiValid = panjang > 0 && lebar > 0;
+                        faktorDimensi = dimensiValid ? (panjang * lebar) : 0;
+                    } else if (panjangLocked && !lebarLocked) {
+                        dimensiValid = lebar > 0;
+                        faktorDimensi = dimensiValid ? lebar : 0;
+                    } else if (!panjangLocked && lebarLocked) {
+                        dimensiValid = panjang > 0;
+                        faktorDimensi = dimensiValid ? panjang : 0;
+                    } else {
+                        dimensiValid = true;
+                        faktorDimensi = 1;
+                    }
                 }
-                
+    
+                let hargaPerUnit = 0;
+                let qtyDisplay = qty;
+    
+                if (f.is_metric && dimensiValid && faktorDimensi > 0) {
+                    hargaPerUnit = total > 0 ? total / (qty * faktorDimensi) : 0;
+                    qtyDisplay = qty * faktorDimensi;
+                } else if (!f.is_metric) {
+                    hargaPerUnit = qty > 0 ? total / qty : 0;
+                    qtyDisplay = qty;
+                }
+    
                 return `<div class="d-flex justify-content-between small">
                     <div>
                         <div>${f.nama || f.name || 'Finishing'}</div>
-                        ${hargaPerUnit > 0 ? `<small class="text-muted">Rp ${hargaPerUnit.toLocaleString('id-ID')} × ${qty} = Rp ${total.toLocaleString('id-ID')}</small>` : ''}
+                        ${hargaPerUnit > 0 ? `<small class="text-muted">Rp ${hargaPerUnit.toLocaleString('id-ID')} × ${qtyDisplay} = Rp ${total.toLocaleString('id-ID')}</small>` : ''}
                     </div>
-                    <span class="fw-semibold">Rp ${total.toLocaleString('id-ID')}</span>
+                    <!-- <span class="fw-semibold">Rp ${total.toLocaleString('id-ID')}</span> -->
                 </div>`;
             }).join('');
         }
@@ -1570,13 +1614,37 @@
         const panjang = parseFloat(item.panjang) || 0;
         const lebar = parseFloat(item.lebar) || 0;
         const jumlah = parseFloat(item.jumlah) || 1;
-
-        const dimensiValid = panjang > 0 && lebar > 0;
-        const luas = dimensiValid ? panjang * lebar : 0;
-        
+    
+        const panjangLocked = item.panjang_locked === true || item.panjang_locked === 'true';
+        const lebarLocked   = item.lebar_locked === true || item.lebar_locked === 'true';
+    
+        let dimensiValid = false;
+        let faktorDimensi = 1;
+    
+        if (item.is_metric) {
+            if (!panjangLocked && !lebarLocked) {
+                dimensiValid = panjang > 0 && lebar > 0;
+                faktorDimensi = dimensiValid ? (panjang * lebar) : 0;
+            } else if (panjangLocked && !lebarLocked) {
+                dimensiValid = lebar > 0;
+                faktorDimensi = dimensiValid ? lebar : 0;
+            } else if (!panjangLocked && lebarLocked) {
+                dimensiValid = panjang > 0;
+                faktorDimensi = dimensiValid ? panjang : 0;
+            } else {
+                dimensiValid = true;
+                faktorDimensi = 1;
+            }
+        }
+    
         const hargaJual = getHargaJualFinishing(item, item.jumlah || 0);
-        if (item.is_metric && dimensiValid) {
-            item.total = jumlah * hargaJual * luas;
+    
+        if (item.is_metric) {
+            if (dimensiValid && faktorDimensi > 0) {
+                item.total = jumlah * hargaJual * faktorDimensi;
+            } else {
+                item.total = 0;
+            }
         } else {
             item.total = jumlah * hargaJual;
         }
@@ -1641,12 +1709,44 @@
                             const total = parseFloat(finishing.total) || 0;
                             const panjang = parseFloat(finishing.panjang) || 0;
                             const lebar = parseFloat(finishing.lebar) || 0;
-                            const dimensiValid = panjang > 0 && lebar > 0;
+                        
+                            const panjangLocked = finishing.panjang_locked === true || finishing.panjang_locked === 'true';
+                            const lebarLocked   = finishing.lebar_locked === true || finishing.lebar_locked === 'true';
+                        
+                            let dimensiValid = false;
+                            let faktorDimensi = 1;
+                        
+                            if (finishing.is_metric) {
+                                if (!panjangLocked && !lebarLocked) {
+                                    dimensiValid = panjang > 0 && lebar > 0;
+                                    faktorDimensi = dimensiValid ? (panjang * lebar) : 0;
+                                } else if (panjangLocked && !lebarLocked) {
+                                    dimensiValid = lebar > 0;
+                                    faktorDimensi = dimensiValid ? lebar : 0;
+                                } else if (!panjangLocked && lebarLocked) {
+                                    dimensiValid = panjang > 0;
+                                    faktorDimensi = dimensiValid ? panjang : 0;
+                                } else {
+                                    dimensiValid = true;
+                                    faktorDimensi = 1;
+                                }
+                            }
+                        
                             const dataLengkap = finishing.is_metric ? (qty > 0 && dimensiValid) : (qty > 0);
-                            
+                        
                             if (dataLengkap && total > 0) {
-                                const hargaPerUnit = qty > 0 ? total / qty : 0;
-                                return `<span class="badge bg-primary ms-2">${qty} × Rp ${hargaPerUnit.toLocaleString('id-ID')} = Rp ${total.toLocaleString('id-ID')}</span>`;
+                                let hargaPerUnit = 0;
+                                let qtyDisplay = qty;
+                        
+                                if (finishing.is_metric && faktorDimensi > 0) {
+                                    hargaPerUnit = total / (qty * faktorDimensi);
+                                    qtyDisplay = qty * faktorDimensi;
+                                } else {
+                                    hargaPerUnit = qty > 0 ? total / qty : 0;
+                                    qtyDisplay = qty;
+                                }
+                        
+                                return `<span class="badge bg-primary ms-2">${qtyDisplay} × Rp ${hargaPerUnit.toLocaleString('id-ID')} = Rp ${total.toLocaleString('id-ID')}</span>`;
                             } else {
                                 return `<span class="badge bg-warning ms-2">Data belum lengkap</span>`;
                             }
@@ -1689,7 +1789,7 @@
                                 </div>
                             </div>
                             ` : ''}
-                            ${showDimensionFields ? `
+                            ${showDimensionFields && !lebarLocked && !panjangLocked ? `
                             <!-- Luas  -->
                             <div class="col-md-3">
                                 <label class="form-label">Luas</label>

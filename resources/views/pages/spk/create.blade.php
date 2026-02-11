@@ -338,7 +338,7 @@
                                         </div>
                                         <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
                                       </div>
-                                      <div class="col-4">
+                                      <div class="col-4" id="luasColumn">
                                         <div class="input-group">
                                           <span class="input-group-text">Luas</span>
                                           <input type="text" class="form-control" id="modalLuasInput" readonly>

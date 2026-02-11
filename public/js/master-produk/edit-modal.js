@@ -276,6 +276,7 @@ $(function () {
                 }
                 $('#edit_gunakan_dimensi').prop('checked', !!p.is_metric);
                 $('#edit_metric_unit').val(p.metric_unit);
+                $('#edit_metric_unit').data('previous-unit', p.metric_unit || 'cm');
                 // updateEditMetricLabels();
                 setTimeout(() => {
                     toggleDimensiByCheckbox("edit");
