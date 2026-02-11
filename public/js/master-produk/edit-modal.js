@@ -276,7 +276,7 @@ $(function () {
                 }
                 $('#edit_gunakan_dimensi').prop('checked', !!p.is_metric);
                 $('#edit_metric_unit').val(p.metric_unit);
-                updateEditMetricLabels();
+                // updateEditMetricLabels();
                 setTimeout(() => {
                     toggleDimensiByCheckbox("edit");
                     $('#edit_lebar_locked, #edit_panjang_locked').each(function() {
