@@ -40,8 +40,10 @@
 
     // Explorer State
 
+
     let explorerContext = 'spk'; // 'spk' or 'item'
     let currentExplorerPath = '';
+    let selectedExplorerFiles = [];
 
     // --- Element refs (lazy via getter) ---
     const el = {
@@ -2006,6 +2008,8 @@
     // --- File Explorer Logic ---
     function openExplorer(context) {
         explorerContext = context;
+        selectedExplorerFiles = [];
+        updateExplorerSelectionUI();
         const modal = new bootstrap.Modal(document.getElementById('modalFileExplorer'));
         modal.show();
         loadExplorerPath('');
@@ -2058,13 +2062,30 @@
         // Add files
         data.files.forEach(file => {
             const item = document.createElement('div');
-            item.className = 'explorer-item';
+            const isSelected = selectedExplorerFiles.some(f => f.path === file.path);
+            item.className = `explorer-item ${isSelected ? 'bg-primary bg-opacity-10' : ''}`;
             item.innerHTML = `
+                <div class="form-check me-2 pointer-events-none">
+                    <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''}>
+                </div>
                 <div class="icon"><i class="fa fa-file file-icon"></i></div>
                 <div class="name">${file.name}</div>
                 <div class="meta">${formatBytes(file.size)}</div>
             `;
-            item.onclick = () => selectFile(file);
+            // Toggle selection on click
+            item.onclick = (e) => {
+                // Prevent double toggling if clicking directly on checkbox (default behavior)
+                if (e.target.type !== 'checkbox') {
+                   toggleFileSelection(file, item);
+                }
+            };
+            // Handle checkbox click specifically
+            const checkbox = item.querySelector('input[type="checkbox"]');
+            checkbox.onclick = (e) => {
+                e.stopPropagation();
+                toggleFileSelection(file, item);
+            };
+
             contentArea.appendChild(item);
         });
 
@@ -2073,14 +2094,54 @@
         }
     }
 
-    function selectFile(file) {
-        if (explorerContext === 'spk') {
-            addFileToSPK(file);
+    function toggleFileSelection(file, itemElement) {
+        const index = selectedExplorerFiles.findIndex(f => f.path === file.path);
+        if (index === -1) {
+            selectedExplorerFiles.push(file);
+            if (itemElement) {
+                itemElement.classList.add('bg-primary', 'bg-opacity-10');
+                itemElement.querySelector('input[type="checkbox"]').checked = true;
+            }
         } else {
-            addFileToItem(file);
+            selectedExplorerFiles.splice(index, 1);
+            if (itemElement) {
+                itemElement.classList.remove('bg-primary', 'bg-opacity-10');
+                itemElement.querySelector('input[type="checkbox"]').checked = false;
+            }
         }
-        bootstrap.Modal.getInstance(document.getElementById('modalFileExplorer')).hide();
+        updateExplorerSelectionUI();
     }
+
+    function updateExplorerSelectionUI() {
+        const count = selectedExplorerFiles.length;
+        const countEl = document.getElementById('selectedFileCount');
+        const btn = document.getElementById('btnPilihFileExplorer');
+        
+        if (countEl) countEl.textContent = count;
+        if (btn) btn.disabled = count === 0;
+    }
+
+    // Initialize "Pilih File" button listener
+    const btnPilihFile = document.getElementById('btnPilihFileExplorer');
+    if (btnPilihFile) {
+        btnPilihFile.onclick = () => {
+            selectedExplorerFiles.forEach(file => {
+                if (explorerContext === 'spk') {
+                    addFileToSPK(file);
+                } else {
+                    addFileToItem(file);
+                }
+            });
+            // Close modal
+            bootstrap.Modal.getInstance(document.getElementById('modalFileExplorer')).hide();
+            // Reset selection
+            selectedExplorerFiles = [];
+            updateExplorerSelectionUI();
+        };
+    }
+
+    // Keep selectFile for single click if needed? No, we are moving to multi-select.
+    // function selectFile(file) { ... } // Removed or deprecated
 
     function addFileToSPK(file) {
         const exists = filePendukungData.some(f => f.path === file.path);

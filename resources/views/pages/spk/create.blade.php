@@ -847,8 +847,16 @@
             </div>
           </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+        <div class="modal-footer justify-content-between">
+          <div class="text-muted small">
+            <span id="selectedFileCount">0</span> file dipilih
+          </div>
+          <div>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="btnPilihFileExplorer" disabled>
+              <i class="fa fa-check me-1"></i> Pilih File
+            </button>
+          </div>
         </div>
       </div>
     </div>
