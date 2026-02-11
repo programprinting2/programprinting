@@ -506,6 +506,10 @@
                                   <small class="text-muted text-uppercase">Jumlah</small>
                                   <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
                                 </div>
+                                <div class="col-6">
+                                  <small class="text-muted text-uppercase d-block mt-1">Harga Base</small>
+                                  <p class="mb-0 fw-semibold" id="summaryHargaBase">Rp 0</p>
+                                </div>
                               </div>
                             </div>
 

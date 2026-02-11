@@ -1196,6 +1196,34 @@
         const satuanDisplay = document.getElementById('modalSatuanDisplay');
         const satuan = satuanDisplay?.textContent || 'pcs';
         document.getElementById('summaryJumlah').textContent = jumlah + ' ' + satuan;
+
+        // Harga Base
+        const qtyForHargaBase = parseFloat(jumlah) || 0;
+        const hargaBaseEl = document.getElementById('summaryHargaBase');
+        let hargaBaseText = 'Rp 0';
+
+        if (currentSelectedProduk && qtyForHargaBase > 0) {
+            const hargaJual = getHargaJualFinishing(
+                {
+                    harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
+                    harga_reseller_json: currentSelectedProduk.harga_reseller_json || []
+                },
+                qtyForHargaBase
+            );
+
+            if (hargaJual > 0) {
+                if (currentSelectedProduk.is_metric) {
+                    const unit = currentMetricUnit || currentSelectedProduk.metric_unit || 'cm';
+                    hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${unit}²`;
+                } else {
+                    hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${satuan}`;
+                }
+            }
+        }
+
+        if (hargaBaseEl) {
+            hargaBaseEl.textContent = hargaBaseText;
+        }
         
         // Ukuran
         const panjang = document.getElementById('modalPanjangInput')?.value || '0';
