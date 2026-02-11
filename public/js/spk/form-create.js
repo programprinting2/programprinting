@@ -1143,6 +1143,7 @@
         
         container.innerHTML = modalUploadedFiles.map((file, idx) => {
             const filePath = file.path || file.sourcePath || '';
+            const isDefault = idx === 0;
             return `
                 <div class="file-item" data-idx="${idx}">
                     <div class="file-icon">
@@ -1152,6 +1153,12 @@
                         <div class="file-name">${file.name}</div>
                         ${filePath ? `<div class="file-path text-truncate" title="${filePath}">${filePath}</div>` : ''}
                     </div>
+                    <button type="button"
+                            class="btn btn-sm ${isDefault ? 'btn-outline-secondary' : 'btn-outline-primary'} me-1 btn-set-default-file"
+                            data-idx="${idx}"
+                            ${isDefault ? 'disabled' : ''}>
+                            ${isDefault ? 'Default' : 'Set default'}
+                    </button>
                     <button type="button" class="btn btn-sm btn-link text-danger btn-remove-file" data-idx="${idx}">
                         <i class="fa fa-times"></i>
                     </button>
@@ -1425,6 +1432,16 @@
         
         // Remove file
         modal.addEventListener('click', (e) => {
+            const target = e.target.closest('.btn-set-default-file');
+            if (target) {
+                const idx = parseInt(target.getAttribute('data-idx'), 10);
+                if (!isNaN(idx) && idx > 0 && Array.isArray(modalUploadedFiles)) {
+                    const [selected] = modalUploadedFiles.splice(idx, 1);
+                    modalUploadedFiles.unshift(selected);
+                    renderModalUploadedFiles();
+                }
+            }
+
             if (e.target.closest('.btn-remove-file')) {
                 const idx = parseInt(e.target.closest('.btn-remove-file').dataset.idx);
                 modalUploadedFiles.splice(idx, 1);

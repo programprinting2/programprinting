@@ -55,6 +55,7 @@ return [
     'url' => env('APP_URL', 'http://localhost'),
 
     'asset_url' => env('ASSET_URL', null),
+    'explorer_base_path' => env('EXPLORER_BASE_PATH', 'F:/PESANAN/'),
 
     /*
     |--------------------------------------------------------------------------
