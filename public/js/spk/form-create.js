@@ -1230,7 +1230,11 @@
             if (hargaJual > 0) {
                 if (currentSelectedProduk.is_metric) {
                     const unit = currentMetricUnit || currentSelectedProduk.metric_unit || 'cm';
-                    hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${unit}²`;
+                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
+                    const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
+                    const useSquareUnit = (panjangLocked === lebarLocked);
+
+                    hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${unit}${useSquareUnit ? '²' : ''}`;
                 } else {
                     hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${satuan}`;
                 }
@@ -1240,6 +1244,53 @@
         if (hargaBaseEl) {
             hargaBaseEl.textContent = hargaBaseText;
         }
+
+        //  Harga per (satuan) untuk produk metric 
+        const hargaPerSatuanContainer = document.getElementById('summaryHargaPerSatuanContainer');
+        const hargaPerSatuanEl = document.getElementById('summaryHargaPerSatuan');
+        const hargaPerSatuanLabelEl = document.getElementById('summaryHargaPerSatuanLabel');
+
+        if (hargaPerSatuanContainer && hargaPerSatuanEl && hargaPerSatuanLabelEl) {
+            hargaPerSatuanContainer.style.display = 'none';
+            hargaPerSatuanEl.textContent = 'Rp 0';
+            hargaPerSatuanLabelEl.textContent = satuan || 'satuan';
+
+            if (currentSelectedProduk && currentSelectedProduk.is_metric && qtyForHargaBase > 0) {
+                const hargaJual = getHargaJualFinishing(
+                    {
+                        harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
+                        harga_reseller_json: currentSelectedProduk.harga_reseller_json || []
+                    },
+                    qtyForHargaBase
+                );
+
+                if (hargaJual > 0) {
+                    const panjangVal = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
+                    const lebarVal   = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
+
+                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
+                    const lebarLocked   = document.getElementById('lebarStatus')?.style.display === 'block';
+
+                    let factor = 0;
+
+                    if (panjangLocked === lebarLocked) {
+                        factor = panjangVal * lebarVal;
+                    } else {
+                        if (panjangLocked && !lebarLocked) {
+                            factor = lebarVal;
+                        } else if (!panjangLocked && lebarLocked) {
+                            factor = panjangVal;
+                        }
+                    }
+
+                    if (factor >= 0) {
+                        const hargaPerSatuan = hargaJual * factor;
+                        hargaPerSatuanEl.textContent = `Rp ${hargaPerSatuan.toLocaleString('id-ID')} / ${satuan}`;
+                        hargaPerSatuanContainer.style.display = '';
+                    }
+                }
+            }
+        }
         
         // Ukuran
         const panjang = document.getElementById('modalPanjangInput')?.value || '0';
@@ -1247,17 +1298,30 @@
 
         const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
         const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
-        const isAnyLocked = panjangLocked || lebarLocked;
-
+        const qtyUkuran = parseFloat(jumlah);
         const summaryUkuranEl = document.getElementById('summaryUkuran');
         if (summaryUkuranEl) {
-            const ukuranText = `${lebar} x ${panjang} ${currentMetricUnit}`;
-            if (isAnyLocked) {
-                summaryUkuranEl.textContent = ukuranText;
+            const bothLocked = panjangLocked && lebarLocked;
+            const noneLocked = !panjangLocked && !lebarLocked;
+        
+            let displayText, sigma, sigmaUnit = currentMetricUnit;
+        
+            if (bothLocked || noneLocked) {
+                const luas = panjang * lebar;
+                displayText = `${lebar} x ${panjang} ${currentMetricUnit} = ${luas.toFixed(2)} ${currentMetricUnit}²`;
+                sigma = qtyUkuran * luas;
+                sigmaUnit += '²';
             } else {
-                const luas = (parseFloat(panjang || '0') * parseFloat(lebar || '0') || 0).toFixed(2);
-                summaryUkuranEl.textContent = `${ukuranText} = ${luas} ${currentMetricUnit}²`;
+                const unlockedValue = !panjangLocked ? panjang : lebar;
+                displayText = `${unlockedValue} ${currentMetricUnit}`;
+                sigma = qtyUkuran * unlockedValue;
             }
+        
+            summaryUkuranEl.innerHTML = `
+                ${displayText}
+                <br>
+                <small class="text-muted">Σ ${sigma.toFixed(2)} ${sigmaUnit}</small>
+            `;
         }
                 
         // Deadline
@@ -1351,36 +1415,59 @@
         
         // Pricing 
         const qty = parseFloat(jumlah) || 0;
+        let hargaJual = 0;
         let subtotalCetak = 0;
-        if (currentSelectedProduk) {
-            const hargaJual = getHargaJualFinishing({
+        let factorDimensi = 1;
+
+        if (currentSelectedProduk && qty > 0) {
+            hargaJual = getHargaJualFinishing({
                 harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
-                harga_reseller_json: currentSelectedProduk.harga_reseller_json || []
+                harga_reseller_json: currentSelectedProduk.harga_reseller_json || [],
             }, qty);
-            
-            if (currentSelectedProduk.is_metric) {
-                const panjang = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
-                const lebar = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
-                const dimensiValid = panjang > 0 && lebar > 0;
-                const luas = dimensiValid ? panjang * lebar : 0;
-                
-                subtotalCetak = dimensiValid ? qty * hargaJual * luas : qty * hargaJual;
-            } else {
-                subtotalCetak = qty * hargaJual;
+
+            if (hargaJual > 0) {
+                if (currentSelectedProduk.is_metric) {
+                    const panjangVal = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
+                    const lebarVal   = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
+
+                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
+                    const lebarLocked   = document.getElementById('lebarStatus')?.style.display === 'block';
+
+                    if (panjangLocked === lebarLocked) {
+                        factorDimensi = panjangVal * lebarVal;        
+                    } else {
+                        if (panjangLocked && !lebarLocked) {
+                            factorDimensi = lebarVal;
+                        } else if (!panjangLocked && lebarLocked) {
+                            factorDimensi = panjangVal;
+                        }
+                    }
+
+                    subtotalCetak = qty * factorDimensi * hargaJual;
+                } else {
+                    factorDimensi = 1;
+                    subtotalCetak = qty * hargaJual;
+                }
             }
         }
-        // const biayaFinishing = modalSelectedFinishing.reduce((sum, f) => sum + f.subtotal, 0);
-        const biayaFinishing = modalFinishingData.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
+
+        const biayaFinishing = modalFinishingData.reduce(
+            (sum, item) => sum + parseFloat(item.total || 0),
+            0
+        );
         const totalAkhir = subtotalCetak + biayaFinishing;
 
         let detailText = '';
-        if (qty > 0 && subtotalCetak > 0) {
-            const hargaPerUnit = subtotalCetak / qty; 
-            detailText = `(${qty} × Rp ${hargaPerUnit.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+        if (qty > 0 && hargaJual > 0) {
+            if (currentSelectedProduk && currentSelectedProduk.is_metric) {
+                detailText = `(${qty * factorDimensi.toFixed(2)} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+            } else {
+                detailText = `(${qty} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+            }
         } else {
             detailText = 'Rp ' + subtotalCetak.toLocaleString('id-ID');
         }
-        
+
         document.getElementById('summarySubtotalCetak').textContent = detailText;
         document.getElementById('summaryBiayaFinishing').textContent = 'Rp ' + biayaFinishing.toLocaleString('id-ID');
         document.getElementById('summaryTotalAkhir').textContent = 'Rp ' + totalAkhir.toLocaleString('id-ID');

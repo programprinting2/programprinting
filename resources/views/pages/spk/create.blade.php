@@ -507,8 +507,12 @@
                                   <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
                                 </div>
                                 <div class="col-6">
-                                  <small class="text-muted text-uppercase d-block mt-1">Harga Base</small>
+                                  <small class="text-muted text-uppercase d-block mt-1">Harga @</small>
                                   <p class="mb-0 fw-semibold" id="summaryHargaBase">Rp 0</p>
+                                </div>
+                                <div class="col-6" id="summaryHargaPerSatuanContainer" style="display:none;">
+                                  <small class="text-muted text-uppercase d-block mt-1">Harga per <span id="summaryHargaPerSatuanLabel">satuan</span></small>
+                                  <p class="mb-0 fw-semibold" id="summaryHargaPerSatuan">Rp 0</p>
                                 </div>
                               </div>
                             </div>
