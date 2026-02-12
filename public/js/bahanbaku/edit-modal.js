@@ -302,6 +302,7 @@ function loadBahanBakuData(id) {
     $('#edit_gunakan_dimensi').prop('checked', data.is_metric || false);
     
     $('#edit_metric_unit').val(data.metric_unit || 'cm');
+    $('#edit_metric_unit').data('previous-unit', data.metric_unit || 'cm');
     $('#edit_lebar').val(data.lebar || '');
     $('#edit_panjang').val(data.panjang || '');
     
@@ -1269,6 +1270,7 @@ $(document).ready(function() {
         // Reset values
         $('#edit_lebar, #edit_panjang, #edit_luas').val('0');
         $('#edit_metric_unit').val('cm');
+        $('#edit_metric_unit').data('previous-unit', 'cm');
     }
   });
 

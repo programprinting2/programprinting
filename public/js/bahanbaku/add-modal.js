@@ -802,10 +802,10 @@ $(document).ready(function() {
         // Reset values
         $('#lebar, #panjang, #luas').val('0');
         $('#metric_unit').val('cm');
+        $('#metric_unit').data('previous-unit', 'cm');
     }
   });
 
-  $('#metric_unit').data('previous-unit', $('#metric_unit').val() || 'cm');
   // Handle satuan metric change
   $('#metric_unit').on('change', function() {
     const newUnit = $(this).val();
