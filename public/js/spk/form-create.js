@@ -1149,9 +1149,9 @@
                     <div class="file-icon">
                         <i class="fa ${getFileIcon(file.type)} text-primary"></i>
                     </div>
-                    <div class="file-info">
-                        <div class="file-name">${file.name}</div>
-                        ${filePath ? `<div class="file-path text-truncate" title="${filePath}">${filePath}</div>` : ''}
+                    <div class="file-info flex-grow-1 overflow-hidden">
+                        <div class="file-name text-truncate"  title="${file.name}">${file.name}</div>
+                        ${filePath ? `<div class="file-path text-truncate text-muted small" title="${filePath}">${filePath}</div>` : ''}
                     </div>
                     <button type="button"
                             class="btn btn-sm ${isDefault ? 'btn-outline-secondary' : 'btn-outline-primary'} me-1 btn-set-default-file"
