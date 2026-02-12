@@ -1996,23 +1996,24 @@
     function getHargaJualFinishing(finishing, qty) {
         const customerKategori = getCustomerKategoriHarga();
         
-        let hargaData = [];
-        if (customerKategori === 'reseller') {
-            hargaData = finishing.harga_reseller_json || [];
-        } else {
-            hargaData = finishing.harga_bertingkat_json || [];
+        const hargaData = customerKategori === 'reseller'
+            ? (finishing.harga_reseller_json || [])
+            : (finishing.harga_bertingkat_json || []);
+        
+        if (!hargaData.length) return 0;
+    
+        const sorted = [...hargaData].sort((a, b) => a.min_qty - b.min_qty);
+    
+        const matched = sorted.find(h => qty >= h.min_qty && qty <= h.max_qty);
+        if (matched) return matched.harga;
+    
+        const lastTier = sorted[sorted.length - 1];
+        if (qty > lastTier.max_qty) {
+            return lastTier.harga;
         }
-        
-        if (!hargaData || hargaData.length === 0) {
-            return 0;
-        }
-        
-        const hargaTersedia = hargaData
-            .filter(h => qty >= h.min_qty && qty <= h.max_qty)
-            .sort((a, b) => b.min_qty - a.min_qty)[0];
-        
-        return hargaTersedia ? hargaTersedia.harga : 0;
+        return sorted[0].harga;
     }
+    
     
     // Fungsi untuk mendapatkan kategori harga customer
     function getCustomerKategoriHarga() {
