@@ -489,20 +489,20 @@
                           </div>
 
                           {{-- Tab navigation --}}
-                          <ul class="nav nav-tabs nav-tabs-sm mb-2" id="detailOrderanTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                              <button class="nav-link active" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
-                                type="button" role="tab">Summary</button>
-                            </li>
+                          <ul class="nav nav-tabs nav-tabs-line mb-2" id="detailOrderanTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                               <button class="nav-link" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
                                 type="button" role="tab">Preview File</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link active" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
+                                type="button" role="tab">Summary</button>
                             </li>
                           </ul>
 
                           <div class="tab-content" id="detailOrderanTabContent">
                             {{-- Tab 1: Summary Produk Orderan --}}
-                            <div class="tab-pane fade show active" id="tab-summary-orderan-pane" role="tabpanel">
+                            <div class="tab-pane fade" id="tab-summary-orderan-pane" role="tabpanel">
                               <div class="order-summary">
                                 <!-- Produk Info -->
                                 <div class="summary-item mb-3 pb-3 border-bottom">
@@ -572,7 +572,7 @@
                             </div>
 
                             {{-- Tab 2: Preview File Default --}}
-                            <div class="tab-pane fade" id="tab-preview-orderan-pane" role="tabpanel">
+                            <div class="tab-pane fade show active" id="tab-preview-orderan-pane" role="tabpanel">
                               <div id="orderanPreviewContainer" class="min-vh-50 d-flex align-items-center justify-content-center bg-dark bg-opacity-10 rounded p-3" style="min-height: 280px;">
                                 <p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>
                               </div>
