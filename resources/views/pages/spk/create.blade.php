@@ -491,11 +491,11 @@
                           {{-- Tab navigation --}}
                           <ul class="nav nav-tabs nav-tabs-line mb-2" id="detailOrderanTabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
+                              <button class="nav-link active" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
                                 type="button" role="tab">Preview File</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link active" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
+                              <button class="nav-link" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
                                 type="button" role="tab">Summary</button>
                             </li>
                           </ul>

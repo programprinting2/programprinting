@@ -1422,6 +1422,7 @@
         let hargaJual = 0;
         let subtotalCetak = 0;
         let factorDimensi = 1;
+        let satuanProduk = satuan || 'pcs';
 
         if (currentSelectedProduk && qty > 0) {
             hargaJual = getHargaJualFinishing({
@@ -1439,17 +1440,20 @@
 
                     if (panjangLocked === lebarLocked) {
                         factorDimensi = panjangVal * lebarVal;        
+                        satuanProduk = (currentMetricUnit || currentSelectedProduk.metric_unit || 'cm') + '²';
                     } else {
                         if (panjangLocked && !lebarLocked) {
                             factorDimensi = lebarVal;
                         } else if (!panjangLocked && lebarLocked) {
                             factorDimensi = panjangVal;
                         }
+                        satuanProduk = currentMetricUnit || currentSelectedProduk.metric_unit || 'cm';
                     }
 
                     subtotalCetak = qty * factorDimensi * hargaJual;
                 } else {
                     factorDimensi = 1;
+                    satuanProduk = satuan;
                     subtotalCetak = qty * hargaJual;
                 }
             }
@@ -1464,9 +1468,9 @@
         let detailText = '';
         if (qty > 0 && hargaJual > 0) {
             if (currentSelectedProduk && currentSelectedProduk.is_metric) {
-                detailText = `(${qty * factorDimensi.toFixed(2)} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+                detailText = `(${qty * factorDimensi.toFixed(2)} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
             } else {
-                detailText = `(${qty} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+                detailText = `(${qty} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
             }
         } else {
             detailText = 'Rp ' + subtotalCetak.toLocaleString('id-ID');
