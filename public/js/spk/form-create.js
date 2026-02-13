@@ -33,14 +33,13 @@
     // Preview item state
 
     let modalFinishingData = [];
+    let orderanPreviewObjectUrl = null;
     // let previewFinishing = [];
 
     let currentExpandedFinishingIndex = 0;
     let currentSelectedProduk = null;
 
     // Explorer State
-
-
     let explorerContext = 'spk'; // 'spk' or 'item'
     let currentExplorerPath = '';
     let selectedExplorerFiles = [];
@@ -1046,7 +1045,6 @@
     }
     
     function resetModalTambahItem() {
-
         currentExpandedFinishingIndex = 0;
         currentSelectedProduk = null; 
         // Reset semua input
@@ -1097,6 +1095,11 @@
         }
         if (satuanLebar) {
             satuanLebar.textContent = '';
+        }
+
+        if (orderanPreviewObjectUrl) {
+            URL.revokeObjectURL(orderanPreviewObjectUrl);
+            orderanPreviewObjectUrl = null;
         }
         
         // Reset panjang dan lebar, enable kembali
@@ -1201,6 +1204,7 @@
     // }
     
     function updateModalSummary() {
+        renderOrderanPreviewTab();
         // Produk
         const produkInput = document.getElementById('modalProdukSelect');
         const produkId = document.getElementById('modalProdukId');
@@ -1526,6 +1530,7 @@
                     const [selected] = modalUploadedFiles.splice(idx, 1);
                     modalUploadedFiles.unshift(selected);
                     renderModalUploadedFiles();
+                    renderOrderanPreviewTab();
                 }
             }
 
@@ -1534,6 +1539,7 @@
                 modalUploadedFiles.splice(idx, 1);
                 renderModalUploadedFiles();
                 updateModalSummary();
+                renderOrderanPreviewTab();
             }
         });
 
@@ -1571,6 +1577,13 @@
                 if (typeof updateModalSummary === 'function') {
                     updateModalSummary();
                 }
+            });
+        }
+
+        const tabPreviewBtn = document.getElementById('tab-preview-orderan');
+        if (tabPreviewBtn) {
+            tabPreviewBtn.addEventListener('shown.bs.tab', () => {
+                renderOrderanPreviewTab();
             });
         }
         
@@ -2297,6 +2310,62 @@
         }
     });
 
-
-
+    function renderOrderanPreviewTab() {
+        const container = document.getElementById('orderanPreviewContainer');
+        if (!container) return;
+    
+        const defaultFile = modalUploadedFiles[0];
+    
+        if (!defaultFile) {
+            container.innerHTML = '<p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>';
+            return;
+        }
+    
+        const type = (defaultFile.type || '').toLowerCase();
+        const ext = (defaultFile.name || '').split('.').pop().toLowerCase();
+        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+        const isImage = type.includes('image') || imageExts.includes(ext);
+        const isPdf = type.includes('pdf') || ext === 'pdf';
+    
+        if (!isImage && !isPdf) {
+            container.innerHTML = '<p class="text-muted small mb-0 text-center">Preview hanya tersedia untuk file gambar dan PDF.</p>';
+            return;
+        }
+    
+        if (orderanPreviewObjectUrl) {
+            URL.revokeObjectURL(orderanPreviewObjectUrl);
+            orderanPreviewObjectUrl = null;
+        }
+    
+        let url = null;
+    
+        if (defaultFile.source === 'local' && defaultFile.file instanceof File) {
+            url = URL.createObjectURL(defaultFile.file);
+            orderanPreviewObjectUrl = url;
+        } else {
+            const path = defaultFile.path || defaultFile.sourcePath || '';
+            if (path && (path.startsWith('http://') || path.startsWith('https://'))) {
+                url = path;
+            } else if (path) {
+                url = `/backend/preview-file?path=${encodeURIComponent(path)}`;
+            }
+        }
+    
+        if (!url) {
+            container.innerHTML = '<p class="text-muted small mb-0 text-center">File tidak bisa dipreview langsung dari browser.</p>';
+            return;
+        }
+    
+        if (isImage) {
+            container.innerHTML = `
+                <div class="w-100 text-center">
+                    <img src="${url}" class="img-fluid rounded" alt="${defaultFile.name || ''}">
+                </div>
+            `;
+        } else if (isPdf) {
+            container.innerHTML = `
+                <iframe src="${url}" class="w-100 rounded" style="height: 360px;" frameborder="0"></iframe>
+            `;
+        }
+    }
 })();

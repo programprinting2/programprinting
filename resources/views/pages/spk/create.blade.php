@@ -487,71 +487,95 @@
                             <span class="section-number me-2">4</span>
                             <h6 class="mb-0 fw-bold">Detail Orderan</h6>
                           </div>
-                          
-                          <div class="order-summary">
-                            <!-- Produk Info -->
-                            <div class="summary-item mb-3 pb-3 border-bottom">
-                              <small class="text-muted text-uppercase">Produk</small>
-                              <p class="mb-0 fw-semibold" id="summaryProduk">-</p>
-                            </div>
 
-                            <!-- Jumlah & Ukuran -->
-                            <div class="summary-item mb-3 pb-3 border-bottom">
-                              <div class="row">
-                                <div class="col-6" id="summaryUkuranContainer" style="display: none;">
-                                  <small class="text-muted text-uppercase">Ukuran</small>
-                                  <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
+                          {{-- Tab navigation --}}
+                          <ul class="nav nav-tabs nav-tabs-sm mb-2" id="detailOrderanTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link active" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
+                                type="button" role="tab">Summary</button>
+                            </li>
+                            <li class="nav-item" role="presentation">
+                              <button class="nav-link" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
+                                type="button" role="tab">Preview File</button>
+                            </li>
+                          </ul>
+
+                          <div class="tab-content" id="detailOrderanTabContent">
+                            {{-- Tab 1: Summary Produk Orderan --}}
+                            <div class="tab-pane fade show active" id="tab-summary-orderan-pane" role="tabpanel">
+                              <div class="order-summary">
+                                <!-- Produk Info -->
+                                <div class="summary-item mb-3 pb-3 border-bottom">
+                                  <small class="text-muted text-uppercase">Produk</small>
+                                  <p class="mb-0 fw-semibold" id="summaryProduk">-</p>
                                 </div>
-                                <div class="col-6">
-                                  <small class="text-muted text-uppercase">Jumlah</small>
-                                  <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
+
+                                <!-- Jumlah & Ukuran -->
+                                <div class="summary-item mb-3 pb-3 border-bottom">
+                                  <div class="row">
+                                    <div class="col-6" id="summaryUkuranContainer" style="display: none;">
+                                      <small class="text-muted text-uppercase">Ukuran</small>
+                                      <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
+                                    </div>
+                                    <div class="col-6">
+                                      <small class="text-muted text-uppercase">Jumlah</small>
+                                      <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
+                                    </div>
+                                    <div class="col-6">
+                                      <small class="text-muted text-uppercase d-block mt-1">Harga @</small>
+                                      <p class="mb-0 fw-semibold" id="summaryHargaBase">Rp 0</p>
+                                    </div>
+                                    <div class="col-6" id="summaryHargaPerSatuanContainer" style="display:none;">
+                                      <small class="text-muted text-uppercase d-block mt-1">Harga per <span id="summaryHargaPerSatuanLabel">satuan</span></small>
+                                      <p class="mb-0 fw-semibold" id="summaryHargaPerSatuan">Rp 0</p>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div class="col-6">
-                                  <small class="text-muted text-uppercase d-block mt-1">Harga @</small>
-                                  <p class="mb-0 fw-semibold" id="summaryHargaBase">Rp 0</p>
+
+                                <!-- Finishing -->
+                                <div class="summary-item mb-3 pb-3 border-bottom">
+                                  <small class="text-muted text-uppercase">Finishing</small>
+                                  <div id="summaryFinishingList" class="mt-1">
+                                    <span class="text-muted">-</span>
+                                  </div>
                                 </div>
-                                <div class="col-6" id="summaryHargaPerSatuanContainer" style="display:none;">
-                                  <small class="text-muted text-uppercase d-block mt-1">Harga per <span id="summaryHargaPerSatuanLabel">satuan</span></small>
-                                  <p class="mb-0 fw-semibold" id="summaryHargaPerSatuan">Rp 0</p>
+
+                                <!-- Rincian Harga -->
+                                <div class="summary-pricing mt-4">
+                                  <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Subtotal Cetak</span>
+                                    <span id="summarySubtotalCetak">Rp 0</span>
+                                  </div>
+                                  <div class="d-flex justify-content-between mb-2">
+                                    <span class="text-muted">Biaya Finishing</span>
+                                    <span id="summaryBiayaFinishing">Rp 0</span>
+                                  </div>
+                                  <hr>
+                                  <div class="d-flex justify-content-between">
+                                    <span class="fw-bold">Total</span>
+                                    <span class="fw-bold text-primary fs-5" id="summaryTotalAkhir">Rp 0</span>
+                                  </div>
+                                </div>
+
+                                <!-- Deadline -->
+                                <div class="summary-item mt-3 mb-3 pb-3 border-bottom">
+                                  <small class="text-muted text-uppercase">Deadline</small>
+                                  <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
+                                </div>
+
+                                <!-- Files -->
+                                <div class="summary-item mb-3 pb-3 border-bottom">
+                                  <small class="text-muted text-uppercase">Files</small>
+                                  <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
                                 </div>
                               </div>
                             </div>
 
-                            <!-- Finishing -->
-                            <div class="summary-item mb-3 pb-3 border-bottom">
-                              <small class="text-muted text-uppercase">Finishing</small>
-                              <div id="summaryFinishingList" class="mt-1">
-                                <span class="text-muted">-</span>
+                            {{-- Tab 2: Preview File Default --}}
+                            <div class="tab-pane fade" id="tab-preview-orderan-pane" role="tabpanel">
+                              <div id="orderanPreviewContainer" class="min-vh-50 d-flex align-items-center justify-content-center bg-dark bg-opacity-10 rounded p-3" style="min-height: 280px;">
+                                <p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>
                               </div>
-                            </div>
-
-                            <!-- Rincian Harga -->
-                            <div class="summary-pricing mt-4">
-                              <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Subtotal Cetak</span>
-                                <span id="summarySubtotalCetak">Rp 0</span>
-                              </div>
-                              <div class="d-flex justify-content-between mb-2">
-                                <span class="text-muted">Biaya Finishing</span>
-                                <span id="summaryBiayaFinishing">Rp 0</span>
-                              </div>
-                              <hr>
-                              <div class="d-flex justify-content-between">
-                                <span class="fw-bold">Total</span>
-                                <span class="fw-bold text-primary fs-5" id="summaryTotalAkhir">Rp 0</span>
-                              </div>
-                            </div>
-
-                            <!-- Deadline -->
-                            <div class="summary-item mt-3 mb-3 pb-3 border-bottom">
-                              <small class="text-muted text-uppercase">Deadline</small>
-                              <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
-                            </div>
-
-                            <!-- Files -->
-                            <div class="summary-item mb-3 pb-3 border-bottom">
-                              <small class="text-muted text-uppercase">Files</small>
-                              <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
                             </div>
                           </div>
                         </div>

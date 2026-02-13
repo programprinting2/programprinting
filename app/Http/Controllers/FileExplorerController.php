@@ -70,4 +70,34 @@ class FileExplorerController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Serve file untuk preview (gambar / PDF).
+     */
+    public function previewFile(Request $request): \Symfony\Component\HttpFoundation\Response
+    {
+        $path = $request->query('path');
+        if (!$path || !\Illuminate\Support\Facades\File::exists($path)) {
+            abort(404);
+        }
+
+        $basePath = realpath(config('app.explorer_base_path', 'F:/PESANAN/'));
+        $realPath = realpath($path);
+        if (!$realPath || !str_starts_with($realPath, $basePath)) {
+            abort(403, 'Akses path tidak diizinkan.');
+        }
+
+        $mime = \Illuminate\Support\Facades\File::mimeType($realPath);
+        $allowedMimes = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
+            'application/pdf'
+        ];
+        if (!in_array($mime, $allowedMimes)) {
+            abort(403, 'Tipe file tidak didukung untuk preview.');
+        }
+
+        return response()->file($realPath, [
+            'Content-Type' => $mime,
+        ]);
+    }
 }

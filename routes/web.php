@@ -179,6 +179,7 @@ Route::group(['prefix' => 'backend'], function () {
 
     // File Explorer helper
     Route::get('/file-explorer', [App\Http\Controllers\FileExplorerController::class, 'index'])->name('backend.file-explorer');
+    Route::get('/preview-file', [App\Http\Controllers\FileExplorerController::class, 'previewFile'])->name('backend.preview-file');
 
 });
 
