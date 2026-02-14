@@ -37,11 +37,11 @@ class SpkService
             $spkData = [
                 'nomor_spk' => $nomorSpk,
                 'tanggal_spk' => $data['tanggal_spk'],
-                'customer_id' => $data['customer_id'],
+                'pelanggan_id' => $data['pelanggan_id'],
                 'status' => $data['status'] ?? 'draft',
                 'prioritas' => $data['prioritas'],
                 'catatan' => $data['catatan'] ?? null,
-                'created_by' => auth()->id(),
+                'created_by' => '1' //auth()->id(),
             ];
 
             // Create SPK
@@ -60,7 +60,7 @@ class SpkService
             Log::info('SPK created successfully', [
                 'spk_id' => $spk->id,
                 'nomor_spk' => $spk->nomor_spk,
-                'customer_id' => $spk->customer_id
+                'pelanggan_id' => $spk->pelanggan_id
             ]);
 
             return $spk;
@@ -93,7 +93,7 @@ class SpkService
 
             $updateData = [
                 'tanggal_spk' => $data['tanggal_spk'],
-                'customer_id' => $data['customer_id'],
+                'pelanggan_id' => $data['pelanggan_id'],
                 'prioritas' => $data['prioritas'],
                 'catatan' => $data['catatan'] ?? null,
                 'updated_by' => auth()->id(),
@@ -105,7 +105,7 @@ class SpkService
 
             Log::info('SPK updated successfully', [
                 'spk_id' => $id,
-                'customer_id' => $data['customer_id']
+                'pelanggan_id' => $data['pelanggan_id']
             ]);
 
             return $this->spkRepository->findWithRelations($id);
@@ -195,8 +195,8 @@ class SpkService
      */
     private function validateSpkData(array $data): void
     {
-        if (empty($data['customer_id'])) {
-            throw new InvalidSpkDataException('Customer ID harus diisi');
+        if (empty($data['pelanggan_id'])) {
+            throw new InvalidSpkDataException('Pelanggan ID harus diisi');
         }
 
         if (empty($data['items']) || !is_array($data['items'])) {

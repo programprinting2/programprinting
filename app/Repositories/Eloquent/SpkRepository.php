@@ -18,12 +18,12 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function all(): Collection
     {
-        return $this->model->with(['customer', 'items.bahan'])->get();
+        return $this->model->with(['pelanggan', 'items.produk'])->get();
     }
 
     public function paginate(int $perPage = 10): LengthAwarePaginator
     {
-        return $this->model->with(['customer', 'items.bahan'])
+        return $this->model->with(['pelanggan', 'items.produk'])
             ->orderBy('created_at', 'desc')
             ->paginate($perPage);
     }
@@ -35,7 +35,7 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function findWithRelations(int $id): ?SPK
     {
-        return $this->model->with(['customer', 'items.bahan', 'createdBy', 'updatedBy'])->find($id);
+        return $this->model->with(['pelanggan', 'items.produk', 'createdBy', 'updatedBy'])->find($id);
     }
 
     public function findByNomor(string $nomor): ?SPK
@@ -62,22 +62,22 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function getByCustomer(int $customerId): Collection
     {
-        return $this->model->where('customer_id', $customerId)
-            ->with(['customer', 'items.bahan'])
+        return $this->model->where('pelanggan_id', $customerId)
+            ->with(['pelanggan', 'items.produk'])
             ->get();
     }
 
     public function getByStatus(string $status): Collection
     {
         return $this->model->byStatus($status)
-            ->with(['customer', 'items.bahan'])
+            ->with(['pelanggan', 'items.produk'])
             ->get();
     }
 
     public function getByPrioritas(string $prioritas): Collection
     {
         return $this->model->byPrioritas($prioritas)
-            ->with(['customer', 'items.bahan'])
+            ->with(['pelanggan', 'items.produk'])
             ->get();
     }
 

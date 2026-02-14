@@ -94,7 +94,7 @@
         <th>Status</th>
         <th>Prioritas</th>
                   <th>Total Biaya</th>
-        <th>Item Pekerjaan</th>
+        <!-- <th>Item Pekerjaan</th> -->
                   <th>Aksi</th>
       </tr>
       </thead>
@@ -106,9 +106,9 @@
                       {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
                     </td>
                     <td>
-                      {{ $item->customer->nama ?? '-' }}
-                      @if($item->customer && $item->customer->alamat)
-                        <br><small class="text-muted">{{ $item->customer->alamat }}</small>
+                      {{ $item->pelanggan->nama ?? '-' }}
+                      @if($item->pelanggan && $item->pelanggan->email)
+                        <br><small class="text-muted">{{ $item->pelanggan->email ?? '-'}}</small>
                       @endif
                     </td>
                     <td>
@@ -132,13 +132,13 @@
                       @endif
                     </td>
                     <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                    <td>
+                    <!-- <td>
                       <ul class="mb-0 list-unstyled">
                         @foreach($item->items as $pekerjaan)
                           <li><b>{{ $pekerjaan->nama_produk }}</b> ({{ $pekerjaan->jumlah }} {{ $pekerjaan->satuan }})</li>
       @endforeach
       </ul>
-      </td>
+      </td> -->
       <td>
                       <div class="btn-group gap-1" role="group">
                         <a href="{{ route('spk.show', $item->id) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">

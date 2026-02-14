@@ -36,13 +36,13 @@ class SpkItemRepository implements SpkItemRepositoryInterface
     public function getBySpk(int $spkId): Collection
     {
         return $this->model->where('spk_id', $spkId)
-            ->with('bahan')
+            ->with(['produk'])
             ->get();
     }
 
     public function findWithRelations(int $id): ?SPKItem
     {
-        return $this->model->with(['spk.customer', 'bahan'])->find($id);
+        return $this->model->with(['spk.pelanggan', 'produk'])->find($id);
     }
 }
 

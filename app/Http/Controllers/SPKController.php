@@ -13,6 +13,7 @@ use App\Models\SPK;
 use App\Services\SpkService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 
 class SPKController extends Controller
@@ -34,7 +35,7 @@ class SPKController extends Controller
         } catch (\Exception $e) {
             Log::error('Error loading SPK index', ['error' => $e->getMessage()]);
             return view('pages.spk.index', [
-                'spk' => collect()->paginate(),
+                'spk' => new LengthAwarePaginator([], 0, 10),
                 'customers' => collect()
             ])->with('error', 'Gagal memuat data SPK');
         }

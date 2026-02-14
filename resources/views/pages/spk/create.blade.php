@@ -192,13 +192,13 @@
             </div>
           </div>
         </div>
-        <!-- <div class="d-flex justify-content-end gap-2 mt-4">
+        <div class="d-flex justify-content-end gap-2 mt-4">
           <button type="button" class="btn btn-light" id="btnBatalSPK">Batal</button>
           <button type="submit" class="btn btn-primary" id="btnSimpanSPK">
             <span class="spinner-border spinner-border-sm me-1 d-none" id="spinnerSimpanSPK" role="status" aria-hidden="true"></span>
             <span class="label-simpan">Simpan SPK</span>
           </button>
-        </div> -->
+        </div>
       </div>
 
     </div>

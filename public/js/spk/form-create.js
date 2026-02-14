@@ -1468,7 +1468,7 @@
         let detailText = '';
         if (qty > 0 && hargaJual > 0) {
             if (currentSelectedProduk && currentSelectedProduk.is_metric) {
-                detailText = `(${qty * factorDimensi.toFixed(2)} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+                detailText = `(${(qty * factorDimensi).toFixed(2)} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
             } else {
                 detailText = `(${qty} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
             }
