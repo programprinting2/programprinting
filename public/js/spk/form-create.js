@@ -549,6 +549,34 @@
         const modalUrgentValue = document.getElementById('modalUrgentValue');
         const modalSatuanDisplay = document.getElementById('modalSatuanDisplay');
         const satuanText = (modalSatuanDisplay?.textContent || 'pcs').trim().toLowerCase();
+        const jumlah = parseFloat(modalJumlah?.value) || 0;
+        const panjang = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
+        const lebar = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
+
+        let biayaProduk = 0;
+        if (currentSelectedProduk && jumlah > 0) {
+            const hargaJual = getHargaJualFinishing({
+                harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
+                harga_reseller_json: currentSelectedProduk.harga_reseller_json || [],
+            }, jumlah);
+            if (hargaJual > 0) {
+                if (currentSelectedProduk.is_metric) {
+                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
+                    const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
+                    let factorDimensi = 1;
+                    if (!panjangLocked && !lebarLocked) {
+                        factorDimensi = panjang * lebar;
+                    } else if (panjangLocked && !lebarLocked) {
+                        factorDimensi = lebar;
+                    } else if (!panjangLocked && lebarLocked) {
+                        factorDimensi = panjang;
+                    }
+                    biayaProduk = jumlah * factorDimensi * hargaJual;
+                } else {
+                    biayaProduk = jumlah * hargaJual;
+                }
+            }
+        }
         
         return {
             produk_id: modalProdukId?.value || '',
@@ -560,6 +588,7 @@
             keterangan: (document.getElementById('modalKeteranganInput')?.value || '').trim(),
             lebar: document.getElementById('modalLebarInput')?.value || 0,
             panjang: document.getElementById('modalPanjangInput')?.value || 0,
+            biaya_produk: biayaProduk,
             files: [...modalUploadedFiles], // Simpan daftar path file
             // Simpan data produk mentah untuk edit modal agar kalkulasi harga tetap jalan
             raw_produk: currentSelectedProduk ? deepClone(currentSelectedProduk) : null,

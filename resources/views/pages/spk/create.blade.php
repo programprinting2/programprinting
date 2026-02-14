@@ -56,7 +56,7 @@
             <input type="date" class="form-control" name="tanggal_spk" id="tanggalSPK" value="{{ date('Y-m-d') }}" required>
                     </div>
                 </div>
-                <div class="mb-4 p-3 border rounded bg-light">
+                <!-- <div class="mb-4 p-3 border rounded bg-light">
                     <div class="fw-semibold mb-2"><i class="fa fa-flag me-1"></i> Status & Prioritas</div>
                     <div class="mb-3">
                         <label class="form-label">Status SPK</label>
@@ -75,7 +75,7 @@
               <option value="mendesak">Mendesak</option>
                         </select>
                     </div>
-                </div>
+                </div> -->
                 <div class="mb-4 p-3 border rounded bg-light">
                     <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
           <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk SPK ini"></textarea>
@@ -95,11 +95,11 @@
           <div class="card-body p-0">
             <ul class="nav nav-tabs mb-3" id="tabSPK" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPekerjaan"
+                <button class="nav-link bg-light active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPekerjaan"
                   type="button" role="tab">Item Pekerjaan</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tugas-tab" data-bs-toggle="tab" data-bs-target="#tugasProduksi" type="button"
+                <button class="nav-link bg-light" id="tugas-tab" data-bs-toggle="tab" data-bs-target="#tugasProduksi" type="button"
                   role="tab">Tugas Produksi</button>
               </li>
               <li class="nav-item" role="presentation">

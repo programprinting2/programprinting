@@ -18,7 +18,6 @@ interface SpkRepositoryInterface
     public function delete(int $id): bool;
     public function getByCustomer(int $customerId): Collection;
     public function getByStatus(string $status): Collection;
-    public function getByPrioritas(string $prioritas): Collection;
     public function countByStatus(): array;
 }
 

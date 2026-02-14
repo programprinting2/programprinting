@@ -18,7 +18,6 @@ class SPK extends Model
         'tanggal_spk',
         'pelanggan_id',
         'status',
-        'prioritas',
         'catatan',
         'total_biaya',
         'created_by',
@@ -62,10 +61,5 @@ class SPK extends Model
     public function scopeByStatus($query, string $status)
     {
         return $query->where('status', $status);
-    }
-
-    public function scopeByPrioritas($query, string $prioritas)
-    {
-        return $query->where('prioritas', $prioritas);
     }
 }

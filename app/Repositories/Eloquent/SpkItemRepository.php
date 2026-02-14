@@ -18,6 +18,7 @@ class SpkItemRepository implements SpkItemRepositoryInterface
     public function createForSpk(int $spkId, array $data): SPKItem
     {
         $data['spk_id'] = $spkId;
+        $data['total_biaya'] = $data['total_biaya'] ?? 0;
         return $this->model->create($data);
     }
 

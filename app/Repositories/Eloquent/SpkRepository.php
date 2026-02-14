@@ -74,13 +74,6 @@ class SpkRepository implements SpkRepositoryInterface
             ->get();
     }
 
-    public function getByPrioritas(string $prioritas): Collection
-    {
-        return $this->model->byPrioritas($prioritas)
-            ->with(['pelanggan', 'items.produk'])
-            ->get();
-    }
-
     public function countByStatus(): array
     {
         return $this->model->selectRaw('status, COUNT(*) as count')

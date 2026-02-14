@@ -23,6 +23,7 @@ class SPKItem extends Model
         'panjang',
         'deadline',
         'is_urgent',
+        'biaya_produk',
         'biaya_finishing',
         'tipe_finishing',
         'tugas_produksi',
@@ -37,6 +38,7 @@ class SPKItem extends Model
             'panjang' => 'decimal:2',
             'deadline' => 'datetime',
             'is_urgent' => 'boolean',
+            'biaya_produk' => 'decimal:2',
             'biaya_finishing' => 'decimal:2',
             'total_biaya' => 'decimal:2',
             'tipe_finishing' => 'array',
@@ -62,10 +64,11 @@ class SPKItem extends Model
 
     public function updateTotalBiaya(): void
     {
-        // biaya_finishing = total biaya finishing item (dari kolom atau dari sum tipe_finishing)
-        $biayaFinishing = (int) ($this->biaya_finishing ?? 0);
+        $biayaProduk = (float) ($this->biaya_produk ?? 0);
+
+        $biayaFinishing = (float) ($this->biaya_finishing ?? 0);
         if (!empty($this->tipe_finishing) && is_array($this->tipe_finishing)) {
-            $dariTipeFinishing = collect($this->tipe_finishing)->sum(fn ($f) => (int) ($f['total'] ?? 0));
+            $dariTipeFinishing = collect($this->tipe_finishing)->sum(fn ($f) => (float) ($f['total'] ?? 0));
             if ($dariTipeFinishing > 0) {
                 $biayaFinishing = $dariTipeFinishing;
             }
@@ -73,14 +76,13 @@ class SPKItem extends Model
 
         $biayaTugas = collect($this->tugas_produksi ?? [])->sum(fn ($t) => (int) ($t['biaya'] ?? $t['harga'] ?? 0));
 
-        // total_biaya item = total keseluruhan item tersebut
-        $totalItem = $biayaFinishing + $biayaTugas;
+        $totalItem = $biayaProduk + $biayaFinishing + $biayaTugas;
 
         $this->update([
-            'biaya_finishing' => $biayaFinishing,
-            'total_biaya' => $totalItem,
+            'biaya_finishing' => round($biayaFinishing, 2),
+            'total_biaya' => round($totalItem, 2),
         ]);
 
-        $this->spk->updateTotalBiaya();
+        $this->spk->refresh()->updateTotalBiaya();
     }
 }

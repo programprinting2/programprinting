@@ -38,8 +38,7 @@ class SpkService
                 'nomor_spk' => $nomorSpk,
                 'tanggal_spk' => $data['tanggal_spk'],
                 'pelanggan_id' => $data['pelanggan_id'],
-                'status' => $data['status'] ?? 'draft',
-                'prioritas' => $data['prioritas'],
+                'status' => $data['status'] ?? 'verifikasi',
                 'catatan' => $data['catatan'] ?? null,
                 'created_by' => '1' //auth()->id(),
             ];
@@ -94,7 +93,6 @@ class SpkService
             $updateData = [
                 'tanggal_spk' => $data['tanggal_spk'],
                 'pelanggan_id' => $data['pelanggan_id'],
-                'prioritas' => $data['prioritas'],
                 'catatan' => $data['catatan'] ?? null,
                 'updated_by' => auth()->id(),
             ];

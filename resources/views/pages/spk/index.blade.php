@@ -50,16 +50,18 @@
                 @endforeach
               </select>
             </div>
-            <div class="col-md-2">
+            <div class="col-md-4">
               <label class="form-label small">Status</label>
               <select class="form-select" name="status">
-                <option value="">Semua Status</option>
-                <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                <option value="menunggu persetujuan" {{ request('status') == 'menunggu persetujuan' ? 'selected' : '' }}>Menunggu Persetujuan</option>
-                <option value="disetujui" {{ request('status') == 'disetujui' ? 'selected' : '' }}>Disetujui</option>
+                  <option value="">Semua Status</option>
+                  <option value="verifikasi" {{ request('status') == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
+                  <option value="sudah_bayar" {{ request('status') == 'sudah_bayar' ? 'selected' : '' }}>Sudah Bayar</option>
+                  <option value="proses_produksi" {{ request('status') == 'proses_produksi' ? 'selected' : '' }}>Proses Produksi</option>
+                  <option value="sudah_cetak" {{ request('status') == 'sudah_cetak' ? 'selected' : '' }}>Sudah Cetak</option>
+                  <option value="siap_antar" {{ request('status') == 'siap_antar' ? 'selected' : '' }}>Siap Antar</option>
               </select>
             </div>
-            <div class="col-md-2">
+            <!-- <div class="col-md-2">
               <label class="form-label small">Prioritas</label>
               <select class="form-select" name="prioritas">
                 <option value="">Semua Prioritas</option>
@@ -68,7 +70,7 @@
                 <option value="tinggi" {{ request('prioritas') == 'tinggi' ? 'selected' : '' }}>Tinggi</option>
                 <option value="mendesak" {{ request('prioritas') == 'mendesak' ? 'selected' : '' }}>Mendesak</option>
               </select>
-            </div>
+            </div> -->
             <div class="col-md-1">
               <label class="form-label small">&nbsp;</label>
               <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter" title="Reset Filter">
@@ -92,7 +94,7 @@
                   <th>Tanggal SPK</th>
         <th>Pelanggan</th>
         <th>Status</th>
-        <th>Prioritas</th>
+        <!-- <th>Prioritas</th> -->
                   <th>Total Biaya</th>
         <!-- <th>Item Pekerjaan</th> -->
                   <th>Aksi</th>
@@ -112,15 +114,21 @@
                       @endif
                     </td>
                     <td>
-                      @if($item->status == 'draft')
-                        <span class="badge bg-light text-dark">Draft</span>
-                      @elseif($item->status == 'menunggu persetujuan')
-                        <span class="badge bg-warning text-dark">Menunggu Persetujuan</span>
-                      @elseif($item->status == 'disetujui')
-                        <span class="badge bg-success">Disetujui</span>
-                      @endif
+                        @if($item->status == 'verifikasi')
+                            <span class="badge bg-secondary">Verifikasi</span>
+                        @elseif($item->status == 'sudah_bayar')
+                            <span class="badge bg-info">Sudah Bayar</span>
+                        @elseif($item->status == 'proses_produksi')
+                            <span class="badge bg-primary">Proses Produksi</span>
+                        @elseif($item->status == 'sudah_cetak')
+                            <span class="badge bg-warning text-dark">Sudah Cetak</span>
+                        @elseif($item->status == 'siap_antar')
+                            <span class="badge bg-success">Siap Antar</span>
+                        @else
+                            <span class="badge bg-light text-dark">{{ $item->status ?? '-' }}</span>
+                        @endif
                     </td>
-                    <td>
+                    <!-- <td>
                       @if($item->prioritas == 'rendah')
                         <span class="badge bg-info">Rendah</span>
                       @elseif($item->prioritas == 'normal')
@@ -130,7 +138,7 @@
                       @elseif($item->prioritas == 'mendesak')
                         <span class="badge bg-danger">Mendesak</span>
                       @endif
-                    </td>
+                    </td> -->
                     <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
                     <!-- <td>
                       <ul class="mb-0 list-unstyled">
