@@ -15,6 +15,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
+use Illuminate\Http\Request;
 
 class SPKController extends Controller
 {
@@ -25,10 +26,16 @@ class SPKController extends Controller
     /**
      * Display a listing of SPKs
      */
-    public function index(): View
+    public function index(Request $request): View
     {
         try {
-            $spk = $this->spkService->getPaginatedSpk(10);
+            $filters = $request->only([
+                'search',
+                'customer_id',
+                'status'
+            ]);
+
+            $spk = $this->spkService->getPaginatedSpk(10, $filters);
             $customers = Pelanggan::where('status', true)->get();
 
             return view('pages.spk.index', compact('spk', 'customers'));

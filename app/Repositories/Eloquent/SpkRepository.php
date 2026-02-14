@@ -21,11 +21,35 @@ class SpkRepository implements SpkRepositoryInterface
         return $this->model->with(['pelanggan', 'items.produk'])->get();
     }
 
-    public function paginate(int $perPage = 10): LengthAwarePaginator
+    public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        return $this->model->with(['pelanggan', 'items.produk'])
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = $this->model->with(['pelanggan', 'items.produk'])
+            ->orderBy('created_at', 'desc');
+
+        // FILTER STATUS
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // FILTER CUSTOMER
+        if (!empty($filters['customer_id'])) {
+            $query->where('pelanggan_id', $filters['customer_id']);
+        }
+
+        // FILTER SEARCH
+        if (!empty($filters['search'])) {
+            $search = $filters['search'];
+
+            $query->where(function ($q) use ($search) {
+                $q->where('nomor_spk', 'ILIKE', "%{$search}%")
+                ->orWhere('status', 'ILIKE', "%{$search}%")
+                ->orWhereHas('pelanggan', function ($sub) use ($search) {
+                    $sub->where('nama', 'ILIKE', "%{$search}%");
+                });
+            });
+        }
+
+        return $query->paginate($perPage);
     }
 
     public function find(int $id): ?SPK

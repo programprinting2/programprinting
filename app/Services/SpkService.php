@@ -159,9 +159,9 @@ class SpkService
     /**
      * Get paginated SPK list
      */
-    public function getPaginatedSpk(int $perPage = 10)
+    public function getPaginatedSpk(int $perPage = 10, array $filters = [])
     {
-        return $this->spkRepository->paginate($perPage);
+        return $this->spkRepository->paginate($perPage, $filters);
     }
 
     /**
