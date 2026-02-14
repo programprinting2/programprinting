@@ -8,6 +8,7 @@ use Illuminate\Http\JsonResponse;
 
 class FileExplorerController extends Controller
 {
+    protected array $allowedExtensions = ['jpg','jpeg','png','gif','webp','bmp','pdf'];
     /**
      * List files and directories in a given path.
      */
@@ -35,23 +36,17 @@ class FileExplorerController extends Controller
             }
 
             // Get files
-            $fileList = File::files($currentPath);
-            foreach ($fileList as $file) {
-                try {
-                    if (!$file->isReadable()) {
-                        continue;
-                    }
+            foreach (File::files($currentPath) as $file) {
+                $ext = strtolower($file->getExtension());
+                if (!in_array($ext, $this->allowedExtensions)) continue;
 
-                    $files[] = [
-                        'name' => $file->getFilename(),
-                        'path' => str_replace('\\', '/', $file->getRealPath()),
-                        'type' => 'file',
-                        'size' => $file->getSize(),
-                        'extension' => $file->getExtension()
-                    ];
-                } catch (\Throwable $e) {
-                    continue;
-                }
+                $files[] = [
+                    'name' => $file->getFilename(),
+                    'path' => str_replace('\\', '/', $file->getRealPath()),
+                    'type' => 'file',
+                    'extension' => $ext,
+                    'size' => $file->getSize()
+                ];
             }
 
             return response()->json([

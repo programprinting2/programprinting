@@ -95,11 +95,11 @@
           <div class="card-body p-0">
             <ul class="nav nav-tabs mb-3" id="tabSPK" role="tablist">
               <li class="nav-item" role="presentation">
-                <button class="nav-link bg-light active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPekerjaan"
+                <button class="nav-link active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPekerjaan"
                   type="button" role="tab">Item Pekerjaan</button>
               </li>
               <li class="nav-item" role="presentation">
-                <button class="nav-link bg-light" id="tugas-tab" data-bs-toggle="tab" data-bs-target="#tugasProduksi" type="button"
+                <button class="nav-link" id="tugas-tab" data-bs-toggle="tab" data-bs-target="#tugasProduksi" type="button"
                   role="tab">Tugas Produksi</button>
               </li>
               <li class="nav-item" role="presentation">
@@ -491,11 +491,11 @@
                           {{-- Tab navigation --}}
                           <ul class="nav nav-tabs nav-tabs-line mb-2" id="detailOrderanTabs" role="tablist">
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link active" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
+                              <button class="nav-link bg-light active" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
                                 type="button" role="tab">Preview File</button>
                             </li>
                             <li class="nav-item" role="presentation">
-                              <button class="nav-link" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
+                              <button class="nav-link bg-light" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
                                 type="button" role="tab">Summary</button>
                             </li>
                           </ul>
