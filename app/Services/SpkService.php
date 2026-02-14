@@ -46,7 +46,7 @@ class SpkService
             // Create SPK
             $spk = $this->spkRepository->create($spkData);
 
-            ActivityLogService::log($spk, 'spk_dibuat', 'SPK dibuat oleh ' . auth()->user()->name);
+            ActivityLogService::log($spk, 'spk_dibuat', 'SPK dibuat oleh ' . (auth()->user()?->name ?? 'Sistem'), 'info'  /*auth()->user()->name*/ );
 
             // Create SPK Items
             foreach ($data['items'] as $itemData) {

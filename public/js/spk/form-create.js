@@ -513,6 +513,13 @@
             if (el.filePendukungHidden()) {
                 el.filePendukungHidden().value = JSON.stringify(filePendukungData.map(f => ({ name: f.name, type: f.type, size: f.size })));
             }
+
+            const btnSimpan = document.getElementById('btnSimpanSPK');
+            const spinner = document.getElementById('spinnerSimpanSPK');
+            const labelSimpan = document.querySelector('#btnSimpanSPK .label-simpan');
+            if (btnSimpan) btnSimpan.disabled = true;
+            if (spinner) spinner.classList.remove('d-none');
+            if (labelSimpan) labelSimpan.textContent = 'Menyimpan...';
         }
     }
 
