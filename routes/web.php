@@ -205,7 +205,7 @@ Route::group(['prefix' => 'spk'], function () {
         'edit' => 'spk.edit',
         'update' => 'spk.update',
         'destroy' => 'spk.destroy',
-    ]);
+    ])->parameters(['' => 'spk']);
 });
 
 //Hutang Route

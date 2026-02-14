@@ -188,7 +188,7 @@
       </tbody>
     </table>
             <div class="d-flex justify-content-between align-items-center mt-3">
-              <div>
+              <div class="text-muted">
                 @if($spk->total() > 0)
                   Menampilkan {{ $spk->firstItem() ?? 0 }} - {{ $spk->lastItem() ?? 0 }} dari {{ $spk->total() }} data SPK
                 @else
