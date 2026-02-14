@@ -96,8 +96,18 @@ class FileExplorerController extends Controller
             abort(403, 'Tipe file tidak didukung untuk preview.');
         }
 
-        return response()->file($realPath, [
-            'Content-Type' => $mime,
-        ]);
+        if ($mime === 'application/pdf') {
+            return response()->file($realPath, ['Content-Type' => $mime]);
+        }
+
+        $img = Image::make($realPath);
+
+        $img->resize(1024, null, function ($constraint) {
+            $constraint->aspectRatio();
+            $constraint->upsize();
+        });
+    
+        return response($img->encode('webp'), 200)
+            ->header('Content-Type', 'image/webp');
     }
 }
