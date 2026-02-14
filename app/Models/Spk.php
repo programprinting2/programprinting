@@ -52,6 +52,22 @@ class SPK extends Model
         return $this->hasMany(SPKItem::class, 'spk_id');
     }
 
+    public function activityLogs(): MorphMany
+    {
+        return $this->morphMany(ActivityLog::class, 'loggable');
+    }
+
+    public static function statusList(): array
+    {
+        return [
+            'verifikasi'       => 'Verifikasi',
+            'sudah_bayar'      => 'Sudah Bayar',
+            'proses_produksi'  => 'Proses Produksi',
+            'sudah_cetak'      => 'Sudah Cetak',
+            'siap_antar'       => 'Siap Antar',
+        ];
+    }
+
     public function updateTotalBiaya(): void
     {
         $total = $this->items()->sum('total_biaya');
