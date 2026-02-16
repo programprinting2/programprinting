@@ -117,11 +117,11 @@
                         @if($item->status == 'draft')
                             <span class="badge bg-secondary">Draft</span>
                         @elseif($item->status == 'proses_bayar')
-                            <span class="badge bg-info">Proses Pembayaran</span>
+                            <span class="badge bg-warning text-dark">Proses Pembayaran</span>
                         @elseif($item->status == 'proses_produksi')
                             <span class="badge bg-primary">Proses Produksi</span>
                         @elseif($item->status == 'sudah_cetak')
-                            <span class="badge bg-warning text-dark">Sudah Cetak</span>
+                            <span class="badge bg-info">Sudah Cetak</span>
                         @elseif($item->status == 'siap_antar')
                             <span class="badge bg-success">Siap Antar</span>
                         @else
