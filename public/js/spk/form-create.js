@@ -2462,7 +2462,7 @@
             const hasServerPath = path && !path.startsWith('http') && !(defaultFile.file instanceof File);
 
             container.innerHTML = `
-                <iframe src="${url}" class="w-100 rounded" style="height: 360px;" frameborder="0"></iframe>
+                <iframe src="${url}#toolbar=0" class="w-100 rounded" style="height: 360px;" frameborder="0"></iframe>
             `;
 
             const infoEl = document.getElementById('orderanPreviewFileInfo');

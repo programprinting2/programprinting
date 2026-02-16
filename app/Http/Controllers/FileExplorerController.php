@@ -6,6 +6,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\JsonResponse;
+use Intervention\Image\Laravel\Facades\Image;
+use Illuminate\Support\Facades\Cache;
+
 
 class FileExplorerController extends Controller
 {
@@ -93,18 +96,18 @@ class FileExplorerController extends Controller
         }
 
         if ($mime === 'application/pdf') {
-            return response()->file($realPath, ['Content-Type' => $mime]);
+            return response()->file($realPath, ['Content-Type' => $mime, 'Cache-Control' => 'public, max-age=604800']);
         }
 
         try {
-            $img = Image::make($realPath)
-                ->resize(1024, null, function ($constraint) {
-                    $constraint->aspectRatio();
-                    $constraint->upsize();
-                })
-                ->encode('webp');
-    
-            return response($img, 200)->header('Content-Type', 'image/webp');
+            $img = Image::read($realPath)
+                ->scaleDown(width: 1024)
+                ->toWebp(quality: 70);
+                
+                return response($img->toString(), 200, [
+                    'Content-Type' => 'image/webp',
+                    'Cache-Control' => 'public, max-age=604800',
+                ]);
         } catch (\Exception $e) {
             return response()->stream(function() use ($realPath) {
                 $stream = fopen($realPath, 'rb');
@@ -136,6 +139,11 @@ class FileExplorerController extends Controller
         $baseUrl = rtrim(config('app.file_info_api_base_url', 'http://127.0.0.1:9001'), '/');
         $apiUrl = $baseUrl . '/ui/read-info';
 
+        $cacheKey = 'image_info:' . sha1($realPath . '|' . filemtime($realPath));
+        if (Cache::has($cacheKey)) {
+            $data = Cache::get($cacheKey);
+            return response()->json(['success' => true, 'data' => $data]);
+        }
         try {
             $response = Http::timeout(10)->post($apiUrl, [
                 'filepath' => $realPath,
@@ -149,6 +157,7 @@ class FileExplorerController extends Controller
             }
 
             $data = $response->json();
+            Cache::put($cacheKey, $data, 3600);
             return response()->json(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
             return response()->json([
@@ -179,6 +188,12 @@ class FileExplorerController extends Controller
         $baseUrl = rtrim(config('app.file_info_api_base_url', 'http://127.0.0.1:9001'), '/');
         $apiUrl = $baseUrl . '/ui/read-pdf-info';
 
+        $cacheKey = 'pdf_info:' . sha1($realPath . '|' . filemtime($realPath));
+        if (Cache::has($cacheKey)) {
+            $data = Cache::get($cacheKey);
+            return response()->json(['success' => true, 'data' => $data]);
+        }
+        
         try {
             $response = Http::timeout(10)->post($apiUrl, [
                 'filepath' => $realPath,
@@ -192,6 +207,7 @@ class FileExplorerController extends Controller
             }
 
             $data = $response->json();
+            Cache::put($cacheKey, $data, 3600);
             return response()->json(['success' => true, 'data' => $data]);
         } catch (\Exception $e) {
             return response()->json([
