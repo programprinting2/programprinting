@@ -84,7 +84,7 @@ class FileExplorerController extends Controller
 
         $mime = \Illuminate\Support\Facades\File::mimeType($realPath);
         $allowedMimes = [
-            'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
+            'image/jpg', 'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/bmp',
             'application/pdf'
         ];
         if (!in_array($mime, $allowedMimes)) {
@@ -95,14 +95,21 @@ class FileExplorerController extends Controller
             return response()->file($realPath, ['Content-Type' => $mime]);
         }
 
-        $img = Image::make($realPath);
-
-        $img->resize(1024, null, function ($constraint) {
-            $constraint->aspectRatio();
-            $constraint->upsize();
-        });
+        try {
+            $img = Image::make($realPath)
+                ->resize(1024, null, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })
+                ->encode('webp');
     
-        return response($img->encode('webp'), 200)
-            ->header('Content-Type', 'image/webp');
+            return response($img, 200)->header('Content-Type', 'image/webp');
+        } catch (\Exception $e) {
+            return response()->stream(function() use ($realPath) {
+                $stream = fopen($realPath, 'rb');
+                fpassthru($stream);
+                fclose($stream);
+            }, 200, ['Content-Type' => $mime]);
+        }
     }
 }
