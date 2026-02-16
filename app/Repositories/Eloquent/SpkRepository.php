@@ -42,10 +42,10 @@ class SpkRepository implements SpkRepositoryInterface
 
             $query->where(function ($q) use ($search) {
                 $q->where('nomor_spk', 'ILIKE', "%{$search}%")
-                ->orWhere('status', 'ILIKE', "%{$search}%")
-                ->orWhereHas('pelanggan', function ($sub) use ($search) {
-                    $sub->where('nama', 'ILIKE', "%{$search}%");
-                });
+                    ->orWhere('status', 'ILIKE', "%{$search}%")
+                    ->orWhereHas('pelanggan', function ($sub) use ($search) {
+                        $sub->where('nama', 'ILIKE', "%{$search}%");
+                    });
             });
         }
 
@@ -59,7 +59,7 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function findWithRelations(int $id): ?SPK
     {
-        return $this->model->with(['pelanggan', 'items.produk', 'createdBy', 'updatedBy'])->find($id);
+        return $this->model->with(['pelanggan', 'items.produk', 'createdBy', 'updatedBy', 'activityLogs'])->find($id);
     }
 
     public function findByNomor(string $nomor): ?SPK

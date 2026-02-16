@@ -22,7 +22,8 @@ class SPKController extends Controller
 {
     public function __construct(
         private SpkService $spkService
-    ) {}
+    ) {
+    }
 
     /**
      * Display a listing of SPKs
@@ -219,11 +220,11 @@ class SPKController extends Controller
             }
 
             $spk->update([
-                'status'     => 'proses_bayar',
+                'status' => 'proses_bayar',
                 'updated_by' => 1,//auth()->id(),
             ]);
 
-            ActivityLogService::log($spk, 'spk_acc_proses_bayar', 'SPK di-ACC ke proses bayar', 'info');
+            // ActivityLogService::log($spk, 'spk_acc_proses_bayar', 'SPK di-ACC ke proses bayar', 'info');
 
             return redirect()
                 ->route('kasir.index')
@@ -231,7 +232,7 @@ class SPKController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error ACC SPK ke proses bayar', [
                 'spk_id' => $spk->id,
-                'error'  => $e->getMessage(),
+                'error' => $e->getMessage(),
             ]);
 
             return redirect()
@@ -239,4 +240,4 @@ class SPKController extends Controller
                 ->with('error', 'Gagal ACC SPK ke proses pembayaran.');
         }
     }
-} 
+}
