@@ -37,27 +37,49 @@ class MasterProdukController extends Controller
             $produk = $this->produkService->getPaginatedProduk(10, $filters);
 
             // Ambil data kategori, subkategori, satuan
-            $kategoriProdukList = \App\Services\ParameterService::getParameterDetails('KATEGORI PRODUK');
+            // $kategoriProdukList = \App\Services\ParameterService::getParameterDetails('KATEGORI PRODUK');
+            $kategoriProdukList = cache()->remember('kategori_produk', 3600, function() {
+                return \App\Services\ParameterService::getParameterDetails('KATEGORI PRODUK');
+            });
             $kategoriIds = $kategoriProdukList->pluck('id');
-            $subKategoriList = SubDetailParameter::with('detailParameter')
-                ->whereIn('detail_parameter_id', $kategoriIds)
-                ->where('aktif', 1)
-                ->orderBy('nama_sub_detail_parameter')
-                ->get();
-            $satuanList = \App\Services\ParameterService::getParameterDetails('JENIS SATUAN');
+            // $subKategoriList = SubDetailParameter::with('detailParameter')
+            //     ->whereIn('detail_parameter_id', $kategoriIds)
+            //     ->where('aktif', 1)
+            //     ->orderBy('nama_sub_detail_parameter')
+            //     ->get();
+            $subKategoriList = cache()->remember('subkategori_produk', 3600, function() use ($kategoriProdukList) {
+                $kategoriIds = $kategoriProdukList->pluck('id');
+                return SubDetailParameter::with('detailParameter')
+                    ->whereIn('detail_parameter_id', $kategoriIds)
+                    ->where('aktif', 1)
+                    ->orderBy('nama_sub_detail_parameter')
+                    ->get();
+            });
+            // $satuanList = \App\Services\ParameterService::getParameterDetails('JENIS SATUAN');
+            $satuanList = cache()->remember('satuan_list', 3600, fn() => \App\Services\ParameterService::getParameterDetails('JENIS SATUAN'));
             $satuanId = $this->getSatuanId();
             $satuanDetailList = SubDetailParameter::with('detailParameter')
                 ->where('aktif', 1)
                 ->orderBy('nama_sub_detail_parameter')
                 ->get();
             $modeWarnaParam = MasterParameter::where('nama_parameter', 'WARNA UMUM')->first();
-            $modeWarnaOptions = $modeWarnaParam ? $modeWarnaParam->details()
-                ->where('aktif', 1)
-                ->select('id', 'nama_detail_parameter', 'keterangan')
-                ->orderBy('nama_detail_parameter')
-                ->get() : collect();
+            // $modeWarnaOptions = $modeWarnaParam ? $modeWarnaParam->details()
+            //     ->where('aktif', 1)
+            //     ->select('id', 'nama_detail_parameter', 'keterangan')
+            //     ->orderBy('nama_detail_parameter')
+            //     ->get() : collect();
+            $modeWarnaOptions = cache()->remember('warna_umum', 3600, function() {
+                $param = MasterParameter::where('nama_parameter', 'WARNA UMUM')->first();
+                return $param ? $param->details()
+                    ->where('aktif', 1)
+                    ->select('id', 'nama_detail_parameter', 'keterangan')
+                    ->orderBy('nama_detail_parameter')
+                    ->get() : collect();
+            });
             // Ambil data master mesin untuk window.masterMesinList
-            $masterMesinList = MasterMesin::select('id', 'nama_mesin', 'tipe_mesin', 'biaya_perhitungan_profil')->get();
+            $masterMesinList = cache()->remember('master_mesin_list', 3600, function() {
+                return MasterMesin::select('id', 'nama_mesin', 'tipe_mesin', 'biaya_perhitungan_profil')->get();
+            });
             
             return view('backend.master-produk.index', compact('produk', 'kategoriProdukList', 'subKategoriList', 'satuanList', 'satuanDetailList','masterMesinList', 'modeWarnaOptions', 'satuanId'));
         } catch (\Exception $e) {
