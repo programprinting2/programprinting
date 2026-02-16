@@ -54,8 +54,8 @@
               <label class="form-label small">Status</label>
               <select class="form-select" name="status">
                   <option value="">Semua Status</option>
-                  <option value="verifikasi" {{ request('status') == 'verifikasi' ? 'selected' : '' }}>Verifikasi</option>
-                  <option value="sudah_bayar" {{ request('status') == 'sudah_bayar' ? 'selected' : '' }}>Sudah Bayar</option>
+                  <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                  <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
                   <option value="proses_produksi" {{ request('status') == 'proses_produksi' ? 'selected' : '' }}>Proses Produksi</option>
                   <option value="sudah_cetak" {{ request('status') == 'sudah_cetak' ? 'selected' : '' }}>Sudah Cetak</option>
                   <option value="siap_antar" {{ request('status') == 'siap_antar' ? 'selected' : '' }}>Siap Antar</option>
@@ -114,10 +114,10 @@
                       @endif
                     </td>
                     <td>
-                        @if($item->status == 'verifikasi')
-                            <span class="badge bg-secondary">Verifikasi</span>
-                        @elseif($item->status == 'sudah_bayar')
-                            <span class="badge bg-info">Sudah Bayar</span>
+                        @if($item->status == 'draft')
+                            <span class="badge bg-secondary">Draft</span>
+                        @elseif($item->status == 'proses_bayar')
+                            <span class="badge bg-info">Proses Pembayaran</span>
                         @elseif($item->status == 'proses_produksi')
                             <span class="badge bg-primary">Proses Produksi</span>
                         @elseif($item->status == 'sudah_cetak')
@@ -155,6 +155,15 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
+                        @if($item->status === 'draft')
+                          <form action="{{ route('spk.acc', $item->id) }}" method="POST" class="d-inline-block form-acc-spk">
+                            @csrf
+                            @method('PATCH')
+                            <button type="button" class="btn btn-success btn-xs btn-icon rounded btn-acc-spk" title="ACC ke Proses Bayar">
+                              <i class="link-icon icon-sm" data-feather="check-circle"></i>
+                            </button>
+                          </form>
+                        @endif
                         <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
                           @csrf
                           @method('DELETE')
@@ -274,6 +283,26 @@
         showConfirmButton: false
       });
     @endif
+
+    document.querySelectorAll('.btn-acc-spk').forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        Swal.fire({
+          title: 'ACC SPK ini?',
+          text: 'Status akan diubah menjadi Proses Pembayaran dan Anda akan diarahkan ke halaman kasir.',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#198754',
+          cancelButtonColor: '#6c757d',
+          confirmButtonText: 'Ya, Acc',
+          cancelButtonText: 'Batal'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            btn.closest('form').submit();
+          }
+        });
+      });
+    });
 
     document.querySelectorAll('.btn-hapus-spk').forEach(function(btn) {
       btn.addEventListener('click', function(e) {

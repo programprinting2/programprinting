@@ -15,6 +15,7 @@ class UpdateSpkRequest extends FormRequest
     {
         return [
             'pelanggan_id' => 'required|exists:pelanggan,id',
+            'status' => 'nullable|string|in:draft,proses_bayar,proses_produksi,sudah_cetak,siap_antar',
             'tanggal_spk' => 'required|date|before_or_equal:today',
             'catatan' => 'nullable|string|max:1000',
         ];

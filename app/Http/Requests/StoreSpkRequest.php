@@ -16,7 +16,7 @@ class StoreSpkRequest extends FormRequest
         return [
             'pelanggan_id' => 'required|exists:pelanggan,id',
             'tanggal_spk' => 'required|date',
-            'status' => 'nullable|string|in:verifikasi,sudah_bayar,proses_produksi,sudah_cetak,siap_antar',
+            'status' => 'nullable|string|in:draft,proses_bayar,proses_produksi,sudah_cetak,siap_antar',
             'catatan' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1|max:50',
             'items.*.produk_id' => 'nullable|exists:produk,id',

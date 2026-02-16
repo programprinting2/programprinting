@@ -11,6 +11,7 @@ use App\Models\Pelanggan;
 use App\Models\BahanBaku;
 use App\Models\SPK;
 use App\Services\SpkService;
+use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -202,6 +203,40 @@ class SPKController extends Controller
             return redirect()
                 ->route('spk.index')
                 ->with('error', 'Gagal menghapus SPK');
+        }
+    }
+
+    /**
+     * ACC SPK
+     */
+    public function accToPayment(SPK $spk): RedirectResponse
+    {
+        try {
+            if ($spk->status !== 'draft') {
+                return redirect()
+                    ->route('spk.index')
+                    ->with('error', 'Hanya SPK dengan status draft yang dapat di-ACC ke proses pembayaran.');
+            }
+
+            $spk->update([
+                'status'     => 'proses_bayar',
+                'updated_by' => 1,//auth()->id(),
+            ]);
+
+            ActivityLogService::log($spk, 'spk_acc_proses_bayar', 'SPK di-ACC ke proses bayar', 'info');
+
+            return redirect()
+                ->route('kasir.index')
+                ->with('success', 'SPK berhasil di-ACC ke proses pembayaran. Silakan proses di kasir.');
+        } catch (\Exception $e) {
+            \Log::error('Error ACC SPK ke proses bayar', [
+                'spk_id' => $spk->id,
+                'error'  => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('spk.index')
+                ->with('error', 'Gagal ACC SPK ke proses pembayaran.');
         }
     }
 } 

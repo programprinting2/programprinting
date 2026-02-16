@@ -61,8 +61,8 @@ class SPK extends Model
     public static function statusList(): array
     {
         return [
-            'verifikasi'       => 'Verifikasi',
-            'sudah_bayar'      => 'Sudah Bayar',
+            'draft'       => 'Draft',
+            'proses_bayar'      => 'Proses Pembayaran',
             'proses_produksi'  => 'Proses Produksi',
             'sudah_cetak'      => 'Sudah Cetak',
             'siap_antar'       => 'Siap Antar',
