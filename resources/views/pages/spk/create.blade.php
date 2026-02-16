@@ -576,6 +576,7 @@
                               <div id="orderanPreviewContainer" class="min-vh-50 d-flex align-items-center justify-content-center bg-dark bg-opacity-10 rounded p-3" style="min-height: 280px;">
                                 <p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>
                               </div>
+                              <div id="orderanPreviewFileInfo" class="mt-2 small text-muted" style="min-height: 0;"></div>
                             </div>
                           </div>
                         </div>

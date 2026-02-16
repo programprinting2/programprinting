@@ -2350,6 +2350,23 @@
         }
     });
 
+    function formatPdfDate(pdfDate) {
+        if (!pdfDate || typeof pdfDate !== 'string') return '-';
+        const m = pdfDate.match(/^D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/);
+        if (!m) return pdfDate;
+        const [, y, mo, d, h, min, s] = m;
+        const date = new Date(Date.UTC(
+            parseInt(y, 10),
+            parseInt(mo, 10) - 1,
+            parseInt(d, 10),
+            parseInt(h || '0', 10),
+            parseInt(min || '0', 10),
+            parseInt(s || '0', 10)
+        ));
+        if (isNaN(date.getTime())) return pdfDate;
+        return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+    }
+
     function renderOrderanPreviewTab() {
         const container = document.getElementById('orderanPreviewContainer');
         if (!container) return;
@@ -2397,15 +2414,89 @@
         }
     
         if (isImage) {
+            const path = defaultFile.path || defaultFile.sourcePath || '';
+            const hasServerPath = path && !path.startsWith('http') && !(defaultFile.file instanceof File);
             container.innerHTML = `
                 <div class="w-100 text-center">
                     <img src="${url}" class="img-fluid rounded" alt="${defaultFile.name || ''}">
                 </div>
             `;
+            const infoEl = document.getElementById('orderanPreviewFileInfo');
+            if (infoEl) {
+                infoEl.innerHTML = '';
+                if (hasServerPath) {
+                    infoEl.innerHTML = '<span class="text-muted">Memuat info file...</span>';
+                    fetch(`/backend/file-image-info?path=${encodeURIComponent(path)}`)
+                        .then(r => r.json())
+                        .then((json) => {
+                            if (!json.success || !json.data) {
+                                infoEl.innerHTML = '<span class="text-muted">Info file tidak tersedia</span>';
+                                return;
+                            }
+                            const d = json.data;
+                            infoEl.innerHTML = `
+                                <div class="card border-light shadow-sm p-3 mb-3">
+                                    <div class="row small text-dark">
+                                        <div class="col-6 mb-2"><strong>Dimensi:</strong> ${d.dimensions || '-'}</div>
+                                        <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi || '-'}</div>
+                                        <div class="col-6 mb-2"><strong>Ukuran (cm):</strong> ${d.width_cm ?? '-'}(L) × ${d.height_cm ?? '-'}(P)</div>
+                                        <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${
+                                            d.size_mb != null 
+                                                ? d.size_mb + ' MB' 
+                                                : (d.size_bytes != null 
+                                                    ? (d.size_bytes / 1024).toFixed(1) + ' KB' 
+                                                    : '-')
+                                        }</div>
+                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || '-'}</div>
+                                    </div>
+                                </div>
+                            `;
+                        })
+                        .catch(() => {
+                            infoEl.innerHTML = '<span class="text-muted">Gagal memuat info file</span>';
+                        });
+                }
+            }
         } else if (isPdf) {
+            const path = defaultFile.path || defaultFile.sourcePath || '';
+            const hasServerPath = path && !path.startsWith('http') && !(defaultFile.file instanceof File);
+
             container.innerHTML = `
                 <iframe src="${url}" class="w-100 rounded" style="height: 360px;" frameborder="0"></iframe>
             `;
+
+            const infoEl = document.getElementById('orderanPreviewFileInfo');
+            if (infoEl) {
+                infoEl.innerHTML = '';
+                if (hasServerPath) {
+                    infoEl.innerHTML = '<span class="text-muted">Memuat info PDF...</span>';
+                    fetch(`/backend/file-pdf-info?path=${encodeURIComponent(path)}`)
+                        .then(r => r.json())
+                        .then((json) => {
+                            if (!json.success || !json.data) {
+                                infoEl.innerHTML = '<span class="text-muted">Info PDF tidak tersedia</span>';
+                                return;
+                            }
+                            const d = json.data;
+                            infoEl.innerHTML = `
+                                <div class="card border-light shadow-sm p-3 mb-3 mt-2">
+                                    <div class="row small text-dark">
+                                        <div class="col-6 mb-2"><strong>Halaman:</strong> ${d.num_pages != null ? d.num_pages : '-'}</div>
+                                        <div class="col-6 mb-2"><strong>Ukuran halaman:</strong> ${d.size_summary || '-'}</div>
+                                        <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${d.file_size_mb != null ? d.file_size_mb + ' MB' : (d.file_size_bytes != null ? (d.file_size_bytes / 1024).toFixed(1) + ' KB' : '-')}</div>
+                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || '-'}</div>
+                                        <div class="col-6 mb-2"><strong>Judul:</strong> ${d.title || '-'}</div>
+                                        <div class="col-6 mb-2"><strong>Size Check:</strong><span class="${d.size_check === true ? 'text-success' : d.size_check === false ? 'text-danger' : 'text-muted'}"> ${d.size_check != null ? d.size_check : '-'}</span></div>
+                                        <div class="col-6 mb-2"><strong>Tanggal buat:</strong> ${formatPdfDate(d.creation_date)}</div>
+                                    </div>
+                                </div>
+                            `;
+                        })
+                        .catch(() => {
+                            infoEl.innerHTML = '<span class="text-muted">Gagal memuat info PDF</span>';
+                        });
+                }
+            }
         }
     }
 })();

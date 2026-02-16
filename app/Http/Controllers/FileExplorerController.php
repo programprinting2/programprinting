@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\File;
 use Illuminate\Http\JsonResponse;
 
@@ -110,6 +111,93 @@ class FileExplorerController extends Controller
                 fpassthru($stream);
                 fclose($stream);
             }, 200, ['Content-Type' => $mime]);
+        }
+    }
+
+    public function getImageInfo(Request $request): JsonResponse
+    {
+        $path = $request->query('path');
+        if (!$path || !File::exists($path)) {
+            return response()->json(['success' => false, 'message' => 'Path tidak valid'], 404);
+        }
+
+        $basePath = realpath(config('app.explorer_base_path', 'F:/PESANAN/'));
+        $realPath = realpath($path);
+        if (!$basePath || !$realPath || !str_starts_with($realPath, $basePath)) {
+            return response()->json(['success' => false, 'message' => 'Akses path tidak diizinkan'], 403);
+        }
+
+        $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
+        $ext = strtolower(pathinfo($realPath, PATHINFO_EXTENSION));
+        if (!in_array($ext, $imageExts)) {
+            return response()->json(['success' => false, 'message' => 'Hanya file gambar yang didukung'], 400);
+        }
+
+        $baseUrl = rtrim(config('app.file_info_api_base_url', 'http://127.0.0.1:9001'), '/');
+        $apiUrl = $baseUrl . '/ui/read-info';
+
+        try {
+            $response = Http::timeout(10)->post($apiUrl, [
+                'filepath' => $realPath,
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengambil info file dari API',
+                ], 502);
+            }
+
+            $data = $response->json();
+            return response()->json(['success' => true, 'data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 502);
+        }
+    }
+
+    public function getPdfInfo(Request $request): JsonResponse
+    {
+        $path = $request->query('path');
+        if (!$path || !File::exists($path)) {
+            return response()->json(['success' => false, 'message' => 'Path tidak valid'], 404);
+        }
+
+        $basePath = realpath(config('app.explorer_base_path', 'F:/PESANAN/'));
+        $realPath = realpath($path);
+        if (!$basePath || !$realPath || !str_starts_with($realPath, $basePath)) {
+            return response()->json(['success' => false, 'message' => 'Akses path tidak diizinkan'], 403);
+        }
+
+        $ext = strtolower(pathinfo($realPath, PATHINFO_EXTENSION));
+        if ($ext !== 'pdf') {
+            return response()->json(['success' => false, 'message' => 'Hanya file PDF yang didukung'], 400);
+        }
+
+        $baseUrl = rtrim(config('app.file_info_api_base_url', 'http://127.0.0.1:9001'), '/');
+        $apiUrl = $baseUrl . '/ui/read-pdf-info';
+
+        try {
+            $response = Http::timeout(10)->post($apiUrl, [
+                'filepath' => $realPath,
+            ]);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal mengambil info PDF dari API',
+                ], 502);
+            }
+
+            $data = $response->json();
+            return response()->json(['success' => true, 'data' => $data]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 502);
         }
     }
 }

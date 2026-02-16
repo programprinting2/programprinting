@@ -56,7 +56,7 @@ return [
 
     'asset_url' => env('ASSET_URL', null),
     'explorer_base_path' => env('EXPLORER_BASE_PATH', 'F:/PESANAN/'),
-
+    'file_info_api_base_url' => env('FILE_INFO_API_BASE_URL', 'http://127.0.0.1:9001'),
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

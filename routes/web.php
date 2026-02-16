@@ -180,7 +180,9 @@ Route::group(['prefix' => 'backend'], function () {
     // File Explorer helper
     Route::get('/file-explorer', [App\Http\Controllers\FileExplorerController::class, 'index'])->name('backend.file-explorer');
     Route::get('/preview-file', [App\Http\Controllers\FileExplorerController::class, 'previewFile'])->name('backend.preview-file');
-
+    Route::get('/file-image-info', [App\Http\Controllers\FileExplorerController::class, 'getImageInfo'])->name('backend.file-image-info');
+    Route::get('/file-pdf-info', [App\Http\Controllers\FileExplorerController::class, 'getPdfInfo'])->name('backend.file-pdf-info');
+    
 });
 
 Route::group(['prefix' => 'pembelian'], function () {
