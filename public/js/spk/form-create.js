@@ -715,6 +715,7 @@
 
         updateLuas();
         updateModalSummary();
+        renderOrderanPreviewTab(); 
         
         editItemIndex = idx;
     }
@@ -1169,6 +1170,7 @@
         modalFinishingData = [];
         renderModalFinishingAccordion();
         updateModalSummary();
+        renderOrderanPreviewTab(); 
     }
     
     function renderModalUploadedFiles() {
@@ -1240,7 +1242,6 @@
     // }
     
     function updateModalSummary() {
-        renderOrderanPreviewTab();
         // Produk
         const produkInput = document.getElementById('modalProdukSelect');
         const produkId = document.getElementById('modalProdukId');
@@ -1666,6 +1667,7 @@
         }
         renderModalUploadedFiles();
         updateModalSummary();
+        renderOrderanPreviewTab(); 
     }
 
     // function updateFinishingJumlah(index, newJumlah) {
@@ -2168,7 +2170,9 @@
         explorerContext = context;
         selectedExplorerFiles = [];
         updateExplorerSelectionUI();
-        const modal = new bootstrap.Modal(document.getElementById('modalFileExplorer'));
+        const modalEl = document.getElementById('modalFileExplorer');
+        if (!modalEl) return;
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
         loadExplorerPath('');
     }
@@ -2291,7 +2295,9 @@
                 }
             });
             // Close modal
-            bootstrap.Modal.getInstance(document.getElementById('modalFileExplorer')).hide();
+            const explorerModal = document.getElementById('modalFileExplorer');
+            const instance = explorerModal ? bootstrap.Modal.getInstance(explorerModal) : null;
+            if (instance) instance.hide();
             // Reset selection
             selectedExplorerFiles = [];
             updateExplorerSelectionUI();
@@ -2334,17 +2340,21 @@
         });
         renderModalUploadedFiles();
         updateModalSummary();
+        renderOrderanPreviewTab(); 
     }
 
 
 
     // Attach Explorer Events
     document.addEventListener('click', (e) => {
-        if (e.target.id === 'btnOpenExplorerSPK') {
+        if (e.target.closest('#btnOpenExplorerSPK')) {
+            e.preventDefault();
             openExplorer('spk');
-        } else if (e.target.id === 'btnOpenExplorerModalItem') {
+        } else if (e.target.closest('#btnOpenExplorerModalItem')) {
+            e.preventDefault();
             openExplorer('item');
-        } else if (e.target.id === 'btnExplorerBack') {
+        } else if (e.target.closest('#btnExplorerBack')) {
+            e.preventDefault();
             const parent = currentExplorerPath.substring(0, currentExplorerPath.lastIndexOf('/'));
             loadExplorerPath(parent || '');
         }
@@ -2367,6 +2377,15 @@
         return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
     }
 
+    function resetOrderanPreviewState() {
+        if (orderanPreviewObjectUrl) {
+            URL.revokeObjectURL(orderanPreviewObjectUrl);
+            orderanPreviewObjectUrl = null;
+        }
+        const infoEl = document.getElementById('orderanPreviewFileInfo');
+        if (infoEl) infoEl.innerHTML = '';
+    }
+
     function renderOrderanPreviewTab() {
         const container = document.getElementById('orderanPreviewContainer');
         if (!container) return;
@@ -2374,6 +2393,12 @@
         const defaultFile = modalUploadedFiles[0];
     
         if (!defaultFile) {
+            if (orderanPreviewObjectUrl) {
+                URL.revokeObjectURL(orderanPreviewObjectUrl);
+                orderanPreviewObjectUrl = null;
+            }
+            const infoEl = document.getElementById('orderanPreviewFileInfo');
+            if (infoEl) infoEl.innerHTML = '';
             container.innerHTML = '<p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>';
             return;
         }
@@ -2385,6 +2410,7 @@
         const isPdf = type.includes('pdf') || ext === 'pdf';
     
         if (!isImage && !isPdf) {
+            resetOrderanPreviewState();
             container.innerHTML = '<p class="text-muted small mb-0 text-center">Preview hanya tersedia untuk file gambar dan PDF.</p>';
             return;
         }
@@ -2409,6 +2435,7 @@
         }
     
         if (!url) {
+            resetOrderanPreviewState();
             container.innerHTML = '<p class="text-muted small mb-0 text-center">File tidak bisa dipreview langsung dari browser.</p>';
             return;
         }

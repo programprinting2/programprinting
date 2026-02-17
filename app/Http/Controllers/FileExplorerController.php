@@ -20,45 +20,56 @@ class FileExplorerController extends Controller
     {
         $basePath = config('app.explorer_base_path', 'F:/PESANAN/');
         $currentPath = $request->get('path', $basePath);
-        
+
         if (!File::exists($currentPath) || !File::isDirectory($currentPath)) {
             $currentPath = $basePath;
         }
 
         try {
-            $directories = [];
-            $files = [];
+            // cache key unik berdasarkan path
+            $cacheKey = 'explorer_' . md5($currentPath);
 
-            // Get directories
-            $dirList = File::directories($currentPath);
-            foreach ($dirList as $path) {
-                $directories[] = [
-                    'name' => basename($path),
-                    'path' => str_replace('\\', '/', $path),
-                    'type' => 'directory'
+            $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($currentPath) {
+
+                $directories = [];
+                $files = [];
+
+                // Get directories
+                $dirList = File::directories($currentPath);
+                foreach ($dirList as $path) {
+                    $directories[] = [
+                        'name' => basename($path),
+                        'path' => str_replace('\\', '/', $path),
+                        'type' => 'directory'
+                    ];
+                }
+
+                // Get files
+                foreach (File::files($currentPath) as $file) {
+                    $ext = strtolower($file->getExtension());
+                    if (!in_array($ext, $this->allowedExtensions)) continue;
+
+                    $files[] = [
+                        'name' => $file->getFilename(),
+                        'path' => str_replace('\\', '/', $file->getRealPath()),
+                        'type' => 'file',
+                        'extension' => $ext,
+                        'size' => $file->getSize()
+                    ];
+                }
+
+                return [
+                    'directories' => $directories,
+                    'files' => $files,
                 ];
-            }
-
-            // Get files
-            foreach (File::files($currentPath) as $file) {
-                $ext = strtolower($file->getExtension());
-                if (!in_array($ext, $this->allowedExtensions)) continue;
-
-                $files[] = [
-                    'name' => $file->getFilename(),
-                    'path' => str_replace('\\', '/', $file->getRealPath()),
-                    'type' => 'file',
-                    'extension' => $ext,
-                    'size' => $file->getSize()
-                ];
-            }
+            });
 
             return response()->json([
                 'success' => true,
                 'current_path' => str_replace('\\', '/', $currentPath),
                 'parent_path' => str_replace('\\', '/', dirname($currentPath)),
-                'directories' => $directories,
-                'files' => $files,
+                'directories' => $data['directories'],
+                'files' => $data['files'],
                 'sep' => DIRECTORY_SEPARATOR
             ]);
 
