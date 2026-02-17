@@ -182,6 +182,7 @@ Route::group(['prefix' => 'backend'], function () {
     Route::get('/preview-file', [App\Http\Controllers\FileExplorerController::class, 'previewFile'])->name('backend.preview-file');
     Route::get('/file-image-info', [App\Http\Controllers\FileExplorerController::class, 'getImageInfo'])->name('backend.file-image-info');
     Route::get('/file-pdf-info', [App\Http\Controllers\FileExplorerController::class, 'getPdfInfo'])->name('backend.file-pdf-info');
+    Route::post('/image-processing', [App\Http\Controllers\FileExplorerController::class, 'processImageTools'])->name('backend.image-processing');
 
 });
 

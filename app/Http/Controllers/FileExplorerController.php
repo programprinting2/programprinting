@@ -227,4 +227,50 @@ class FileExplorerController extends Controller
             ], 502);
         }
     }
+
+    public function processImageTools(Request $request): JsonResponse
+    {
+        $data = $request->all();
+        $filepath = $data['AlamatFile'] ?? null;
+
+        if (!$filepath || !File::exists($filepath)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Path file tidak valid.',
+            ], 404);
+        }
+
+        $basePath = realpath(config('app.explorer_base_path', 'F:/PESANAN/'));
+        $realPath = realpath($filepath);
+
+        if (!$basePath || !$realPath || !str_starts_with($realPath, $basePath)) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Akses path tidak diizinkan.',
+            ], 403);
+        }
+
+        $baseUrl = rtrim(config('app.file_info_api_base_url', 'http://127.0.0.1:9001'), '/');
+        $apiUrl  = $baseUrl . '/ui/image-processing';
+
+        try {
+            $response = Http::timeout(20)->post($apiUrl, $data);
+
+            if (!$response->successful()) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Gagal memproses gambar di API backend.',
+                ], 502);
+            }
+
+            $json = $response->json() ?? [];
+
+            return response()->json($json);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Error: ' . $e->getMessage(),
+            ], 502);
+        }
+    }
 }

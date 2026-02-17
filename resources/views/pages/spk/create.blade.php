@@ -40,53 +40,59 @@
     <div class="row">
       <!-- Sidebar kiri: informasi pelanggan -->
       <div class="col-md-3">
-                <div class="mb-4 p-3 border rounded bg-light">
-                    <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pelanggan</div>
-                    <div class="mb-3">
-                        <label class="form-label">Pelanggan</label>
-                        <div class="input-group">
-              <input type="text" class="form-control" id="namaCustomerInput" placeholder="Pilih pelanggan..." readonly style="background:#fff;cursor:pointer;">
+        <div class="mb-4 p-3 border rounded bg-light">
+          <div class="fw-semibold mb-2"><i class="fa fa-user me-1"></i> Informasi Pelanggan</div>
+          <div class="mb-3">
+            <label class="form-label">Pelanggan</label>
+            <div class="input-group">
+              <input type="text" class="form-control" id="namaCustomerInput" placeholder="Pilih pelanggan..." readonly
+                style="background:#fff;cursor:pointer;">
               <input type="hidden" id="customerIdInput" name="customer_id">
               <input type="hidden" id="customerKategoriHarga" name="customer_kategori_harga" value="">
-              <button class="btn btn-outline-secondary" type="button" id="btnCariCustomer"><i class="fa fa-search"></i></button>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Tanggal SPK</label>
-            <input type="date" class="form-control" name="tanggal_spk" id="tanggalSPK" value="{{ date('Y-m-d') }}" required>
-                    </div>
-                </div>
-                <!-- <div class="mb-4 p-3 border rounded bg-light">
-                    <div class="fw-semibold mb-2"><i class="fa fa-flag me-1"></i> Status & Prioritas</div>
-                    <div class="mb-3">
-                        <label class="form-label">Status SPK</label>
-            <select class="form-select" name="status" id="statusSPK">
-              <option value="draft" selected>Draft</option>
-              <option value="menunggu persetujuan">Menunggu Persetujuan</option>
-              <option value="disetujui">Disetujui</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Prioritas</label>
-            <select class="form-select" name="prioritas" id="prioritasSPK">
-              <option value="normal" selected>Normal</option>
-              <option value="rendah">Rendah</option>
-              <option value="tinggi">Tinggi</option>
-              <option value="mendesak">Mendesak</option>
-                        </select>
-                    </div>
-                </div> -->
-                <div class="mb-4 p-3 border rounded bg-light">
-                    <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
+              <button class="btn btn-outline-secondary" type="button" id="btnCariCustomer"><i
+                  class="fa fa-search"></i></button>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Tanggal SPK</label>
+            <input type="date" class="form-control" name="tanggal_spk" id="tanggalSPK" value="{{ date('Y-m-d') }}"
+              required>
+          </div>
+        </div>
+        <!-- <div class="mb-4 p-3 border rounded bg-light">
+                                                                  <div class="fw-semibold mb-2"><i class="fa fa-flag me-1"></i> Status & Prioritas</div>
+                                                                  <div class="mb-3">
+                                                                      <label class="form-label">Status SPK</label>
+                                                          <select class="form-select" name="status" id="statusSPK">
+                                                            <option value="draft" selected>Draft</option>
+                                                            <option value="menunggu persetujuan">Menunggu Persetujuan</option>
+                                                            <option value="disetujui">Disetujui</option>
+                                                                      </select>
+                                                                  </div>
+                                                                  <div class="mb-3">
+                                                                      <label class="form-label">Prioritas</label>
+                                                          <select class="form-select" name="prioritas" id="prioritasSPK">
+                                                            <option value="normal" selected>Normal</option>
+                                                            <option value="rendah">Rendah</option>
+                                                            <option value="tinggi">Tinggi</option>
+                                                            <option value="mendesak">Mendesak</option>
+                                                                      </select>
+                                                                  </div>
+                                                              </div> -->
+        <div class="mb-4 p-3 border rounded bg-light">
+          <div class="fw-semibold mb-2"><i class="fa fa-sticky-note me-1"></i> Catatan</div>
           <textarea class="form-control" name="catatan" rows="3" placeholder="Tambahkan catatan untuk SPK ini"></textarea>
-                </div>
+        </div>
         <div class="p-3 border rounded bg-light">
           <div class="fw-semibold mb-2"><i class="fa fa-dollar-sign me-1"></i> Ringkasan Biaya</div>
-          <div class="d-flex justify-content-between small mb-1"><span>Total Item:</span><span class="ringkasan-total-item">0</span></div>
-          <div class="d-flex justify-content-between small mb-1"><span>Total Biaya:</span><span class="ringkasan-total-biaya">Rp 0</span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Total Item:</span><span
+              class="ringkasan-total-item">0</span></div>
+          <div class="d-flex justify-content-between small mb-1"><span>Total Biaya:</span><span
+              class="ringkasan-total-biaya">Rp 0</span></div>
           <hr class="my-2">
-          <div class="d-flex justify-content-between fw-bold"><span>Total SPK:</span><span class="ringkasan-total-spk">Rp 0</span></div>
-                </div>
+          <div class="d-flex justify-content-between fw-bold"><span>Total SPK:</span><span class="ringkasan-total-spk">Rp
+              0</span></div>
+        </div>
       </div>
 
       <!-- Kanan: Item Pekerjaan -->
@@ -113,7 +119,8 @@
                 <div class="card border-0 shadow-sm">
                   <div class="card-header d-flex justify-content-between align-items-center">
                     <h6 class="mb-0 fw-semibold"><i class="fa fa-list me-2"></i>Daftar Item Pekerjaan</h6>
-                    <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
+                    <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i
+                        class="fa fa-plus"></i> Tambah Item</button>
                   </div>
                   <div class="card-body p-0">
                     <!-- Header Table-like -->
@@ -125,7 +132,7 @@
                       <div class="col-2 p-3">Keterangan</div>
                       <div class="col-1 p-3 text-center">Aksi</div>
                     </div>
-                    
+
                     <!-- Container untuk item cards -->
                     <div id="itemCardsContainer">
                       <div class="text-center text-muted py-4" id="noItemsMessage">
@@ -138,11 +145,13 @@
               </div>
               <!-- Tab Tugas Produksi -->
               <div class="tab-pane fade px-3" id="tugasProduksi" role="tabpanel">
-                <div id="emptyTugasState" class="d-flex flex-column align-items-center justify-content-center py-5" style="min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;">
+                <div id="emptyTugasState" class="d-flex flex-column align-items-center justify-content-center py-5"
+                  style="min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;">
                   <div class="mb-3">
                     <svg width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="32" cy="32" r="30" stroke="#cfd8dc" stroke-width="4" fill="#f4f6f8"/>
-                      <path d="M32 18v14l8 4" stroke="#b0bec5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                      <circle cx="32" cy="32" r="30" stroke="#cfd8dc" stroke-width="4" fill="#f4f6f8" />
+                      <path d="M32 18v14l8 4" stroke="#b0bec5" stroke-width="3" stroke-linecap="round"
+                        stroke-linejoin="round" />
                     </svg>
                   </div>
                   <h5 class="fw-semibold text-secondary mb-1">Belum ada tugas</h5>
@@ -166,11 +175,11 @@
 
                 <div class="mb-3">
                   <!-- <div id="dropZone" class="border-2 border-dashed rounded p-4 text-center bg-light mb-3" style="cursor:pointer;">
-                    <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
-                    <div class="mb-2">Drag & drop file di sini atau <span class="text-primary" style="text-decoration:underline;cursor:pointer;" id="btnBrowseFile">klik untuk pilih file</span></div>
-                    <small class="text-muted">Maksimal 10MB per file. Tipe: PDF, JPG, PNG, DOCX, XLSX, ZIP, dll.</small>
-                    <input type="file" id="inputFilePendukung" multiple style="display:none;">
-                  </div> -->
+                                                                  <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
+                                                                  <div class="mb-2">Drag & drop file di sini atau <span class="text-primary" style="text-decoration:underline;cursor:pointer;" id="btnBrowseFile">klik untuk pilih file</span></div>
+                                                                  <small class="text-muted">Maksimal 10MB per file. Tipe: PDF, JPG, PNG, DOCX, XLSX, ZIP, dll.</small>
+                                                                  <input type="file" id="inputFilePendukung" multiple style="display:none;">
+                                                                </div> -->
                 </div>
                 <div class="table-responsive mb-3">
                   <table class="table table-bordered align-middle mb-0" id="tabelFilePendukung">
@@ -183,7 +192,9 @@
                       </tr>
                     </thead>
                     <tbody id="filePendukungBody">
-                      <tr><td colspan="4" class="text-center text-muted">Belum ada file pendukung</td></tr>
+                      <tr>
+                        <td colspan="4" class="text-center text-muted">Belum ada file pendukung</td>
+                      </tr>
                     </tbody>
                   </table>
                 </div>
@@ -195,17 +206,19 @@
         <div class="d-flex justify-content-end gap-2 mt-4">
           <button type="button" class="btn btn-light" id="btnBatalSPK">Batal</button>
           <button type="submit" class="btn btn-primary" id="btnSimpanSPK">
-            <span class="spinner-border spinner-border-sm me-1 d-none" id="spinnerSimpanSPK" role="status" aria-hidden="true"></span>
+            <span class="spinner-border spinner-border-sm me-1 d-none" id="spinnerSimpanSPK" role="status"
+              aria-hidden="true"></span>
             <span class="label-simpan">Simpan SPK</span>
           </button>
         </div>
       </div>
 
     </div>
-    </form>
+  </form>
 
   <!-- Modal Tambah/Edit Tugas Produksi -->
-  <div class="modal fade" id="modalTugasProduksi" tabindex="-1" aria-labelledby="modalTugasProduksiLabel" aria-hidden="true">
+  <div class="modal fade" id="modalTugasProduksi" tabindex="-1" aria-labelledby="modalTugasProduksiLabel"
+    aria-hidden="true">
     <div class="modal-dialog">
       <div class="modal-content">
         <div class="modal-header">
@@ -216,14 +229,17 @@
           <form id="formTugasProduksi">
             <div class="mb-3">
               <label class="form-label">Nama Tugas <span class="text-danger">*</span></label>
-              <input type="text" class="form-control" id="inputNamaTugas" placeholder="Cetak, Finishing, Desain, dll" required>
+              <input type="text" class="form-control" id="inputNamaTugas" placeholder="Cetak, Finishing, Desain, dll"
+                required>
             </div>
             <div class="mb-3">
               <label class="form-label">Ditugaskan Kepada <span class="text-danger">*</span></label>
               <div class="input-group">
-                <input type="text" class="form-control" id="inputDitugaskan" placeholder="Pilih karyawan..." readonly required>
+                <input type="text" class="form-control" id="inputDitugaskan" placeholder="Pilih karyawan..." readonly
+                  required>
                 <input type="hidden" id="inputDitugaskanId">
-                <button type="button" class="btn btn-outline-secondary" id="btnCariKaryawan"><i class="fa fa-search"></i></button>
+                <button type="button" class="btn btn-outline-secondary" id="btnCariKaryawan"><i
+                    class="fa fa-search"></i></button>
               </div>
             </div>
             <div class="mb-3">
@@ -243,419 +259,440 @@
               <div class="col-md-6">
                 <label class="form-label">Harga (Rp)</label>
                 <input type="number" class="form-control" id="inputHarga" min="0" value="0">
-                            </div>
-                        </div>
-                        <div class="mb-3">
+              </div>
+            </div>
+            <div class="mb-3">
               <label class="form-label">Deskripsi</label>
-              <textarea class="form-control" id="inputDeskripsi" rows="2" placeholder="Masukkan deskripsi tugas..."></textarea>
-                            </div>
+              <textarea class="form-control" id="inputDeskripsi" rows="2"
+                placeholder="Masukkan deskripsi tugas..."></textarea>
+            </div>
             <div class="d-flex justify-content-end gap-2">
               <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
               <button type="submit" class="btn btn-primary" id="btnSimpanTugas">Tambah Tugas</button>
-                            </div>
-          </form>
-                        </div>
-                    </div>
-                </div>
             </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
-            <!-- Modal Tambah Item Pesanan -->
-            <div class="modal fade" id="modalTambahItemPesanan" tabindex="-1" data-bs-backdrop="static" aria-labelledby="modalTambahItemPesananLabel" aria-hidden="true">
-              <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                  <div class="modal-header border-bottom">
-                    <h5 class="modal-title" id="modalTambahItemPesananLabel">
-                      <i class="fa fa-plus-circle me-2"></i>Tambah Item Pesanan
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+  <!-- Modal Tambah Item Pesanan -->
+  <div class="modal fade" id="modalTambahItemPesanan" tabindex="-1" data-bs-backdrop="static"
+    aria-labelledby="modalTambahItemPesananLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header border-bottom">
+          <h5 class="modal-title" id="modalTambahItemPesananLabel">
+            <i class="fa fa-plus-circle me-2"></i>Tambah Item Pesanan
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-0">
+          <div class="row g-0">
+            <!-- Left Panel: Form Sections -->
+            <div class="col-lg-8 border-end">
+              <div class="p-4">
+                <!-- Section 1: Detail Produk -->
+                <div class="section-item mb-4" id="sectionDetailPesanan">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="section-number me-2">1</span>
+                    <h6 class="mb-0 fw-bold">Detail Produk</h6>
                   </div>
-                  <div class="modal-body p-0">
-                    <div class="row g-0">
-                      <!-- Left Panel: Form Sections -->
-                      <div class="col-lg-8 border-end">
-                        <div class="p-4">
-                          <!-- Section 1: Detail Produk -->
-                          <div class="section-item mb-4" id="sectionDetailPesanan">
-                            <div class="d-flex align-items-center mb-3">
-                              <span class="section-number me-2">1</span>
-                              <h6 class="mb-0 fw-bold">Detail Produk</h6>
+                  <div class="ps-4">
+                    <!-- ... isi Detail Pesanan sama seperti sebelumnya ... -->
+                    <div class="row g-3">
+                      <div class="col-md-12">
+                        <label class="form-label">Produk <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <input type="text" class="form-control" id="modalProdukSelect" placeholder="Pilih produk..."
+                            readonly style="cursor: pointer; background-color: #fff;">
+                          <input type="hidden" id="modalProdukId">
+                          <button type="button" class="btn btn-outline-secondary" id="modalBtnCariProduk"
+                            title="Cari Produk">
+                            <i class="fa fa-search"></i>
+                          </button>
+                        </div>
+                      </div>
+                      <div class="col-md-12">
+                        <label class="form-label">Keterangan</label>
+                        <textarea class="form-control" id="modalKeteranganInput" rows="2"
+                          placeholder="Masukkan keterangan pesanan..."></textarea>
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Deadline <span class="text-danger">*</span></label>
+                        <input type="datetime-local" class="form-control" id="modalDeadlineInput">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Urgent</label>
+                        <div class="form-check form-switch">
+                          <input class="form-check-input" type="checkbox" role="switch" id="modalUrgentToggle">
+                          <label class="form-check-label" for="modalUrgentToggle" id="modalUrgentLabel">
+                            <span class="urgent-status">Tidak</span>
+                          </label>
+                        </div>
+                        <input type="hidden" id="modalUrgentValue" value="false">
+                      </div>
+                      <div class="col-md-4">
+                        <label class="form-label">Jumlah <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                          <input type="number" class="form-control text-end" id="modalJumlahInput" min="0" step="0.01"
+                            placeholder="0">
+                          <span class="input-group-text" id="modalSatuanDisplay">pcs</span>
+                        </div>
+                      </div>
+                      <div id="sectionUkuran" style="display: none;">
+                        <div class="col-12">
+                          <label class="form-label">Ukuran</label>
+                          <div class="row g-2">
+                            <div class="col-4">
+                              <div class="input-group">
+                                <span class="input-group-text">L</span>
+                                <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1"
+                                  value="0" placeholder="Lebar">
+                                <span class="input-group-text" id="modalSatuanLebar">-</span>
+                              </div>
+                              <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i
+                                  class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
                             </div>
-                            <div class="ps-4">
-                              <!-- ... isi Detail Pesanan sama seperti sebelumnya ... -->
-                              <div class="row g-3">
-                                <div class="col-md-12">
-                                  <label class="form-label">Produk <span class="text-danger">*</span></label>
-                                  <div class="input-group">
-                                    <input type="text" class="form-control" id="modalProdukSelect" placeholder="Pilih produk..." readonly style="cursor: pointer; background-color: #fff;">
-                                    <input type="hidden" id="modalProdukId">
-                                    <button type="button" class="btn btn-outline-secondary" id="modalBtnCariProduk" title="Cari Produk">
-                                      <i class="fa fa-search"></i>
-                                    </button>
-                                  </div>
-                                </div>
-                                <div class="col-md-12">
-                                  <label class="form-label">Keterangan</label>
-                                  <textarea class="form-control" id="modalKeteranganInput" rows="2" placeholder="Masukkan keterangan pesanan..."></textarea>
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="form-label">Deadline <span class="text-danger">*</span></label>
-                                  <input type="datetime-local" class="form-control" id="modalDeadlineInput">
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="form-label">Urgent</label>
-                                  <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="modalUrgentToggle">
-                                    <label class="form-check-label" for="modalUrgentToggle" id="modalUrgentLabel">
-                                      <span class="urgent-status">Tidak</span>
-                                    </label>
-                                  </div>
-                                  <input type="hidden" id="modalUrgentValue" value="false">
-                                </div>
-                                <div class="col-md-4">
-                                  <label class="form-label">Jumlah <span class="text-danger">*</span></label>
-                                  <div class="input-group">
-                                    <input type="number" class="form-control text-end" id="modalJumlahInput" min="0" step="0.01" placeholder="0">
-                                    <span class="input-group-text" id="modalSatuanDisplay">pcs</span>
-                                  </div>
-                                </div>
-                                <div id="sectionUkuran" style="display: none;">
-                                  <div class="col-12">
-                                    <label class="form-label">Ukuran</label>
-                                    <div class="row g-2">
-                                      <div class="col-4">
-                                        <div class="input-group">
-                                          <span class="input-group-text">L</span>
-                                          <input type="number" class="form-control" id="modalLebarInput" min="0" step="0.1" value="0" placeholder="Lebar">
-                                          <span class="input-group-text" id="modalSatuanLebar">-</span>
-                                        </div>
-                                        <small class="text-muted mt-1" id="lebarStatus" style="display:none;"><i class="fa fa-lock"></i> Lebar terkunci sesuai produk</small>
-                                      </div>
-                                      <div class="col-4">
-                                        <div class="input-group">
-                                          <span class="input-group-text">P</span>
-                                          <input type="number" class="form-control" id="modalPanjangInput" min="0" step="0.1" value="0" placeholder="Panjang">
-                                          <span class="input-group-text" id="modalSatuanPanjang">-</span>
-                                        </div>
-                                        <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
-                                      </div>
-                                      <div class="col-4" id="luasColumn">
-                                        <div class="input-group">
-                                          <span class="input-group-text">Luas</span>
-                                          <input type="text" class="form-control" id="modalLuasInput" readonly>
-                                          <span class="input-group-text" id="modalSatuanLuas">cm²</span>
-                                        </div>
-                                        <!-- <small class="text-muted mt-1">Panjang × Lebar</small> -->
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
-                                <div class="mt-3" id="sectionRelasiProduk" style="display:none;">
-                                  <div class="accordion" id="accordionRelasiProduk">
-                                    <!-- Panel: Bahan Baku Terkait -->
-                                    <div class="accordion-item">
-                                      <h2 class="accordion-header" id="headingBahanBaku">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseBahanBaku" aria-expanded="false" aria-controls="collapseBahanBaku">
-                                          Bahan Baku Terkait
-                                        </button>
-                                      </h2>
-                                      <div id="collapseBahanBaku" class="accordion-collapse collapse" aria-labelledby="headingBahanBaku" data-bs-parent="#accordionRelasiProduk">
-                                        <div class="accordion-body" id="relasiBahanBakuBody">
-                                          <p class="text-muted mb-0 small">Belum ada informasi bahan baku untuk produk ini.</p>
-                                        </div>
-                                      </div>
-                                    </div>
-
-                                    <!-- Panel: Produk Komponen (Rakitan) -->
-                                    <div class="accordion-item">
-                                      <h2 class="accordion-header" id="headingKomponen">
-                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseKomponen" aria-expanded="false" aria-controls="collapseKomponen">
-                                          Produk Komponen (Rakitan)
-                                        </button>
-                                      </h2>
-                                      <div id="collapseKomponen" class="accordion-collapse collapse" aria-labelledby="headingKomponen" data-bs-parent="#accordionRelasiProduk">
-                                        <div class="accordion-body" id="relasiKomponenBody">
-                                          <p class="text-muted mb-0 small">Belum ada informasi komponen rakitan untuk produk ini.</p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  </div>
-                                </div>
+                            <div class="col-4">
+                              <div class="input-group">
+                                <span class="input-group-text">P</span>
+                                <input type="number" class="form-control" id="modalPanjangInput" min="0" step="0.1"
+                                  value="0" placeholder="Panjang">
+                                <span class="input-group-text" id="modalSatuanPanjang">-</span>
                               </div>
+                              <small class="text-muted mt-1" id="panjangStatus" style="display:none;"><i
+                                  class="fa fa-lock"></i> Panjang terkunci sesuai produk</small>
                             </div>
-                          </div>
-
-                          <hr class="my-4">
-
-                          <!-- Section 2: Finishing  -->
-                          <div class="section-item mb-4" id="sectionFinishing">
-                            <div class="d-flex align-items-center mb-3">
-                              <span class="section-number me-2">2</span>
-                              <h6 class="mb-0 fw-bold">Finishing</h6>
-                            </div>
-                            <div class="ps-4">
-                              <div class="d-flex justify-content-between align-items-center mb-3">
-                                <p class="text-muted small mb-0">Tambahkan finishing yang diperlukan untuk pesanan ini</p>
-                                <button type="button" class="btn btn-outline-primary btn-sm" id="modalBtnTambahFinishing">
-                                  <i class="fa fa-plus me-1"></i>Tambah Finishing
-                                </button>
+                            <div class="col-4" id="luasColumn">
+                              <div class="input-group">
+                                <span class="input-group-text">Luas</span>
+                                <input type="text" class="form-control" id="modalLuasInput" readonly>
+                                <span class="input-group-text" id="modalSatuanLuas">cm²</span>
                               </div>
-                              
-                              <!-- Table Finishing -->
-                              <!-- <div class="table-responsive">
-                                <table class="table table-bordered align-middle mb-0" id="modalTabelFinishing">
-                                  <thead class="table-light">
-                                    <tr>
-                                      <th>Nama Finishing</th>
-                                      <th>Jumlah</th>
-                                      <th>Harga Satuan</th>
-                                      <th>Total</th>
-                                      <th>Aksi</th>
-                                    </tr>
-                                  </thead>
-                                  <tbody id="modalFinishingBody">
-                                    <tr>
-                                      <td colspan="5" class="text-center text-muted py-3">
-                                        <i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan
-                                      </td>
-                                    </tr>
-                                  </tbody>
-                                </table>
-                              </div> -->
-
-                              <!-- Accordion Finishing Items -->
-                              <div class="accordion mt-3" id="accordionFinishingItems">
-                                <div class="text-center text-muted py-3" id="noFinishingMessage">
-                                  <i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan
-                                </div>
-                              </div>
-
-                              <!-- Total Finishing -->
-                              <div class="bg-light rounded p-3 mt-3">
-                                <div class="d-flex justify-content-between align-items-center">
-                                  <span class="fw-semibold">Total Biaya Finishing:</span>
-                                  <span class="fw-bold text-primary" id="modalTotalFinishing">Rp 0</span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-
-                          <hr class="my-4">
-
-                          <div class="section-item mb-4" id="sectionFiles">
-                            <div class="d-flex align-items-center mb-3">
-                              <span class="section-number me-2">3</span>
-                              <h6 class="mb-0 fw-bold">Files Path</h6>
-                            </div>
-                            <div class="ps-4">
-                              <div class="mb-3">
-                                <p class="text-muted small mb-3">Tentukan path file desain atau file pendukung lainnya.</p>
-                                <button type="button" class="btn btn-outline-primary w-100 py-3 border-2 border-dashed" id="btnOpenExplorerModalItem">
-                                  <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
-                                  <span>Pilih File dari Drive</span>
-                                </button>
-                              </div>
-                              <!-- <ul class="nav nav-tabs nav-tabs-sm mb-3" id="fileSourceTabs">
-                                <li class="nav-item">
-                                  <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabFileLokal">
-                                    <i class="fa fa-folder me-1"></i> File Lokal
-                                  </button>
-                                </li>
-                              </ul>
-                              <div class="tab-content">
-                                <div class="tab-pane fade show active" id="tabFileLokal">
-                                  <div class="dropzone-area border-2 border-dashed rounded p-4 text-center mb-3" id="modalDropZone">
-                                    <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
-                                    <p class="mb-1">Drag & drop file di sini atau <span class="text-primary fw-semibold" style="cursor:pointer;" id="modalBtnBrowseFile">klik untuk pilih file</span></p>
-                                    <small class="text-muted">Maksimal 10MB per file. Format: PDF, JPG, PNG, AI, PSD, CDR</small>
-                                    <input type="file" id="modalInputFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd,.cdr" style="display:none;">
-                                  </div>
-                                </div>
-                              </div> -->
-                              <!-- Daftar File yang Diupload -->
-                              <div class="uploaded-files-list mt-3" id="modalUploadedFilesList">
-                                <!-- File items akan ditambahkan di sini via JS -->
-                              </div>
+                              <!-- <small class="text-muted mt-1">Panjang × Lebar</small> -->
                             </div>
                           </div>
                         </div>
                       </div>
-
-                      <!-- Right Panel: Section 4 - Detail Orderan (Summary) -->
-                      <div class="col-lg-4 bg-light">
-                        <div class="p-4 sticky-top" style="top: 0;">
-                          <div class="d-flex align-items-center mb-3">
-                            <span class="section-number me-2">4</span>
-                            <h6 class="mb-0 fw-bold">Detail Orderan</h6>
-                          </div>
-
-                          {{-- Tab navigation --}}
-                          <ul class="nav nav-tabs nav-tabs-line mb-2" id="detailOrderanTabs" role="tablist">
-                            <li class="nav-item" role="presentation">
-                              <button class="nav-link bg-light active" id="tab-preview-orderan" data-bs-toggle="tab" data-bs-target="#tab-preview-orderan-pane"
-                                type="button" role="tab">Preview File</button>
-                            </li>
-                            <li class="nav-item" role="presentation">
-                              <button class="nav-link bg-light" id="tab-summary-orderan" data-bs-toggle="tab" data-bs-target="#tab-summary-orderan-pane"
-                                type="button" role="tab">Summary</button>
-                            </li>
-                          </ul>
-
-                          <div class="tab-content" id="detailOrderanTabContent">
-                            {{-- Tab 1: Summary Produk Orderan --}}
-                            <div class="tab-pane fade" id="tab-summary-orderan-pane" role="tabpanel">
-                              <div class="order-summary">
-                                <!-- Produk Info -->
-                                <div class="summary-item mb-3 pb-3 border-bottom">
-                                  <small class="text-muted text-uppercase">Produk</small>
-                                  <p class="mb-0 fw-semibold" id="summaryProduk">-</p>
-                                </div>
-
-                                <!-- Jumlah & Ukuran -->
-                                <div class="summary-item mb-3 pb-3 border-bottom">
-                                  <div class="row">
-                                    <div class="col-6" id="summaryUkuranContainer" style="display: none;">
-                                      <small class="text-muted text-uppercase">Ukuran</small>
-                                      <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
-                                    </div>
-                                    <div class="col-6">
-                                      <small class="text-muted text-uppercase">Jumlah</small>
-                                      <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
-                                    </div>
-                                    <div class="col-6">
-                                      <small class="text-muted text-uppercase d-block mt-1">Harga @</small>
-                                      <p class="mb-0 fw-semibold" id="summaryHargaBase">Rp 0</p>
-                                    </div>
-                                    <div class="col-6" id="summaryHargaPerSatuanContainer" style="display:none;">
-                                      <small class="text-muted text-uppercase d-block mt-1">Harga per <span id="summaryHargaPerSatuanLabel">satuan</span></small>
-                                      <p class="mb-0 fw-semibold" id="summaryHargaPerSatuan">Rp 0</p>
-                                    </div>
-                                  </div>
-                                </div>
-
-                                <!-- Finishing -->
-                                <div class="summary-item mb-3 pb-3 border-bottom">
-                                  <small class="text-muted text-uppercase">Finishing</small>
-                                  <div id="summaryFinishingList" class="mt-1">
-                                    <span class="text-muted">-</span>
-                                  </div>
-                                </div>
-
-                                <!-- Rincian Harga -->
-                                <div class="summary-pricing mt-4">
-                                  <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-muted">Subtotal Cetak</span>
-                                    <span id="summarySubtotalCetak">Rp 0</span>
-                                  </div>
-                                  <div class="d-flex justify-content-between mb-2">
-                                    <span class="text-muted">Biaya Finishing</span>
-                                    <span id="summaryBiayaFinishing">Rp 0</span>
-                                  </div>
-                                  <hr>
-                                  <div class="d-flex justify-content-between">
-                                    <span class="fw-bold">Total</span>
-                                    <span class="fw-bold text-primary fs-5" id="summaryTotalAkhir">Rp 0</span>
-                                  </div>
-                                </div>
-
-                                <!-- Deadline -->
-                                <div class="summary-item mt-3 mb-3 pb-3 border-bottom">
-                                  <small class="text-muted text-uppercase">Deadline</small>
-                                  <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
-                                </div>
-
-                                <!-- Files -->
-                                <div class="summary-item mb-3 pb-3 border-bottom">
-                                  <small class="text-muted text-uppercase">Files</small>
-                                  <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
-                                </div>
+                      <div class="mt-3" id="sectionRelasiProduk" style="display:none;">
+                        <div class="accordion" id="accordionRelasiProduk">
+                          <!-- Panel: Bahan Baku Terkait -->
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingBahanBaku">
+                              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseBahanBaku" aria-expanded="false"
+                                aria-controls="collapseBahanBaku">
+                                Bahan Baku Terkait
+                              </button>
+                            </h2>
+                            <div id="collapseBahanBaku" class="accordion-collapse collapse"
+                              aria-labelledby="headingBahanBaku" data-bs-parent="#accordionRelasiProduk">
+                              <div class="accordion-body" id="relasiBahanBakuBody">
+                                <p class="text-muted mb-0 small">Belum ada informasi bahan baku untuk produk ini.</p>
                               </div>
                             </div>
+                          </div>
 
-                            {{-- Tab 2: Preview File Default --}}
-                            <div class="tab-pane fade show active" id="tab-preview-orderan-pane" role="tabpanel">
-                              <div class="mb-3" id="explorerOpenStandalone">
-                                <button type="button"
-                                        class="btn btn-primary btn-sm"
-                                        data-action="open-explorer-item"
-                                        title="Pilih File Default"
-                                        aria-label="Pilih File Default">
-                                  <i class="fa fa-folder-open"></i> Pilih File Default
-                                </button>
+                          <!-- Panel: Produk Komponen (Rakitan) -->
+                          <div class="accordion-item">
+                            <h2 class="accordion-header" id="headingKomponen">
+                              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseKomponen" aria-expanded="false" aria-controls="collapseKomponen">
+                                Produk Komponen (Rakitan)
+                              </button>
+                            </h2>
+                            <div id="collapseKomponen" class="accordion-collapse collapse"
+                              aria-labelledby="headingKomponen" data-bs-parent="#accordionRelasiProduk">
+                              <div class="accordion-body" id="relasiKomponenBody">
+                                <p class="text-muted mb-0 small">Belum ada informasi komponen rakitan untuk produk ini.
+                                </p>
                               </div>
-                              {{-- Controls untuk File Gambar --}}
-                              <div id="imageFileControls" class="mb-3" style="display: none;">
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                  <button type="button"
-                                          class="btn btn-primary btn-sm"
-                                          data-action="open-explorer-item"
-                                          title="Pilih File Default"
-                                          aria-label="Pilih File Default">
-                                    <i class="fa fa-folder-open"></i> Pilih File Default
-                                  </button>
-                                  <button type="button" class="btn btn-sm btn-warning" id="btnRotateImage" title="Rotate & Tukar Panjang/Lebar">
-                                    <i class="fa fa-undo"></i> Rotate
-                                  </button>
-                                  <button type="button" class="btn btn-sm btn-info" id="btnSyncImageDimensions" title="Sinkronkan Dimensi ke Input Produk">
-                                    <i class="fa fa-sync"></i> Sync
-                                  </button>
-                                </div>
-                                <div class="row g-2">
-                                  <div class="col-4">
-                                    <label class="form-label small mb-1">Lebar (cm)</label>
-                                    <input type="text" class="form-control form-control-sm" id="fileImageWidth" readonly>
-                                  </div>
-                                  <div class="col-4">
-                                    <label class="form-label small mb-1">Panjang (cm)</label>
-                                    <input type="text" class="form-control form-control-sm" id="fileImageHeight" readonly>
-                                  </div>
-                                  <div class="col-4">
-                                    <label class="form-label small mb-1">Luas (cm²)</label>
-                                    <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {{-- Controls untuk File PDF --}}
-                              <div id="pdfFileControls" class="mb-3" style="display: none;">
-                                <div class="row g-2">
-                                  <div class="col-4">
-                                    <label class="form-label small mb-1">Halaman</label>
-                                    <input type="text" class="form-control form-control-sm" id="filePdfPages" readonly>
-                                  </div>
-                                  <div class="col-4">
-                                    <label class="form-label small mb-1">Jumlah/Qty</label>
-                                    <input type="number" class="form-control form-control-sm" id="filePdfQty" min="1" step="1" value="1">
-                                  </div>
-                                  <div class="col-4">
-                                    <label class="form-label small mb-1">Summary</label>
-                                    <div class="input-group input-group-sm">
-                                      <input type="text" class="form-control" id="filePdfSummary" readonly>
-                                      <span class="input-group-text" id="filePdfSummaryUnit">-</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                              <div id="orderanPreviewContainer" class="min-vh-50 d-flex align-items-center justify-content-center bg-dark bg-opacity-10 rounded p-3" style="min-height: 280px;">
-                                <p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>
-                              </div>
-                              <div id="orderanPreviewFileInfo" class="mt-2 small text-muted" style="min-height: 0;"></div>
                             </div>
                           </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">
-                      <i class="fa fa-times me-1"></i> Batal
-                    </button>
-                    <button type="button" class="btn btn-primary" id="modalBtnSimpanItem">
-                      <i class="fa fa-plus me-1"></i> Tambah Item
-                    </button>
+                </div>
+
+                <hr class="my-4">
+
+                <!-- Section 2: Finishing  -->
+                <div class="section-item mb-4" id="sectionFinishing">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="section-number me-2">2</span>
+                    <h6 class="mb-0 fw-bold">Finishing</h6>
+                  </div>
+                  <div class="ps-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                      <p class="text-muted small mb-0">Tambahkan finishing yang diperlukan untuk pesanan ini</p>
+                      <button type="button" class="btn btn-outline-primary btn-sm" id="modalBtnTambahFinishing">
+                        <i class="fa fa-plus me-1"></i>Tambah Finishing
+                      </button>
+                    </div>
+
+                    <!-- Table Finishing -->
+                    <!-- <div class="table-responsive">
+                                                                              <table class="table table-bordered align-middle mb-0" id="modalTabelFinishing">
+                                                                                <thead class="table-light">
+                                                                                  <tr>
+                                                                                    <th>Nama Finishing</th>
+                                                                                    <th>Jumlah</th>
+                                                                                    <th>Harga Satuan</th>
+                                                                                    <th>Total</th>
+                                                                                    <th>Aksi</th>
+                                                                                  </tr>
+                                                                                </thead>
+                                                                                <tbody id="modalFinishingBody">
+                                                                                  <tr>
+                                                                                    <td colspan="5" class="text-center text-muted py-3">
+                                                                                      <i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan
+                                                                                    </td>
+                                                                                  </tr>
+                                                                                </tbody>
+                                                                              </table>
+                                                                            </div> -->
+
+                    <!-- Accordion Finishing Items -->
+                    <div class="accordion mt-3" id="accordionFinishingItems">
+                      <div class="text-center text-muted py-3" id="noFinishingMessage">
+                        <i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan
+                      </div>
+                    </div>
+
+                    <!-- Total Finishing -->
+                    <div class="bg-light rounded p-3 mt-3">
+                      <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-semibold">Total Biaya Finishing:</span>
+                        <span class="fw-bold text-primary" id="modalTotalFinishing">Rp 0</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="section-item mb-4" id="sectionFiles">
+                  <div class="d-flex align-items-center mb-3">
+                    <span class="section-number me-2">3</span>
+                    <h6 class="mb-0 fw-bold">Files Path</h6>
+                  </div>
+                  <div class="ps-4">
+                    <div class="mb-3">
+                      <p class="text-muted small mb-3">Tentukan path file desain atau file pendukung lainnya.</p>
+                      <button type="button" class="btn btn-outline-primary w-100 py-3 border-2 border-dashed"
+                        id="btnOpenExplorerModalItem">
+                        <i class="fa fa-folder-open fa-2x mb-2 d-block"></i>
+                        <span>Pilih File dari Drive</span>
+                      </button>
+                    </div>
+                    <!-- <ul class="nav nav-tabs nav-tabs-sm mb-3" id="fileSourceTabs">
+                                                                              <li class="nav-item">
+                                                                                <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabFileLokal">
+                                                                                  <i class="fa fa-folder me-1"></i> File Lokal
+                                                                                </button>
+                                                                              </li>
+                                                                            </ul>
+                                                                            <div class="tab-content">
+                                                                              <div class="tab-pane fade show active" id="tabFileLokal">
+                                                                                <div class="dropzone-area border-2 border-dashed rounded p-4 text-center mb-3" id="modalDropZone">
+                                                                                  <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
+                                                                                  <p class="mb-1">Drag & drop file di sini atau <span class="text-primary fw-semibold" style="cursor:pointer;" id="modalBtnBrowseFile">klik untuk pilih file</span></p>
+                                                                                  <small class="text-muted">Maksimal 10MB per file. Format: PDF, JPG, PNG, AI, PSD, CDR</small>
+                                                                                  <input type="file" id="modalInputFiles" multiple accept=".pdf,.jpg,.jpeg,.png,.ai,.psd,.cdr" style="display:none;">
+                                                                                </div>
+                                                                              </div>
+                                                                            </div> -->
+                    <!-- Daftar File yang Diupload -->
+                    <div class="uploaded-files-list mt-3" id="modalUploadedFilesList">
+                      <!-- File items akan ditambahkan di sini via JS -->
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- Right Panel: Section 4 - Detail Orderan (Summary) -->
+            <div class="col-lg-4 bg-light">
+              <div class="p-4 sticky-top" style="top: 0;">
+                <div class="d-flex align-items-center mb-3">
+                  <span class="section-number me-2">4</span>
+                  <h6 class="mb-0 fw-bold">Detail Orderan</h6>
+                </div>
+
+                {{-- Tab navigation --}}
+                <ul class="nav nav-tabs nav-tabs-line mb-2" id="detailOrderanTabs" role="tablist">
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link bg-light active" id="tab-preview-orderan" data-bs-toggle="tab"
+                      data-bs-target="#tab-preview-orderan-pane" type="button" role="tab">Preview File</button>
+                  </li>
+                  <li class="nav-item" role="presentation">
+                    <button class="nav-link bg-light" id="tab-summary-orderan" data-bs-toggle="tab"
+                      data-bs-target="#tab-summary-orderan-pane" type="button" role="tab">Summary</button>
+                  </li>
+                </ul>
+
+                <div class="tab-content" id="detailOrderanTabContent">
+                  {{-- Tab 1: Summary Produk Orderan --}}
+                  <div class="tab-pane fade" id="tab-summary-orderan-pane" role="tabpanel">
+                    <div class="order-summary">
+                      <!-- Produk Info -->
+                      <div class="summary-item mb-3 pb-3 border-bottom">
+                        <small class="text-muted text-uppercase">Produk</small>
+                        <p class="mb-0 fw-semibold" id="summaryProduk">-</p>
+                      </div>
+
+                      <!-- Jumlah & Ukuran -->
+                      <div class="summary-item mb-3 pb-3 border-bottom">
+                        <div class="row">
+                          <div class="col-6" id="summaryUkuranContainer" style="display: none;">
+                            <small class="text-muted text-uppercase">Ukuran</small>
+                            <p class="mb-0 fw-semibold" id="summaryUkuran">0 x 0 cm</p>
+                          </div>
+                          <div class="col-6">
+                            <small class="text-muted text-uppercase">Jumlah</small>
+                            <p class="mb-0 fw-semibold" id="summaryJumlah">0 pcs</p>
+                          </div>
+                          <div class="col-6">
+                            <small class="text-muted text-uppercase d-block mt-1">Harga @</small>
+                            <p class="mb-0 fw-semibold" id="summaryHargaBase">Rp 0</p>
+                          </div>
+                          <div class="col-6" id="summaryHargaPerSatuanContainer" style="display:none;">
+                            <small class="text-muted text-uppercase d-block mt-1">Harga per <span
+                                id="summaryHargaPerSatuanLabel">satuan</span></small>
+                            <p class="mb-0 fw-semibold" id="summaryHargaPerSatuan">Rp 0</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Finishing -->
+                      <div class="summary-item mb-3 pb-3 border-bottom">
+                        <small class="text-muted text-uppercase">Finishing</small>
+                        <div id="summaryFinishingList" class="mt-1">
+                          <span class="text-muted">-</span>
+                        </div>
+                      </div>
+
+                      <!-- Rincian Harga -->
+                      <div class="summary-pricing mt-4">
+                        <div class="d-flex justify-content-between mb-2">
+                          <span class="text-muted">Subtotal Cetak</span>
+                          <span id="summarySubtotalCetak">Rp 0</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2">
+                          <span class="text-muted">Biaya Finishing</span>
+                          <span id="summaryBiayaFinishing">Rp 0</span>
+                        </div>
+                        <hr>
+                        <div class="d-flex justify-content-between">
+                          <span class="fw-bold">Total</span>
+                          <span class="fw-bold text-primary fs-5" id="summaryTotalAkhir">Rp 0</span>
+                        </div>
+                      </div>
+
+                      <!-- Deadline -->
+                      <div class="summary-item mt-3 mb-3 pb-3 border-bottom">
+                        <small class="text-muted text-uppercase">Deadline</small>
+                        <p class="mb-0 fw-semibold" id="summaryDeadline">-</p>
+                      </div>
+
+                      <!-- Files -->
+                      <div class="summary-item mb-3 pb-3 border-bottom">
+                        <small class="text-muted text-uppercase">Files</small>
+                        <p class="mb-0 fw-semibold" id="summaryFiles">0 file</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {{-- Tab 2: Preview File Default --}}
+                  <div class="tab-pane fade show active" id="tab-preview-orderan-pane" role="tabpanel">
+                    <div class="mb-3" id="explorerOpenStandalone">
+                      <button type="button" class="btn btn-primary btn-sm" data-action="open-explorer-item"
+                        title="Pilih File Default" aria-label="Pilih File Default">
+                        <i class="fa fa-folder-open"></i>
+                      </button>
+                    </div>
+                    {{-- Controls untuk File Gambar --}}
+                    <div id="imageFileControls" class="mb-3" style="display: none;">
+                      <div class="d-flex align-items-center gap-2 mb-2">
+                        <button type="button" class="btn btn-primary btn-sm" data-action="open-explorer-item"
+                          title="Pilih File Default" aria-label="Pilih File Default">
+                          <i class="fa fa-folder-open"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-warning" id="btnRotateImage"
+                          title="Rotate & Tukar Panjang/Lebar">
+                          <i class="fa fa-undo"></i> Rotate
+                        </button>
+                        <button type="button" class="btn btn-sm btn-info" id="btnSyncImageDimensions"
+                          title="Sinkronkan Dimensi ke Input Produk">
+                          <i class="fa fa-exchange-alt"></i> Sync
+                        </button>
+                        <button type="button" class="btn btn-sm btn-secondary" id="btnImageTools" title="Image Tools">
+                          <i class="fa fa-wrench"></i> Tools
+                        </button>
+                      </div>
+                      <div class="row g-2">
+                        <div class="col-4">
+                          <label class="form-label small mb-1">Lebar (cm)</label>
+                          <input type="text" class="form-control form-control-sm" id="fileImageWidth" readonly>
+                        </div>
+                        <div class="col-4">
+                          <label class="form-label small mb-1">Panjang (cm)</label>
+                          <input type="text" class="form-control form-control-sm" id="fileImageHeight" readonly>
+                        </div>
+                        <div class="col-4">
+                          <label class="form-label small mb-1">Luas (cm²)</label>
+                          <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
+                        </div>
+                      </div>
+                    </div>
+
+                    {{-- Controls untuk File PDF --}}
+                    <div id="pdfFileControls" class="mb-3" style="display: none;">
+                      <div class="row g-2">
+                        <div class="col-4">
+                          <label class="form-label small mb-1">Halaman</label>
+                          <input type="text" class="form-control form-control-sm" id="filePdfPages" readonly>
+                        </div>
+                        <div class="col-4">
+                          <label class="form-label small mb-1">Jumlah/Qty</label>
+                          <input type="number" class="form-control form-control-sm" id="filePdfQty" min="1" step="1"
+                            value="1">
+                        </div>
+                        <div class="col-4">
+                          <label class="form-label small mb-1">Summary</label>
+                          <div class="input-group input-group-sm">
+                            <input type="text" class="form-control" id="filePdfSummary" readonly>
+                            <span class="input-group-text" id="filePdfSummaryUnit">-</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div id="orderanPreviewContainer"
+                      class="min-vh-50 d-flex align-items-center justify-content-center bg-dark bg-opacity-10 rounded p-3"
+                      style="min-height: 280px;">
+                      <p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai
+                        default untuk melihat preview.</p>
+                    </div>
+                    <div id="orderanPreviewFileInfo" class="mt-2 small text-muted" style="min-height: 0;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            <i class="fa fa-times me-1"></i> Batal
+          </button>
+          <button type="button" class="btn btn-primary" id="modalBtnSimpanItem">
+            <i class="fa fa-plus me-1"></i> Tambah Item
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <style>
     /* Style untuk input field yang sedang difokuskan */
@@ -679,14 +716,14 @@
 
     .option-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .option-btn.active {
       background-color: #007bff !important;
       color: white !important;
       border-color: #007bff !important;
-      box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+      box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
     }
 
     /* Style untuk preview box */
@@ -706,7 +743,7 @@
     }
 
     .item-card:hover {
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
       border-color: #007bff !important;
     }
 
@@ -773,11 +810,11 @@
         width: auto;
         min-width: 120px;
       }
-      
+
       .item-card .d-flex.gap-1 {
         gap: 0.25rem !important;
       }
-      
+
       .item-card .d-flex.gap-1 .btn-sm {
         padding: 0.25rem 0.375rem;
         min-width: 28px;
@@ -821,10 +858,10 @@
 
     .finishing-option:hover {
       border-color: #007bff;
-      box-shadow: 0 2px 4px rgba(0,123,255,0.1);
+      box-shadow: 0 2px 4px rgba(0, 123, 255, 0.1);
     }
 
-    .finishing-option .form-check-input:checked ~ .form-check-label .badge {
+    .finishing-option .form-check-input:checked~.form-check-label .badge {
       background: #007bff !important;
       color: white !important;
     }
@@ -890,31 +927,32 @@
     }
 
     #modalUrgentToggle.form-check-input:checked {
-      background-color: #dc3545 !important; 
+      background-color: #dc3545 !important;
       border-color: #dc3545 !important;
     }
 
     #modalUrgentToggle.form-check-input:not(:checked) {
-      background-color: #198754 !important; 
+      background-color: #198754 !important;
       border-color: #198754 !important;
     }
 
     .urgent-status {
-        font-weight: 500;
-        transition: color 0.3s ease;
-        margin-left: 8px;
+      font-weight: 500;
+      transition: color 0.3s ease;
+      margin-left: 8px;
     }
 
-    .form-check-input:checked ~ .form-check-label .urgent-status {
-        color: #dc3545; 
+    .form-check-input:checked~.form-check-label .urgent-status {
+      color: #dc3545;
     }
 
-    .form-check-input:not(:checked) ~ .form-check-label .urgent-status {
-        color: #198754; 
+    .form-check-input:not(:checked)~.form-check-label .urgent-status {
+      color: #198754;
     }
   </style>
   <!-- Modal File Explorer -->
-  <div class="modal fade" id="modalFileExplorer" tabindex="-1" aria-labelledby="modalFileExplorerLabel" aria-hidden="true">
+  <div class="modal fade" id="modalFileExplorer" tabindex="-1" aria-labelledby="modalFileExplorerLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg">
       <div class="modal-content">
         <div class="modal-header">
@@ -953,6 +991,283 @@
     </div>
   </div>
 
+  <!-- Modal Image Tools -->
+  <div class="modal fade" id="modalImageTools" tabindex="-1" aria-labelledby="modalImageToolsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalImageToolsLabel"><i class="fa fa-magic me-2"></i>Image Tools</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <!-- Kolom Kiri: Kontrol/Setting -->
+            <div class="col-lg-9">
+              <ul class="nav nav-tabs" id="imageToolsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link active" id="tab-teks" data-bs-toggle="tab" data-bs-target="#pane-teks"
+                    type="button" role="tab">Teks & Pesan</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-layout" data-bs-toggle="tab" data-bs-target="#pane-layout"
+                    type="button" role="tab">Duplikasi & Layout</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-kanvas" data-bs-toggle="tab" data-bs-target="#pane-kanvas"
+                    type="button" role="tab">Kanvas & Latar</button>
+                </li>
+                <li class="nav-item" role="presentation">
+                  <button class="nav-link" id="tab-plong" data-bs-toggle="tab" data-bs-target="#pane-plong" type="button"
+                    role="tab">Plong</button>
+                </li>
+              </ul>
+              <div class="tab-content border border-top-0 p-3" id="imageToolsTabContent">
+                <!-- Tab 1: Teks & Pesan -->
+                <div class="tab-pane fade show active" id="pane-teks" role="tabpanel">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label for="imageToolPesan" class="form-label">Pesan</label>
+                        <input type="text" class="form-control" id="imageToolPesan" placeholder="Masukkan pesan">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolUkuranPesan" class="form-label">Ukuran Pesan (em)</label>
+                        <input type="number" class="form-control" id="imageToolUkuranPesan" placeholder="Misal 1.5"
+                          step="0.1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolWarnaPesan" class="form-label">Warna Pesan</label>
+                        <input type="color" class="form-control form-control-color" id="imageToolWarnaPesan"
+                          title="Pilih warna">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="mb-3">
+                        <label for="imageToolPosX" class="form-label">Posisi X (%)</label>
+                        <input type="number" class="form-control" id="imageToolPosX" placeholder="0-1" step="0.05" min="0"
+                          max="1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolPosY" class="form-label">Posisi Y (%)</label>
+                        <input type="number" class="form-control" id="imageToolPosY" placeholder="0-1" step="0.05" min="0"
+                          max="1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolRotasiPesan" class="form-label">Rotasi Pesan (°)</label>
+                        <input type="number" class="form-control" id="imageToolRotasiPesan" placeholder="Misal 0"
+                          step="1">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 2: Duplikasi & Layout -->
+                <div class="tab-pane fade" id="pane-layout" role="tabpanel">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="fw-semibold mb-2">Duplikasi (Copy)</h6>
+                      <div class="mb-3">
+                        <label for="imageToolCopyX" class="form-label">Jumlah Kolom (X)</label>
+                        <input type="number" class="form-control" id="imageToolCopyX" placeholder="Masukkan jumlah kolom"
+                          min="1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolCopyY" class="form-label">Jumlah Baris (Y)</label>
+                        <input type="number" class="form-control" id="imageToolCopyY" placeholder="Masukkan jumlah baris"
+                          min="1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolRotasiCopy" class="form-label">Rotasi Tiap Gambar (°)</label>
+                        <input type="number" class="form-control" id="imageToolRotasiCopy" placeholder="Misal 0" step="1">
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="fw-semibold mb-2">Jarak Antar Gambar</h6>
+                      <div class="mb-3">
+                        <label for="imageToolJarakX" class="form-label">Jarak Horizontal (cm)</label>
+                        <input type="number" class="form-control" id="imageToolJarakX" placeholder="Masukkan jarak"
+                          step="0.1">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolJarakY" class="form-label">Jarak Vertikal (cm)</label>
+                        <input type="number" class="form-control" id="imageToolJarakY" placeholder="Masukkan jarak"
+                          step="0.1">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 3: Kanvas & Latar -->
+                <div class="tab-pane fade" id="pane-kanvas" role="tabpanel">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <h6 class="fw-semibold mb-2">Lebihan </h6>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Kiri</span>
+                        <input type="number" class="form-control" id="imageToolLebihanKiri" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Kanan</span>
+                        <input type="number" class="form-control" id="imageToolLebihanKanan" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Atas</span>
+                        <input type="number" class="form-control" id="imageToolLebihanAtas" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Bawah</span>
+                        <input type="number" class="form-control" id="imageToolLebihanBawah" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <h6 class="fw-semibold mb-2">Latar & Garis</h6>
+                      <div class="mb-3">
+                        <label for="imageToolWarnaLatar" class="form-label">Warna Latar</label>
+                        <input type="color" class="form-control form-control-color" id="imageToolWarnaLatar"
+                          title="Pilih warna">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolWarnaGaris" class="form-label">Warna Garis</label>
+                        <input type="color" class="form-control form-control-color" id="imageToolWarnaGaris"
+                          title="Pilih warna">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolUkuranGaris" class="form-label">Ukuran Garis (cm)</label>
+                        <input type="number" class="form-control" id="imageToolUkuranGaris" placeholder="Masukkan ukuran"
+                          step="0.01">
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolImageScale" class="form-label">Skala Gambar (%)</label>
+                        <div class="input-group">
+                          <input type="number" class="form-control" id="imageToolImageScale" placeholder="100" min="1" max="500" step="1" value="100">
+                          <span class="input-group-text">%</span>
+                        </div>
+                        <small class="text-muted">Atur skala gambar terhadap ukuran asli (100% = ukuran asli).</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tab 4: Plong -->
+                <div class="tab-pane fade" id="pane-plong" role="tabpanel">
+                  <div class="row">
+                    <!-- Kolom 1: Jenis, Bentuk, Warna -->
+                    <div class="col-md-4">
+                      <h6 class="fw-semibold mb-2">Jenis & Bentuk</h6>
+                      <div class="mb-3">
+                        <label for="imageToolJenisPlong" class="form-label">Jenis</label>
+                        <select class="form-select" id="imageToolJenisPlong">
+                          <option value="">Pilih jenis</option>
+                          <option value="pojok">Pojok</option>
+                          <option value="plong_per_jarak">Plong per Jarak</option>
+                        </select>
+                        <small class="text-muted d-block mt-1">Pilih apakah plong hanya di pojok atau berulang per jarak.</small>
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolBentukPlong" class="form-label">Bentuk</label>
+                        <select class="form-select" id="imageToolBentukPlong">
+                          <option value="">Pilih bentuk</option>
+                          <option value="circle">Lingkaran</option>
+                          <option value="square">Persegi</option>
+                        </select>
+                      </div>
+                      <div class="mb-3">
+                        <label for="imageToolWarnaPlong" class="form-label">Warna Plong</label>
+                        <input type="color" class="form-control form-control-color" id="imageToolWarnaPlong" title="Pilih warna">
+                      </div>
+                    </div>
+
+                    <!-- Kolom 2: Jarak dari tepi -->
+                    <div class="col-md-4">
+                      <h6 class="fw-semibold mb-2">Jarak Plong dari Tepi (cm)</h6>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Atas</span>
+                        <input type="number" class="form-control" id="imageToolJarakPlongAtas" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Bawah</span>
+                        <input type="number" class="form-control" id="imageToolJarakPlongBawah" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Kiri</span>
+                        <input type="number" class="form-control" id="imageToolJarakPlongKiri" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 80px;">Kanan</span>
+                        <input type="number" class="form-control" id="imageToolJarakPlongKanan" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <small class="text-muted">Jarak dari tepi kertas ke pusat lubang plong pertama.</small>
+                    </div>
+
+                    <!-- Kolom 3: Ukuran & jumlah plong -->
+                    <div class="col-md-4">
+                      <h6 class="fw-semibold mb-2">Ukuran & Jumlah Plong</h6>
+                      <div class="input-group mb-2">
+                        <span class="input-group-text" style="width: 120px;">Diameter Lebar</span>
+                        <input type="number" class="form-control" id="imageToolDiameterLebar" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+                      <div class="input-group mb-3">
+                        <span class="input-group-text" style="width: 120px;">Diameter Panjang</span>
+                        <input type="number" class="form-control" id="imageToolDiameterPanjang" placeholder="cm" step="0.1">
+                        <span class="input-group-text">cm</span>
+                      </div>
+
+                      <div class="row g-2">
+                        <div class="col-6">
+                          <label for="imageToolPlongAtas" class="form-label small mb-1">Plong Atas</label>
+                          <input type="number" class="form-control form-control-sm" id="imageToolPlongAtas" min="0" step="1">
+                        </div>
+                        <div class="col-6">
+                          <label for="imageToolPlongBawah" class="form-label small mb-1">Plong Bawah</label>
+                          <input type="number" class="form-control form-control-sm" id="imageToolPlongBawah" min="0" step="1">
+                        </div>
+                        <div class="col-6">
+                          <label for="imageToolPlongKiri" class="form-label small mb-1">Plong Kiri</label>
+                          <input type="number" class="form-control form-control-sm" id="imageToolPlongKiri" min="0" step="1">
+                        </div>
+                        <div class="col-6">
+                          <label for="imageToolPlongKanan" class="form-label small mb-1">Plong Kanan</label>
+                          <input type="number" class="form-control form-control-sm" id="imageToolPlongKanan" min="0" step="1">
+                        </div>
+                      </div>
+                      <small class="text-muted d-block mt-1">Jumlah lubang plong di setiap sisi.</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Kolom Kanan: Preview -->
+            <div class="col-lg-3">
+              <div class="sticky-top" style="top: 15px;">
+                <h6 class="fw-semibold mb-2">Preview</h6>
+                <div id="imageToolsPreviewContainer"
+                  class="d-flex align-items-center justify-content-center bg-light rounded border"
+                  style="min-height: 400px;">
+                  <p class="text-muted small text-center">Preview akan ditampilkan di sini</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="button" class="btn btn-primary" id="btnApplyImageTools">Terapkan Perubahan</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <style>
     .explorer-item {
       display: flex;
@@ -962,15 +1277,18 @@
       cursor: pointer;
       transition: background 0.2s;
     }
+
     .explorer-item:hover {
       background-color: #e8f4ff;
     }
+
     .explorer-item .icon {
       width: 30px;
       font-size: 1.2rem;
       text-align: center;
       margin-right: 12px;
     }
+
     .explorer-item .name {
       flex: 1;
       font-size: 0.9rem;
@@ -978,65 +1296,91 @@
       overflow: hidden;
       text-overflow: ellipsis;
     }
+
     .explorer-item .meta {
       font-size: 0.75rem;
       color: #999;
       width: 100px;
       text-align: right;
     }
-    .file-icon { color: #6c757d; }
-    .folder-icon { color: #ffca28; }
-    
+
+    .file-icon {
+      color: #6c757d;
+    }
+
+    .folder-icon {
+      color: #ffca28;
+    }
+
     /* Custom style for dashed button */
     .border-dashed {
-        border-style: dashed !important;
+      border-style: dashed !important;
     }
-    
+
     .uploaded-files-list .file-item {
-        background: #f8f9fa;
-        border-radius: 8px;
-        padding: 10px;
-        margin-bottom: 8px;
+      background: #f8f9fa;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 8px;
     }
+
     #btnSyncImageDimensions:disabled {
-        background-color: #6c757d !important;
-        border-color: #6c757d  !important;    
-        color: #fff !important;               
-        opacity: 0.8;                         
-        cursor: not-allowed;                
+      background-color: #6c757d !important;
+      border-color: #6c757d !important;
+      color: #fff !important;
+      opacity: 0.8;
+      cursor: not-allowed;
     }
   </style>
 @endsection
 
 @push('custom-scripts')
-@include('backend.general-form.cari-all-produk', [
-  'modalId' => 'modalCariProdukSPK',
-  'inputId' => 'searchProdukSPK',
-  'tableId' => 'tabelCariProdukSPK',
-  'paginationId' => 'paginationCariProdukSPK',
-  'clearBtnId' => 'clearSearchProdukSPK',
-])
-@include('backend.general-form.cari-pelanggan', [
-  'modalId' => 'modalCariPelangganSPK',
-  'inputId' => 'searchPelangganSPK',
-  'tableId' => 'tabelCariPelangganSPK',
-  'paginationId' => 'paginationCariPelangganSPK',
-  'clearBtnId' => 'clearSearchPelangganSPK',
-])
-@include('backend.general-form.cari-produk-finishing', [
-  'modalId' => 'modalCariProdukFinishingSPK',
-  'inputId' => 'searchProdukFinishingSPK',
-  'tableId' => 'tabelCariProdukFinishingSPK',
-  'paginationId' => 'paginationProdukFinishingSPK',
-  'clearBtnId' => 'clearSearchProdukFinishingSPK',
-])
-@include('backend.general-form.cari-karyawan', [
-  'modalId' => 'modalCariKaryawanSPK',
-  'inputId' => 'searchKaryawanSPK',
-  'tableId' => 'tabelCariKaryawanSPK',
-  'paginationId' => 'paginationCariKaryawanSPK',
-  'clearBtnId' => 'clearSearchKaryawanSPK',
-])
-<script src="{{ asset('js/spk/spk-helper.js') }}"></script>
-<script src="{{ asset('js/spk/form-create.js') }}"></script>
+  <!-- <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const btnImageTools = document.getElementById('btnImageTools');
+      const modalImageToolsElement = document.getElementById('modalImageTools');
+      let imageToolsModalInstance = null;
+
+      if (modalImageToolsElement) {
+        imageToolsModalInstance = new bootstrap.Modal(modalImageToolsElement);
+      }
+
+      if (btnImageTools && imageToolsModalInstance) {
+        btnImageTools.addEventListener('click', function () {
+          imageToolsModalInstance.show();
+        });
+      }
+    });
+  </script> -->
+
+  @include('backend.general-form.cari-all-produk', [
+    'modalId' => 'modalCariProdukSPK',
+    'inputId' => 'searchProdukSPK',
+    'tableId' => 'tabelCariProdukSPK',
+    'paginationId' => 'paginationCariProdukSPK',
+    'clearBtnId' => 'clearSearchProdukSPK',
+  ])
+                                          @include('backend.general-form.cari-pelanggan', [
+                                            'modalId' => 'modalCariPelangganSPK',
+                                            'inputId' => 'searchPelangganSPK',
+                                            'tableId' => 'tabelCariPelangganSPK',
+                                            'paginationId' => 'paginationCariPelangganSPK',
+                                            'clearBtnId' => 'clearSearchPelangganSPK',
+                                          ])
+                                          @include('backend.general-form.cari-produk-finishing', [
+                                            'modalId' => 'modalCariProdukFinishingSPK',
+                                            'inputId' => 'searchProdukFinishingSPK',
+                                            'tableId' => 'tabelCariProdukFinishingSPK',
+                                            'paginationId' => 'paginationProdukFinishingSPK',
+                                            'clearBtnId' => 'clearSearchProdukFinishingSPK',
+                                          ])
+                                          @include('backend.general-form.cari-karyawan', [
+                                            'modalId' => 'modalCariKaryawanSPK',
+                                            'inputId' => 'searchKaryawanSPK',
+                                            'tableId' => 'tabelCariKaryawanSPK',
+                                            'paginationId' => 'paginationCariKaryawanSPK',
+                                            'clearBtnId' => 'clearSearchKaryawanSPK',
+                                          ])
+                                          <script src="{{ asset('js/spk/spk-helper.js') }}"></script>
+                                          <script src="{{ asset('js/spk/form-create.js') }}"></script>
 @endpush

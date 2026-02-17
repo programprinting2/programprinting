@@ -1,22 +1,33 @@
 ﻿/**
  * SPK Form Create - Script modular untuk form create SPK
  */
-(function() {
-    'use strict';
+(function () {
+    "use strict";
 
     // Guard optional helper
     const SafeHelper = {
         notify(type, title, message) {
-            if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
+            if (
+                window.SPKHelper &&
+                typeof SPKHelper.showNotification === "function"
+            ) {
                 SPKHelper.showNotification(title, message, type);
             }
         },
-        confirm(title, message, okText = 'Ya', cancelText = 'Batal') {
-            if (window.SPKHelper && typeof SPKHelper.confirmDialog === 'function') {
-                return SPKHelper.confirmDialog(title, message, okText, cancelText);
+        confirm(title, message, okText = "Ya", cancelText = "Batal") {
+            if (
+                window.SPKHelper &&
+                typeof SPKHelper.confirmDialog === "function"
+            ) {
+                return SPKHelper.confirmDialog(
+                    title,
+                    message,
+                    okText,
+                    cancelText,
+                );
             }
             return Promise.resolve(window.confirm(message));
-        }
+        },
     };
 
     // --- State Global ---
@@ -33,61 +44,64 @@
 
     let modalFinishingData = [];
     let orderanPreviewObjectUrl = null;
-    let currentFileImageInfo = null;  
-    let currentFilePdfInfo = null;    
-    let imageRotationDegrees = 0; 
+    let currentFileImageInfo = null;
+    let currentFilePdfInfo = null;
+    let imageRotationDegrees = 0;
+    let imageToolsModalInstance = null;
     // let previewFinishing = [];
 
     let currentExpandedFinishingIndex = 0;
     let currentSelectedProduk = null;
 
     // Explorer State
-    let explorerContext = 'spk'; // 'spk' or 'item'
-    let currentExplorerPath = '';
+    let explorerContext = "spk"; // 'spk' or 'item'
+    let currentExplorerPath = "";
     let selectedExplorerFiles = [];
 
     // --- Element refs (lazy via getter) ---
     const el = {
-        form: () => document.getElementById('formTambahSPK'),
+        form: () => document.getElementById("formTambahSPK"),
         // Item UI
-        itemCardsContainer: () => document.getElementById('itemCardsContainer'),
-        btnTambahItem: () => document.getElementById('btnTambahItem'),
+        itemCardsContainer: () => document.getElementById("itemCardsContainer"),
+        btnTambahItem: () => document.getElementById("btnTambahItem"),
         // Tugas Produksi
-        tabTugasPane: () => document.getElementById('tugasProduksi'),
-        modalTugas: () => document.getElementById('modalTugasProduksi'),
-        modalTugasLabel: () => document.getElementById('modalTugasProduksiLabel'),
-        formTugas: () => document.getElementById('formTugasProduksi'),
-        inputNamaTugas: () => document.getElementById('inputNamaTugas'),
-        inputDitugaskan: () => document.getElementById('inputDitugaskan'),
-        inputDitugaskanId: () => document.getElementById('inputDitugaskanId'),
-        inputMesin: () => document.getElementById('inputMesin'),
-        inputWaktu: () => document.getElementById('inputWaktu'),
-        inputHarga: () => document.getElementById('inputHarga'),
-        inputDeskripsi: () => document.getElementById('inputDeskripsi'),
+        tabTugasPane: () => document.getElementById("tugasProduksi"),
+        modalTugas: () => document.getElementById("modalTugasProduksi"),
+        modalTugasLabel: () =>
+            document.getElementById("modalTugasProduksiLabel"),
+        formTugas: () => document.getElementById("formTugasProduksi"),
+        inputNamaTugas: () => document.getElementById("inputNamaTugas"),
+        inputDitugaskan: () => document.getElementById("inputDitugaskan"),
+        inputDitugaskanId: () => document.getElementById("inputDitugaskanId"),
+        inputMesin: () => document.getElementById("inputMesin"),
+        inputWaktu: () => document.getElementById("inputWaktu"),
+        inputHarga: () => document.getElementById("inputHarga"),
+        inputDeskripsi: () => document.getElementById("inputDeskripsi"),
         // Tugas table
-        emptyTugasState: () => document.getElementById('emptyTugasState'),
+        emptyTugasState: () => document.getElementById("emptyTugasState"),
         // File pendukung
-        dropZone: () => document.getElementById('dropZone'),
-        inputFilePendukung: () => document.getElementById('inputFilePendukung'),
-        filePendukungBody: () => document.getElementById('filePendukungBody'),
-        filePendukungHidden: () => document.getElementById('filePendukungInput'),
+        dropZone: () => document.getElementById("dropZone"),
+        inputFilePendukung: () => document.getElementById("inputFilePendukung"),
+        filePendukungBody: () => document.getElementById("filePendukungBody"),
+        filePendukungHidden: () =>
+            document.getElementById("filePendukungInput"),
         // Submit
-        itemsHidden: () => document.getElementById('itemsInput'),
-        tugasHidden: () => document.getElementById('tugasProduksiInput'),
+        itemsHidden: () => document.getElementById("itemsInput"),
+        tugasHidden: () => document.getElementById("tugasProduksiInput"),
         // Customer
-        namaCustomerInput: () => document.getElementById('namaCustomerInput'),
-        customerIdInput: () => document.getElementById('customerIdInput'),
+        namaCustomerInput: () => document.getElementById("namaCustomerInput"),
+        customerIdInput: () => document.getElementById("customerIdInput"),
         // Cari Bahan
-        btnCariBahan: () => document.getElementById('btnCariBahan'),
+        btnCariBahan: () => document.getElementById("btnCariBahan"),
     };
 
     // --- Utils ---
     function formatBytes(bytes) {
-        if (!bytes) return '0 B';
+        if (!bytes) return "0 B";
         const k = 1024;
-        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const sizes = ["B", "KB", "MB", "GB"];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
-        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
     }
 
     function deepClone(obj) {
@@ -95,83 +109,108 @@
     }
 
     async function loadAndRenderRelasiProduk(produkId) {
-        const sectionRelasi = document.getElementById('sectionRelasiProduk');
-        const bahanBody = document.getElementById('relasiBahanBakuBody');
-        const kompBody = document.getElementById('relasiKomponenBody');
-    
+        const sectionRelasi = document.getElementById("sectionRelasiProduk");
+        const bahanBody = document.getElementById("relasiBahanBakuBody");
+        const kompBody = document.getElementById("relasiKomponenBody");
+
         if (!sectionRelasi || !bahanBody || !kompBody || !produkId) {
             return;
         }
-    
-        sectionRelasi.style.display = 'block';
-        bahanBody.innerHTML = '<p class="text-info small mb-0"><i class="fa fa-spinner fa-spin"></i> Memuat bahan baku...</p>';
-        kompBody.innerHTML = '<p class="text-info small mb-0"><i class="fa fa-spinner fa-spin"></i> Memuat produk komponen...</p>';
-        
-        const bahanItem = document.getElementById('headingBahanBaku')?.closest('.accordion-item');
-        const kompItem = document.getElementById('headingKomponen')?.closest('.accordion-item');
-    
+
+        sectionRelasi.style.display = "block";
+        bahanBody.innerHTML =
+            '<p class="text-info small mb-0"><i class="fa fa-spinner fa-spin"></i> Memuat bahan baku...</p>';
+        kompBody.innerHTML =
+            '<p class="text-info small mb-0"><i class="fa fa-spinner fa-spin"></i> Memuat produk komponen...</p>';
+
+        const bahanItem = document
+            .getElementById("headingBahanBaku")
+            ?.closest(".accordion-item");
+        const kompItem = document
+            .getElementById("headingKomponen")
+            ?.closest(".accordion-item");
+
         try {
-            const response = await fetch(`/backend/cari-relasi-produk/${produkId}`);
-            if (!response.ok) throw new Error('Gagal memuat relasi produk');
-    
+            const response = await fetch(
+                `/backend/cari-relasi-produk/${produkId}`,
+            );
+            if (!response.ok) throw new Error("Gagal memuat relasi produk");
+
             const data = await response.json();
-    
-            const hasBahanBaku = data.bahan_baku && Array.isArray(data.bahan_baku) && data.bahan_baku.length > 0;
-            const hasKomponen = data.komponen && Array.isArray(data.komponen) && data.komponen.length > 0;
+
+            const hasBahanBaku =
+                data.bahan_baku &&
+                Array.isArray(data.bahan_baku) &&
+                data.bahan_baku.length > 0;
+            const hasKomponen =
+                data.komponen &&
+                Array.isArray(data.komponen) &&
+                data.komponen.length > 0;
             const hasAnyData = hasBahanBaku || hasKomponen;
-            
+
             if (!hasAnyData) {
-                sectionRelasi.style.display = 'none';
+                sectionRelasi.style.display = "none";
                 return;
             }
-            
-            
+
             if (hasBahanBaku) {
                 bahanBody.innerHTML = `
                     <ul class="mb-0 small">
-                        ${data.bahan_baku.map(b => `
-                            <li>${b.nama}${b.kode ? ' <span class="text-muted">[' + b.kode + ']</span>' : ''}</li>
-                        `).join('')}
+                        ${data.bahan_baku
+                            .map(
+                                (b) => `
+                            <li>${b.nama}${b.kode ? ' <span class="text-muted">[' + b.kode + "]</span>" : ""}</li>
+                        `,
+                            )
+                            .join("")}
                     </ul>
                 `;
-                if (bahanItem) bahanItem.style.display = 'block';
+                if (bahanItem) bahanItem.style.display = "block";
             } else {
-                bahanBody.innerHTML = '';
-                if (bahanItem) bahanItem.style.display = 'none';
+                bahanBody.innerHTML = "";
+                if (bahanItem) bahanItem.style.display = "none";
             }
-            
+
             if (hasKomponen) {
                 kompBody.innerHTML = `
                     <ul class="mb-0 small">
-                        ${data.komponen.map(k => `
-                            <li>${k.nama}${k.kode ? ' <span class="text-muted">[' + k.kode + ']</span>' : ''}</li>
-                        `).join('')}
+                        ${data.komponen
+                            .map(
+                                (k) => `
+                            <li>${k.nama}${k.kode ? ' <span class="text-muted">[' + k.kode + "]</span>" : ""}</li>
+                        `,
+                            )
+                            .join("")}
                     </ul>
                 `;
-                if (kompItem) kompItem.style.display = 'block';
+                if (kompItem) kompItem.style.display = "block";
             } else {
-                kompBody.innerHTML = ''; 
-                if (kompItem) kompItem.style.display = 'none';
+                kompBody.innerHTML = "";
+                if (kompItem) kompItem.style.display = "none";
             }
         } catch (err) {
             console.error(err);
-            bahanBody.innerHTML = '<p class="text-danger small mb-0">Gagal memuat data bahan baku.</p>';
-            kompBody.innerHTML = '<p class="text-danger small mb-0">Gagal memuat data komponen.</p>';
-            sectionRelasi.style.display = 'none';
+            bahanBody.innerHTML =
+                '<p class="text-danger small mb-0">Gagal memuat data bahan baku.</p>';
+            kompBody.innerHTML =
+                '<p class="text-danger small mb-0">Gagal memuat data komponen.</p>';
+            sectionRelasi.style.display = "none";
         }
     }
 
     let modalUploadedFiles = [];
-    let currentMetricUnit = 'cm'; 
-    
-    window.addEventListener('produkDipilih', (e) => {
+    let currentMetricUnit = "cm";
+
+    window.addEventListener("produkDipilih", (e) => {
         const data = e.detail;
         currentSelectedProduk = data;
 
-        const produkSelect = document.getElementById('modalProdukSelect');
-        const produkId = document.getElementById('modalProdukId');
+        const produkSelect = document.getElementById("modalProdukSelect");
+        const produkId = document.getElementById("modalProdukId");
         if (produkSelect) {
-            produkSelect.value = data.nama_produk + (data.kode_produk ? ' [' + data.kode_produk + ']' : '');
+            produkSelect.value =
+                data.nama_produk +
+                (data.kode_produk ? " [" + data.kode_produk + "]" : "");
         }
         if (produkId) {
             produkId.value = data.id;
@@ -181,32 +220,38 @@
             loadAndRenderRelasiProduk(produkId.value);
         }
 
-        const sectionUkuran = document.getElementById('sectionUkuran');
-        const summaryUkuranContainer = document.getElementById('summaryUkuranContainer');
+        const sectionUkuran = document.getElementById("sectionUkuran");
+        const summaryUkuranContainer = document.getElementById(
+            "summaryUkuranContainer",
+        );
         if (sectionUkuran) {
-            const shouldShow = data.is_metric === true || data.is_metric === 'true';
-            sectionUkuran.style.display = shouldShow ? 'block' : 'none';
-            
+            const shouldShow =
+                data.is_metric === true || data.is_metric === "true";
+            sectionUkuran.style.display = shouldShow ? "block" : "none";
+
             if (summaryUkuranContainer) {
-                summaryUkuranContainer.style.display = shouldShow ? 'block' : 'none';
+                summaryUkuranContainer.style.display = shouldShow
+                    ? "block"
+                    : "none";
             }
-            
+
             if (!shouldShow) {
-                const panjangInput = document.getElementById('modalPanjangInput');
-                const lebarInput = document.getElementById('modalLebarInput');
-                if (panjangInput) panjangInput.value = '';
-                if (lebarInput) lebarInput.value = '';
+                const panjangInput =
+                    document.getElementById("modalPanjangInput");
+                const lebarInput = document.getElementById("modalLebarInput");
+                if (panjangInput) panjangInput.value = "";
+                if (lebarInput) lebarInput.value = "";
             }
-        } 
-        const satuanDisplay = document.getElementById('modalSatuanDisplay');
+        }
+        const satuanDisplay = document.getElementById("modalSatuanDisplay");
         if (satuanDisplay) {
-            satuanDisplay.textContent = data.satuan_nama || 'pcs';
+            satuanDisplay.textContent = data.satuan_nama || "pcs";
         }
 
-        const satuanPanjang = document.getElementById('modalSatuanPanjang');
-        const satuanLebar = document.getElementById('modalSatuanLebar');
-        const metricUnit = data.metric_unit || '-'; 
-        currentMetricUnit = data.metric_unit || 'cm';
+        const satuanPanjang = document.getElementById("modalSatuanPanjang");
+        const satuanLebar = document.getElementById("modalSatuanLebar");
+        const metricUnit = data.metric_unit || "-";
+        currentMetricUnit = data.metric_unit || "cm";
 
         if (satuanPanjang) {
             satuanPanjang.textContent = metricUnit;
@@ -214,55 +259,65 @@
         if (satuanLebar) {
             satuanLebar.textContent = metricUnit;
         }
-        
-        const satuanLuas = document.getElementById('modalSatuanLuas');
+
+        const satuanLuas = document.getElementById("modalSatuanLuas");
         if (satuanLuas) {
-            satuanLuas.textContent = metricUnit + '²';
+            satuanLuas.textContent = metricUnit + "²";
         }
-    
-        const panjangInput = document.getElementById('modalPanjangInput');
-        const lebarInput = document.getElementById('modalLebarInput');
-        
-        const panjangStatus = document.getElementById('panjangStatus');
-        const lebarStatus = document.getElementById('lebarStatus');
+
+        const panjangInput = document.getElementById("modalPanjangInput");
+        const lebarInput = document.getElementById("modalLebarInput");
+
+        const panjangStatus = document.getElementById("panjangStatus");
+        const lebarStatus = document.getElementById("lebarStatus");
         if (panjangStatus) {
-            panjangStatus.style.display = data.panjang_locked ? 'block' : 'none';
+            panjangStatus.style.display = data.panjang_locked
+                ? "block"
+                : "none";
         }
         if (lebarStatus) {
-            lebarStatus.style.display = data.lebar_locked ? 'block' : 'none';
+            lebarStatus.style.display = data.lebar_locked ? "block" : "none";
         }
-        
+
         if (panjangInput) {
-            panjangInput.value = data.panjang || '';
+            panjangInput.value = data.panjang || "";
             panjangInput.disabled = Boolean(data.panjang_locked);
-            panjangInput.style.backgroundColor = data.panjang_locked ? '#f8f9fa' : '';
-            panjangInput.style.cursor = data.panjang_locked ? 'not-allowed' : '';
+            panjangInput.style.backgroundColor = data.panjang_locked
+                ? "#f8f9fa"
+                : "";
+            panjangInput.style.cursor = data.panjang_locked
+                ? "not-allowed"
+                : "";
         }
-        
+
         if (lebarInput) {
-            lebarInput.value = data.lebar || '';
+            lebarInput.value = data.lebar || "";
             lebarInput.disabled = Boolean(data.lebar_locked);
-            lebarInput.style.backgroundColor = data.lebar_locked ? '#f8f9fa' : '';
-            lebarInput.style.cursor = data.lebar_locked ? 'not-allowed' : '';
+            lebarInput.style.backgroundColor = data.lebar_locked
+                ? "#f8f9fa"
+                : "";
+            lebarInput.style.cursor = data.lebar_locked ? "not-allowed" : "";
         }
 
-        const luasColumn = document.getElementById('luasColumn');
+        const luasColumn = document.getElementById("luasColumn");
         if (luasColumn) {
-            const isAnyLocked = Boolean(data.panjang_locked || data.lebar_locked);
-            luasColumn.style.display = isAnyLocked ? 'none' : '';
+            const isAnyLocked = Boolean(
+                data.panjang_locked || data.lebar_locked,
+            );
+            luasColumn.style.display = isAnyLocked ? "none" : "";
         }
 
-        if (typeof updateLuas === 'function') {
+        if (typeof updateLuas === "function") {
             updateLuas();
         }
 
-        if (typeof updateModalSummary === 'function') {
+        if (typeof updateModalSummary === "function") {
             updateModalSummary();
         }
 
-        if (typeof showImageControls === 'function') {
-            const controls = document.getElementById('imageFileControls');
-            if (controls && controls.style.display !== 'none') {
+        if (typeof showImageControls === "function") {
+            const controls = document.getElementById("imageFileControls");
+            if (controls && controls.style.display !== "none") {
                 showImageControls();
             }
         }
@@ -270,21 +325,21 @@
     });
 
     function updateLuas() {
-        const panjangInput = document.getElementById('modalPanjangInput');
-        const lebarInput = document.getElementById('modalLebarInput');
-        const luasInput = document.getElementById('modalLuasInput');
-        
+        const panjangInput = document.getElementById("modalPanjangInput");
+        const lebarInput = document.getElementById("modalLebarInput");
+        const luasInput = document.getElementById("modalLuasInput");
+
         if (panjangInput && lebarInput && luasInput) {
             const panjang = parseFloat(panjangInput.value) || 0;
             const lebar = parseFloat(lebarInput.value) || 0;
             const luas = panjang * lebar;
-            
+
             luasInput.value = luas.toFixed(2);
         }
     }
 
     // --- Init ---
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener("DOMContentLoaded", () => {
         wireGlobalDelegates();
         initFileUpload();
         initExternalModals();
@@ -296,13 +351,13 @@
 
     // --- Event Delegation ---
     function wireGlobalDelegates() {
-        document.addEventListener('click', handleGlobalClick);
-        document.addEventListener('submit', handleGlobalSubmit);
+        document.addEventListener("click", handleGlobalClick);
+        document.addEventListener("submit", handleGlobalSubmit);
     }
 
     function handleGlobalClick(e) {
         // Tambah item
-        if (e.target.closest('#btnTambahItem')) {
+        if (e.target.closest("#btnTambahItem")) {
             e.preventDefault();
             // tambahItemPekerjaan();
             openModalTambahItem();
@@ -310,176 +365,260 @@
         }
 
         // Simpan item dari modal
-        if (e.target.closest('#modalBtnSimpanItem')) {
+        if (e.target.closest("#modalBtnSimpanItem")) {
             e.preventDefault();
-            
+
             const item = getItemFormData();
             if (!validateItem(item)) return;
-            
+
             tambahItemPekerjaan();
-            
+
             // Tutup modal jika masih terbuka
-            const modalElement = document.getElementById('modalTambahItemPesanan');
+            const modalElement = document.getElementById(
+                "modalTambahItemPesanan",
+            );
             if (modalElement) {
                 const modalInstance = bootstrap.Modal.getInstance(modalElement);
                 modalInstance?.hide();
             }
-            
-            SafeHelper.notify('success', 'Berhasil', 'Item berhasil ditambahkan');
+
+            SafeHelper.notify(
+                "success",
+                "Berhasil",
+                "Item berhasil ditambahkan",
+            );
             return;
         }
 
         // Tugas Produksi - Tab
-        if (e.target.closest('#btnTambahTugasTab') || e.target.closest('#btnTambahTugasPertama')) {
+        if (
+            e.target.closest("#btnTambahTugasTab") ||
+            e.target.closest("#btnTambahTugasPertama")
+        ) {
             editTugasTabIndex = null;
             if (el.formTugas()) el.formTugas().reset();
-            if (el.modalTugasLabel()) el.modalTugasLabel().textContent = 'Tambah Tugas Produksi';
-            const btnSimpan = document.getElementById('btnSimpanTugas');
-            if (btnSimpan) btnSimpan.textContent = 'Tambah Tugas';
+            if (el.modalTugasLabel())
+                el.modalTugasLabel().textContent = "Tambah Tugas Produksi";
+            const btnSimpan = document.getElementById("btnSimpanTugas");
+            if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
             new bootstrap.Modal(el.modalTugas()).show();
             return;
         }
 
         // Edit tugas di tab
-        if (e.target.closest('.btn-edit-tugas-tab')) {
-            const idx = parseInt(e.target.closest('.btn-edit-tugas-tab').getAttribute('data-idx'));
+        if (e.target.closest(".btn-edit-tugas-tab")) {
+            const idx = parseInt(
+                e.target
+                    .closest(".btn-edit-tugas-tab")
+                    .getAttribute("data-idx"),
+            );
             editTugasTabIndex = idx;
             const tugas = tugasProduksiTabData[idx];
             if (!tugas) return;
             el.inputNamaTugas().value = tugas.nama;
             el.inputDitugaskan().value = tugas.ditugaskan;
-            el.inputMesin().value = tugas.mesin || '';
+            el.inputMesin().value = tugas.mesin || "";
             el.inputWaktu().value = tugas.waktu;
             el.inputHarga().value = tugas.harga;
-            el.inputDeskripsi().value = tugas.deskripsi || '';
-            el.modalTugasLabel().textContent = 'Edit Tugas Produksi';
-            const btnSimpan = document.getElementById('btnSimpanTugas');
-            if (btnSimpan) btnSimpan.textContent = 'Simpan Perubahan';
+            el.inputDeskripsi().value = tugas.deskripsi || "";
+            el.modalTugasLabel().textContent = "Edit Tugas Produksi";
+            const btnSimpan = document.getElementById("btnSimpanTugas");
+            if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
             new bootstrap.Modal(el.modalTugas()).show();
             return;
         }
 
         // Hapus tugas di tab
-        if (e.target.closest('.btn-delete-tugas-tab')) {
-            const idx = parseInt(e.target.closest('.btn-delete-tugas-tab').getAttribute('data-idx'));
+        if (e.target.closest(".btn-delete-tugas-tab")) {
+            const idx = parseInt(
+                e.target
+                    .closest(".btn-delete-tugas-tab")
+                    .getAttribute("data-idx"),
+            );
             tugasProduksiTabData.splice(idx, 1);
             updateTugasTabTable();
             return;
         }
 
         // File pendukung - browse
-        if (e.target.closest('#btnBrowseFile') || e.target.closest('#dropZone')) {
-            if (!e.target.closest('.btn-hapus-file') && el.inputFilePendukung()) {
+        if (
+            e.target.closest("#btnBrowseFile") ||
+            e.target.closest("#dropZone")
+        ) {
+            if (
+                !e.target.closest(".btn-hapus-file") &&
+                el.inputFilePendukung()
+            ) {
                 el.inputFilePendukung().click();
             }
             return;
         }
 
         // Item actions di daftar
-        if (e.target.closest('#itemCardsContainer')) {
+        if (e.target.closest("#itemCardsContainer")) {
             // Edit item
-            if (e.target.closest('.btn-edit-item')) {
-                const idx = parseInt(e.target.closest('.btn-edit-item').getAttribute('data-idx'));
+            if (e.target.closest(".btn-edit-item")) {
+                const idx = parseInt(
+                    e.target.closest(".btn-edit-item").getAttribute("data-idx"),
+                );
                 prefillItemForm(idx);
                 masukModeEdit(idx);
                 return;
             }
             // Delete item
-            if (e.target.closest('.btn-delete-item')) {
-                const idx = parseInt(e.target.closest('.btn-delete-item').getAttribute('data-idx'));
-                SafeHelper.confirm('Konfirmasi', 'Apakah Anda yakin ingin menghapus item ini?', 'Ya, Hapus', 'Batal')
-                    .then(confirmed => {
-                        if (!confirmed) return;
-                        itemsData.splice(idx, 1);
-                        renderItemCards();
-                    });
+            if (e.target.closest(".btn-delete-item")) {
+                const idx = parseInt(
+                    e.target
+                        .closest(".btn-delete-item")
+                        .getAttribute("data-idx"),
+                );
+                SafeHelper.confirm(
+                    "Konfirmasi",
+                    "Apakah Anda yakin ingin menghapus item ini?",
+                    "Ya, Hapus",
+                    "Batal",
+                ).then((confirmed) => {
+                    if (!confirmed) return;
+                    itemsData.splice(idx, 1);
+                    renderItemCards();
+                });
                 return;
             }
             // Tambah tugas per item
-            if (e.target.closest('.btn-tambah-tugas-item')) {
-                const idx = parseInt(e.target.closest('.btn-tambah-tugas-item').getAttribute('data-idx'));
+            if (e.target.closest(".btn-tambah-tugas-item")) {
+                const idx = parseInt(
+                    e.target
+                        .closest(".btn-tambah-tugas-item")
+                        .getAttribute("data-idx"),
+                );
                 itemTugasEditIndex = idx;
                 itemTugasEditTaskIndex = null;
                 if (el.formTugas()) el.formTugas().reset();
                 const item = itemsData[idx];
-                if (el.modalTugasLabel()) el.modalTugasLabel().textContent = 'Tambah Tugas Produksi untuk: ' + (item?.nama_produk || 'Item');
-                const btnSimpan = document.getElementById('btnSimpanTugas');
-                if (btnSimpan) btnSimpan.textContent = 'Tambah Tugas';
+                if (el.modalTugasLabel())
+                    el.modalTugasLabel().textContent =
+                        "Tambah Tugas Produksi untuk: " +
+                        (item?.nama_produk || "Item");
+                const btnSimpan = document.getElementById("btnSimpanTugas");
+                if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
                 new bootstrap.Modal(el.modalTugas()).show();
                 return;
             }
             // Edit tugas per item
-            if (e.target.closest('.btn-edit-tugas-item') && e.target.closest('.btn-edit-tugas-item').hasAttribute('data-tugas')) {
-                const idx = parseInt(e.target.closest('.btn-edit-tugas-item').getAttribute('data-idx'));
-                const tIdx = parseInt(e.target.closest('.btn-edit-tugas-item').getAttribute('data-tugas'));
+            if (
+                e.target.closest(".btn-edit-tugas-item") &&
+                e.target
+                    .closest(".btn-edit-tugas-item")
+                    .hasAttribute("data-tugas")
+            ) {
+                const idx = parseInt(
+                    e.target
+                        .closest(".btn-edit-tugas-item")
+                        .getAttribute("data-idx"),
+                );
+                const tIdx = parseInt(
+                    e.target
+                        .closest(".btn-edit-tugas-item")
+                        .getAttribute("data-tugas"),
+                );
                 itemTugasEditIndex = idx;
                 itemTugasEditTaskIndex = tIdx;
                 const tugas = itemsData[idx]?.tugasProduksi?.[tIdx];
                 if (!tugas) return;
                 el.inputNamaTugas().value = tugas.nama;
                 el.inputDitugaskan().value = tugas.ditugaskan;
-                el.inputMesin().value = tugas.mesin || '';
+                el.inputMesin().value = tugas.mesin || "";
                 el.inputWaktu().value = tugas.waktu;
                 el.inputHarga().value = tugas.harga;
-                el.inputDeskripsi().value = tugas.deskripsi || '';
-                el.modalTugasLabel().textContent = 'Edit Tugas Produksi untuk: ' + (itemsData[idx]?.nama_produk || 'Item');
-                const btnSimpan = document.getElementById('btnSimpanTugas');
-                if (btnSimpan) btnSimpan.textContent = 'Simpan Perubahan';
+                el.inputDeskripsi().value = tugas.deskripsi || "";
+                el.modalTugasLabel().textContent =
+                    "Edit Tugas Produksi untuk: " +
+                    (itemsData[idx]?.nama_produk || "Item");
+                const btnSimpan = document.getElementById("btnSimpanTugas");
+                if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
                 new bootstrap.Modal(el.modalTugas()).show();
                 return;
             }
             // Hapus tugas per item
-            if (e.target.closest('.btn-delete-tugas-item')) {
-                const idx = parseInt(e.target.closest('.btn-delete-tugas-item').getAttribute('data-idx'));
-                const tIdx = parseInt(e.target.closest('.btn-delete-tugas-item').getAttribute('data-tugas'));
-                SafeHelper.confirm('Konfirmasi', 'Apakah Anda yakin ingin menghapus tugas ini?', 'Ya, Hapus', 'Batal')
-                    .then(confirmed => {
-                        if (!confirmed) return;
-                        itemsData[idx]?.tugasProduksi?.splice(tIdx, 1);
-                        renderItemCards();
-                    });
+            if (e.target.closest(".btn-delete-tugas-item")) {
+                const idx = parseInt(
+                    e.target
+                        .closest(".btn-delete-tugas-item")
+                        .getAttribute("data-idx"),
+                );
+                const tIdx = parseInt(
+                    e.target
+                        .closest(".btn-delete-tugas-item")
+                        .getAttribute("data-tugas"),
+                );
+                SafeHelper.confirm(
+                    "Konfirmasi",
+                    "Apakah Anda yakin ingin menghapus tugas ini?",
+                    "Ya, Hapus",
+                    "Batal",
+                ).then((confirmed) => {
+                    if (!confirmed) return;
+                    itemsData[idx]?.tugasProduksi?.splice(tIdx, 1);
+                    renderItemCards();
+                });
                 return;
             }
         }
 
         // Hapus file pendukung
-        if (e.target.closest('.btn-hapus-file')) {
-            const idx = parseInt(e.target.closest('.btn-hapus-file').getAttribute('data-idx'));
-            SafeHelper.confirm('Konfirmasi', 'Apakah Anda yakin ingin menghapus file ini?', 'Ya, Hapus', 'Batal')
-                .then(confirmed => {
-                    if (!confirmed) return;
-                    filePendukungData.splice(idx, 1);
-                    renderFilePendukungTable();
-                });
+        if (e.target.closest(".btn-hapus-file")) {
+            const idx = parseInt(
+                e.target.closest(".btn-hapus-file").getAttribute("data-idx"),
+            );
+            SafeHelper.confirm(
+                "Konfirmasi",
+                "Apakah Anda yakin ingin menghapus file ini?",
+                "Ya, Hapus",
+                "Batal",
+            ).then((confirmed) => {
+                if (!confirmed) return;
+                filePendukungData.splice(idx, 1);
+                renderFilePendukungTable();
+            });
             return;
         }
     }
 
     function handleGlobalSubmit(e) {
         // Form modal tugas produksi (selalu prevent default)
-        if (e.target.id === 'formTugasProduksi') {
+        if (e.target.id === "formTugasProduksi") {
             e.preventDefault();
             const tugas = {
                 nama: el.inputNamaTugas().value,
                 ditugaskan: el.inputDitugaskan().value,
-                ditugaskan_id: document.getElementById('inputDitugaskanId')?.value || '',
+                ditugaskan_id:
+                    document.getElementById("inputDitugaskanId")?.value || "",
                 mesin: el.inputMesin().value,
                 waktu: el.inputWaktu().value,
                 harga: el.inputHarga().value,
-                deskripsi: el.inputDeskripsi().value
+                deskripsi: el.inputDeskripsi().value,
             };
             // Validasi minimal
             if (!tugas.nama || !tugas.ditugaskan || !tugas.waktu) {
-                SafeHelper.notify('error', 'Error', 'Nama/ditugaskan/waktu wajib diisi');
+                SafeHelper.notify(
+                    "error",
+                    "Error",
+                    "Nama/ditugaskan/waktu wajib diisi",
+                );
                 return;
             }
 
             // Jika form item aktif, simpan ke item tertentu
-            const itemTabActive = document.getElementById('itemPekerjaan')?.classList.contains('active');
+            const itemTabActive = document
+                .getElementById("itemPekerjaan")
+                ?.classList.contains("active");
             if (itemTabActive && itemTugasEditIndex !== null) {
-                if (!Array.isArray(itemsData[itemTugasEditIndex].tugasProduksi)) itemsData[itemTugasEditIndex].tugasProduksi = [];
+                if (!Array.isArray(itemsData[itemTugasEditIndex].tugasProduksi))
+                    itemsData[itemTugasEditIndex].tugasProduksi = [];
                 if (itemTugasEditTaskIndex !== null) {
-                    itemsData[itemTugasEditIndex].tugasProduksi[itemTugasEditTaskIndex] = tugas;
+                    itemsData[itemTugasEditIndex].tugasProduksi[
+                        itemTugasEditTaskIndex
+                    ] = tugas;
                 } else {
                     itemsData[itemTugasEditIndex].tugasProduksi.push(tugas);
                 }
@@ -490,7 +629,7 @@
                 return;
             }
             // Jika di tab tugas global
-            if (el.tabTugasPane()?.classList.contains('active')) {
+            if (el.tabTugasPane()?.classList.contains("active")) {
                 if (editTugasTabIndex !== null) {
                     tugasProduksiTabData[editTugasTabIndex] = tugas;
                 } else {
@@ -504,32 +643,46 @@
         }
 
         // Form utama SPK: siapkan hidden inputs lalu biarkan submit normal
-        if (e.target.id === 'formTambahSPK') {
+        if (e.target.id === "formTambahSPK") {
             // Validasi minimal: harus ada 1 item
             if (itemsData.length === 0) {
                 e.preventDefault();
-                SafeHelper.notify('error', 'Error', 'Minimal harus ada 1 item pekerjaan');
+                SafeHelper.notify(
+                    "error",
+                    "Error",
+                    "Minimal harus ada 1 item pekerjaan",
+                );
                 return;
             }
             // Pastikan pelanggan dipilih
             if (!el.customerIdInput()?.value) {
                 e.preventDefault();
-                SafeHelper.notify('error', 'Error', 'Pelanggan belum dipilih');
+                SafeHelper.notify("error", "Error", "Pelanggan belum dipilih");
                 return;
             }
 
-            if (el.itemsHidden()) el.itemsHidden().value = JSON.stringify(itemsData);
-            if (el.tugasHidden()) el.tugasHidden().value = JSON.stringify(tugasProduksiTabData);
+            if (el.itemsHidden())
+                el.itemsHidden().value = JSON.stringify(itemsData);
+            if (el.tugasHidden())
+                el.tugasHidden().value = JSON.stringify(tugasProduksiTabData);
             if (el.filePendukungHidden()) {
-                el.filePendukungHidden().value = JSON.stringify(filePendukungData.map(f => ({ name: f.name, type: f.type, size: f.size })));
+                el.filePendukungHidden().value = JSON.stringify(
+                    filePendukungData.map((f) => ({
+                        name: f.name,
+                        type: f.type,
+                        size: f.size,
+                    })),
+                );
             }
 
-            const btnSimpan = document.getElementById('btnSimpanSPK');
-            const spinner = document.getElementById('spinnerSimpanSPK');
-            const labelSimpan = document.querySelector('#btnSimpanSPK .label-simpan');
+            const btnSimpan = document.getElementById("btnSimpanSPK");
+            const spinner = document.getElementById("spinnerSimpanSPK");
+            const labelSimpan = document.querySelector(
+                "#btnSimpanSPK .label-simpan",
+            );
             if (btnSimpan) btnSimpan.disabled = true;
-            if (spinner) spinner.classList.remove('d-none');
-            if (labelSimpan) labelSimpan.textContent = 'Menyimpan...';
+            if (spinner) spinner.classList.remove("d-none");
+            if (labelSimpan) labelSimpan.textContent = "Menyimpan...";
         }
     }
 
@@ -554,32 +707,47 @@
     }
 
     function isModalItemVisible() {
-        const modal = document.getElementById('modalTambahItemPesanan');
-        return modal && modal.classList.contains('show');
+        const modal = document.getElementById("modalTambahItemPesanan");
+        return modal && modal.classList.contains("show");
     }
 
     function getItemFormData() {
-        const modalProdukSelect = document.getElementById('modalProdukSelect');
-        const modalProdukId = document.getElementById('modalProdukId');
-        const modalJumlah = document.getElementById('modalJumlahInput');
-        const modalDeadline = document.getElementById('modalDeadlineInput');
-        const modalUrgentValue = document.getElementById('modalUrgentValue');
-        const modalSatuanDisplay = document.getElementById('modalSatuanDisplay');
-        const satuanText = (modalSatuanDisplay?.textContent || 'pcs').trim().toLowerCase();
+        const modalProdukSelect = document.getElementById("modalProdukSelect");
+        const modalProdukId = document.getElementById("modalProdukId");
+        const modalJumlah = document.getElementById("modalJumlahInput");
+        const modalDeadline = document.getElementById("modalDeadlineInput");
+        const modalUrgentValue = document.getElementById("modalUrgentValue");
+        const modalSatuanDisplay =
+            document.getElementById("modalSatuanDisplay");
+        const satuanText = (modalSatuanDisplay?.textContent || "pcs")
+            .trim()
+            .toLowerCase();
         const jumlah = parseFloat(modalJumlah?.value) || 0;
-        const panjang = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
-        const lebar = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
+        const panjang =
+            parseFloat(document.getElementById("modalPanjangInput")?.value) ||
+            0;
+        const lebar =
+            parseFloat(document.getElementById("modalLebarInput")?.value) || 0;
 
         let biayaProduk = 0;
         if (currentSelectedProduk && jumlah > 0) {
-            const hargaJual = getHargaJualFinishing({
-                harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
-                harga_reseller_json: currentSelectedProduk.harga_reseller_json || [],
-            }, jumlah);
+            const hargaJual = getHargaJualFinishing(
+                {
+                    harga_bertingkat_json:
+                        currentSelectedProduk.harga_bertingkat_json || [],
+                    harga_reseller_json:
+                        currentSelectedProduk.harga_reseller_json || [],
+                },
+                jumlah,
+            );
             if (hargaJual > 0) {
                 if (currentSelectedProduk.is_metric) {
-                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
-                    const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
+                    const panjangLocked =
+                        document.getElementById("panjangStatus")?.style
+                            .display === "block";
+                    const lebarLocked =
+                        document.getElementById("lebarStatus")?.style
+                            .display === "block";
                     let factorDimensi = 1;
                     if (!panjangLocked && !lebarLocked) {
                         factorDimensi = panjang * lebar;
@@ -594,21 +762,25 @@
                 }
             }
         }
-        
+
         return {
-            produk_id: modalProdukId?.value || '',
-            nama_produk: modalProdukSelect?.value || '',
+            produk_id: modalProdukId?.value || "",
+            nama_produk: modalProdukSelect?.value || "",
             jumlah: modalJumlah?.value || 0,
-            satuan: satuanText || 'pcs',
-            deadline: modalDeadline?.value || '',
-            is_urgent: modalUrgentValue?.value === 'true',
-            keterangan: (document.getElementById('modalKeteranganInput')?.value || '').trim(),
-            lebar: document.getElementById('modalLebarInput')?.value || 0,
-            panjang: document.getElementById('modalPanjangInput')?.value || 0,
+            satuan: satuanText || "pcs",
+            deadline: modalDeadline?.value || "",
+            is_urgent: modalUrgentValue?.value === "true",
+            keterangan: (
+                document.getElementById("modalKeteranganInput")?.value || ""
+            ).trim(),
+            lebar: document.getElementById("modalLebarInput")?.value || 0,
+            panjang: document.getElementById("modalPanjangInput")?.value || 0,
             biaya_produk: biayaProduk,
             files: [...modalUploadedFiles], // Simpan daftar path file
             // Simpan data produk mentah untuk edit modal agar kalkulasi harga tetap jalan
-            raw_produk: currentSelectedProduk ? deepClone(currentSelectedProduk) : null,
+            raw_produk: currentSelectedProduk
+                ? deepClone(currentSelectedProduk)
+                : null,
             tugasProduksi: deepClone(tugasProduksiTabData),
             filePendukung: deepClone(modalUploadedFiles),
             tipe_finishing: deepClone(modalFinishingData),
@@ -617,15 +789,15 @@
 
     function validateItem(item) {
         if (!item.nama_produk) {
-            SafeHelper.notify('error', 'Error', 'Nama produk harus diisi');
+            SafeHelper.notify("error", "Error", "Nama produk harus diisi");
             return false;
         }
         if (!item.jumlah || Number(item.jumlah) <= 0) {
-            SafeHelper.notify('error', 'Error', 'Jumlah harus lebih dari 0');
+            SafeHelper.notify("error", "Error", "Jumlah harus lebih dari 0");
             return false;
         }
         if (!item.satuan) {
-            SafeHelper.notify('error', 'Error', 'Satuan harus diisi');
+            SafeHelper.notify("error", "Error", "Satuan harus diisi");
             return false;
         }
         return true;
@@ -637,87 +809,118 @@
 
         openModalTambahItem();
         editItemIndex = idx;
-        
+
         // Reset and load files
         modalUploadedFiles = item.files ? [...item.files] : [];
 
         // Restore currentSelectedProduk
         if (item.raw_produk) {
             currentSelectedProduk = deepClone(item.raw_produk);
-            currentMetricUnit = item.raw_produk.metric_unit || 'cm';
+            currentMetricUnit = item.raw_produk.metric_unit || "cm";
         }
 
         // Populate modal fields
-        const modalProduk = document.getElementById('modalProdukSelect');
-        const modalProdukId = document.getElementById('modalProdukId');
-        const modalJumlah = document.getElementById('modalJumlahInput');
-        const modalDeadline = document.getElementById('modalDeadlineInput');
-        const modalUrgentToggle = document.getElementById('modalUrgentToggle');
-        const modalUrgentValue = document.getElementById('modalUrgentValue');
-        const modalUrgentStatus = document.querySelector('.urgent-status');
-        const modalSatuanDisplay = document.getElementById('modalSatuanDisplay');
-        const modalKeterangan = document.getElementById('modalKeteranganInput');
-        const modalPanjang = document.getElementById('modalPanjangInput');
-        const modalLebar = document.getElementById('modalLebarInput');
+        const modalProduk = document.getElementById("modalProdukSelect");
+        const modalProdukId = document.getElementById("modalProdukId");
+        const modalJumlah = document.getElementById("modalJumlahInput");
+        const modalDeadline = document.getElementById("modalDeadlineInput");
+        const modalUrgentToggle = document.getElementById("modalUrgentToggle");
+        const modalUrgentValue = document.getElementById("modalUrgentValue");
+        const modalUrgentStatus = document.querySelector(".urgent-status");
+        const modalSatuanDisplay =
+            document.getElementById("modalSatuanDisplay");
+        const modalKeterangan = document.getElementById("modalKeteranganInput");
+        const modalPanjang = document.getElementById("modalPanjangInput");
+        const modalLebar = document.getElementById("modalLebarInput");
 
         if (modalProduk) modalProduk.value = item.nama_produk;
-        if (modalProdukId) modalProdukId.value = item.produk_id || '';
+        if (modalProdukId) modalProdukId.value = item.produk_id || "";
         if (modalJumlah) modalJumlah.value = item.jumlah;
-        if (modalDeadline) modalDeadline.value = item.deadline || '';
-        
+        if (modalDeadline) modalDeadline.value = item.deadline || "";
+
         if (modalUrgentToggle) modalUrgentToggle.checked = item.is_urgent;
-        if (modalUrgentValue) modalUrgentValue.value = item.is_urgent ? 'true' : 'false';
-        if (modalUrgentStatus) modalUrgentStatus.textContent = item.is_urgent ? 'Ya' : 'Tidak';
+        if (modalUrgentValue)
+            modalUrgentValue.value = item.is_urgent ? "true" : "false";
+        if (modalUrgentStatus)
+            modalUrgentStatus.textContent = item.is_urgent ? "Ya" : "Tidak";
 
         if (modalSatuanDisplay) modalSatuanDisplay.textContent = item.satuan;
-        if (modalKeterangan) modalKeterangan.value = item.keterangan || '';
+        if (modalKeterangan) modalKeterangan.value = item.keterangan || "";
         if (modalPanjang) modalPanjang.value = item.panjang || 0;
         if (modalLebar) modalLebar.value = item.lebar || 0;
 
         // Metric visibility & status
-        const sectionUkuran = document.getElementById('sectionUkuran');
-        const summaryUkuranContainer = document.getElementById('summaryUkuranContainer');
+        const sectionUkuran = document.getElementById("sectionUkuran");
+        const summaryUkuranContainer = document.getElementById(
+            "summaryUkuranContainer",
+        );
         if (sectionUkuran && item.raw_produk) {
-            const shouldShow = item.raw_produk.is_metric === true || item.raw_produk.is_metric === 'true';
-            sectionUkuran.style.display = shouldShow ? 'block' : 'none';
-            if (summaryUkuranContainer) summaryUkuranContainer.style.display = shouldShow ? 'block' : 'none';
-            
+            const shouldShow =
+                item.raw_produk.is_metric === true ||
+                item.raw_produk.is_metric === "true";
+            sectionUkuran.style.display = shouldShow ? "block" : "none";
+            if (summaryUkuranContainer)
+                summaryUkuranContainer.style.display = shouldShow
+                    ? "block"
+                    : "none";
+
             // Set units
-            const mu = item.raw_produk.metric_unit || 'cm';
-            const sPanjang = document.getElementById('modalSatuanPanjang');
-            const sLebar = document.getElementById('modalSatuanLebar');
-            const sLuas = document.getElementById('modalSatuanLuas');
+            const mu = item.raw_produk.metric_unit || "cm";
+            const sPanjang = document.getElementById("modalSatuanPanjang");
+            const sLebar = document.getElementById("modalSatuanLebar");
+            const sLuas = document.getElementById("modalSatuanLuas");
             if (sPanjang) sPanjang.textContent = mu;
             if (sLebar) sLebar.textContent = mu;
-            if (sLuas) sLuas.textContent = mu + '²';
-            
+            if (sLuas) sLuas.textContent = mu + "²";
+
             // Locked status
-            const pStatus = document.getElementById('panjangStatus');
-            const lStatus = document.getElementById('lebarStatus');
-            if (pStatus) pStatus.style.display = item.raw_produk.panjang_locked ? 'block' : 'none';
-            if (lStatus) lStatus.style.display = item.raw_produk.lebar_locked ? 'block' : 'none';
-            
+            const pStatus = document.getElementById("panjangStatus");
+            const lStatus = document.getElementById("lebarStatus");
+            if (pStatus)
+                pStatus.style.display = item.raw_produk.panjang_locked
+                    ? "block"
+                    : "none";
+            if (lStatus)
+                lStatus.style.display = item.raw_produk.lebar_locked
+                    ? "block"
+                    : "none";
+
             if (modalPanjang) {
                 modalPanjang.disabled = Boolean(item.raw_produk.panjang_locked);
-                modalPanjang.style.backgroundColor = item.raw_produk.panjang_locked ? '#f8f9fa' : '';
-                modalPanjang.style.cursor = item.raw_produk.panjang_locked ? 'not-allowed' : '';
+                modalPanjang.style.backgroundColor = item.raw_produk
+                    .panjang_locked
+                    ? "#f8f9fa"
+                    : "";
+                modalPanjang.style.cursor = item.raw_produk.panjang_locked
+                    ? "not-allowed"
+                    : "";
             }
             if (modalLebar) {
                 modalLebar.disabled = Boolean(item.raw_produk.lebar_locked);
-                modalLebar.style.backgroundColor = item.raw_produk.lebar_locked ? '#f8f9fa' : '';
-                modalLebar.style.cursor = item.raw_produk.lebar_locked ? 'not-allowed' : '';
+                modalLebar.style.backgroundColor = item.raw_produk.lebar_locked
+                    ? "#f8f9fa"
+                    : "";
+                modalLebar.style.cursor = item.raw_produk.lebar_locked
+                    ? "not-allowed"
+                    : "";
             }
         }
 
         // Tab data
-        tugasProduksiTabData = Array.isArray(item.tugasProduksi) ? deepClone(item.tugasProduksi) : [];
-        modalUploadedFiles = Array.isArray(item.filePendukung) ? deepClone(item.filePendukung) : [];
-        modalFinishingData = Array.isArray(item.tipe_finishing) ? deepClone(item.tipe_finishing) : [];
+        tugasProduksiTabData = Array.isArray(item.tugasProduksi)
+            ? deepClone(item.tugasProduksi)
+            : [];
+        modalUploadedFiles = Array.isArray(item.filePendukung)
+            ? deepClone(item.filePendukung)
+            : [];
+        modalFinishingData = Array.isArray(item.tipe_finishing)
+            ? deepClone(item.tipe_finishing)
+            : [];
 
         renderModalFinishingAccordion();
         renderModalUploadedFiles();
         updateTugasTabTable();
-        
+
         // Relasi Produk (Bahan Baku & Komponen)
         if (item.produk_id) {
             loadAndRenderRelasiProduk(item.produk_id);
@@ -725,8 +928,8 @@
 
         updateLuas();
         updateModalSummary();
-        renderOrderanPreviewTab(); 
-        
+        renderOrderanPreviewTab();
+
         editItemIndex = idx;
     }
 
@@ -742,14 +945,18 @@
         removeHighlightItemRow();
         const container = el.itemCardsContainer();
         if (!container) return;
-        const rows = container.querySelectorAll('.item-card');
-        if (rows[idx]) rows[idx].classList.add('border-primary', 'bg-light');
+        const rows = container.querySelectorAll(".item-card");
+        if (rows[idx]) rows[idx].classList.add("border-primary", "bg-light");
     }
 
     function removeHighlightItemRow() {
         const container = el.itemCardsContainer();
         if (!container) return;
-        container.querySelectorAll('.item-card').forEach(row => row.classList.remove('border-primary', 'bg-light'));
+        container
+            .querySelectorAll(".item-card")
+            .forEach((row) =>
+                row.classList.remove("border-primary", "bg-light"),
+            );
     }
 
     function resetItemFormUI() {
@@ -760,7 +967,7 @@
     function renderItemCards() {
         const container = el.itemCardsContainer();
         if (!container) return;
-        container.innerHTML = '';
+        container.innerHTML = "";
         if (itemsData.length === 0) {
             container.innerHTML = `<div class="text-center text-muted py-4" id="noItemsMessage">
                 <i class="fa fa-list-alt fa-2x mb-2"></i>
@@ -770,7 +977,10 @@
         }
         itemsData.forEach((item, idx) => {
             const collapseId = `itemTugasCollapse${idx}`;
-            const tugasCount = item.tugasProduksi && item.tugasProduksi.length ? item.tugasProduksi.length : 0;
+            const tugasCount =
+                item.tugasProduksi && item.tugasProduksi.length
+                    ? item.tugasProduksi.length
+                    : 0;
             container.innerHTML += `
               <div class="row g-0 border-bottom align-items-center item-card">
                 <div class="col-3 p-3 fw-semibold">
@@ -781,12 +991,12 @@
                 </div>
                 <div class="col-2 p-3">${item.jumlah}</div>
                 <div class="col-2 p-3">${item.satuan}</div>
-                <div class="col-2 p-3">${item.nama_bahan || '-'}</div>
+                <div class="col-2 p-3">${item.nama_bahan || "-"}</div>
                 <div class="col-2 p-3">
-                  ${item.keterangan || '-'}
+                  ${item.keterangan || "-"}
                   <div class="small text-muted mt-1">
-                    ${item.previewFileName ? `<i class='fa fa-file-image-o me-1'></i>${item.previewFileName}` : ''}
-                    <-- ${item.previewFinishing && item.previewFinishing.length > 0 ? `<span class='ms-2'><i class='fa fa-cogs me-1'></i>${item.previewFinishing.join(', ')}</span>` : ''} -->
+                    ${item.previewFileName ? `<i class='fa fa-file-image-o me-1'></i>${item.previewFileName}` : ""}
+                    <-- ${item.previewFinishing && item.previewFinishing.length > 0 ? `<span class='ms-2'><i class='fa fa-cogs me-1'></i>${item.previewFinishing.join(", ")}</span>` : ""} -->
                   </div>
                 </div>
                 <div class="col-1 p-3 text-center">
@@ -805,7 +1015,9 @@
                         <span class="fw-semibold">${tugasCount} Tugas Produksi</span>
                         <button type="button" class="btn btn-outline-primary btn-sm ms-auto btn-tambah-tugas-item" data-idx="${idx}"><i class="fa fa-plus me-1"></i>Tambah Tugas</button>
                       </div>
-                      ${tugasCount > 0 ? `
+                      ${
+                          tugasCount > 0
+                              ? `
                         <div class="table-responsive mb-0">
                           <table class="table table-bordered table-sm align-middle mb-0">
                             <thead class="table-light">
@@ -819,23 +1031,29 @@
                               </tr>
                             </thead>
                             <tbody>
-                              ${item.tugasProduksi.map((tugas, tIdx) => `
+                              ${item.tugasProduksi
+                                  .map(
+                                      (tugas, tIdx) => `
                                 <tr>
                                   <td>${tugas.nama}</td>
                                   <td>${tugas.ditugaskan}</td>
                                   <td>${tugas.waktu} jam</td>
                                   <td>Rp ${parseInt(tugas.harga || 0).toLocaleString()}</td>
-                                  <td>${tugas.mesin || '-'}</td>
+                                  <td>${tugas.mesin || "-"}</td>
                                   <td>
                                     <button type="button" class="btn btn-sm btn-light btn-edit-tugas-item" data-idx="${idx}" data-tugas="${tIdx}" title="Edit"><i class="fa fa-edit"></i></button>
                                     <button type="button" class="btn btn-sm btn-light text-danger btn-delete-tugas-item" data-idx="${idx}" data-tugas="${tIdx}" title="Hapus"><i class="fa fa-trash"></i></button>
                                   </td>
                                 </tr>
-                              `).join('')}
+                              `,
+                                  )
+                                  .join("")}
                             </tbody>
                           </table>
                         </div>
-                      ` : `<div class='text-muted text-center py-3'>Belum ada tugas produksi</div>`}
+                      `
+                              : `<div class='text-muted text-center py-3'>Belum ada tugas produksi</div>`
+                      }
                     </div>
                   </div>
                 </div>
@@ -847,10 +1065,10 @@
     // --- Tugas Tab ---
     function updateTugasTabTable() {
         let emptyState = el.emptyTugasState();
-        let tableState = document.getElementById('tugasTabTableState');
+        let tableState = document.getElementById("tugasTabTableState");
         if (!tableState) {
-            tableState = document.createElement('div');
-            tableState.id = 'tugasTabTableState';
+            tableState = document.createElement("div");
+            tableState.id = "tugasTabTableState";
             tableState.innerHTML = `
                 <div class="d-flex justify-content-between align-items-center mb-3">
                   <div class="fw-semibold">Daftar Tugas Produksi</div>
@@ -877,10 +1095,12 @@
         if (tugasProduksiTabData.length === 0) {
             if (!el.emptyTugasState()) {
                 const tabPane = el.tabTugasPane();
-                const emptyDiv = document.createElement('div');
-                emptyDiv.id = 'emptyTugasState';
-                emptyDiv.className = 'd-flex flex-column align-items-center justify-content-center py-5';
-                emptyDiv.style = 'min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;';
+                const emptyDiv = document.createElement("div");
+                emptyDiv.id = "emptyTugasState";
+                emptyDiv.className =
+                    "d-flex flex-column align-items-center justify-content-center py-5";
+                emptyDiv.style =
+                    "min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;";
                 emptyDiv.innerHTML = `
                   <div class="mb-3">
                     <svg width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -894,19 +1114,19 @@
                 `;
                 tabPane.appendChild(emptyDiv);
             }
-            if (tableState) tableState.style.display = 'none';
+            if (tableState) tableState.style.display = "none";
         } else {
             if (emptyState) emptyState.remove();
-            if (tableState) tableState.style.display = '';
-            const tbody = document.getElementById('tugasTabBody');
+            if (tableState) tableState.style.display = "";
+            const tbody = document.getElementById("tugasTabBody");
             if (tbody) {
-                tbody.innerHTML = '';
+                tbody.innerHTML = "";
                 tugasProduksiTabData.forEach((tugas, idx) => {
                     tbody.innerHTML += `
                       <tr>
                         <td>${tugas.nama}</td>
                         <td>${tugas.ditugaskan}</td>
-                        <td>${tugas.mesin || '-'}</td>
+                        <td>${tugas.mesin || "-"}</td>
                         <td>${tugas.waktu} jam</td>
                         <td>Rp ${parseInt(tugas.harga || 0).toLocaleString()}</td>
                         <td>
@@ -925,15 +1145,27 @@
         const dz = el.dropZone();
         const input = el.inputFilePendukung();
         if (dz) {
-            dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('border-primary'); });
-            dz.addEventListener('dragleave', e => { e.preventDefault(); dz.classList.remove('border-primary'); });
-            dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('border-primary'); handleFiles(e.dataTransfer.files); });
+            dz.addEventListener("dragover", (e) => {
+                e.preventDefault();
+                dz.classList.add("border-primary");
+            });
+            dz.addEventListener("dragleave", (e) => {
+                e.preventDefault();
+                dz.classList.remove("border-primary");
+            });
+            dz.addEventListener("drop", (e) => {
+                e.preventDefault();
+                dz.classList.remove("border-primary");
+                handleFiles(e.dataTransfer.files);
+            });
         }
         if (input) {
-            input.addEventListener('change', e => {
+            input.addEventListener("change", (e) => {
                 if (e.target.files && e.target.files.length > 0) {
                     handleFiles(e.target.files);
-                    setTimeout(() => { input.value = ''; }, 100);
+                    setTimeout(() => {
+                        input.value = "";
+                    }, 100);
                 }
             });
         }
@@ -942,16 +1174,18 @@
     function handleFiles(fileList) {
         for (let i = 0; i < fileList.length; i++) {
             const file = fileList[i];
-            const duplicate = filePendukungData.some(f => f.name === file.name && f.size === file.size);
+            const duplicate = filePendukungData.some(
+                (f) => f.name === file.name && f.size === file.size,
+            );
             if (!duplicate) {
                 const sourcePath = file.webkitRelativePath || file.name; // Untuk file lokal
-            
-                filePendukungData.push({ 
-                    name: file.name, 
-                    type: file.type, 
+
+                filePendukungData.push({
+                    name: file.name,
+                    type: file.type,
                     size: file.size,
                     sourcePath: sourcePath,
-                    source: 'local'
+                    source: "local",
                 });
             }
         }
@@ -961,12 +1195,15 @@
     function renderFilePendukungTable() {
         const body = el.filePendukungBody();
         if (!body) return;
-        body.innerHTML = '';
+        body.innerHTML = "";
         if (filePendukungData.length === 0) {
-            body.innerHTML = '<tr><td colspan="4" class="text-center text-muted">Belum ada file pendukung</td></tr>';
+            body.innerHTML =
+                '<tr><td colspan="4" class="text-center text-muted">Belum ada file pendukung</td></tr>';
         } else {
             filePendukungData.forEach((file, idx) => {
-                const pathInfo = file.path ? `<br><small class="text-muted text-break">Path: ${file.path}</small>` : '';
+                const pathInfo = file.path
+                    ? `<br><small class="text-muted text-break">Path: ${file.path}</small>`
+                    : "";
 
                 body.innerHTML += `
                     <tr>
@@ -974,205 +1211,240 @@
                             <div class="fw-bold text-truncate" style="max-width:300px;">${file.name}</div>
                             ${pathInfo}
                         </td>
-                        <td>${file.type || '-'}</td>
+                        <td>${file.type || "-"}</td>
                         <td>${formatBytes(file.size)}</td>
                         <td><button type="button" class="btn btn-sm btn-danger remove-spk-file" data-idx="${idx}"><i class="fa fa-trash"></i></button></td>
                     </tr>
                 `;
             });
-            
+
             // Re-attach delete listeners
-            body.querySelectorAll('.remove-spk-file').forEach(btn => {
+            body.querySelectorAll(".remove-spk-file").forEach((btn) => {
                 btn.onclick = (e) => {
-                    const idx = parseInt(e.currentTarget.getAttribute('data-idx'));
+                    const idx = parseInt(
+                        e.currentTarget.getAttribute("data-idx"),
+                    );
                     filePendukungData.splice(idx, 1);
                     renderFilePendukungTable();
                 };
             });
         }
         if (el.filePendukungHidden()) {
-            el.filePendukungHidden().value = JSON.stringify(filePendukungData.map(f => ({
-                name: f.name,
-                type: f.type,
-                size: f.size,
-                path: f.path,
-                source: f.source
-            })));
+            el.filePendukungHidden().value = JSON.stringify(
+                filePendukungData.map((f) => ({
+                    name: f.name,
+                    type: f.type,
+                    size: f.size,
+                    path: f.path,
+                    source: f.source,
+                })),
+            );
         }
     }
-
-
-
 
     // --- External modals (pelanggan & bahan baku) ---
     function initExternalModals() {
         // Open modal: pelanggan
-        const btnCariCustomer = document.getElementById('btnCariCustomer');
-        const namaCustomerInput = document.getElementById('namaCustomerInput');
+        const btnCariCustomer = document.getElementById("btnCariCustomer");
+        const namaCustomerInput = document.getElementById("namaCustomerInput");
         if (btnCariCustomer) {
-            btnCariCustomer.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('modalCariPelangganSPK'));
+            btnCariCustomer.addEventListener("click", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalCariPelangganSPK"),
+                );
                 modal.show();
             });
         }
         if (namaCustomerInput) {
-            namaCustomerInput.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('modalCariPelangganSPK'));
+            namaCustomerInput.addEventListener("click", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalCariPelangganSPK"),
+                );
                 modal.show();
             });
         }
         // Open modal: bahan baku
-        const btnCariBahan = document.getElementById('btnCariBahan');
-        const namaBahanInput = document.getElementById('namaBahanInput');
+        const btnCariBahan = document.getElementById("btnCariBahan");
+        const namaBahanInput = document.getElementById("namaBahanInput");
         if (btnCariBahan) {
-            btnCariBahan.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('modalCariBahanBakuSPK'));
+            btnCariBahan.addEventListener("click", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalCariBahanBakuSPK"),
+                );
                 modal.show();
             });
         }
         if (namaBahanInput) {
-            namaBahanInput.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('modalCariBahanBakuSPK'));
+            namaBahanInput.addEventListener("click", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalCariBahanBakuSPK"),
+                );
                 modal.show();
             });
         }
         // Open modal: karyawan untuk inputDitugaskan
-        const btnCariKaryawan = document.getElementById('btnCariKaryawan');
-        const inputDitugaskan = document.getElementById('inputDitugaskan');
+        const btnCariKaryawan = document.getElementById("btnCariKaryawan");
+        const inputDitugaskan = document.getElementById("inputDitugaskan");
         if (btnCariKaryawan) {
-            btnCariKaryawan.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('modalCariKaryawanSPK'));
+            btnCariKaryawan.addEventListener("click", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalCariKaryawanSPK"),
+                );
                 modal.show();
             });
         }
         if (inputDitugaskan) {
-            inputDitugaskan.addEventListener('click', function() {
-                const modal = new bootstrap.Modal(document.getElementById('modalCariKaryawanSPK'));
+            inputDitugaskan.addEventListener("click", function () {
+                const modal = new bootstrap.Modal(
+                    document.getElementById("modalCariKaryawanSPK"),
+                );
                 modal.show();
             });
         }
         // Customer picked from modal
-        window.addEventListener('pelangganDipilih', function(e) {
+        window.addEventListener("pelangganDipilih", function (e) {
             const data = e.detail;
-            if (el.namaCustomerInput()) el.namaCustomerInput().value = data.nama + (data.kode ? ' [' + data.kode + ']' : '');
+            if (el.namaCustomerInput())
+                el.namaCustomerInput().value =
+                    data.nama + (data.kode ? " [" + data.kode + "]" : "");
             if (el.customerIdInput()) el.customerIdInput().value = data.id;
-            if (document.getElementById('customerKategoriHarga')) {
-                document.getElementById('customerKategoriHarga').value = data.kategori_harga || 'Umum';
+            if (document.getElementById("customerKategoriHarga")) {
+                document.getElementById("customerKategoriHarga").value =
+                    data.kategori_harga || "Umum";
             }
         });
         // Bahan baku picked from modal
-        window.addEventListener('bahanBakuDipilih', function(e) {
+        window.addEventListener("bahanBakuDipilih", function (e) {
             const data = e.detail;
-            if (el.namaBahan()) el.namaBahan().value = data.nama + (data.kode ? ' [' + data.kode + ']' : '');
+            if (el.namaBahan())
+                el.namaBahan().value =
+                    data.nama + (data.kode ? " [" + data.kode + "]" : "");
             if (el.bahanId()) el.bahanId().value = data.id;
         });
         // Karyawan picked from modal untuk diisikan ke inputDitugaskan
-        window.addEventListener('karyawanDipilih', function(e) {
+        window.addEventListener("karyawanDipilih", function (e) {
             const data = e.detail;
-            const display = data.nama + (data.kode ? ' [' + data.kode + ']' : '');
-            const inputNama = document.getElementById('inputDitugaskan');
-            const inputId = document.getElementById('inputDitugaskanId');
+            const display =
+                data.nama + (data.kode ? " [" + data.kode + "]" : "");
+            const inputNama = document.getElementById("inputDitugaskan");
+            const inputId = document.getElementById("inputDitugaskanId");
             if (inputNama) inputNama.value = display;
             if (inputId) inputId.value = data.id;
         });
-        window.addEventListener('produkFinishingDipilih', (e) => {
+        window.addEventListener("produkFinishingDipilih", (e) => {
             const data = e.detail;
-            tambahModalFinishing(data.nama_produk, 1, data.id, '', data.is_metric, data.panjang_locked, data.lebar_locked, data.metric_unit, data.panjang, data.lebar, data.satuan_nama, data.harga_bertingkat_json || [], data.harga_reseller_json || []);
+            tambahModalFinishing(
+                data.nama_produk,
+                1,
+                data.id,
+                "",
+                data.is_metric,
+                data.panjang_locked,
+                data.lebar_locked,
+                data.metric_unit,
+                data.panjang,
+                data.lebar,
+                data.satuan_nama,
+                data.harga_bertingkat_json || [],
+                data.harga_reseller_json || [],
+            );
         });
     }
-    
+
     function openModalTambahItem() {
         currentExpandedFinishingIndex = 0;
         currentSelectedProduk = null;
         // Reset form modal
         resetModalTambahItem();
         // Buka modal
-        const modal = new bootstrap.Modal(document.getElementById('modalTambahItemPesanan'));
+        const modal = new bootstrap.Modal(
+            document.getElementById("modalTambahItemPesanan"),
+        );
         modal.show();
     }
-    
+
     function resetModalTambahItem() {
         currentExpandedFinishingIndex = 0;
-        currentSelectedProduk = null; 
+        currentSelectedProduk = null;
         // Reset semua input
-        const form = document.getElementById('modalTambahItemPesanan');
+        const form = document.getElementById("modalTambahItemPesanan");
         if (!form) return;
 
-        const urgentToggle = document.getElementById('modalUrgentToggle');
-        const urgentValue = document.getElementById('modalUrgentValue');
-        const urgentStatus = document.querySelector('.urgent-status');
+        const urgentToggle = document.getElementById("modalUrgentToggle");
+        const urgentValue = document.getElementById("modalUrgentValue");
+        const urgentStatus = document.querySelector(".urgent-status");
 
         if (urgentToggle) {
             urgentToggle.checked = false;
         }
         if (urgentValue) {
-            urgentValue.value = 'false';
+            urgentValue.value = "false";
         }
         if (urgentStatus) {
-            urgentStatus.textContent = 'Tidak';
+            urgentStatus.textContent = "Tidak";
         }
-        const sectionUkuran = document.getElementById('sectionUkuran');
+        const sectionUkuran = document.getElementById("sectionUkuran");
         if (sectionUkuran) {
-            sectionUkuran.style.display = 'none'; 
+            sectionUkuran.style.display = "none";
         }
 
-        const luasInput = document.getElementById('modalLuasInput');
+        const luasInput = document.getElementById("modalLuasInput");
         if (luasInput) {
-            luasInput.value = '0.00';
+            luasInput.value = "0.00";
         }
-        currentMetricUnit = 'cm';
-        form.querySelector('#modalProdukSelect').value = '';
-        form.querySelector('#modalKeteranganInput').value = '';
-        form.querySelector('#modalJumlahInput').value = '1';
-        form.querySelector('#modalDeadlineInput').value = '';
-        form.querySelector('#modalPanjangInput').value = '0';
-        form.querySelector('#modalLebarInput').value = '0';
-        document.getElementById('modalProdukSelect').value = '';
-        document.getElementById('modalProdukId').value = '';
+        currentMetricUnit = "cm";
+        form.querySelector("#modalProdukSelect").value = "";
+        form.querySelector("#modalKeteranganInput").value = "";
+        form.querySelector("#modalJumlahInput").value = "1";
+        form.querySelector("#modalDeadlineInput").value = "";
+        form.querySelector("#modalPanjangInput").value = "0";
+        form.querySelector("#modalLebarInput").value = "0";
+        document.getElementById("modalProdukSelect").value = "";
+        document.getElementById("modalProdukId").value = "";
 
-        const satuanDisplay = document.getElementById('modalSatuanDisplay');
-        const satuanPanjang = document.getElementById('modalSatuanPanjang');
-        const satuanLebar = document.getElementById('modalSatuanLebar');
+        const satuanDisplay = document.getElementById("modalSatuanDisplay");
+        const satuanPanjang = document.getElementById("modalSatuanPanjang");
+        const satuanLebar = document.getElementById("modalSatuanLebar");
 
         if (satuanDisplay) {
-            satuanDisplay.textContent = '';
+            satuanDisplay.textContent = "";
         }
         if (satuanPanjang) {
-            satuanPanjang.textContent = '';
+            satuanPanjang.textContent = "";
         }
         if (satuanLebar) {
-            satuanLebar.textContent = '';
+            satuanLebar.textContent = "";
         }
 
         if (orderanPreviewObjectUrl) {
             URL.revokeObjectURL(orderanPreviewObjectUrl);
             orderanPreviewObjectUrl = null;
         }
-        
+
         // Reset panjang dan lebar, enable kembali
-        const panjangInput = document.getElementById('modalPanjangInput');
-        const lebarInput = document.getElementById('modalLebarInput');
-        document.getElementById('panjangStatus').style.display = 'none';
-        document.getElementById('lebarStatus').style.display = 'none';
+        const panjangInput = document.getElementById("modalPanjangInput");
+        const lebarInput = document.getElementById("modalLebarInput");
+        document.getElementById("panjangStatus").style.display = "none";
+        document.getElementById("lebarStatus").style.display = "none";
         if (panjangInput) {
-            panjangInput.value = '0';
+            panjangInput.value = "0";
             panjangInput.disabled = false;
-            panjangInput.style.backgroundColor = '';
-            panjangInput.style.cursor = '';
+            panjangInput.style.backgroundColor = "";
+            panjangInput.style.cursor = "";
         }
-        
+
         if (lebarInput) {
-            lebarInput.value = '0';
+            lebarInput.value = "0";
             lebarInput.disabled = false;
-            lebarInput.style.backgroundColor = '';
-            lebarInput.style.cursor = '';
+            lebarInput.style.backgroundColor = "";
+            lebarInput.style.cursor = "";
         }
-        
+
         // Reset finishing checkboxes
         // form.querySelectorAll('.finishing-option input[type="checkbox"]').forEach(cb => {
         //     cb.checked = false;
         // });
-        
+
         // Reset files
         modalUploadedFiles = [];
         // modalSelectedFinishing = [];
@@ -1180,64 +1452,183 @@
         modalFinishingData = [];
         renderModalFinishingAccordion();
         updateModalSummary();
-        renderOrderanPreviewTab(); 
+        renderOrderanPreviewTab();
         hideImageControls();
         hidePdfControls();
         imageRotationDegrees = 0;
         currentFileImageInfo = null;
         currentFilePdfInfo = null;
     }
-    
+
     function renderModalUploadedFiles() {
-        const container = document.getElementById('modalUploadedFilesList');
+        const container = document.getElementById("modalUploadedFilesList");
         if (!container) return;
-        
+
         if (modalUploadedFiles.length === 0) {
-            container.innerHTML = '<p class="text-muted small mb-0">Belum ada file yang diupload</p>';
+            container.innerHTML =
+                '<p class="text-muted small mb-0">Belum ada file yang diupload</p>';
             return;
         }
-        
-        container.innerHTML = modalUploadedFiles.map((file, idx) => {
-            const filePath = file.path || file.sourcePath || '';
-            const isDefault = idx === 0;
-            return `
+
+        container.innerHTML = modalUploadedFiles
+            .map((file, idx) => {
+                const filePath = file.path || file.sourcePath || "";
+                const isDefault = idx === 0;
+                return `
                 <div class="file-item" data-idx="${idx}">
                     <div class="file-icon">
                         <i class="fa ${getFileIcon(file.type)} text-primary"></i>
                     </div>
                     <div class="file-info flex-grow-1 overflow-hidden">
                         <div class="file-name text-truncate"  title="${file.name}">${file.name}</div>
-                        ${filePath ? `<div class="file-path text-truncate text-muted small" title="${filePath}">${filePath}</div>` : ''}
+                        ${filePath ? `<div class="file-path text-truncate text-muted small" title="${filePath}">${filePath}</div>` : ""}
                     </div>
                     <button type="button"
-                            class="btn btn-sm ${isDefault ? 'btn-outline-secondary' : 'btn-outline-primary'} me-1 btn-set-default-file"
+                            class="btn btn-sm ${isDefault ? "btn-outline-secondary" : "btn-outline-primary"} me-1 btn-set-default-file"
                             data-idx="${idx}"
-                            ${isDefault ? 'disabled' : ''}>
-                            ${isDefault ? 'Default' : 'Set default'}
+                            ${isDefault ? "disabled" : ""}>
+                            ${isDefault ? "Default" : "Set default"}
                     </button>
                     <button type="button" class="btn btn-sm btn-link text-danger btn-remove-file" data-idx="${idx}">
                         <i class="fa fa-times"></i>
                     </button>
                 </div>
             `;
-        }).join('');
+            })
+            .join("");
     }
+
+    function getImageToolsStringValue(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return undefined;
+        const value = (el.value ?? "").trim();
+        return value === "" ? undefined : value;
+    }
+
+    function getImageToolsNumberValue(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return undefined;
+        const raw = (el.value ?? "").trim();
+        if (raw === "") return undefined;
+        const num = Number(raw);
+        return Number.isNaN(num) ? undefined : num;
+    }
+
+    function getFileNameFromPath(path) {
+        if (!path) return "";
+        const parts = path.split(/[\\/]/);
+        return parts[parts.length - 1] || path;
+    }
+
+    function getImageToolsModalInstance() {
+        if (!imageToolsModalInstance) {
+            const el = document.getElementById("modalImageTools");
+            if (el && window.bootstrap && window.bootstrap.Modal) {
+                imageToolsModalInstance = window.bootstrap.Modal.getOrCreateInstance(el);
+            }
+        }
+        return imageToolsModalInstance;
+    }
+
+    function buildImageToolsPayload() {
+        const defaultFile = modalUploadedFiles[0];
+        if (!defaultFile) {
+            throw new Error("Tidak ada file default yang dipreview.");
+        }
+
+        const filepath = defaultFile.path || defaultFile.sourcePath || "";
+        if (!filepath) {
+            throw new Error("File default tidak memiliki path.");
+        }
+
+        const payload = { AlamatFile: filepath };
+
+        // Field string
+        const stringFields = [
+            { key: "pesan", selector: "#imageToolPesan" },
+            { key: "warna_pesan", selector: "#imageToolWarnaPesan" },
+            { key: "WarnaBackground", selector: "#imageToolWarnaLatar" },
+            { key: "WarnaGaris", selector: "#imageToolWarnaGaris" },
+            { key: "warna_plong", selector: "#imageToolWarnaPlong" },
+            { key: "jenis_plong", selector: "#imageToolJenisPlong" },
+            { key: "bentuk_plong", selector: "#imageToolBentukPlong" },
+        ];
+
+        stringFields.forEach(({ key, selector }) => {
+            const v = getImageToolsStringValue(selector);
+            if (v !== undefined) payload[key] = v;
+        });
+
+        // Field angka
+        const numberFields = [
+            // Skala gambar
+            { key: "image_scale", selector: "#imageToolImageScale" },
     
+            // Pesan
+            { key: "ukuran_pesan", selector: "#imageToolUkuranPesan" },
+            { key: "posX_pesan", selector: "#imageToolPosX" },
+            { key: "posY_pesan", selector: "#imageToolPosY" },
+            { key: "rotasi_pesan", selector: "#imageToolRotasiPesan" },
+    
+            // Duplikasi & jarak antar gambar
+            { key: "CopyX", selector: "#imageToolCopyX" },
+            { key: "CopyY", selector: "#imageToolCopyY" },
+            { key: "jarak_gambarX", selector: "#imageToolJarakX" },
+            { key: "jarak_gambarY", selector: "#imageToolJarakY" },
+            { key: "rotasi_copy", selector: "#imageToolRotasiCopy" },
+    
+            // Lebihan & garis
+            { key: "Lebihan_kiri", selector: "#imageToolLebihanKiri" },
+            { key: "Lebihan_kanan", selector: "#imageToolLebihanKanan" },
+            { key: "Lebihan_atas", selector: "#imageToolLebihanAtas" },
+            { key: "Lebihan_bawah", selector: "#imageToolLebihanBawah" },
+            { key: "UkuranGaris", selector: "#imageToolUkuranGaris" },
+    
+            // Plong – jarak dari tepi
+            { key: "jarak_plong_atas", selector: "#imageToolJarakPlongAtas" },
+            { key: "jarak_plong_bawah", selector: "#imageToolJarakPlongBawah" },
+            { key: "jarak_plong_kiri", selector: "#imageToolJarakPlongKiri" },
+            { key: "jarak_plong_kanan", selector: "#imageToolJarakPlongKanan" },
+    
+            // Plong – ukuran lubang
+            { key: "diameter_lebar", selector: "#imageToolDiameterLebar" },
+            { key: "diameter_panjang", selector: "#imageToolDiameterPanjang" },
+    
+            // Plong – jumlah per sisi
+            { key: "Plong_atas", selector: "#imageToolPlongAtas" },
+            { key: "Plong_bawah", selector: "#imageToolPlongBawah" },
+            { key: "Plong_kiri", selector: "#imageToolPlongKiri" },
+            { key: "Plong_kanan", selector: "#imageToolPlongKanan" },
+        ];
+
+        numberFields.forEach(({ key, selector }) => {
+            const v = getImageToolsNumberValue(selector);
+            if (v !== undefined) payload[key] = v;
+        });
+
+        if (payload.image_scale === undefined) {
+            payload.image_scale = 100;
+        }
+
+        return payload;
+    }
+
     function getFileIcon(type) {
-        if (!type) return 'fa-file';
-        if (type.includes('pdf')) return 'fa-file-pdf';
-        if (type.includes('image')) return 'fa-file-image';
-        if (type.includes('ai') || type.includes('illustrator')) return 'fa-file-image';
-        return 'fa-file';
+        if (!type) return "fa-file";
+        if (type.includes("pdf")) return "fa-file-pdf";
+        if (type.includes("image")) return "fa-file-image";
+        if (type.includes("ai") || type.includes("illustrator"))
+            return "fa-file-image";
+        return "fa-file";
     }
-    
+
     // function updateModalFinishingCalc() {
     //     const checkboxes = document.querySelectorAll('#modalFinishingGroups input[type="checkbox"]:checked');
     //     const jumlah = parseInt(document.getElementById('modalJumlahInput')?.value) || 1;
-        
+
     //     let totalFinishing = 0;
     //     modalSelectedFinishing = [];
-        
+
     //     checkboxes.forEach(cb => {
     //         const harga = parseInt(cb.dataset.harga) || 0;
     //         const label = cb.closest('.finishing-option').querySelector('.badge')?.textContent || cb.value;
@@ -1249,50 +1640,63 @@
     //         });
     //         totalFinishing += harga * jumlah;
     //     });
-        
+
     //     document.getElementById('modalFinishingCount').textContent = modalSelectedFinishing.length + ' item';
     //     document.getElementById('modalFinishingTotal').textContent = 'Rp ' + totalFinishing.toLocaleString('id-ID');
-        
+
     //     updateModalSummary();
     // }
-    
+
     function updateModalSummary() {
         // Produk
-        const produkInput = document.getElementById('modalProdukSelect');
-        const produkId = document.getElementById('modalProdukId');
-        const produkText = produkInput?.value || '-';
-        document.getElementById('summaryProduk').textContent = produkId?.value ? produkText : '-';
-        
+        const produkInput = document.getElementById("modalProdukSelect");
+        const produkId = document.getElementById("modalProdukId");
+        const produkText = produkInput?.value || "-";
+        document.getElementById("summaryProduk").textContent = produkId?.value
+            ? produkText
+            : "-";
+
         // Jumlah
-        const jumlah = document.getElementById('modalJumlahInput')?.value || '0';
-        const satuanDisplay = document.getElementById('modalSatuanDisplay');
-        const satuan = satuanDisplay?.textContent || 'pcs';
-        document.getElementById('summaryJumlah').textContent = jumlah + ' ' + satuan;
+        const jumlah =
+            document.getElementById("modalJumlahInput")?.value || "0";
+        const satuanDisplay = document.getElementById("modalSatuanDisplay");
+        const satuan = satuanDisplay?.textContent || "pcs";
+        document.getElementById("summaryJumlah").textContent =
+            jumlah + " " + satuan;
 
         // Harga Base
         const qtyForHargaBase = parseFloat(jumlah) || 0;
-        const hargaBaseEl = document.getElementById('summaryHargaBase');
-        let hargaBaseText = 'Rp 0';
+        const hargaBaseEl = document.getElementById("summaryHargaBase");
+        let hargaBaseText = "Rp 0";
 
         if (currentSelectedProduk && qtyForHargaBase > 0) {
             const hargaJual = getHargaJualFinishing(
                 {
-                    harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
-                    harga_reseller_json: currentSelectedProduk.harga_reseller_json || []
+                    harga_bertingkat_json:
+                        currentSelectedProduk.harga_bertingkat_json || [],
+                    harga_reseller_json:
+                        currentSelectedProduk.harga_reseller_json || [],
                 },
-                qtyForHargaBase
+                qtyForHargaBase,
             );
 
             if (hargaJual > 0) {
                 if (currentSelectedProduk.is_metric) {
-                    const unit = currentMetricUnit || currentSelectedProduk.metric_unit || 'cm';
-                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
-                    const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
-                    const useSquareUnit = (panjangLocked === lebarLocked);
+                    const unit =
+                        currentMetricUnit ||
+                        currentSelectedProduk.metric_unit ||
+                        "cm";
+                    const panjangLocked =
+                        document.getElementById("panjangStatus")?.style
+                            .display === "block";
+                    const lebarLocked =
+                        document.getElementById("lebarStatus")?.style
+                            .display === "block";
+                    const useSquareUnit = panjangLocked === lebarLocked;
 
-                    hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${unit}${useSquareUnit ? '²' : ''}`;
+                    hargaBaseText = `Rp ${hargaJual.toLocaleString("id-ID")} / ${unit}${useSquareUnit ? "²" : ""}`;
                 } else {
-                    hargaBaseText = `Rp ${hargaJual.toLocaleString('id-ID')} / ${satuan}`;
+                    hargaBaseText = `Rp ${hargaJual.toLocaleString("id-ID")} / ${satuan}`;
                 }
             }
         }
@@ -1301,31 +1705,57 @@
             hargaBaseEl.textContent = hargaBaseText;
         }
 
-        //  Harga per (satuan) untuk produk metric 
-        const hargaPerSatuanContainer = document.getElementById('summaryHargaPerSatuanContainer');
-        const hargaPerSatuanEl = document.getElementById('summaryHargaPerSatuan');
-        const hargaPerSatuanLabelEl = document.getElementById('summaryHargaPerSatuanLabel');
+        //  Harga per (satuan) untuk produk metric
+        const hargaPerSatuanContainer = document.getElementById(
+            "summaryHargaPerSatuanContainer",
+        );
+        const hargaPerSatuanEl = document.getElementById(
+            "summaryHargaPerSatuan",
+        );
+        const hargaPerSatuanLabelEl = document.getElementById(
+            "summaryHargaPerSatuanLabel",
+        );
 
-        if (hargaPerSatuanContainer && hargaPerSatuanEl && hargaPerSatuanLabelEl) {
-            hargaPerSatuanContainer.style.display = 'none';
-            hargaPerSatuanEl.textContent = 'Rp 0';
-            hargaPerSatuanLabelEl.textContent = satuan || 'satuan';
+        if (
+            hargaPerSatuanContainer &&
+            hargaPerSatuanEl &&
+            hargaPerSatuanLabelEl
+        ) {
+            hargaPerSatuanContainer.style.display = "none";
+            hargaPerSatuanEl.textContent = "Rp 0";
+            hargaPerSatuanLabelEl.textContent = satuan || "satuan";
 
-            if (currentSelectedProduk && currentSelectedProduk.is_metric && qtyForHargaBase > 0) {
+            if (
+                currentSelectedProduk &&
+                currentSelectedProduk.is_metric &&
+                qtyForHargaBase > 0
+            ) {
                 const hargaJual = getHargaJualFinishing(
                     {
-                        harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
-                        harga_reseller_json: currentSelectedProduk.harga_reseller_json || []
+                        harga_bertingkat_json:
+                            currentSelectedProduk.harga_bertingkat_json || [],
+                        harga_reseller_json:
+                            currentSelectedProduk.harga_reseller_json || [],
                     },
-                    qtyForHargaBase
+                    qtyForHargaBase,
                 );
 
                 if (hargaJual > 0) {
-                    const panjangVal = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
-                    const lebarVal   = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
+                    const panjangVal =
+                        parseFloat(
+                            document.getElementById("modalPanjangInput")?.value,
+                        ) || 0;
+                    const lebarVal =
+                        parseFloat(
+                            document.getElementById("modalLebarInput")?.value,
+                        ) || 0;
 
-                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
-                    const lebarLocked   = document.getElementById('lebarStatus')?.style.display === 'block';
+                    const panjangLocked =
+                        document.getElementById("panjangStatus")?.style
+                            .display === "block";
+                    const lebarLocked =
+                        document.getElementById("lebarStatus")?.style
+                            .display === "block";
 
                     let factor = 0;
 
@@ -1341,165 +1771,203 @@
 
                     if (factor >= 0) {
                         const hargaPerSatuan = hargaJual * factor;
-                        hargaPerSatuanEl.textContent = `Rp ${hargaPerSatuan.toLocaleString('id-ID')} / ${satuan}`;
-                        hargaPerSatuanContainer.style.display = '';
+                        hargaPerSatuanEl.textContent = `Rp ${hargaPerSatuan.toLocaleString("id-ID")} / ${satuan}`;
+                        hargaPerSatuanContainer.style.display = "";
                     }
                 }
             }
         }
-        
-        // Ukuran
-        const panjang = document.getElementById('modalPanjangInput')?.value || '0';
-        const lebar = document.getElementById('modalLebarInput')?.value || '0';
 
-        const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
-        const lebarLocked = document.getElementById('lebarStatus')?.style.display === 'block';
+        // Ukuran
+        const panjang =
+            document.getElementById("modalPanjangInput")?.value || "0";
+        const lebar = document.getElementById("modalLebarInput")?.value || "0";
+
+        const panjangLocked =
+            document.getElementById("panjangStatus")?.style.display === "block";
+        const lebarLocked =
+            document.getElementById("lebarStatus")?.style.display === "block";
         const qtyUkuran = parseFloat(jumlah);
-        const summaryUkuranEl = document.getElementById('summaryUkuran');
+        const summaryUkuranEl = document.getElementById("summaryUkuran");
         if (summaryUkuranEl) {
             const bothLocked = panjangLocked && lebarLocked;
             const noneLocked = !panjangLocked && !lebarLocked;
-        
-            let displayText, sigma, sigmaUnit = currentMetricUnit;
-        
+
+            let displayText,
+                sigma,
+                sigmaUnit = currentMetricUnit;
+
             if (bothLocked || noneLocked) {
                 const luas = panjang * lebar;
                 displayText = `${lebar} x ${panjang} ${currentMetricUnit} = ${luas.toFixed(2)} ${currentMetricUnit}²`;
                 sigma = qtyUkuran * luas;
-                sigmaUnit += '²';
+                sigmaUnit += "²";
             } else {
                 const unlockedValue = !panjangLocked ? panjang : lebar;
                 displayText = `${unlockedValue} ${currentMetricUnit}`;
                 sigma = qtyUkuran * unlockedValue;
             }
-        
+
             summaryUkuranEl.innerHTML = `
                 ${displayText}
                 <br>
                 <small class="text-muted">Σ ${sigma.toFixed(2)} ${sigmaUnit}</small>
             `;
         }
-                
+
         // Deadline
-        const deadlineInput = document.getElementById('modalDeadlineInput');
+        const deadlineInput = document.getElementById("modalDeadlineInput");
         if (deadlineInput && deadlineInput.value) {
             const d = new Date(deadlineInput.value);
-            const options = { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
+            const options = {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
             };
 
             const now = new Date();
             const timeDiff = d.getTime() - now.getTime();
-            
-            let estimasiText = '';
+
+            let estimasiText = "";
             if (timeDiff > 0) {
                 const days = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
-                const hours = Math.floor((timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const hours = Math.floor(
+                    (timeDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+                );
                 estimasiText = `Estimasi: ${days} hari, ${hours} jam`;
             } else {
-                estimasiText = 'Sudah lewat deadline';
+                estimasiText = "Sudah lewat deadline";
             }
-            
-            document.getElementById('summaryDeadline').innerHTML = 
-                d.toLocaleDateString('id-ID', options) + '<br><small class="text-muted">' + estimasiText + '</small>';
+
+            document.getElementById("summaryDeadline").innerHTML =
+                d.toLocaleDateString("id-ID", options) +
+                '<br><small class="text-muted">' +
+                estimasiText +
+                "</small>";
             // document.getElementById('summaryDeadline').textContent = d.toLocaleDateString('id-ID', options);
         } else {
-            document.getElementById('summaryDeadline').textContent = '-';
+            document.getElementById("summaryDeadline").textContent = "-";
         }
-        
+
         // Files
-        document.getElementById('summaryFiles').textContent = modalUploadedFiles.length + ' file';
-        
+        document.getElementById("summaryFiles").textContent =
+            modalUploadedFiles.length + " file";
+
         // Finishing List
-        const finishingListEl = document.getElementById('summaryFinishingList');
+        const finishingListEl = document.getElementById("summaryFinishingList");
         if (modalFinishingData.length === 0) {
             finishingListEl.innerHTML = '<span class="text-muted">-</span>';
         } else {
-            finishingListEl.innerHTML = modalFinishingData.map(f => {
-                const qty = parseFloat(f.jumlah) || 0;
-                const total = parseFloat(f.total) || 0;
-                const panjang = parseFloat(f.panjang) || 0;
-                const lebar = parseFloat(f.lebar) || 0;
-    
-                const panjangLocked = f.panjang_locked === true || f.panjang_locked === 'true';
-                const lebarLocked   = f.lebar_locked === true || f.lebar_locked === 'true';
-    
-                let dimensiValid = false;
-                let faktorDimensi = 1;
-    
-                if (f.is_metric) {
-                    if (!panjangLocked && !lebarLocked) {
-                        dimensiValid = panjang > 0 && lebar > 0;
-                        faktorDimensi = dimensiValid ? (panjang * lebar) : 0;
-                    } else if (panjangLocked && !lebarLocked) {
-                        dimensiValid = lebar > 0;
-                        faktorDimensi = dimensiValid ? lebar : 0;
-                    } else if (!panjangLocked && lebarLocked) {
-                        dimensiValid = panjang > 0;
-                        faktorDimensi = dimensiValid ? panjang : 0;
-                    } else {
-                        dimensiValid = true;
-                        faktorDimensi = 1;
+            finishingListEl.innerHTML = modalFinishingData
+                .map((f) => {
+                    const qty = parseFloat(f.jumlah) || 0;
+                    const total = parseFloat(f.total) || 0;
+                    const panjang = parseFloat(f.panjang) || 0;
+                    const lebar = parseFloat(f.lebar) || 0;
+
+                    const panjangLocked =
+                        f.panjang_locked === true ||
+                        f.panjang_locked === "true";
+                    const lebarLocked =
+                        f.lebar_locked === true || f.lebar_locked === "true";
+
+                    let dimensiValid = false;
+                    let faktorDimensi = 1;
+
+                    if (f.is_metric) {
+                        if (!panjangLocked && !lebarLocked) {
+                            dimensiValid = panjang > 0 && lebar > 0;
+                            faktorDimensi = dimensiValid ? panjang * lebar : 0;
+                        } else if (panjangLocked && !lebarLocked) {
+                            dimensiValid = lebar > 0;
+                            faktorDimensi = dimensiValid ? lebar : 0;
+                        } else if (!panjangLocked && lebarLocked) {
+                            dimensiValid = panjang > 0;
+                            faktorDimensi = dimensiValid ? panjang : 0;
+                        } else {
+                            dimensiValid = true;
+                            faktorDimensi = 1;
+                        }
                     }
-                }
-    
-                let hargaPerUnit = 0;
-                let qtyDisplay = qty;
-    
-                if (f.is_metric && dimensiValid && faktorDimensi > 0) {
-                    hargaPerUnit = total > 0 ? total / (qty * faktorDimensi) : 0;
-                    qtyDisplay = qty * faktorDimensi;
-                } else if (!f.is_metric) {
-                    hargaPerUnit = qty > 0 ? total / qty : 0;
-                    qtyDisplay = qty;
-                }
-    
-                return `<div class="d-flex justify-content-between small">
+
+                    let hargaPerUnit = 0;
+                    let qtyDisplay = qty;
+
+                    if (f.is_metric && dimensiValid && faktorDimensi > 0) {
+                        hargaPerUnit =
+                            total > 0 ? total / (qty * faktorDimensi) : 0;
+                        qtyDisplay = qty * faktorDimensi;
+                    } else if (!f.is_metric) {
+                        hargaPerUnit = qty > 0 ? total / qty : 0;
+                        qtyDisplay = qty;
+                    }
+
+                    return `<div class="d-flex justify-content-between small">
                     <div>
-                        <div>${f.nama || f.name || 'Finishing'}</div>
-                        ${hargaPerUnit > 0 ? `<small class="text-muted">Rp ${hargaPerUnit.toLocaleString('id-ID')} × ${qtyDisplay} = Rp ${total.toLocaleString('id-ID')}</small>` : ''}
+                        <div>${f.nama || f.name || "Finishing"}</div>
+                        ${hargaPerUnit > 0 ? `<small class="text-muted">Rp ${hargaPerUnit.toLocaleString("id-ID")} × ${qtyDisplay} = Rp ${total.toLocaleString("id-ID")}</small>` : ""}
                     </div>
-                    <!-- <span class="fw-semibold">Rp ${total.toLocaleString('id-ID')}</span> -->
+                    <!-- <span class="fw-semibold">Rp ${total.toLocaleString("id-ID")}</span> -->
                 </div>`;
-            }).join('');
+                })
+                .join("");
         }
-        
-        // Pricing 
+
+        // Pricing
         const qty = parseFloat(jumlah) || 0;
         let hargaJual = 0;
         let subtotalCetak = 0;
         let factorDimensi = 1;
-        let satuanProduk = satuan || 'pcs';
+        let satuanProduk = satuan || "pcs";
 
         if (currentSelectedProduk && qty > 0) {
-            hargaJual = getHargaJualFinishing({
-                harga_bertingkat_json: currentSelectedProduk.harga_bertingkat_json || [],
-                harga_reseller_json: currentSelectedProduk.harga_reseller_json || [],
-            }, qty);
+            hargaJual = getHargaJualFinishing(
+                {
+                    harga_bertingkat_json:
+                        currentSelectedProduk.harga_bertingkat_json || [],
+                    harga_reseller_json:
+                        currentSelectedProduk.harga_reseller_json || [],
+                },
+                qty,
+            );
 
             if (hargaJual > 0) {
                 if (currentSelectedProduk.is_metric) {
-                    const panjangVal = parseFloat(document.getElementById('modalPanjangInput')?.value) || 0;
-                    const lebarVal   = parseFloat(document.getElementById('modalLebarInput')?.value) || 0;
+                    const panjangVal =
+                        parseFloat(
+                            document.getElementById("modalPanjangInput")?.value,
+                        ) || 0;
+                    const lebarVal =
+                        parseFloat(
+                            document.getElementById("modalLebarInput")?.value,
+                        ) || 0;
 
-                    const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
-                    const lebarLocked   = document.getElementById('lebarStatus')?.style.display === 'block';
+                    const panjangLocked =
+                        document.getElementById("panjangStatus")?.style
+                            .display === "block";
+                    const lebarLocked =
+                        document.getElementById("lebarStatus")?.style
+                            .display === "block";
 
                     if (panjangLocked === lebarLocked) {
-                        factorDimensi = panjangVal * lebarVal;        
-                        satuanProduk = (currentMetricUnit || currentSelectedProduk.metric_unit || 'cm') + '²';
+                        factorDimensi = panjangVal * lebarVal;
+                        satuanProduk =
+                            (currentMetricUnit ||
+                                currentSelectedProduk.metric_unit ||
+                                "cm") + "²";
                     } else {
                         if (panjangLocked && !lebarLocked) {
                             factorDimensi = lebarVal;
                         } else if (!panjangLocked && lebarLocked) {
                             factorDimensi = panjangVal;
                         }
-                        satuanProduk = currentMetricUnit || currentSelectedProduk.metric_unit || 'cm';
+                        satuanProduk =
+                            currentMetricUnit ||
+                            currentSelectedProduk.metric_unit ||
+                            "cm";
                     }
 
                     subtotalCetak = qty * factorDimensi * hargaJual;
@@ -1513,76 +1981,96 @@
 
         const biayaFinishing = modalFinishingData.reduce(
             (sum, item) => sum + parseFloat(item.total || 0),
-            0
+            0,
         );
         const totalAkhir = subtotalCetak + biayaFinishing;
 
-        let detailText = '';
+        let detailText = "";
         if (qty > 0 && hargaJual > 0) {
             if (currentSelectedProduk && currentSelectedProduk.is_metric) {
-                detailText = `(${(qty * factorDimensi).toFixed(2)} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+                detailText = `(${(qty * factorDimensi).toFixed(2)} ${satuanProduk} × Rp ${hargaJual.toLocaleString("id-ID")}) Rp ${subtotalCetak.toLocaleString("id-ID")}`;
             } else {
-                detailText = `(${qty} ${satuanProduk} × Rp ${hargaJual.toLocaleString('id-ID')}) Rp ${subtotalCetak.toLocaleString('id-ID')}`;
+                detailText = `(${qty} ${satuanProduk} × Rp ${hargaJual.toLocaleString("id-ID")}) Rp ${subtotalCetak.toLocaleString("id-ID")}`;
             }
         } else {
-            detailText = 'Rp ' + subtotalCetak.toLocaleString('id-ID');
+            detailText = "Rp " + subtotalCetak.toLocaleString("id-ID");
         }
 
-        document.getElementById('summarySubtotalCetak').textContent = detailText;
-        document.getElementById('summaryBiayaFinishing').textContent = 'Rp ' + biayaFinishing.toLocaleString('id-ID');
-        document.getElementById('summaryTotalAkhir').textContent = 'Rp ' + totalAkhir.toLocaleString('id-ID');
+        document.getElementById("summarySubtotalCetak").textContent =
+            detailText;
+        document.getElementById("summaryBiayaFinishing").textContent =
+            "Rp " + biayaFinishing.toLocaleString("id-ID");
+        document.getElementById("summaryTotalAkhir").textContent =
+            "Rp " + totalAkhir.toLocaleString("id-ID");
     }
-    
+
     // Event listeners untuk modal
     function initModalTambahItem() {
-        const modal = document.getElementById('modalTambahItemPesanan');
+        const modal = document.getElementById("modalTambahItemPesanan");
         if (!modal) return;
-        
+
         // Dropzone click
-        const dropzone = modal.querySelector('#modalDropZone');
-        const fileInput = modal.querySelector('#modalInputFiles');
-        const btnBrowse = modal.querySelector('#modalBtnBrowseFile');
-        
+        const dropzone = modal.querySelector("#modalDropZone");
+        const fileInput = modal.querySelector("#modalInputFiles");
+        const btnBrowse = modal.querySelector("#modalBtnBrowseFile");
+
         if (dropzone && fileInput) {
-            dropzone.addEventListener('click', () => fileInput.click());
-            btnBrowse?.addEventListener('click', (e) => { e.stopPropagation(); fileInput.click(); });
-            
-            dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-            dropzone.addEventListener('dragleave', (e) => { e.preventDefault(); dropzone.classList.remove('dragover'); });
-            dropzone.addEventListener('drop', (e) => {
+            dropzone.addEventListener("click", () => fileInput.click());
+            btnBrowse?.addEventListener("click", (e) => {
+                e.stopPropagation();
+                fileInput.click();
+            });
+
+            dropzone.addEventListener("dragover", (e) => {
                 e.preventDefault();
-                dropzone.classList.remove('dragover');
+                dropzone.classList.add("dragover");
+            });
+            dropzone.addEventListener("dragleave", (e) => {
+                e.preventDefault();
+                dropzone.classList.remove("dragover");
+            });
+            dropzone.addEventListener("drop", (e) => {
+                e.preventDefault();
+                dropzone.classList.remove("dragover");
                 handleModalFiles(e.dataTransfer.files);
             });
-            
-            fileInput.addEventListener('change', (e) => {
+
+            fileInput.addEventListener("change", (e) => {
                 if (e.target.files.length > 0) {
                     handleModalFiles(e.target.files);
-                    e.target.value = '';
+                    e.target.value = "";
                 }
             });
         }
 
-        const btnCariProduk = modal.querySelector('#modalBtnCariProduk');
-        const inputProduk = modal.querySelector('#modalProdukSelect');
+        const btnCariProduk = modal.querySelector("#modalBtnCariProduk");
+        const inputProduk = modal.querySelector("#modalProdukSelect");
         if (btnCariProduk && inputProduk) {
-            btnCariProduk.addEventListener('click', () => {
-                const modalProduk = new bootstrap.Modal(document.getElementById('modalCariProdukSPK'));
+            btnCariProduk.addEventListener("click", () => {
+                const modalProduk = new bootstrap.Modal(
+                    document.getElementById("modalCariProdukSPK"),
+                );
                 modalProduk.show();
             });
-            
-            inputProduk.addEventListener('click', () => {
-                const modalProduk = new bootstrap.Modal(document.getElementById('modalCariProdukSPK'));
+
+            inputProduk.addEventListener("click", () => {
+                const modalProduk = new bootstrap.Modal(
+                    document.getElementById("modalCariProdukSPK"),
+                );
                 modalProduk.show();
             });
         }
-        
+
         // Remove file
-        modal.addEventListener('click', (e) => {
-            const target = e.target.closest('.btn-set-default-file');
+        modal.addEventListener("click", (e) => {
+            const target = e.target.closest(".btn-set-default-file");
             if (target) {
-                const idx = parseInt(target.getAttribute('data-idx'), 10);
-                if (!isNaN(idx) && idx > 0 && Array.isArray(modalUploadedFiles)) {
+                const idx = parseInt(target.getAttribute("data-idx"), 10);
+                if (
+                    !isNaN(idx) &&
+                    idx > 0 &&
+                    Array.isArray(modalUploadedFiles)
+                ) {
                     const [selected] = modalUploadedFiles.splice(idx, 1);
                     modalUploadedFiles.unshift(selected);
                     imageRotationDegrees = 0;
@@ -1591,8 +2079,10 @@
                 }
             }
 
-            if (e.target.closest('.btn-remove-file')) {
-                const idx = parseInt(e.target.closest('.btn-remove-file').dataset.idx);
+            if (e.target.closest(".btn-remove-file")) {
+                const idx = parseInt(
+                    e.target.closest(".btn-remove-file").dataset.idx,
+                );
                 modalUploadedFiles.splice(idx, 1);
                 renderModalUploadedFiles();
                 updateModalSummary();
@@ -1600,114 +2090,216 @@
             }
         });
 
-        document.addEventListener('click', (e) => {
-            if (e.target.closest('#btnRotateImage')) {
+        document.addEventListener("click", (e) => {
+            if (e.target.closest("#btnRotateImage")) {
                 e.preventDefault();
                 rotateImage();
-            } else if (e.target.closest('#btnSyncImageDimensions')) {
+            } else if (e.target.closest("#btnSyncImageDimensions")) {
                 e.preventDefault();
                 syncImageDimensions();
             }
-        });
 
-        document.addEventListener('input', (e) => {
-            if (e.target.id === 'filePdfQty') {
-                calculatePdfSummary();
-                if (typeof updateModalSummary === 'function') updateModalSummary();
+            if (e.target.closest("#btnImageTools")) {
+                e.preventDefault();
+                const modalInstance = getImageToolsModalInstance();
+                if (!modalInstance) {
+                    console.error("Modal Image Tools tidak ditemukan.");
+                    SafeHelper.notify(
+                        "error",
+                        "Image Tools",
+                        "Modal Image Tools tidak ditemukan di halaman.",
+                    );
+                    return;
+                }
+                modalInstance.show();
+                return;
+            }
+        
+            // Terapkan Image Tools
+            if (e.target.closest("#btnApplyImageTools")) {
+                e.preventDefault();
+                (async function () {
+                    try {
+                        const payload = buildImageToolsPayload();
+
+                        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+                        const response = await fetch(
+                            "/backend/image-processing",
+                            {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                    "X-CSRF-TOKEN": token,
+                                },
+                                body: JSON.stringify(payload),
+                            },
+                        );
+
+                        if (!response.ok) {
+                            throw new Error("HTTP status " + response.status);
+                        }
+
+                        const data = await response.json();
+
+                        if (data && data.status === "success" && data.output_path) {
+                            const defaultFile = modalUploadedFiles[0];
+
+                            modalUploadedFiles.push({
+                                name:
+                                    getFileNameFromPath(data.output_path) ||
+                                    (defaultFile?.name || "Processed File"),
+                                path: data.output_path,
+                                size: defaultFile?.size || 0,
+                                type: defaultFile?.type || "image",
+                                source: "local",
+                            });
+
+                            renderModalUploadedFiles();
+                            updateModalSummary();
+                            renderOrderanPreviewTab();
+
+                            const modalInstance = getImageToolsModalInstance();
+                            if (modalInstance) {
+                                modalInstance.hide();
+                            }
+
+                            SafeHelper.notify(
+                                "success",
+                                "Image Tools",
+                                "Gambar berhasil diproses.",
+                            );
+                        } else {
+                            SafeHelper.notify(
+                                "warning",
+                                "Image Tools",
+                                "Proses gambar gagal. Silakan coba lagi.",
+                            );
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        SafeHelper.notify(
+                            "error",
+                            "Image Tools",
+                            "Terjadi kesalahan saat memproses gambar.",
+                        );
+                    }
+                })();
             }
         });
 
-        document.addEventListener('change', (e) => {
-            if (e.target.matches('input[data-finishing-index]')) {
+        document.addEventListener("input", (e) => {
+            if (e.target.id === "filePdfQty") {
+                calculatePdfSummary();
+                if (typeof updateModalSummary === "function")
+                    updateModalSummary();
+            }
+        });
+
+        document.addEventListener("change", (e) => {
+            if (e.target.matches("input[data-finishing-index]")) {
                 const input = e.target;
-                const index = parseInt(input.getAttribute('data-finishing-index'));
+                const index = parseInt(
+                    input.getAttribute("data-finishing-index"),
+                );
                 const newJumlah = input.value;
-                
+
                 updateFinishingJumlah(index, newJumlah);
             }
         });
 
-        document.addEventListener('change', (e) => {
-            if (e.target.matches('input[data-finishing-field]')) {
+        document.addEventListener("change", (e) => {
+            if (e.target.matches("input[data-finishing-field]")) {
                 const input = e.target;
-                const index = parseInt(input.getAttribute('data-finishing-index'));
-                const field = input.getAttribute('data-finishing-field');
+                const index = parseInt(
+                    input.getAttribute("data-finishing-index"),
+                );
+                const field = input.getAttribute("data-finishing-field");
                 const value = input.value;
-                
+
                 updateFinishingField(index, field, value);
             }
         });
 
-        const urgentToggle = modal.querySelector('#modalUrgentToggle');
-        const urgentValue = modal.querySelector('#modalUrgentValue');
-        const urgentStatus = modal.querySelector('.urgent-status');
+        const urgentToggle = modal.querySelector("#modalUrgentToggle");
+        const urgentValue = modal.querySelector("#modalUrgentValue");
+        const urgentStatus = modal.querySelector(".urgent-status");
 
         if (urgentToggle && urgentValue && urgentStatus) {
-            urgentToggle.addEventListener('change', () => {
+            urgentToggle.addEventListener("change", () => {
                 const isUrgent = urgentToggle.checked;
-                urgentValue.value = isUrgent ? 'true' : 'false';
-                urgentStatus.textContent = isUrgent ? 'Ya' : 'Tidak';
-                
-                if (typeof updateModalSummary === 'function') {
+                urgentValue.value = isUrgent ? "true" : "false";
+                urgentStatus.textContent = isUrgent ? "Ya" : "Tidak";
+
+                if (typeof updateModalSummary === "function") {
                     updateModalSummary();
                 }
             });
         }
 
-        const tabPreviewBtn = document.getElementById('tab-preview-orderan');
+        const tabPreviewBtn = document.getElementById("tab-preview-orderan");
         if (tabPreviewBtn) {
-            tabPreviewBtn.addEventListener('shown.bs.tab', () => {
+            tabPreviewBtn.addEventListener("shown.bs.tab", () => {
                 renderOrderanPreviewTab();
             });
         }
-        
+
         // Finishing checkboxes
         // modal.querySelectorAll('.finishing-option input[type="checkbox"]').forEach(cb => {
         //     cb.addEventListener('change', updateModalFinishingCalc);
         // });
-        
+
         // Form inputs untuk update summary
-        const inputsToWatch = ['#modalProdukSelect', '#modalJumlahInput',
-                              '#modalPanjangInput', '#modalLebarInput', '#modalDeadlineInput'];
-        inputsToWatch.forEach(sel => {
+        const inputsToWatch = [
+            "#modalProdukSelect",
+            "#modalJumlahInput",
+            "#modalPanjangInput",
+            "#modalLebarInput",
+            "#modalDeadlineInput",
+        ];
+        inputsToWatch.forEach((sel) => {
             const el = modal.querySelector(sel);
             if (el) {
-                el.addEventListener('change', updateModalSummary);
-                el.addEventListener('input', updateModalSummary);
+                el.addEventListener("change", updateModalSummary);
+                el.addEventListener("input", updateModalSummary);
 
-                if (sel === '#modalPanjangInput' || sel === '#modalLebarInput') {
-                    el.addEventListener('change', updateLuas);
-                    el.addEventListener('input', updateLuas);
+                if (
+                    sel === "#modalPanjangInput" ||
+                    sel === "#modalLebarInput"
+                ) {
+                    el.addEventListener("change", updateLuas);
+                    el.addEventListener("input", updateLuas);
                 }
             }
         });
     }
-    
+
     function handleModalFiles(fileList) {
         for (let i = 0; i < fileList.length; i++) {
             const file = fileList[i];
-            const duplicate = modalUploadedFiles.some(f => f.name === file.name && f.size === file.size);
+            const duplicate = modalUploadedFiles.some(
+                (f) => f.name === file.name && f.size === file.size,
+            );
             if (!duplicate) {
                 modalUploadedFiles.push({
                     name: file.name,
                     size: file.size,
                     type: file.type,
-                    source: 'local',
+                    source: "local",
                     file: file,
-                    path: file.path || file.webkitRelativePath || ''
+                    path: file.path || file.webkitRelativePath || "",
                 });
             }
         }
         renderModalUploadedFiles();
         updateModalSummary();
-        renderOrderanPreviewTab(); 
+        renderOrderanPreviewTab();
     }
 
     // function updateFinishingJumlah(index, newJumlah) {
     //     if (index < 0 || index >= modalFinishingData.length) {
     //         return;
     //     }
-        
+
     //     const qty = parseFloat(newJumlah) || 1;
     //     modalFinishingData[index].jumlah = qty;
     //     modalFinishingData[index].total = qty * parseFloat(modalFinishingData[index].harga_satuan || 0);
@@ -1719,14 +2311,14 @@
     //             totalCell.innerHTML = `Rp ${modalFinishingData[index].total.toLocaleString('id-ID')}`;
     //         }
     //     }
-        
+
     //     updateModalFinishingTotal();
     // }
 
     // function renderModalFinishingTable() {
     //     const tbody = document.getElementById('modalFinishingBody');
     //     if (!tbody) return;
-    
+
     //     if (modalFinishingData.length === 0) {
     //         tbody.innerHTML = `
     //             <tr>
@@ -1738,14 +2330,14 @@
     //         updateModalFinishingTotal();
     //         return;
     //     }
-    
+
     //     tbody.innerHTML = modalFinishingData.map((finishing, index) => `
     //         <tr>
     //             <td>${finishing.nama || '-'}</td>
     //             <td>
-    //                 <input type="number" class="form-control form-control-sm" 
-    //                     value="${finishing.jumlah || 1}" 
-    //                     min="1" 
+    //                 <input type="number" class="form-control form-control-sm"
+    //                     value="${finishing.jumlah || 1}"
+    //                     min="1"
     //                     step="1"
     //                     data-finishing-index="${index}"
     //                     style="width: 80px;">
@@ -1753,8 +2345,8 @@
     //             <td>Rp ${parseFloat(finishing.harga_satuan || 0).toLocaleString('id-ID')}</td>
     //             <td>Rp ${parseFloat(finishing.total || 0).toLocaleString('id-ID')}</td>
     //             <td>
-    //                 <button type="button" class="btn btn-sm btn-outline-danger" 
-    //                         data-action="hapus-finishing" 
+    //                 <button type="button" class="btn btn-sm btn-outline-danger"
+    //                         data-action="hapus-finishing"
     //                         data-index="${index}"
     //                         title="Hapus ${finishing.nama}">
     //                     <i class="fa fa-trash"></i>
@@ -1762,63 +2354,72 @@
     //             </td>
     //         </tr>
     //     `).join('');
-    
+
     //     updateModalFinishingTotal();
     // }
 
     function updateFinishingTotalBadge(index) {
         const finishing = modalFinishingData[index];
         if (!finishing) return;
-    
+
         const qty = finishing.jumlah || 1;
         const total = parseFloat(finishing.total || 0);
         const panjang = parseFloat(finishing.panjang) || 0;
         const lebar = parseFloat(finishing.lebar) || 0;
         const dimensiValid = panjang > 0 && lebar > 0;
-        const dataLengkap = finishing.is_metric ? (qty > 0 && dimensiValid) : (qty > 0);
-        
-        const badgeEl = document.querySelector(`#headingFinishing${index} .badge.bg-primary`);
+        const dataLengkap = finishing.is_metric
+            ? qty > 0 && dimensiValid
+            : qty > 0;
+
+        const badgeEl = document.querySelector(
+            `#headingFinishing${index} .badge.bg-primary`,
+        );
         if (badgeEl) {
             if (dataLengkap && total > 0) {
                 const hargaPerUnit = qty > 0 ? total / qty : 0;
-                badgeEl.innerHTML = `${qty} × Rp ${hargaPerUnit.toLocaleString('id-ID')} = Rp ${total.toLocaleString('id-ID')}`;
-                badgeEl.className = 'badge bg-primary ms-2'; // Warna normal
+                badgeEl.innerHTML = `${qty} × Rp ${hargaPerUnit.toLocaleString("id-ID")} = Rp ${total.toLocaleString("id-ID")}`;
+                badgeEl.className = "badge bg-primary ms-2"; // Warna normal
             } else {
-                badgeEl.innerHTML = 'Data belum lengkap';
-                badgeEl.className = 'badge bg-warning ms-2'; // Warna warning
+                badgeEl.innerHTML = "Data belum lengkap";
+                badgeEl.className = "badge bg-warning ms-2"; // Warna warning
             }
         }
     }
 
     function updateFinishingField(index, field, value) {
         if (index < 0 || index >= modalFinishingData.length) {
-            console.error('Index tidak valid untuk update field finishing:', index);
+            console.error(
+                "Index tidak valid untuk update field finishing:",
+                index,
+            );
             return;
         }
-        
-        if (field === 'jumlah') {
+
+        if (field === "jumlah") {
             modalFinishingData[index].jumlah = parseFloat(value) || 1;
-        } else if (field === 'panjang') {
+        } else if (field === "panjang") {
             modalFinishingData[index].panjang = parseFloat(value) || 0;
-        } else if (field === 'lebar') {
+        } else if (field === "lebar") {
             modalFinishingData[index].lebar = parseFloat(value) || 0;
         }
-        
+
         const item = modalFinishingData[index];
         const panjang = parseFloat(item.panjang) || 0;
         const lebar = parseFloat(item.lebar) || 0;
         const jumlah = parseFloat(item.jumlah) || 1;
-    
-        const panjangLocked = item.panjang_locked === true || item.panjang_locked === 'true';
-        const lebarLocked   = item.lebar_locked === true || item.lebar_locked === 'true';
-    
+
+        const panjangLocked =
+            item.panjang_locked === true || item.panjang_locked === "true";
+        const lebarLocked =
+            item.lebar_locked === true || item.lebar_locked === "true";
+
         let dimensiValid = false;
         let faktorDimensi = 1;
-    
+
         if (item.is_metric) {
             if (!panjangLocked && !lebarLocked) {
                 dimensiValid = panjang > 0 && lebar > 0;
-                faktorDimensi = dimensiValid ? (panjang * lebar) : 0;
+                faktorDimensi = dimensiValid ? panjang * lebar : 0;
             } else if (panjangLocked && !lebarLocked) {
                 dimensiValid = lebar > 0;
                 faktorDimensi = dimensiValid ? lebar : 0;
@@ -1830,9 +2431,9 @@
                 faktorDimensi = 1;
             }
         }
-    
+
         const hargaJual = getHargaJualFinishing(item, item.jumlah || 0);
-    
+
         if (item.is_metric) {
             if (dimensiValid && faktorDimensi > 0) {
                 item.total = jumlah * hargaJual * faktorDimensi;
@@ -1842,7 +2443,7 @@
         } else {
             item.total = jumlah * hargaJual;
         }
-        
+
         updateFinishingLuasField(index);
         updateFinishingTotalBadge(index);
         updateModalFinishingTotal();
@@ -1852,68 +2453,85 @@
     function updateFinishingLuasField(index) {
         const finishing = modalFinishingData[index];
         if (!finishing) return;
-        
+
         const panjang = parseFloat(finishing.panjang) || 0;
         const lebar = parseFloat(finishing.lebar) || 0;
         const luas = panjang * lebar;
-        const metricUnit = finishing.metric_unit || '-';
-        
-        const luasInput = document.querySelector(`input[data-finishing-field="luas"][data-finishing-index="${index}"]`);
+        const metricUnit = finishing.metric_unit || "-";
+
+        const luasInput = document.querySelector(
+            `input[data-finishing-field="luas"][data-finishing-index="${index}"]`,
+        );
         if (luasInput) {
             luasInput.value = luas.toFixed(2);
         }
 
-        const unitSpan = luasInput?.parentElement?.querySelector('.input-group-text');
+        const unitSpan =
+            luasInput?.parentElement?.querySelector(".input-group-text");
         if (unitSpan) {
-            unitSpan.textContent = metricUnit + '²';
+            unitSpan.textContent = metricUnit + "²";
         }
     }
 
     function renderModalFinishingAccordion() {
-        const accordion = document.getElementById('accordionFinishingItems');
-        const noMessage = document.getElementById('noFinishingMessage');
-        
+        const accordion = document.getElementById("accordionFinishingItems");
+        const noMessage = document.getElementById("noFinishingMessage");
+
         if (!accordion) return;
-        
+
         if (modalFinishingData.length === 0) {
-            if (noMessage) noMessage.style.display = 'block';
-            accordion.innerHTML = '<div class="text-center text-muted py-3" id="noFinishingMessage"><i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan</div>';
+            if (noMessage) noMessage.style.display = "block";
+            accordion.innerHTML =
+                '<div class="text-center text-muted py-3" id="noFinishingMessage"><i class="fa fa-cogs me-2"></i>Belum ada finishing yang ditambahkan</div>';
             updateModalFinishingTotal();
             return;
         }
-        
-        if (noMessage) noMessage.style.display = 'none';
-        
-        accordion.innerHTML = modalFinishingData.map((finishing, index) => {
-            const showDimensionFields = finishing.is_metric === true || finishing.is_metric === 'true';
-            const panjangLocked = finishing.panjang_locked === true || finishing.panjang_locked === 'true';
-            const lebarLocked = finishing.lebar_locked === true || finishing.lebar_locked === 'true';
-            const metricUnit = finishing.metric_unit || 'cm';
-            
-            return `
+
+        if (noMessage) noMessage.style.display = "none";
+
+        accordion.innerHTML = modalFinishingData
+            .map((finishing, index) => {
+                const showDimensionFields =
+                    finishing.is_metric === true ||
+                    finishing.is_metric === "true";
+                const panjangLocked =
+                    finishing.panjang_locked === true ||
+                    finishing.panjang_locked === "true";
+                const lebarLocked =
+                    finishing.lebar_locked === true ||
+                    finishing.lebar_locked === "true";
+                const metricUnit = finishing.metric_unit || "cm";
+
+                return `
             <div class="accordion-item">
                 <h2 class="accordion-header" id="headingFinishing${index}">
-                    <button class="accordion-button ${index === currentExpandedFinishingIndex ? '' : 'collapsed'}" type="button" 
+                    <button class="accordion-button ${index === currentExpandedFinishingIndex ? "" : "collapsed"}" type="button" 
                             data-bs-toggle="collapse" data-bs-target="#collapseFinishing${index}" 
-                            aria-expanded="${index === currentExpandedFinishingIndex ? 'true' : 'false'}" 
+                            aria-expanded="${index === currentExpandedFinishingIndex ? "true" : "false"}" 
                             aria-controls="collapseFinishing${index}">
-                        <strong>${finishing.nama || '-'}</strong>
+                        <strong>${finishing.nama || "-"}</strong>
                         ${(() => {
                             const qty = parseFloat(finishing.jumlah) || 0;
                             const total = parseFloat(finishing.total) || 0;
                             const panjang = parseFloat(finishing.panjang) || 0;
                             const lebar = parseFloat(finishing.lebar) || 0;
-                        
-                            const panjangLocked = finishing.panjang_locked === true || finishing.panjang_locked === 'true';
-                            const lebarLocked   = finishing.lebar_locked === true || finishing.lebar_locked === 'true';
-                        
+
+                            const panjangLocked =
+                                finishing.panjang_locked === true ||
+                                finishing.panjang_locked === "true";
+                            const lebarLocked =
+                                finishing.lebar_locked === true ||
+                                finishing.lebar_locked === "true";
+
                             let dimensiValid = false;
                             let faktorDimensi = 1;
-                        
+
                             if (finishing.is_metric) {
                                 if (!panjangLocked && !lebarLocked) {
                                     dimensiValid = panjang > 0 && lebar > 0;
-                                    faktorDimensi = dimensiValid ? (panjang * lebar) : 0;
+                                    faktorDimensi = dimensiValid
+                                        ? panjang * lebar
+                                        : 0;
                                 } else if (panjangLocked && !lebarLocked) {
                                     dimensiValid = lebar > 0;
                                     faktorDimensi = dimensiValid ? lebar : 0;
@@ -1925,46 +2543,51 @@
                                     faktorDimensi = 1;
                                 }
                             }
-                        
-                            const dataLengkap = finishing.is_metric ? (qty > 0 && dimensiValid) : (qty > 0);
-                        
+
+                            const dataLengkap = finishing.is_metric
+                                ? qty > 0 && dimensiValid
+                                : qty > 0;
+
                             if (dataLengkap && total > 0) {
                                 let hargaPerUnit = 0;
                                 let qtyDisplay = qty;
-                        
+
                                 if (finishing.is_metric && faktorDimensi > 0) {
-                                    hargaPerUnit = total / (qty * faktorDimensi);
+                                    hargaPerUnit =
+                                        total / (qty * faktorDimensi);
                                     qtyDisplay = qty * faktorDimensi;
                                 } else {
                                     hargaPerUnit = qty > 0 ? total / qty : 0;
                                     qtyDisplay = qty;
                                 }
-                        
-                                return `<span class="badge bg-primary ms-2">${qtyDisplay} × Rp ${hargaPerUnit.toLocaleString('id-ID')} = Rp ${total.toLocaleString('id-ID')}</span>`;
+
+                                return `<span class="badge bg-primary ms-2">${qtyDisplay} × Rp ${hargaPerUnit.toLocaleString("id-ID")} = Rp ${total.toLocaleString("id-ID")}</span>`;
                             } else {
                                 return `<span class="badge bg-warning ms-2">Data belum lengkap</span>`;
                             }
                         })()}
                     </button>
                 </h2>
-                <div id="collapseFinishing${index}" class="accordion-collapse collapse ${index === currentExpandedFinishingIndex ? 'show' : ''}"
+                <div id="collapseFinishing${index}" class="accordion-collapse collapse ${index === currentExpandedFinishingIndex ? "show" : ""}"
                      aria-labelledby="headingFinishing${index}" 
                      data-bs-parent="#accordionFinishingItems">
                     <div class="accordion-body">
                         <div class="row g-3">
-                            ${showDimensionFields ? `
+                            ${
+                                showDimensionFields
+                                    ? `
                             <!-- Lebar -->
                             <div class="col-md-3">
                                 <label class="form-label">Lebar</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control" 
-                                           value="${finishing.lebar || ''}" 
+                                           value="${finishing.lebar || ""}" 
                                            min="0" step="0.1" 
                                            placeholder="0"
-                                           ${lebarLocked ? 'disabled' : ''}
+                                           ${lebarLocked ? "disabled" : ""}
                                            data-finishing-index="${index}"
                                            data-finishing-field="lebar">
-                                    <span class="input-group-text">${metricUnit || 'cm'}</span>
+                                    <span class="input-group-text">${metricUnit || "cm"}</span>
                                 </div>
                             </div>
 
@@ -1973,17 +2596,23 @@
                                 <label class="form-label">Panjang</label>
                                 <div class="input-group">
                                     <input type="number" class="form-control" 
-                                           value="${finishing.panjang || ''}" 
+                                           value="${finishing.panjang || ""}" 
                                            min="0" step="0.1" 
                                            placeholder="0"
-                                           ${panjangLocked ? 'disabled' : ''}
+                                           ${panjangLocked ? "disabled" : ""}
                                            data-finishing-index="${index}"
                                            data-finishing-field="panjang">
-                                    <span class="input-group-text">${metricUnit || 'cm'}</span>
+                                    <span class="input-group-text">${metricUnit || "cm"}</span>
                                 </div>
                             </div>
-                            ` : ''}
-                            ${showDimensionFields && !lebarLocked && !panjangLocked ? `
+                            `
+                                    : ""
+                            }
+                            ${
+                                showDimensionFields &&
+                                !lebarLocked &&
+                                !panjangLocked
+                                    ? `
                             <!-- Luas  -->
                             <div class="col-md-3">
                                 <label class="form-label">Luas</label>
@@ -1991,12 +2620,14 @@
                                     <input type="text" class="form-control" 
                                         data-finishing-index="${index}"
                                         data-finishing-field="luas"
-                                        value="${showDimensionFields && finishing.panjang && finishing.lebar ? (finishing.panjang * finishing.lebar).toFixed(2) : '0.00'}" 
+                                        value="${showDimensionFields && finishing.panjang && finishing.lebar ? (finishing.panjang * finishing.lebar).toFixed(2) : "0.00"}" 
                                         readonly>
-                                    <span class="input-group-text">${metricUnit || 'cm'}²</span>
+                                    <span class="input-group-text">${metricUnit || "cm"}²</span>
                                 </div>
                             </div>
-                            ` : ''}
+                            `
+                                    : ""
+                            }
                             <!-- Jumlah -->
                             <div class="col-md-3">
                                 <label class="form-label">Jumlah</label>
@@ -2006,7 +2637,7 @@
                                         min="1" 
                                         data-finishing-index="${index}"
                                         data-finishing-field="jumlah">
-                                    <span class="input-group-text">${finishing.satuan || '-'}</span>
+                                    <span class="input-group-text">${finishing.satuan || "-"}</span>
                                 </div>
                             </div>
                         </div>
@@ -2024,32 +2655,42 @@
                 </div>
             </div>
             `;
-        }).join('');
-        
+            })
+            .join("");
+
         updateModalFinishingTotal();
     }
 
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('#modalBtnTambahFinishing')) {
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("#modalBtnTambahFinishing")) {
             e.preventDefault();
-            
-            const produkId = document.getElementById('modalProdukId')?.value;
+
+            const produkId = document.getElementById("modalProdukId")?.value;
             if (!produkId) {
-                if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
-                    SPKHelper.showNotification('Produk belum dipilih', 'Silakan pilih produk terlebih dahulu sebelum menambah finishing.', 'error');
+                if (
+                    window.SPKHelper &&
+                    typeof SPKHelper.showNotification === "function"
+                ) {
+                    SPKHelper.showNotification(
+                        "Produk belum dipilih",
+                        "Silakan pilih produk terlebih dahulu sebelum menambah finishing.",
+                        "error",
+                    );
                 } else {
                     Swal.fire({
-                        icon: 'warning',
-                        text: 'Produk belum dipilih. Silakan pilih produk terlebih dahulu sebelum menambah finishing.',
-                        confirmButtonText: 'OK'
-                      });
+                        icon: "warning",
+                        text: "Produk belum dipilih. Silakan pilih produk terlebih dahulu sebelum menambah finishing.",
+                        confirmButtonText: "OK",
+                    });
                 }
                 return;
             }
-            
+
             window.SPKCurrentProdukIdForFinishing = produkId;
-            
-            const modalElement = document.getElementById('modalCariProdukFinishingSPK');
+
+            const modalElement = document.getElementById(
+                "modalCariProdukFinishingSPK",
+            );
             if (modalElement) {
                 const modalFin = new bootstrap.Modal(modalElement);
                 modalFin.show();
@@ -2057,64 +2698,87 @@
         }
     });
 
-    document.addEventListener('click', (e) => {
+    document.addEventListener("click", (e) => {
         if (e.target.closest('[data-action="hapus-finishing"]')) {
             e.preventDefault();
             const button = e.target.closest('[data-action="hapus-finishing"]');
-            const index = parseInt(button.getAttribute('data-index'));
-            
-            if (typeof hapusModalFinishing === 'function') {
+            const index = parseInt(button.getAttribute("data-index"));
+
+            if (typeof hapusModalFinishing === "function") {
                 hapusModalFinishing(index);
             } else {
-                console.error('Function hapusModalFinishing tidak ditemukan');
+                console.error("Function hapusModalFinishing tidak ditemukan");
             }
         }
     });
-    
+
     // Function untuk update total finishing
     function updateModalFinishingTotal() {
-        const total = modalFinishingData.reduce((sum, item) => sum + parseFloat(item.total || 0), 0);
-        const totalEl = document.getElementById('modalTotalFinishing');
+        const total = modalFinishingData.reduce(
+            (sum, item) => sum + parseFloat(item.total || 0),
+            0,
+        );
+        const totalEl = document.getElementById("modalTotalFinishing");
         if (totalEl) {
-            totalEl.textContent = 'Rp ' + total.toLocaleString('id-ID');
+            totalEl.textContent = "Rp " + total.toLocaleString("id-ID");
         }
         updateModalSummary();
     }
 
     function getHargaJualFinishing(finishing, qty) {
         const customerKategori = getCustomerKategoriHarga();
-        
-        const hargaData = customerKategori === 'reseller'
-            ? (finishing.harga_reseller_json || [])
-            : (finishing.harga_bertingkat_json || []);
-        
+
+        const hargaData =
+            customerKategori === "reseller"
+                ? finishing.harga_reseller_json || []
+                : finishing.harga_bertingkat_json || [];
+
         if (!hargaData.length) return 0;
-    
+
         const sorted = [...hargaData].sort((a, b) => a.min_qty - b.min_qty);
-    
-        const matched = sorted.find(h => qty >= h.min_qty && qty <= h.max_qty);
+
+        const matched = sorted.find(
+            (h) => qty >= h.min_qty && qty <= h.max_qty,
+        );
         if (matched) return matched.harga;
-    
+
         const lastTier = sorted[sorted.length - 1];
         if (qty > lastTier.max_qty) {
             return lastTier.harga;
         }
         return sorted[0].harga;
     }
-    
-    
+
     // Fungsi untuk mendapatkan kategori harga customer
     function getCustomerKategoriHarga() {
-        const customerKategoriInput = document.getElementById('customerKategoriHarga');
-        return customerKategoriInput ? customerKategoriInput.value : 'bertingkat';
+        const customerKategoriInput = document.getElementById(
+            "customerKategoriHarga",
+        );
+        return customerKategoriInput
+            ? customerKategoriInput.value
+            : "bertingkat";
     }
-    
-    function tambahModalFinishing(nama, jumlah, finishingId = null, keterangan = '', isMetric = false, panjangLocked = false, lebarLocked = false, metricUnit = '-', panjangFinishing = 0, lebarFinishing = 0, satuan = '-', hargaBertingkatJson = [], hargaResellerJson = []) {
-        // const isDuplicate = modalFinishingData.some(item => 
-        //     (finishingId && item.finishing_id === finishingId) || 
+
+    function tambahModalFinishing(
+        nama,
+        jumlah,
+        finishingId = null,
+        keterangan = "",
+        isMetric = false,
+        panjangLocked = false,
+        lebarLocked = false,
+        metricUnit = "-",
+        panjangFinishing = 0,
+        lebarFinishing = 0,
+        satuan = "-",
+        hargaBertingkatJson = [],
+        hargaResellerJson = [],
+    ) {
+        // const isDuplicate = modalFinishingData.some(item =>
+        //     (finishingId && item.finishing_id === finishingId) ||
         //     (!finishingId && item.nama === nama)
         // );
-        
+
         // if (isDuplicate) {
         //     if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
         //         SPKHelper.showNotification('Item sudah ada', 'Finishing ini sudah ditambahkan ke daftar.', 'warning');
@@ -2128,10 +2792,13 @@
         const luas = dimensiValid ? panjangFinishing * lebarFinishing : 0;
 
         const qty = parseFloat(jumlah) || 0;
-        const hargaJual = getHargaJualFinishing({
-            harga_bertingkat_json: hargaBertingkatJson,
-            harga_reseller_json: hargaResellerJson
-        }, qty);
+        const hargaJual = getHargaJualFinishing(
+            {
+                harga_bertingkat_json: hargaBertingkatJson,
+                harga_reseller_json: hargaResellerJson,
+            },
+            qty,
+        );
 
         let total;
         if (isMetric && dimensiValid) {
@@ -2144,55 +2811,65 @@
             finishing_id: finishingId,
             nama: nama,
             jumlah: parseFloat(jumlah) || 1,
-            panjang: panjangFinishing || 0, 
+            panjang: panjangFinishing || 0,
             lebar: lebarFinishing || 0,
             total: total,
             keterangan: keterangan,
             is_metric: isMetric,
             panjang_locked: panjangLocked,
             lebar_locked: lebarLocked,
-            panjang: panjangFinishing || 0,  
-            lebar: lebarFinishing || 0,  
+            panjang: panjangFinishing || 0,
+            lebar: lebarFinishing || 0,
             metric_unit: metricUnit,
             satuan: satuan,
             harga_bertingkat_json: hargaBertingkatJson,
             harga_reseller_json: hargaResellerJson,
         });
 
-        const newItemIndex = modalFinishingData.length - 1; 
+        const newItemIndex = modalFinishingData.length - 1;
         currentExpandedFinishingIndex = newItemIndex;
         renderModalFinishingAccordion();
         updateModalFinishingTotal();
-        
-        if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
-            SPKHelper.showNotification('Berhasil', 'Finishing berhasil ditambahkan.', 'success');
+
+        if (
+            window.SPKHelper &&
+            typeof SPKHelper.showNotification === "function"
+        ) {
+            SPKHelper.showNotification(
+                "Berhasil",
+                "Finishing berhasil ditambahkan.",
+                "success",
+            );
         }
     }
-    
+
     function hapusModalFinishing(index) {
         if (index < 0 || index >= modalFinishingData.length) {
             return;
         }
-        
+
         Swal.fire({
-            title: 'Konfirmasi',
-            text: 'Apakah Anda yakin ingin menghapus finishing ini?',
-            icon: 'warning',
+            title: "Konfirmasi",
+            text: "Apakah Anda yakin ingin menghapus finishing ini?",
+            icon: "warning",
             showCancelButton: true,
-            confirmButtonText: 'Ya, hapus',
-            cancelButtonText: 'Batal',
-            reverseButtons: true
+            confirmButtonText: "Ya, hapus",
+            cancelButtonText: "Batal",
+            reverseButtons: true,
         }).then((result) => {
             if (result.isConfirmed) {
                 const itemName = modalFinishingData[index].nama;
                 modalFinishingData.splice(index, 1);
-                renderModalFinishingAccordion(); 
-        
-                if (window.SPKHelper && typeof SPKHelper.showNotification === 'function') {
+                renderModalFinishingAccordion();
+
+                if (
+                    window.SPKHelper &&
+                    typeof SPKHelper.showNotification === "function"
+                ) {
                     SPKHelper.showNotification(
-                        'Berhasil',
+                        "Berhasil",
                         `Finishing "${itemName}" berhasil dihapus.`,
-                        'success'
+                        "success",
                     );
                 }
             }
@@ -2203,17 +2880,17 @@
         explorerContext = context;
         selectedExplorerFiles = [];
         updateExplorerSelectionUI();
-        const modalEl = document.getElementById('modalFileExplorer');
+        const modalEl = document.getElementById("modalFileExplorer");
         if (!modalEl) return;
         const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
         modal.show();
-        loadExplorerPath('');
+        loadExplorerPath("");
     }
 
     async function loadExplorerPath(path) {
-        const contentArea = document.getElementById('explorerContent');
-        const pathInput = document.getElementById('inputExplorerPath');
-        
+        const contentArea = document.getElementById("explorerContent");
+        const pathInput = document.getElementById("inputExplorerPath");
+
         contentArea.innerHTML = `
             <div class="p-4 text-center text-muted">
                 <i class="fa fa-spinner fa-spin fa-2x mb-2"></i>
@@ -2222,7 +2899,9 @@
         `;
 
         try {
-            const response = await fetch(`/backend/file-explorer?path=${encodeURIComponent(path)}`);
+            const response = await fetch(
+                `/backend/file-explorer?path=${encodeURIComponent(path)}`,
+            );
             const data = await response.json();
 
             if (data.success) {
@@ -2238,13 +2917,13 @@
     }
 
     function renderExplorer(data) {
-        const contentArea = document.getElementById('explorerContent');
-        contentArea.innerHTML = '';
+        const contentArea = document.getElementById("explorerContent");
+        contentArea.innerHTML = "";
 
         // Add directories
-        data.directories.forEach(dir => {
-            const item = document.createElement('div');
-            item.className = 'explorer-item';
+        data.directories.forEach((dir) => {
+            const item = document.createElement("div");
+            item.className = "explorer-item";
             item.innerHTML = `
                 <div class="icon"><i class="fa fa-folder folder-icon"></i></div>
                 <div class="name">${dir.name}</div>
@@ -2255,13 +2934,15 @@
         });
 
         // Add files
-        data.files.forEach(file => {
-            const item = document.createElement('div');
-            const isSelected = selectedExplorerFiles.some(f => f.path === file.path);
-            item.className = `explorer-item ${isSelected ? 'bg-primary bg-opacity-10' : ''}`;
+        data.files.forEach((file) => {
+            const item = document.createElement("div");
+            const isSelected = selectedExplorerFiles.some(
+                (f) => f.path === file.path,
+            );
+            item.className = `explorer-item ${isSelected ? "bg-primary bg-opacity-10" : ""}`;
             item.innerHTML = `
                 <div class="form-check me-2 pointer-events-none">
-                    <input class="form-check-input" type="checkbox" ${isSelected ? 'checked' : ''}>
+                    <input class="form-check-input" type="checkbox" ${isSelected ? "checked" : ""}>
                 </div>
                 <div class="icon"><i class="fa fa-file file-icon"></i></div>
                 <div class="name">${file.name}</div>
@@ -2270,8 +2951,8 @@
             // Toggle selection on click
             item.onclick = (e) => {
                 // Prevent double toggling if clicking directly on checkbox (default behavior)
-                if (e.target.type !== 'checkbox') {
-                   toggleFileSelection(file, item);
+                if (e.target.type !== "checkbox") {
+                    toggleFileSelection(file, item);
                 }
             };
             // Handle checkbox click specifically
@@ -2285,23 +2966,28 @@
         });
 
         if (data.directories.length === 0 && data.files.length === 0) {
-            contentArea.innerHTML = '<div class="p-4 text-center text-muted">Folder kosong</div>';
+            contentArea.innerHTML =
+                '<div class="p-4 text-center text-muted">Folder kosong</div>';
         }
     }
 
     function toggleFileSelection(file, itemElement) {
-        const index = selectedExplorerFiles.findIndex(f => f.path === file.path);
+        const index = selectedExplorerFiles.findIndex(
+            (f) => f.path === file.path,
+        );
         if (index === -1) {
             selectedExplorerFiles.push(file);
             if (itemElement) {
-                itemElement.classList.add('bg-primary', 'bg-opacity-10');
-                itemElement.querySelector('input[type="checkbox"]').checked = true;
+                itemElement.classList.add("bg-primary", "bg-opacity-10");
+                itemElement.querySelector('input[type="checkbox"]').checked =
+                    true;
             }
         } else {
             selectedExplorerFiles.splice(index, 1);
             if (itemElement) {
-                itemElement.classList.remove('bg-primary', 'bg-opacity-10');
-                itemElement.querySelector('input[type="checkbox"]').checked = false;
+                itemElement.classList.remove("bg-primary", "bg-opacity-10");
+                itemElement.querySelector('input[type="checkbox"]').checked =
+                    false;
             }
         }
         updateExplorerSelectionUI();
@@ -2309,27 +2995,29 @@
 
     function updateExplorerSelectionUI() {
         const count = selectedExplorerFiles.length;
-        const countEl = document.getElementById('selectedFileCount');
-        const btn = document.getElementById('btnPilihFileExplorer');
-        
+        const countEl = document.getElementById("selectedFileCount");
+        const btn = document.getElementById("btnPilihFileExplorer");
+
         if (countEl) countEl.textContent = count;
         if (btn) btn.disabled = count === 0;
     }
 
     // Initialize "Pilih File" button listener
-    const btnPilihFile = document.getElementById('btnPilihFileExplorer');
+    const btnPilihFile = document.getElementById("btnPilihFileExplorer");
     if (btnPilihFile) {
         btnPilihFile.onclick = () => {
-            selectedExplorerFiles.forEach(file => {
-                if (explorerContext === 'spk') {
+            selectedExplorerFiles.forEach((file) => {
+                if (explorerContext === "spk") {
                     addFileToSPK(file);
                 } else {
                     addFileToItem(file);
                 }
             });
             // Close modal
-            const explorerModal = document.getElementById('modalFileExplorer');
-            const instance = explorerModal ? bootstrap.Modal.getInstance(explorerModal) : null;
+            const explorerModal = document.getElementById("modalFileExplorer");
+            const instance = explorerModal
+                ? bootstrap.Modal.getInstance(explorerModal)
+                : null;
             if (instance) instance.hide();
             // Reset selection
             selectedExplorerFiles = [];
@@ -2341,9 +3029,13 @@
     // function selectFile(file) { ... } // Removed or deprecated
 
     function addFileToSPK(file) {
-        const exists = filePendukungData.some(f => f.path === file.path);
+        const exists = filePendukungData.some((f) => f.path === file.path);
         if (exists) {
-            SafeHelper.notify('warning', 'Peringatan', 'File sudah ada di daftar');
+            SafeHelper.notify(
+                "warning",
+                "Peringatan",
+                "File sudah ada di daftar",
+            );
             return;
         }
 
@@ -2351,16 +3043,20 @@
             name: file.name,
             path: file.path,
             size: file.size,
-            type: file.extension || 'file',
-            source: 'local'
+            type: file.extension || "file",
+            source: "local",
         });
         renderFilePendukungTable();
     }
 
     function addFileToItem(file) {
-        const exists = modalUploadedFiles.some(f => f.path === file.path);
+        const exists = modalUploadedFiles.some((f) => f.path === file.path);
         if (exists) {
-            SafeHelper.notify('warning', 'Peringatan', 'File sudah ada di daftar');
+            SafeHelper.notify(
+                "warning",
+                "Peringatan",
+                "File sudah ada di daftar",
+            );
             return;
         }
 
@@ -2368,53 +3064,61 @@
             name: file.name,
             path: file.path,
             size: file.size,
-            type: file.extension || 'file',
-            source: 'local'
+            type: file.extension || "file",
+            source: "local",
         });
         renderModalUploadedFiles();
         updateModalSummary();
-        renderOrderanPreviewTab(); 
+        renderOrderanPreviewTab();
     }
 
-
-
     // Attach Explorer Events
-    document.addEventListener('click', (e) => {
-        if (e.target.closest('#btnOpenExplorerModalItem')) {
+    document.addEventListener("click", (e) => {
+        if (e.target.closest("#btnOpenExplorerModalItem")) {
             e.preventDefault();
-            openExplorer('item');
+            openExplorer("item");
             return;
         }
-        
-        if (e.target.closest('#btnOpenExplorerSPK')) {
+
+        if (e.target.closest("#btnOpenExplorerSPK")) {
             e.preventDefault();
-            openExplorer('spk');
+            openExplorer("spk");
         } else if (e.target.closest('[data-action="open-explorer-item"]')) {
             e.preventDefault();
-            openExplorer('item');
+            openExplorer("item");
             return;
-        } else if (e.target.closest('#btnExplorerBack')) {
+        } else if (e.target.closest("#btnExplorerBack")) {
             e.preventDefault();
-            const parent = currentExplorerPath.substring(0, currentExplorerPath.lastIndexOf('/'));
-            loadExplorerPath(parent || '');
+            const parent = currentExplorerPath.substring(
+                0,
+                currentExplorerPath.lastIndexOf("/"),
+            );
+            loadExplorerPath(parent || "");
         }
     });
 
     function formatPdfDate(pdfDate) {
-        if (!pdfDate || typeof pdfDate !== 'string') return '-';
-        const m = pdfDate.match(/^D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/);
+        if (!pdfDate || typeof pdfDate !== "string") return "-";
+        const m = pdfDate.match(
+            /^D:(\d{4})(\d{2})(\d{2})(\d{2})?(\d{2})?(\d{2})?/,
+        );
         if (!m) return pdfDate;
         const [, y, mo, d, h, min, s] = m;
-        const date = new Date(Date.UTC(
-            parseInt(y, 10),
-            parseInt(mo, 10) - 1,
-            parseInt(d, 10),
-            parseInt(h || '0', 10),
-            parseInt(min || '0', 10),
-            parseInt(s || '0', 10)
-        ));
+        const date = new Date(
+            Date.UTC(
+                parseInt(y, 10),
+                parseInt(mo, 10) - 1,
+                parseInt(d, 10),
+                parseInt(h || "0", 10),
+                parseInt(min || "0", 10),
+                parseInt(s || "0", 10),
+            ),
+        );
         if (isNaN(date.getTime())) return pdfDate;
-        return date.toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' });
+        return date.toLocaleString("id-ID", {
+            dateStyle: "medium",
+            timeStyle: "short",
+        });
     }
 
     function resetOrderanPreviewState() {
@@ -2422,179 +3126,208 @@
             URL.revokeObjectURL(orderanPreviewObjectUrl);
             orderanPreviewObjectUrl = null;
         }
-        const infoEl = document.getElementById('orderanPreviewFileInfo');
-        if (infoEl) infoEl.innerHTML = '';
+        const infoEl = document.getElementById("orderanPreviewFileInfo");
+        if (infoEl) infoEl.innerHTML = "";
     }
 
     function resetModalJumlahInput() {
-        const modalJumlahInput = document.getElementById('modalJumlahInput');
+        const modalJumlahInput = document.getElementById("modalJumlahInput");
         if (modalJumlahInput) {
             modalJumlahInput.readOnly = false;
-            modalJumlahInput.style.backgroundColor = '';
+            modalJumlahInput.style.backgroundColor = "";
         }
     }
 
     function renderOrderanPreviewTab() {
-        const container = document.getElementById('orderanPreviewContainer');
+        const container = document.getElementById("orderanPreviewContainer");
         if (!container) return;
-    
+
         const defaultFile = modalUploadedFiles[0];
-    
+
         if (!defaultFile) {
             imageRotationDegrees = 0;
             resetOrderanPreviewState();
             hideImageControls();
             hidePdfControls();
-            resetModalJumlahInput()
+            resetModalJumlahInput();
             if (orderanPreviewObjectUrl) {
                 URL.revokeObjectURL(orderanPreviewObjectUrl);
                 orderanPreviewObjectUrl = null;
             }
-            const infoEl = document.getElementById('orderanPreviewFileInfo');
-            if (infoEl) infoEl.innerHTML = '';
-            container.innerHTML = '<p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>';
+            const infoEl = document.getElementById("orderanPreviewFileInfo");
+            if (infoEl) infoEl.innerHTML = "";
+            container.innerHTML =
+                '<p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>';
             return;
         }
-    
-        const type = (defaultFile.type || '').toLowerCase();
-        const ext = (defaultFile.name || '').split('.').pop().toLowerCase();
-        const imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp'];
-        const isImage = type.includes('image') || imageExts.includes(ext);
-        const isPdf = type.includes('pdf') || ext === 'pdf';
-    
+
+        const type = (defaultFile.type || "").toLowerCase();
+        const ext = (defaultFile.name || "").split(".").pop().toLowerCase();
+        const imageExts = ["jpg", "jpeg", "png", "gif", "webp", "bmp"];
+        const isImage = type.includes("image") || imageExts.includes(ext);
+        const isPdf = type.includes("pdf") || ext === "pdf";
+
         if (!isImage && !isPdf) {
             resetOrderanPreviewState();
             hideImageControls();
             hidePdfControls();
-            resetModalJumlahInput()
-            container.innerHTML = '<p class="text-muted small mb-0 text-center">Preview hanya tersedia untuk file gambar dan PDF.</p>';
+            resetModalJumlahInput();
+            container.innerHTML =
+                '<p class="text-muted small mb-0 text-center">Preview hanya tersedia untuk file gambar dan PDF.</p>';
             return;
         }
-    
+
         if (orderanPreviewObjectUrl) {
             URL.revokeObjectURL(orderanPreviewObjectUrl);
             orderanPreviewObjectUrl = null;
         }
-    
+
         let url = null;
-    
-        if (defaultFile.source === 'local' && defaultFile.file instanceof File) {
+
+        if (
+            defaultFile.source === "local" &&
+            defaultFile.file instanceof File
+        ) {
             url = URL.createObjectURL(defaultFile.file);
             orderanPreviewObjectUrl = url;
         } else {
-            const path = defaultFile.path || defaultFile.sourcePath || '';
-            if (path && (path.startsWith('http://') || path.startsWith('https://'))) {
+            const path = defaultFile.path || defaultFile.sourcePath || "";
+            if (
+                path &&
+                (path.startsWith("http://") || path.startsWith("https://"))
+            ) {
                 url = path;
             } else if (path) {
                 url = `/backend/preview-file?path=${encodeURIComponent(path)}`;
             }
         }
-    
+
         if (!url) {
             resetOrderanPreviewState();
-            container.innerHTML = '<p class="text-muted small mb-0 text-center">File tidak bisa dipreview langsung dari browser.</p>';
+            container.innerHTML =
+                '<p class="text-muted small mb-0 text-center">File tidak bisa dipreview langsung dari browser.</p>';
             return;
         }
-    
+
         if (isImage) {
-            const path = defaultFile.path || defaultFile.sourcePath || '';
-            const hasServerPath = path && !path.startsWith('http') && !(defaultFile.file instanceof File);
+            const path = defaultFile.path || defaultFile.sourcePath || "";
+            const hasServerPath =
+                path &&
+                !path.startsWith("http") &&
+                !(defaultFile.file instanceof File);
             container.innerHTML = `
                 <div class="w-100 text-center">
-                    <img id="previewImage" src="${url}" style="max-height: 300px; width: auto; transform: rotate(${imageRotationDegrees}deg); transform-origin: center; transition: transform .15s ease;" class="img-fluid rounded" alt="${defaultFile.name || ''}  ">
+                    <img id="previewImage" src="${url}" style="max-height: 300px; width: auto; transform: rotate(${imageRotationDegrees}deg); transform-origin: center; transition: transform .15s ease;" class="img-fluid rounded" alt="${defaultFile.name || ""}  ">
                 </div>
             `;
-            const infoEl = document.getElementById('orderanPreviewFileInfo');
+            const infoEl = document.getElementById("orderanPreviewFileInfo");
             if (infoEl) {
-                infoEl.innerHTML = '';
+                infoEl.innerHTML = "";
                 if (hasServerPath) {
-                    infoEl.innerHTML = '<span class="text-muted">Memuat info file...</span>';
-                    fetch(`/backend/file-image-info?path=${encodeURIComponent(path)}`)
-                        .then(r => r.json())
+                    infoEl.innerHTML =
+                        '<span class="text-muted">Memuat info file...</span>';
+                    fetch(
+                        `/backend/file-image-info?path=${encodeURIComponent(path)}`,
+                    )
+                        .then((r) => r.json())
                         .then((json) => {
                             if (!json.success || !json.data) {
-                                infoEl.innerHTML = '<span class="text-muted">Info file tidak tersedia</span>';
+                                infoEl.innerHTML =
+                                    '<span class="text-muted">Info file tidak tersedia</span>';
                                 return;
                             }
                             const d = json.data;
                             currentFileImageInfo = d;
                             updateImageControls(d);
                             showImageControls();
-                            resetModalJumlahInput()
+                            resetModalJumlahInput();
 
                             infoEl.innerHTML = `
                                 <div class="card border-light shadow-sm p-3 mb-3">
                                     <div class="row small text-dark">
-                                        <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi ? d.dpi.split('x')[0] : '-'}</div>
+                                        <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi ? d.dpi.split("x")[0] : "-"}</div>
                                         <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${
-                                            d.size_mb != null 
-                                                ? d.size_mb + ' MB' 
-                                                : (d.size_bytes != null 
-                                                    ? (d.size_bytes / 1024).toFixed(1) + ' KB' 
-                                                    : '-')
+                                            d.size_mb != null
+                                                ? d.size_mb + " MB"
+                                                : d.size_bytes != null
+                                                  ? (
+                                                        d.size_bytes / 1024
+                                                    ).toFixed(1) + " KB"
+                                                  : "-"
                                         }</div>
-                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || '-'}</div>
+                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || "-"}</div>
                                     </div>
                                 </div>
                             `;
                         })
                         .catch(() => {
-                            infoEl.innerHTML = '<span class="text-muted">Gagal memuat info file</span>';
+                            infoEl.innerHTML =
+                                '<span class="text-muted">Gagal memuat info file</span>';
                             hideImageControls();
                         });
                 } else {
                     hideImageControls();
-                    resetModalJumlahInput()
+                    resetModalJumlahInput();
                 }
             }
         } else if (isPdf) {
-            const path = defaultFile.path || defaultFile.sourcePath || '';
-            const hasServerPath = path && !path.startsWith('http') && !(defaultFile.file instanceof File);
+            const path = defaultFile.path || defaultFile.sourcePath || "";
+            const hasServerPath =
+                path &&
+                !path.startsWith("http") &&
+                !(defaultFile.file instanceof File);
 
             container.innerHTML = `
                 <iframe src="${url}#toolbar=0" class="w-100 rounded" style="height: 360px;" frameborder="0"></iframe>
             `;
 
-            const infoEl = document.getElementById('orderanPreviewFileInfo');
+            const infoEl = document.getElementById("orderanPreviewFileInfo");
             if (infoEl) {
-                infoEl.innerHTML = '';
+                infoEl.innerHTML = "";
                 if (hasServerPath) {
-                    infoEl.innerHTML = '<span class="text-muted">Memuat info PDF...</span>';
-                    fetch(`/backend/file-pdf-info?path=${encodeURIComponent(path)}`)
-                        .then(r => r.json())
+                    infoEl.innerHTML =
+                        '<span class="text-muted">Memuat info PDF...</span>';
+                    fetch(
+                        `/backend/file-pdf-info?path=${encodeURIComponent(path)}`,
+                    )
+                        .then((r) => r.json())
                         .then((json) => {
                             if (!json.success || !json.data) {
-                                infoEl.innerHTML = '<span class="text-muted">Info PDF tidak tersedia</span>';
+                                infoEl.innerHTML =
+                                    '<span class="text-muted">Info PDF tidak tersedia</span>';
                                 hidePdfControls();
                                 return;
                             }
                             const d = json.data;
-                            currentFilePdfInfo = d; 
+                            currentFilePdfInfo = d;
                             updatePdfControls(d);
                             showPdfControls();
 
-                            const modalJumlahInput = document.getElementById('modalJumlahInput');
+                            const modalJumlahInput =
+                                document.getElementById("modalJumlahInput");
                             if (modalJumlahInput) {
                                 modalJumlahInput.readOnly = true;
-                                modalJumlahInput.style.backgroundColor = '#e9ecef';
+                                modalJumlahInput.style.backgroundColor =
+                                    "#e9ecef";
                             }
 
                             infoEl.innerHTML = `
                                 <div class="card border-light shadow-sm p-3 mb-3 mt-2">
                                     <div class="row small text-dark">
-                                        <div class="col-6 mb-2"><strong>Halaman:</strong> ${d.num_pages != null ? d.num_pages : '-'}</div>
-                                        <div class="col-6 mb-2"><strong>Ukuran halaman:</strong> ${d.size_summary || '-'}</div>
-                                        <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${d.file_size_mb != null ? d.file_size_mb + ' MB' : (d.file_size_bytes != null ? (d.file_size_bytes / 1024).toFixed(1) + ' KB' : '-')}</div>
-                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || '-'}</div>
-                                        <div class="col-6 mb-2"><strong>Judul:</strong> ${d.title || '-'}</div>
-                                        <div class="col-6 mb-2"><strong>Size Check:</strong><span class="${d.size_check === true ? 'text-success' : d.size_check === false ? 'text-danger' : 'text-muted'}"> ${d.size_check != null ? d.size_check : '-'}</span></div>
+                                        <div class="col-6 mb-2"><strong>Halaman:</strong> ${d.num_pages != null ? d.num_pages : "-"}</div>
+                                        <div class="col-6 mb-2"><strong>Ukuran halaman:</strong> ${d.size_summary || "-"}</div>
+                                        <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${d.file_size_mb != null ? d.file_size_mb + " MB" : d.file_size_bytes != null ? (d.file_size_bytes / 1024).toFixed(1) + " KB" : "-"}</div>
+                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || "-"}</div>
+                                        <div class="col-6 mb-2"><strong>Judul:</strong> ${d.title || "-"}</div>
+                                        <div class="col-6 mb-2"><strong>Size Check:</strong><span class="${d.size_check === true ? "text-success" : d.size_check === false ? "text-danger" : "text-muted"}"> ${d.size_check != null ? d.size_check : "-"}</span></div>
                                         <div class="col-6 mb-2"><strong>Tanggal buat:</strong> ${formatPdfDate(d.creation_date)}</div>
                                     </div>
                                 </div>
                             `;
                         })
                         .catch(() => {
-                            infoEl.innerHTML = '<span class="text-muted">Gagal memuat info PDF</span>';
+                            infoEl.innerHTML =
+                                '<span class="text-muted">Gagal memuat info PDF</span>';
                             hidePdfControls();
                         });
                 } else {
@@ -2605,82 +3338,84 @@
     }
 
     function showImageControls() {
-        const controls = document.getElementById('imageFileControls');
-        if (controls) controls.style.display = 'block';
-        const pdfControls = document.getElementById('pdfFileControls');
-        if (pdfControls) pdfControls.style.display = 'none';
-        const standalone = document.getElementById('explorerOpenStandalone');
-        if (standalone) standalone.style.display = 'none';
+        const controls = document.getElementById("imageFileControls");
+        if (controls) controls.style.display = "block";
+        const pdfControls = document.getElementById("pdfFileControls");
+        if (pdfControls) pdfControls.style.display = "none";
+        const standalone = document.getElementById("explorerOpenStandalone");
+        if (standalone) standalone.style.display = "none";
 
         const shouldShowMetricButtons = isProdukMetricAktif();
 
-        const btnRotate = document.getElementById('btnRotateImage');
-        const btnSync = document.getElementById('btnSyncImageDimensions');
-    
-        if (btnRotate) btnRotate.style.display = shouldShowMetricButtons ? '' : 'none';
-        if (btnSync) btnSync.style.display = shouldShowMetricButtons ? '' : 'none';
+        const btnRotate = document.getElementById("btnRotateImage");
+        const btnSync = document.getElementById("btnSyncImageDimensions");
+
+        if (btnRotate)
+            btnRotate.style.display = shouldShowMetricButtons ? "" : "none";
+        if (btnSync)
+            btnSync.style.display = shouldShowMetricButtons ? "" : "none";
     }
-    
+
     function hideImageControls() {
-        const controls = document.getElementById('imageFileControls');
-        if (controls) controls.style.display = 'none';
+        const controls = document.getElementById("imageFileControls");
+        if (controls) controls.style.display = "none";
         currentFileImageInfo = null;
-        const standalone = document.getElementById('explorerOpenStandalone');
-        if (standalone) standalone.style.display = ''; 
-        resetModalJumlahInput()
+        const standalone = document.getElementById("explorerOpenStandalone");
+        if (standalone) standalone.style.display = "";
+        resetModalJumlahInput();
         updateSyncButtonState();
     }
-    
+
     function updateImageControls(info) {
         const width = parseFloat(info.width_cm) || 0;
         const height = parseFloat(info.height_cm) || 0;
         const area = width * height;
-        
-        document.getElementById('fileImageWidth').value = width.toFixed(2);
-        document.getElementById('fileImageHeight').value = height.toFixed(2);
-        document.getElementById('fileImageArea').value = area.toFixed(2);
-        
+
+        document.getElementById("fileImageWidth").value = width.toFixed(2);
+        document.getElementById("fileImageHeight").value = height.toFixed(2);
+        document.getElementById("fileImageArea").value = area.toFixed(2);
+
         updateSyncButtonState();
     }
-    
+
     function rotateImage() {
         if (!currentFileImageInfo) return;
-        
-        imageRotationDegrees = (imageRotationDegrees === 90 ? 0 : 90);
-        const img = document.getElementById('previewImage');
+
+        imageRotationDegrees = imageRotationDegrees === 90 ? 0 : 90;
+        const img = document.getElementById("previewImage");
         if (img) {
             img.style.transform = `rotate(${imageRotationDegrees}deg)`;
         }
-        
+
         // Tukar panjang dan lebar
         const temp = currentFileImageInfo.width_cm;
         currentFileImageInfo.width_cm = currentFileImageInfo.height_cm;
         currentFileImageInfo.height_cm = temp;
-        
+
         updateImageControls(currentFileImageInfo);
         updateSyncButtonState();
     }
-    
+
     function syncImageDimensions() {
         if (!currentFileImageInfo) return;
-        
-        const panjangInput = document.getElementById('modalPanjangInput');
-        const lebarInput = document.getElementById('modalLebarInput');
-        const panjangStatus = document.getElementById('panjangStatus');
-        const lebarStatus = document.getElementById('lebarStatus');
-        
+
+        const panjangInput = document.getElementById("modalPanjangInput");
+        const lebarInput = document.getElementById("modalLebarInput");
+        const panjangStatus = document.getElementById("panjangStatus");
+        const lebarStatus = document.getElementById("lebarStatus");
+
         if (!panjangInput || !lebarInput) return;
-        
-        const panjangLocked = panjangStatus?.style.display === 'block';
-        const lebarLocked = lebarStatus?.style.display === 'block';
-        
+
+        const panjangLocked = panjangStatus?.style.display === "block";
+        const lebarLocked = lebarStatus?.style.display === "block";
+
         // Konversi dari cm ke satuan produk
-        const targetUnit = (currentMetricUnit || 'cm').toLowerCase();
-        const conversionFactor = getConversionFactor('cm', targetUnit);
-        
+        const targetUnit = (currentMetricUnit || "cm").toLowerCase();
+        const conversionFactor = getConversionFactor("cm", targetUnit);
+
         const widthCm = parseFloat(currentFileImageInfo.width_cm) || 0;
         const heightCm = parseFloat(currentFileImageInfo.height_cm) || 0;
-        
+
         if (!panjangLocked && !lebarLocked) {
             // Keduanya unlock - sync keduanya
             panjangInput.value = (heightCm * conversionFactor).toFixed(2);
@@ -2692,141 +3427,155 @@
             // Hanya lebar yang locked - sync panjang saja
             panjangInput.value = (heightCm * conversionFactor).toFixed(2);
         }
-        
+
         // Trigger update luas dan summary
-        if (typeof updateLuas === 'function') updateLuas();
-        if (typeof updateModalSummary === 'function') updateModalSummary();
+        if (typeof updateLuas === "function") updateLuas();
+        if (typeof updateModalSummary === "function") updateModalSummary();
     }
-    
+
     function getConversionFactor(fromUnit, toUnit) {
         const conversions = {
-            'cm': { 'm': 0.01, 'mm': 10, 'inch': 0.393701, 'cm': 1 },
-            'm': { 'cm': 100, 'mm': 1000, 'inch': 39.3701, 'm': 1 },
-            'mm': { 'cm': 0.1, 'm': 0.001, 'inch': 0.0393701, 'mm': 1 },
-            'inch': { 'cm': 2.54, 'm': 0.0254, 'mm': 25.4, 'inch': 1 }
+            cm: { m: 0.01, mm: 10, inch: 0.393701, cm: 1 },
+            m: { cm: 100, mm: 1000, inch: 39.3701, m: 1 },
+            mm: { cm: 0.1, m: 0.001, inch: 0.0393701, mm: 1 },
+            inch: { cm: 2.54, m: 0.0254, mm: 25.4, inch: 1 },
         };
         return conversions[fromUnit]?.[toUnit] || 1;
     }
-    
+
     const SYNC_TOLERANCE = 0.01;
     function nearlyEqual(a, b, tolerance = SYNC_TOLERANCE) {
         return Math.abs(a - b) <= tolerance;
     }
     function updateSyncButtonState() {
-        const btnSync = document.getElementById('btnSyncImageDimensions');
+        const btnSync = document.getElementById("btnSyncImageDimensions");
         if (!btnSync) return;
 
-        btnSync.style.cursor = 'pointer';
-      
+        btnSync.style.cursor = "pointer";
+
         // harus ada info file gambar
         if (!currentFileImageInfo) {
-          btnSync.disabled = true;
-          btnSync.style.cursor = 'not-allowed';
-          return;
+            btnSync.disabled = true;
+            btnSync.style.cursor = "not-allowed";
+            return;
         }
-      
-        const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
-        const lebarLocked   = document.getElementById('lebarStatus')?.style.display === 'block';
-      
+
+        const panjangLocked =
+            document.getElementById("panjangStatus")?.style.display === "block";
+        const lebarLocked =
+            document.getElementById("lebarStatus")?.style.display === "block";
+
         // dua-duanya locked => disable
         if (panjangLocked && lebarLocked) {
-          btnSync.disabled = true;
-          btnSync.style.cursor = 'not-allowed';
-          return;
+            btnSync.disabled = true;
+            btnSync.style.cursor = "not-allowed";
+            return;
         }
-      
-        const targetUnit = (currentMetricUnit || 'cm').toLowerCase();
-        const factor = getConversionFactor('cm', targetUnit);
 
-        const fileLebar  = (parseFloat(currentFileImageInfo.width_cm)  || 0) * factor;
-        const filePanjang = (parseFloat(currentFileImageInfo.height_cm) || 0) * factor;
-      
-        const inputLebarEl = document.getElementById('modalLebarInput');
-        const inputPanjangEl = document.getElementById('modalPanjangInput');
-      
+        const targetUnit = (currentMetricUnit || "cm").toLowerCase();
+        const factor = getConversionFactor("cm", targetUnit);
+
+        const fileLebar =
+            (parseFloat(currentFileImageInfo.width_cm) || 0) * factor;
+        const filePanjang =
+            (parseFloat(currentFileImageInfo.height_cm) || 0) * factor;
+
+        const inputLebarEl = document.getElementById("modalLebarInput");
+        const inputPanjangEl = document.getElementById("modalPanjangInput");
+
         const inputLebar = parseFloat(inputLebarEl?.value);
         const inputPanjang = parseFloat(inputPanjangEl?.value);
-      
+
         if (lebarLocked) {
-          if (!Number.isFinite(inputLebar) || !nearlyEqual(inputLebar, fileLebar)) {
-            btnSync.disabled = true;
-            btnSync.style.cursor = 'not-allowed';
-            return;
-          }
-        }
-      
-        if (panjangLocked) {
-          if (!Number.isFinite(inputPanjang) || !nearlyEqual(inputPanjang, filePanjang)) {
-            btnSync.disabled = true;
-            btnSync.style.cursor = 'not-allowed';
-            return;
-          }
-        }
-      
-        btnSync.disabled = false;
-        btnSync.style.cursor = 'pointer';
-      }
-    
-    // Helper functions untuk PDF Controls
-    function showPdfControls() {
-        const controls = document.getElementById('pdfFileControls');
-        if (controls) controls.style.display = 'block';
-        const imageControls = document.getElementById('imageFileControls');
-        if (imageControls) imageControls.style.display = 'none';
-        const standalone = document.getElementById('explorerOpenStandalone');
-        if (standalone) standalone.style.display = '';
-    }
-    
-    function hidePdfControls() {
-        const controls = document.getElementById('pdfFileControls');
-        if (controls) controls.style.display = 'none';
-        currentFilePdfInfo = null;
-        
-        // Reset modalJumlahInput menjadi editable kembali
-        const modalJumlahInput = document.getElementById('modalJumlahInput');
-        if (modalJumlahInput) {
-            modalJumlahInput.readOnly = false;
-            modalJumlahInput.style.backgroundColor = '';
+            if (
+                !Number.isFinite(inputLebar) ||
+                !nearlyEqual(inputLebar, fileLebar)
+            ) {
+                btnSync.disabled = true;
+                btnSync.style.cursor = "not-allowed";
+                return;
+            }
         }
 
-        const standalone = document.getElementById('explorerOpenStandalone');
-        if (standalone) standalone.style.display = '';
+        if (panjangLocked) {
+            if (
+                !Number.isFinite(inputPanjang) ||
+                !nearlyEqual(inputPanjang, filePanjang)
+            ) {
+                btnSync.disabled = true;
+                btnSync.style.cursor = "not-allowed";
+                return;
+            }
+        }
+
+        btnSync.disabled = false;
+        btnSync.style.cursor = "pointer";
     }
-    
+
+    // Helper functions untuk PDF Controls
+    function showPdfControls() {
+        const controls = document.getElementById("pdfFileControls");
+        if (controls) controls.style.display = "block";
+        const imageControls = document.getElementById("imageFileControls");
+        if (imageControls) imageControls.style.display = "none";
+        const standalone = document.getElementById("explorerOpenStandalone");
+        if (standalone) standalone.style.display = "";
+    }
+
+    function hidePdfControls() {
+        const controls = document.getElementById("pdfFileControls");
+        if (controls) controls.style.display = "none";
+        currentFilePdfInfo = null;
+
+        // Reset modalJumlahInput menjadi editable kembali
+        const modalJumlahInput = document.getElementById("modalJumlahInput");
+        if (modalJumlahInput) {
+            modalJumlahInput.readOnly = false;
+            modalJumlahInput.style.backgroundColor = "";
+        }
+
+        const standalone = document.getElementById("explorerOpenStandalone");
+        if (standalone) standalone.style.display = "";
+    }
+
     function updatePdfControls(info) {
         const pages = parseInt(info.num_pages) || 0;
-        document.getElementById('filePdfPages').value = pages;
-        
+        document.getElementById("filePdfPages").value = pages;
+
         // Set default qty = 1
-        const qtyInput = document.getElementById('filePdfQty');
+        const qtyInput = document.getElementById("filePdfQty");
         if (qtyInput && !qtyInput.value) qtyInput.value = 1;
-        
+
         calculatePdfSummary();
     }
-    
+
     function calculatePdfSummary() {
         if (!currentFilePdfInfo) return;
-        
+
         const pages = parseInt(currentFilePdfInfo.num_pages) || 0;
-        const qtyInput = document.getElementById('filePdfQty');
+        const qtyInput = document.getElementById("filePdfQty");
         const qty = parseInt(qtyInput?.value) || 1;
         const summary = pages * qty;
-        
+
         // Ambil satuan dari produk yang dipilih
-        const satuanDisplay = document.getElementById('modalSatuanDisplay');
-        const satuan = satuanDisplay?.textContent || '-';
-        
-        document.getElementById('filePdfSummary').value = summary;
-        document.getElementById('filePdfSummaryUnit').textContent = satuan;
-        
+        const satuanDisplay = document.getElementById("modalSatuanDisplay");
+        const satuan = satuanDisplay?.textContent || "-";
+
+        document.getElementById("filePdfSummary").value = summary;
+        document.getElementById("filePdfSummaryUnit").textContent = satuan;
+
         // Update modalJumlahInput (readonly untuk PDF)
-        const modalJumlahInput = document.getElementById('modalJumlahInput');
+        const modalJumlahInput = document.getElementById("modalJumlahInput");
         if (modalJumlahInput) {
             modalJumlahInput.value = summary;
         }
     }
 
     function isProdukMetricAktif() {
-        return currentSelectedProduk && (currentSelectedProduk.is_metric === true || currentSelectedProduk.is_metric === 'true');
+        return (
+            currentSelectedProduk &&
+            (currentSelectedProduk.is_metric === true ||
+                currentSelectedProduk.is_metric === "true")
+        );
     }
 })();
