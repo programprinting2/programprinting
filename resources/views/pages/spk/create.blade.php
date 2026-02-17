@@ -573,6 +573,68 @@
 
                             {{-- Tab 2: Preview File Default --}}
                             <div class="tab-pane fade show active" id="tab-preview-orderan-pane" role="tabpanel">
+                              <div class="mb-3" id="explorerOpenStandalone">
+                                <button type="button"
+                                        class="btn btn-primary btn-sm"
+                                        data-action="open-explorer-item"
+                                        title="Pilih File Default"
+                                        aria-label="Pilih File Default">
+                                  <i class="fa fa-folder-open"></i> Pilih File Default
+                                </button>
+                              </div>
+                              {{-- Controls untuk File Gambar --}}
+                              <div id="imageFileControls" class="mb-3" style="display: none;">
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                  <button type="button"
+                                          class="btn btn-primary btn-sm"
+                                          data-action="open-explorer-item"
+                                          title="Pilih File Default"
+                                          aria-label="Pilih File Default">
+                                    <i class="fa fa-folder-open"></i> Pilih File Default
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-warning" id="btnRotateImage" title="Rotate & Tukar Panjang/Lebar">
+                                    <i class="fa fa-undo"></i> Rotate
+                                  </button>
+                                  <button type="button" class="btn btn-sm btn-info" id="btnSyncImageDimensions" title="Sinkronkan Dimensi ke Input Produk">
+                                    <i class="fa fa-sync"></i> Sync
+                                  </button>
+                                </div>
+                                <div class="row g-2">
+                                  <div class="col-4">
+                                    <label class="form-label small mb-1">Lebar (cm)</label>
+                                    <input type="text" class="form-control form-control-sm" id="fileImageWidth" readonly>
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label small mb-1">Panjang (cm)</label>
+                                    <input type="text" class="form-control form-control-sm" id="fileImageHeight" readonly>
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label small mb-1">Luas (cm²)</label>
+                                    <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {{-- Controls untuk File PDF --}}
+                              <div id="pdfFileControls" class="mb-3" style="display: none;">
+                                <div class="row g-2">
+                                  <div class="col-4">
+                                    <label class="form-label small mb-1">Halaman</label>
+                                    <input type="text" class="form-control form-control-sm" id="filePdfPages" readonly>
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label small mb-1">Jumlah/Qty</label>
+                                    <input type="number" class="form-control form-control-sm" id="filePdfQty" min="1" step="1" value="1">
+                                  </div>
+                                  <div class="col-4">
+                                    <label class="form-label small mb-1">Summary</label>
+                                    <div class="input-group input-group-sm">
+                                      <input type="text" class="form-control" id="filePdfSummary" readonly>
+                                      <span class="input-group-text" id="filePdfSummaryUnit">-</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
                               <div id="orderanPreviewContainer" class="min-vh-50 d-flex align-items-center justify-content-center bg-dark bg-opacity-10 rounded p-3" style="min-height: 280px;">
                                 <p class="text-muted small mb-0 text-center">Belum ada file default. Upload file dan set sebagai default untuk melihat preview.</p>
                               </div>
@@ -935,6 +997,13 @@
         border-radius: 8px;
         padding: 10px;
         margin-bottom: 8px;
+    }
+    #btnSyncImageDimensions:disabled {
+        background-color: #6c757d !important;
+        border-color: #6c757d  !important;    
+        color: #fff !important;               
+        opacity: 0.8;                         
+        cursor: not-allowed;                
     }
   </style>
 @endsection

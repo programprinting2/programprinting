@@ -1,6 +1,5 @@
 ﻿/**
  * SPK Form Create - Script modular untuk form create SPK
- * Dipisahkan dari create.blade.php untuk modularitas dan maintainability yang lebih baik
  */
 (function() {
     'use strict';
@@ -34,6 +33,9 @@
 
     let modalFinishingData = [];
     let orderanPreviewObjectUrl = null;
+    let currentFileImageInfo = null;  
+    let currentFilePdfInfo = null;    
+    let imageRotationDegrees = 0; 
     // let previewFinishing = [];
 
     let currentExpandedFinishingIndex = 0;
@@ -257,6 +259,14 @@
         if (typeof updateModalSummary === 'function') {
             updateModalSummary();
         }
+
+        if (typeof showImageControls === 'function') {
+            const controls = document.getElementById('imageFileControls');
+            if (controls && controls.style.display !== 'none') {
+                showImageControls();
+            }
+        }
+        updateSyncButtonState();
     });
 
     function updateLuas() {
@@ -1171,6 +1181,11 @@
         renderModalFinishingAccordion();
         updateModalSummary();
         renderOrderanPreviewTab(); 
+        hideImageControls();
+        hidePdfControls();
+        imageRotationDegrees = 0;
+        currentFileImageInfo = null;
+        currentFilePdfInfo = null;
     }
     
     function renderModalUploadedFiles() {
@@ -1570,6 +1585,7 @@
                 if (!isNaN(idx) && idx > 0 && Array.isArray(modalUploadedFiles)) {
                     const [selected] = modalUploadedFiles.splice(idx, 1);
                     modalUploadedFiles.unshift(selected);
+                    imageRotationDegrees = 0;
                     renderModalUploadedFiles();
                     renderOrderanPreviewTab();
                 }
@@ -1581,6 +1597,23 @@
                 renderModalUploadedFiles();
                 updateModalSummary();
                 renderOrderanPreviewTab();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('#btnRotateImage')) {
+                e.preventDefault();
+                rotateImage();
+            } else if (e.target.closest('#btnSyncImageDimensions')) {
+                e.preventDefault();
+                syncImageDimensions();
+            }
+        });
+
+        document.addEventListener('input', (e) => {
+            if (e.target.id === 'filePdfQty') {
+                calculatePdfSummary();
+                if (typeof updateModalSummary === 'function') updateModalSummary();
             }
         });
 
@@ -2347,12 +2380,19 @@
 
     // Attach Explorer Events
     document.addEventListener('click', (e) => {
+        if (e.target.closest('#btnOpenExplorerModalItem')) {
+            e.preventDefault();
+            openExplorer('item');
+            return;
+        }
+        
         if (e.target.closest('#btnOpenExplorerSPK')) {
             e.preventDefault();
             openExplorer('spk');
-        } else if (e.target.closest('#btnOpenExplorerModalItem')) {
+        } else if (e.target.closest('[data-action="open-explorer-item"]')) {
             e.preventDefault();
             openExplorer('item');
+            return;
         } else if (e.target.closest('#btnExplorerBack')) {
             e.preventDefault();
             const parent = currentExplorerPath.substring(0, currentExplorerPath.lastIndexOf('/'));
@@ -2386,6 +2426,14 @@
         if (infoEl) infoEl.innerHTML = '';
     }
 
+    function resetModalJumlahInput() {
+        const modalJumlahInput = document.getElementById('modalJumlahInput');
+        if (modalJumlahInput) {
+            modalJumlahInput.readOnly = false;
+            modalJumlahInput.style.backgroundColor = '';
+        }
+    }
+
     function renderOrderanPreviewTab() {
         const container = document.getElementById('orderanPreviewContainer');
         if (!container) return;
@@ -2393,6 +2441,11 @@
         const defaultFile = modalUploadedFiles[0];
     
         if (!defaultFile) {
+            imageRotationDegrees = 0;
+            resetOrderanPreviewState();
+            hideImageControls();
+            hidePdfControls();
+            resetModalJumlahInput()
             if (orderanPreviewObjectUrl) {
                 URL.revokeObjectURL(orderanPreviewObjectUrl);
                 orderanPreviewObjectUrl = null;
@@ -2411,6 +2464,9 @@
     
         if (!isImage && !isPdf) {
             resetOrderanPreviewState();
+            hideImageControls();
+            hidePdfControls();
+            resetModalJumlahInput()
             container.innerHTML = '<p class="text-muted small mb-0 text-center">Preview hanya tersedia untuk file gambar dan PDF.</p>';
             return;
         }
@@ -2445,7 +2501,7 @@
             const hasServerPath = path && !path.startsWith('http') && !(defaultFile.file instanceof File);
             container.innerHTML = `
                 <div class="w-100 text-center">
-                    <img src="${url}" class="img-fluid rounded" alt="${defaultFile.name || ''}">
+                    <img id="previewImage" src="${url}" style="max-height: 300px; width: auto; transform: rotate(${imageRotationDegrees}deg); transform-origin: center; transition: transform .15s ease;" class="img-fluid rounded" alt="${defaultFile.name || ''}  ">
                 </div>
             `;
             const infoEl = document.getElementById('orderanPreviewFileInfo');
@@ -2461,12 +2517,15 @@
                                 return;
                             }
                             const d = json.data;
+                            currentFileImageInfo = d;
+                            updateImageControls(d);
+                            showImageControls();
+                            resetModalJumlahInput()
+
                             infoEl.innerHTML = `
                                 <div class="card border-light shadow-sm p-3 mb-3">
                                     <div class="row small text-dark">
-                                        <div class="col-6 mb-2"><strong>Dimensi:</strong> ${d.dimensions || '-'}</div>
-                                        <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi || '-'}</div>
-                                        <div class="col-6 mb-2"><strong>Ukuran (cm):</strong> ${d.width_cm ?? '-'}(L) × ${d.height_cm ?? '-'}(P)</div>
+                                        <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi ? d.dpi.split('x')[0] : '-'}</div>
                                         <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${
                                             d.size_mb != null 
                                                 ? d.size_mb + ' MB' 
@@ -2481,7 +2540,11 @@
                         })
                         .catch(() => {
                             infoEl.innerHTML = '<span class="text-muted">Gagal memuat info file</span>';
+                            hideImageControls();
                         });
+                } else {
+                    hideImageControls();
+                    resetModalJumlahInput()
                 }
             }
         } else if (isPdf) {
@@ -2502,9 +2565,20 @@
                         .then((json) => {
                             if (!json.success || !json.data) {
                                 infoEl.innerHTML = '<span class="text-muted">Info PDF tidak tersedia</span>';
+                                hidePdfControls();
                                 return;
                             }
                             const d = json.data;
+                            currentFilePdfInfo = d; 
+                            updatePdfControls(d);
+                            showPdfControls();
+
+                            const modalJumlahInput = document.getElementById('modalJumlahInput');
+                            if (modalJumlahInput) {
+                                modalJumlahInput.readOnly = true;
+                                modalJumlahInput.style.backgroundColor = '#e9ecef';
+                            }
+
                             infoEl.innerHTML = `
                                 <div class="card border-light shadow-sm p-3 mb-3 mt-2">
                                     <div class="row small text-dark">
@@ -2521,9 +2595,238 @@
                         })
                         .catch(() => {
                             infoEl.innerHTML = '<span class="text-muted">Gagal memuat info PDF</span>';
+                            hidePdfControls();
                         });
+                } else {
+                    hidePdfControls();
                 }
             }
         }
+    }
+
+    function showImageControls() {
+        const controls = document.getElementById('imageFileControls');
+        if (controls) controls.style.display = 'block';
+        const pdfControls = document.getElementById('pdfFileControls');
+        if (pdfControls) pdfControls.style.display = 'none';
+        const standalone = document.getElementById('explorerOpenStandalone');
+        if (standalone) standalone.style.display = 'none';
+
+        const shouldShowMetricButtons = isProdukMetricAktif();
+
+        const btnRotate = document.getElementById('btnRotateImage');
+        const btnSync = document.getElementById('btnSyncImageDimensions');
+    
+        if (btnRotate) btnRotate.style.display = shouldShowMetricButtons ? '' : 'none';
+        if (btnSync) btnSync.style.display = shouldShowMetricButtons ? '' : 'none';
+    }
+    
+    function hideImageControls() {
+        const controls = document.getElementById('imageFileControls');
+        if (controls) controls.style.display = 'none';
+        currentFileImageInfo = null;
+        const standalone = document.getElementById('explorerOpenStandalone');
+        if (standalone) standalone.style.display = ''; 
+        resetModalJumlahInput()
+        updateSyncButtonState();
+    }
+    
+    function updateImageControls(info) {
+        const width = parseFloat(info.width_cm) || 0;
+        const height = parseFloat(info.height_cm) || 0;
+        const area = width * height;
+        
+        document.getElementById('fileImageWidth').value = width.toFixed(2);
+        document.getElementById('fileImageHeight').value = height.toFixed(2);
+        document.getElementById('fileImageArea').value = area.toFixed(2);
+        
+        updateSyncButtonState();
+    }
+    
+    function rotateImage() {
+        if (!currentFileImageInfo) return;
+        
+        imageRotationDegrees = (imageRotationDegrees === 90 ? 0 : 90);
+        const img = document.getElementById('previewImage');
+        if (img) {
+            img.style.transform = `rotate(${imageRotationDegrees}deg)`;
+        }
+        
+        // Tukar panjang dan lebar
+        const temp = currentFileImageInfo.width_cm;
+        currentFileImageInfo.width_cm = currentFileImageInfo.height_cm;
+        currentFileImageInfo.height_cm = temp;
+        
+        updateImageControls(currentFileImageInfo);
+        updateSyncButtonState();
+    }
+    
+    function syncImageDimensions() {
+        if (!currentFileImageInfo) return;
+        
+        const panjangInput = document.getElementById('modalPanjangInput');
+        const lebarInput = document.getElementById('modalLebarInput');
+        const panjangStatus = document.getElementById('panjangStatus');
+        const lebarStatus = document.getElementById('lebarStatus');
+        
+        if (!panjangInput || !lebarInput) return;
+        
+        const panjangLocked = panjangStatus?.style.display === 'block';
+        const lebarLocked = lebarStatus?.style.display === 'block';
+        
+        // Konversi dari cm ke satuan produk
+        const targetUnit = (currentMetricUnit || 'cm').toLowerCase();
+        const conversionFactor = getConversionFactor('cm', targetUnit);
+        
+        const widthCm = parseFloat(currentFileImageInfo.width_cm) || 0;
+        const heightCm = parseFloat(currentFileImageInfo.height_cm) || 0;
+        
+        if (!panjangLocked && !lebarLocked) {
+            // Keduanya unlock - sync keduanya
+            panjangInput.value = (heightCm * conversionFactor).toFixed(2);
+            lebarInput.value = (widthCm * conversionFactor).toFixed(2);
+        } else if (panjangLocked && !lebarLocked) {
+            // Hanya panjang yang locked - sync lebar saja
+            lebarInput.value = (widthCm * conversionFactor).toFixed(2);
+        } else if (!panjangLocked && lebarLocked) {
+            // Hanya lebar yang locked - sync panjang saja
+            panjangInput.value = (heightCm * conversionFactor).toFixed(2);
+        }
+        
+        // Trigger update luas dan summary
+        if (typeof updateLuas === 'function') updateLuas();
+        if (typeof updateModalSummary === 'function') updateModalSummary();
+    }
+    
+    function getConversionFactor(fromUnit, toUnit) {
+        const conversions = {
+            'cm': { 'm': 0.01, 'mm': 10, 'inch': 0.393701, 'cm': 1 },
+            'm': { 'cm': 100, 'mm': 1000, 'inch': 39.3701, 'm': 1 },
+            'mm': { 'cm': 0.1, 'm': 0.001, 'inch': 0.0393701, 'mm': 1 },
+            'inch': { 'cm': 2.54, 'm': 0.0254, 'mm': 25.4, 'inch': 1 }
+        };
+        return conversions[fromUnit]?.[toUnit] || 1;
+    }
+    
+    const SYNC_TOLERANCE = 0.01;
+    function nearlyEqual(a, b, tolerance = SYNC_TOLERANCE) {
+        return Math.abs(a - b) <= tolerance;
+    }
+    function updateSyncButtonState() {
+        const btnSync = document.getElementById('btnSyncImageDimensions');
+        if (!btnSync) return;
+
+        btnSync.style.cursor = 'pointer';
+      
+        // harus ada info file gambar
+        if (!currentFileImageInfo) {
+          btnSync.disabled = true;
+          btnSync.style.cursor = 'not-allowed';
+          return;
+        }
+      
+        const panjangLocked = document.getElementById('panjangStatus')?.style.display === 'block';
+        const lebarLocked   = document.getElementById('lebarStatus')?.style.display === 'block';
+      
+        // dua-duanya locked => disable
+        if (panjangLocked && lebarLocked) {
+          btnSync.disabled = true;
+          btnSync.style.cursor = 'not-allowed';
+          return;
+        }
+      
+        const targetUnit = (currentMetricUnit || 'cm').toLowerCase();
+        const factor = getConversionFactor('cm', targetUnit);
+
+        const fileLebar  = (parseFloat(currentFileImageInfo.width_cm)  || 0) * factor;
+        const filePanjang = (parseFloat(currentFileImageInfo.height_cm) || 0) * factor;
+      
+        const inputLebarEl = document.getElementById('modalLebarInput');
+        const inputPanjangEl = document.getElementById('modalPanjangInput');
+      
+        const inputLebar = parseFloat(inputLebarEl?.value);
+        const inputPanjang = parseFloat(inputPanjangEl?.value);
+      
+        if (lebarLocked) {
+          if (!Number.isFinite(inputLebar) || !nearlyEqual(inputLebar, fileLebar)) {
+            btnSync.disabled = true;
+            btnSync.style.cursor = 'not-allowed';
+            return;
+          }
+        }
+      
+        if (panjangLocked) {
+          if (!Number.isFinite(inputPanjang) || !nearlyEqual(inputPanjang, filePanjang)) {
+            btnSync.disabled = true;
+            btnSync.style.cursor = 'not-allowed';
+            return;
+          }
+        }
+      
+        btnSync.disabled = false;
+        btnSync.style.cursor = 'pointer';
+      }
+    
+    // Helper functions untuk PDF Controls
+    function showPdfControls() {
+        const controls = document.getElementById('pdfFileControls');
+        if (controls) controls.style.display = 'block';
+        const imageControls = document.getElementById('imageFileControls');
+        if (imageControls) imageControls.style.display = 'none';
+        const standalone = document.getElementById('explorerOpenStandalone');
+        if (standalone) standalone.style.display = '';
+    }
+    
+    function hidePdfControls() {
+        const controls = document.getElementById('pdfFileControls');
+        if (controls) controls.style.display = 'none';
+        currentFilePdfInfo = null;
+        
+        // Reset modalJumlahInput menjadi editable kembali
+        const modalJumlahInput = document.getElementById('modalJumlahInput');
+        if (modalJumlahInput) {
+            modalJumlahInput.readOnly = false;
+            modalJumlahInput.style.backgroundColor = '';
+        }
+
+        const standalone = document.getElementById('explorerOpenStandalone');
+        if (standalone) standalone.style.display = '';
+    }
+    
+    function updatePdfControls(info) {
+        const pages = parseInt(info.num_pages) || 0;
+        document.getElementById('filePdfPages').value = pages;
+        
+        // Set default qty = 1
+        const qtyInput = document.getElementById('filePdfQty');
+        if (qtyInput && !qtyInput.value) qtyInput.value = 1;
+        
+        calculatePdfSummary();
+    }
+    
+    function calculatePdfSummary() {
+        if (!currentFilePdfInfo) return;
+        
+        const pages = parseInt(currentFilePdfInfo.num_pages) || 0;
+        const qtyInput = document.getElementById('filePdfQty');
+        const qty = parseInt(qtyInput?.value) || 1;
+        const summary = pages * qty;
+        
+        // Ambil satuan dari produk yang dipilih
+        const satuanDisplay = document.getElementById('modalSatuanDisplay');
+        const satuan = satuanDisplay?.textContent || '-';
+        
+        document.getElementById('filePdfSummary').value = summary;
+        document.getElementById('filePdfSummaryUnit').textContent = satuan;
+        
+        // Update modalJumlahInput (readonly untuk PDF)
+        const modalJumlahInput = document.getElementById('modalJumlahInput');
+        if (modalJumlahInput) {
+            modalJumlahInput.value = summary;
+        }
+    }
+
+    function isProdukMetricAktif() {
+        return currentSelectedProduk && (currentSelectedProduk.is_metric === true || currentSelectedProduk.is_metric === 'true');
     }
 })();
