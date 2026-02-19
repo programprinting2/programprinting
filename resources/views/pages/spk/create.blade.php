@@ -421,7 +421,7 @@
                 <!-- Section 2: Finishing  -->
                 <div class="section-item mb-4" id="sectionFinishing">
                   <div class="d-flex align-items-center mb-3">
-                    <span class="section-number me-2">2</span>
+                    <span class="section-number me-2">3</span>
                     <h6 class="mb-0 fw-bold">Finishing</h6>
                   </div>
                   <div class="ps-4">
@@ -475,7 +475,7 @@
 
                 <div class="section-item mb-4" id="sectionFiles">
                   <div class="d-flex align-items-center mb-3">
-                    <span class="section-number me-2">3</span>
+                    <span class="section-number me-2"></span>
                     <h6 class="mb-0 fw-bold">Files Path</h6>
                   </div>
                   <div class="ps-4">
@@ -517,7 +517,7 @@
             <div class="col-lg-4 bg-light">
               <div class="p-4 sticky-top" style="top: 0;">
                 <div class="d-flex align-items-center mb-3">
-                  <span class="section-number me-2">4</span>
+                  <span class="section-number me-2">2</span>
                   <h6 class="mb-0 fw-bold">Detail Orderan</h6>
                 </div>
 
@@ -622,31 +622,36 @@
                         </button>
                         <button type="button" class="btn btn-sm btn-warning" id="btnRotateImage"
                           title="Rotate & Tukar Panjang/Lebar">
-                          <i class="fa fa-undo"></i> Rotate
+                          <i class="fa fa-undo"></i>
                         </button>
                         <button type="button" class="btn btn-sm btn-info" id="btnSyncImageDimensions"
                           title="Sinkronkan Dimensi ke Input Produk">
-                          <i class="fa fa-exchange-alt"></i> Sync
+                          <i class="fa fa-exchange-alt"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-secondary" id="btnImageTools" title="Image Tools">
-                          <i class="fa fa-wrench"></i> Tools
+                        <button type="button" class="btn btn-sm btn-dark" id="btnImageTools" title="Image Tools">
+                          <i class="fa fa-wrench"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success" id="btnOpenFolderLocation"
+                            title="Buka Lokasi File di Windows Explorer">
+                            <i class="fas fa-external-link-alt"></i>
                         </button>
                       </div>
                       <div class="row g-2">
-                        <div class="col-4">
-                          <label class="form-label small mb-1">Lebar (cm)</label>
-                          <input type="text" class="form-control form-control-sm" id="fileImageWidth" readonly>
-                        </div>
-                        <div class="col-4">
-                          <label class="form-label small mb-1">Panjang (cm)</label>
-                          <input type="text" class="form-control form-control-sm" id="fileImageHeight" readonly>
-                        </div>
-                        <div class="col-4">
-                          <label class="form-label small mb-1">Luas (cm²)</label>
-                          <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
+                        <div class="row g-2">
+                          <div class="col-4">
+                            <label class="form-label small mb-1">Lebar (<span id="fileImageWidthUnit">cm</span>)</label>
+                            <input type="text" class="form-control form-control-sm" id="fileImageWidth" readonly>
+                          </div>
+                          <div class="col-4">
+                            <label class="form-label small mb-1">Panjang (<span id="fileImageHeightUnit">cm</span>)</label>
+                            <input type="text" class="form-control form-control-sm" id="fileImageHeight" readonly>
+                          </div>
+                          <div class="col-4">
+                            <label class="form-label small mb-1">Luas (<span id="fileImageAreaUnit">cm</span>²)</label>
+                            <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
                     {{-- Controls untuk File PDF --}}
                     <div id="pdfFileControls" class="mb-3" style="display: none;">

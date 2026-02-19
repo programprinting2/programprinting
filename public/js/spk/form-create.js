@@ -321,6 +321,7 @@
                 showImageControls();
             }
         }
+        updateFileImageControlUnits();
         updateSyncButtonState();
     });
 
@@ -3354,6 +3355,7 @@
             btnRotate.style.display = shouldShowMetricButtons ? "" : "none";
         if (btnSync)
             btnSync.style.display = shouldShowMetricButtons ? "" : "none";
+        updateFileImageControlUnits();
     }
 
     function hideImageControls() {
@@ -3367,8 +3369,12 @@
     }
 
     function updateImageControls(info) {
-        const width = parseFloat(info.width_cm) || 0;
-        const height = parseFloat(info.height_cm) || 0;
+        const widthCm = parseFloat(info.width_cm) || 0;
+        const heightCm = parseFloat(info.height_cm) || 0;
+        const targetUnit = (currentMetricUnit || "cm").toLowerCase();
+        const factor = getConversionFactor("cm", targetUnit);
+        const width = widthCm * factor;
+        const height = heightCm * factor;
         const area = width * height;
 
         document.getElementById("fileImageWidth").value = width.toFixed(2);
@@ -3376,6 +3382,7 @@
         document.getElementById("fileImageArea").value = area.toFixed(2);
 
         updateSyncButtonState();
+        updateFileImageControlUnits();
     }
 
     function rotateImage() {
@@ -3397,38 +3404,30 @@
     }
 
     function syncImageDimensions() {
-        if (!currentFileImageInfo) return;
-
+        const widthEl = document.getElementById("fileImageWidth");
+        const heightEl = document.getElementById("fileImageHeight");
         const panjangInput = document.getElementById("modalPanjangInput");
         const lebarInput = document.getElementById("modalLebarInput");
         const panjangStatus = document.getElementById("panjangStatus");
         const lebarStatus = document.getElementById("lebarStatus");
 
-        if (!panjangInput || !lebarInput) return;
+        if (!widthEl || !heightEl || !panjangInput || !lebarInput) return;
+
+        const widthInUnit = parseFloat(widthEl.value) || 0;
+        const heightInUnit = parseFloat(heightEl.value) || 0;
 
         const panjangLocked = panjangStatus?.style.display === "block";
         const lebarLocked = lebarStatus?.style.display === "block";
 
-        // Konversi dari cm ke satuan produk
-        const targetUnit = (currentMetricUnit || "cm").toLowerCase();
-        const conversionFactor = getConversionFactor("cm", targetUnit);
-
-        const widthCm = parseFloat(currentFileImageInfo.width_cm) || 0;
-        const heightCm = parseFloat(currentFileImageInfo.height_cm) || 0;
-
         if (!panjangLocked && !lebarLocked) {
-            // Keduanya unlock - sync keduanya
-            panjangInput.value = (heightCm * conversionFactor).toFixed(2);
-            lebarInput.value = (widthCm * conversionFactor).toFixed(2);
+            panjangInput.value = heightInUnit.toFixed(2);
+            lebarInput.value = widthInUnit.toFixed(2);
         } else if (panjangLocked && !lebarLocked) {
-            // Hanya panjang yang locked - sync lebar saja
-            lebarInput.value = (widthCm * conversionFactor).toFixed(2);
+            lebarInput.value = widthInUnit.toFixed(2);
         } else if (!panjangLocked && lebarLocked) {
-            // Hanya lebar yang locked - sync panjang saja
-            panjangInput.value = (heightCm * conversionFactor).toFixed(2);
+            panjangInput.value = heightInUnit.toFixed(2);
         }
 
-        // Trigger update luas dan summary
         if (typeof updateLuas === "function") updateLuas();
         if (typeof updateModalSummary === "function") updateModalSummary();
     }
@@ -3443,10 +3442,6 @@
         return conversions[fromUnit]?.[toUnit] || 1;
     }
 
-    const SYNC_TOLERANCE = 0.01;
-    function nearlyEqual(a, b, tolerance = SYNC_TOLERANCE) {
-        return Math.abs(a - b) <= tolerance;
-    }
     function updateSyncButtonState() {
         const btnSync = document.getElementById("btnSyncImageDimensions");
         if (!btnSync) return;
@@ -3472,13 +3467,10 @@
             return;
         }
 
-        const targetUnit = (currentMetricUnit || "cm").toLowerCase();
-        const factor = getConversionFactor("cm", targetUnit);
-
-        const fileLebar =
-            (parseFloat(currentFileImageInfo.width_cm) || 0) * factor;
-        const filePanjang =
-            (parseFloat(currentFileImageInfo.height_cm) || 0) * factor;
+        const widthEl = document.getElementById("fileImageWidth");
+        const heightEl = document.getElementById("fileImageHeight");
+        const fileLebar = parseFloat(widthEl?.value) || 0;
+        const filePanjang = parseFloat(heightEl?.value) || 0;
 
         const inputLebarEl = document.getElementById("modalLebarInput");
         const inputPanjangEl = document.getElementById("modalPanjangInput");
@@ -3489,7 +3481,7 @@
         if (lebarLocked) {
             if (
                 !Number.isFinite(inputLebar) ||
-                !nearlyEqual(inputLebar, fileLebar)
+                inputLebar <= fileLebar
             ) {
                 btnSync.disabled = true;
                 btnSync.style.cursor = "not-allowed";
@@ -3500,7 +3492,7 @@
         if (panjangLocked) {
             if (
                 !Number.isFinite(inputPanjang) ||
-                !nearlyEqual(inputPanjang, filePanjang)
+                inputPanjang <= filePanjang
             ) {
                 btnSync.disabled = true;
                 btnSync.style.cursor = "not-allowed";
@@ -3578,4 +3570,42 @@
                 currentSelectedProduk.is_metric === "true")
         );
     }
+
+    function updateFileImageControlUnits() {
+        const unit = (currentMetricUnit || "cm").toLowerCase();
+        const widthUnitEl = document.getElementById("fileImageWidthUnit");
+        const heightUnitEl = document.getElementById("fileImageHeightUnit");
+        const areaUnitEl = document.getElementById("fileImageAreaUnit");
+        if (widthUnitEl) widthUnitEl.textContent = unit;
+        if (heightUnitEl) heightUnitEl.textContent = unit;
+        if (areaUnitEl) areaUnitEl.textContent = unit;
+    }
+
+    document.getElementById('btnOpenFolderLocation')?.addEventListener('click', async function() {
+        const defaultFile = modalUploadedFiles[0];
+        if (!defaultFile) {
+            alert('Tidak ada file default yang dipilih.');
+            return;
+        }
+
+        const filePath = defaultFile.path || defaultFile.sourcePath || "";
+        if (!filePath) {
+            alert('File tidak memiliki path yang valid.');
+            return;
+        }
+
+        try {
+            const response = await fetch(`/backend/open-folder-location?path=${encodeURIComponent(filePath)}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                console.log('Folder dibuka di Windows Explorer');
+            } else {
+                alert('Gagal membuka folder: ' + (data.message || 'Unknown error'));
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('Terjadi kesalahan saat membuka folder.');
+        }
+    });
 })();

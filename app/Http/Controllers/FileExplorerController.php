@@ -273,4 +273,52 @@ class FileExplorerController extends Controller
             ], 502);
         }
     }
+
+    public function openFolderLocation(Request $request): JsonResponse
+    {
+        $path = $request->query('path');
+        if (!$path || !File::exists($path)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Path tidak valid'
+            ], 404);
+        }
+
+        $basePath = realpath(config('app.explorer_base_path', 'F:/PESANAN/'));
+        $realPath = realpath($path);
+        
+        if (!$basePath || !$realPath || !str_starts_with($realPath, $basePath)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses path tidak diizinkan'
+            ], 403);
+        }
+
+        try {
+            if (is_file($realPath)) {
+                $command = 'explorer.exe /select,"' . str_replace('/', '\\', $realPath) . '"';
+            } else {
+                $command = 'explorer.exe "' . str_replace('/', '\\', $realPath) . '"';
+            }
+            
+            if (PHP_OS_FAMILY === 'Windows') {
+                pclose(popen('start /B ' . $command, 'r'));
+            } else {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Fitur ini hanya tersedia di Windows'
+                ], 400);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Folder dibuka di Windows Explorer'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ], 500);
+        }
+    }
 }
