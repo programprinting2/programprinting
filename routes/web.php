@@ -184,6 +184,9 @@ Route::group(['prefix' => 'backend'], function () {
     Route::get('/file-image-info', [App\Http\Controllers\FileExplorerController::class, 'getImageInfo'])->name('backend.file-image-info');
     Route::get('/file-pdf-info', [App\Http\Controllers\FileExplorerController::class, 'getPdfInfo'])->name('backend.file-pdf-info');
     Route::post('/image-processing', [App\Http\Controllers\FileExplorerController::class, 'processImageTools'])->name('backend.image-processing');
+    Route::post('/finishing-templates', [\App\Http\Controllers\FinishingTemplateController::class, 'store'])->name('backend.finishing-templates.store');
+    Route::get('/finishing-templates', [\App\Http\Controllers\FinishingTemplateController::class, 'index'])->name('backend.finishing-templates.index');
+    Route::get('/finishing-templates/{id}', [\App\Http\Controllers\FinishingTemplateController::class, 'show'])->name('backend.finishing-templates.show');
 
 });
 

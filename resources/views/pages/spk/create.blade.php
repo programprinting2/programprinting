@@ -636,8 +636,7 @@
                             <i class="fas fa-external-link-alt"></i>
                         </button>
                       </div>
-                      <div class="row g-2">
-                        <div class="row g-2">
+                      <div class="row mb-3">
                           <div class="col-4">
                             <label class="form-label small mb-1">Lebar (<span id="fileImageWidthUnit">cm</span>)</label>
                             <input type="text" class="form-control form-control-sm" id="fileImageWidth" readonly>
@@ -650,7 +649,6 @@
                             <label class="form-label small mb-1">Luas (<span id="fileImageAreaUnit">cm</span>²)</label>
                             <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
                           </div>
-                        </div>
                       </div>
 
                     {{-- Controls untuk File PDF --}}
@@ -998,7 +996,7 @@
 
   <!-- Modal Image Tools -->
   <div class="modal fade" id="modalImageTools" tabindex="-1" aria-labelledby="modalImageToolsLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="modalImageToolsLabel"><i class="fa fa-magic me-2"></i>Image Tools</h5>
@@ -1106,26 +1104,54 @@
                 <div class="tab-pane fade" id="pane-kanvas" role="tabpanel">
                   <div class="row">
                     <div class="col-md-6">
-                      <h6 class="fw-semibold mb-2">Lebihan </h6>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Kiri</span>
-                        <input type="number" class="form-control" id="imageToolLebihanKiri" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Kanan</span>
-                        <input type="number" class="form-control" id="imageToolLebihanKanan" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Atas</span>
-                        <input type="number" class="form-control" id="imageToolLebihanAtas" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Bawah</span>
-                        <input type="number" class="form-control" id="imageToolLebihanBawah" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
+                      <h6 class="fw-semibold mb-3 text-center">Lebihan</h6>
+                      <div class="d-flex flex-column align-items-center">
+                      <div class="input-group mb-3" style="max-width: 220px;">
+                          <span class="input-group-text" style="width: 110px;">Lebihan Keliling</span>
+                          <input type="number" class="form-control text-center" id="imageToolLebihanKeliling"
+                            placeholder="cm" step="0.1" title="Nilai untuk seluruh sisi">
+                          <button type="button" class="btn btn-outline-secondary" id="btnLebihanKelilingKunci"
+                            title="Isi seluruh lebihan (atas, kiri, bawah, kanan) dengan nilai ini">
+                            <i class="fa fa-lock"></i>
+                          </button>
+                        </div>
+                        <div class="mb-2" style="width:120px;">
+                          <input type="number" 
+                                class="form-control text-center" 
+                                id="imageToolLebihanAtas" 
+                                placeholder="cm" 
+                                step="0.1">
+                        </div>
+                        <div class="d-flex align-items-center justify-content-center gap-3">
+                          <div style="width:120px;">
+                            <input type="number" 
+                                  class="form-control text-center" 
+                                  id="imageToolLebihanKiri" 
+                                  placeholder="cm" 
+                                  step="0.1">
+                          </div>
+
+                          <!-- FOTO PREVIEW -->
+                          <div id="imageToolsPreviewLebihan" style="width:80px; height:100px; border:1px dashed #ccc; display:flex; align-items-center; justify-content:center; background-color: #f8f9fa;">
+                            <p class="text-muted small text-center mb-0" style="font-size: 0.7rem;">Preview</p>
+                          </div>
+
+                          <div style="width:120px;">
+                            <input type="number" 
+                                  class="form-control text-center" 
+                                  id="imageToolLebihanKanan" 
+                                  placeholder="cm" 
+                                  step="0.1">
+                          </div>
+                        </div>
+
+                        <div class="mt-2" style="width:120px;">
+                          <input type="number" 
+                                class="form-control text-center" 
+                                id="imageToolLebihanBawah" 
+                                placeholder="cm" 
+                                step="0.1">
+                        </div>
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -1161,7 +1187,7 @@
                 <div class="tab-pane fade" id="pane-plong" role="tabpanel">
                   <div class="row">
                     <!-- Kolom 1: Jenis, Bentuk, Warna -->
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                       <h6 class="fw-semibold mb-2">Jenis & Bentuk</h6>
                       <div class="mb-3">
                         <label for="imageToolJenisPlong" class="form-label">Jenis</label>
@@ -1187,64 +1213,78 @@
                     </div>
 
                     <!-- Kolom 2: Jarak dari tepi -->
-                    <div class="col-md-4">
-                      <h6 class="fw-semibold mb-2">Jarak Plong dari Tepi (cm)</h6>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Atas</span>
-                        <input type="number" class="form-control" id="imageToolJarakPlongAtas" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
+                    <div class="col-md-6">
+                      <div class="row g-2">
+                        <h6 class="fw-semibold mb-2">Jarak Plong dari Tepi (cm)</h6>
+                        <div class="input-group mb-2">
+                          <span class="input-group-text" style="width: 80px;">Jarak Plong</span>
+                          <input type="number" class="form-control" id="imageToolJarakPlong" placeholder="cm" step="0.1">
+                          <span class="input-group-text">cm</span>
+                        </div>
+
+                        <h6 class="fw-semibold mb-2">Ukuran & Jumlah Plong</h6>
+                        <div class="input-group mb-2">
+                          <span class="input-group-text" style="width: 120px;">Diameter Lebar</span>
+                          <input type="number" class="form-control" id="imageToolDiameterLebar" placeholder="cm" step="0.1">
+                          <span class="input-group-text">cm</span>
+                        </div>
+                        <div class="input-group mb-3" id="imageToolDiameterPanjangContainer">
+                          <span class="input-group-text" style="width: 120px;">Diameter Panjang</span>
+                          <input type="number" class="form-control" id="imageToolDiameterPanjang" placeholder="cm" step="0.1">
+                          <span class="input-group-text">cm</span>
+                        </div>
                       </div>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Bawah</span>
-                        <input type="number" class="form-control" id="imageToolJarakPlongBawah" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Kiri</span>
-                        <input type="number" class="form-control" id="imageToolJarakPlongKiri" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 80px;">Kanan</span>
-                        <input type="number" class="form-control" id="imageToolJarakPlongKanan" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <small class="text-muted">Jarak dari tepi kertas ke pusat lubang plong pertama.</small>
                     </div>
 
                     <!-- Kolom 3: Ukuran & jumlah plong -->
-                    <div class="col-md-4">
-                      <h6 class="fw-semibold mb-2">Ukuran & Jumlah Plong</h6>
-                      <div class="input-group mb-2">
-                        <span class="input-group-text" style="width: 120px;">Diameter Lebar</span>
-                        <input type="number" class="form-control" id="imageToolDiameterLebar" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
-                      <div class="input-group mb-3">
-                        <span class="input-group-text" style="width: 120px;">Diameter Panjang</span>
-                        <input type="number" class="form-control" id="imageToolDiameterPanjang" placeholder="cm" step="0.1">
-                        <span class="input-group-text">cm</span>
-                      </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-semibold mb-3 text-center">Plong</h6>
+                        <div class="p-3">
+                          <div class="d-flex flex-column align-items-center">
+                            <div class="mb-2" style="width:100px;">
+                              <input type="number" 
+                                    class="form-control form-control-sm text-center" 
+                                    id="imageToolPlongAtas" 
+                                    min="0" 
+                                    step="1" 
+                                    placeholder="0">
+                            </div>
+                            <div class="d-flex align-items-center justify-content-center gap-3">
+                              <div style="width:100px;">
+                                <input type="number" 
+                                      class="form-control form-control-sm text-center" 
+                                      id="imageToolPlongKiri" 
+                                      min="0" 
+                                      step="1" 
+                                      placeholder="0">
+                              </div>
 
-                      <div class="row g-2">
-                        <div class="col-6">
-                          <label for="imageToolPlongAtas" class="form-label small mb-1">Plong Atas</label>
-                          <input type="number" class="form-control form-control-sm" id="imageToolPlongAtas" min="0" step="1">
+                              <!-- FOTO PREVIEW -->
+                              <div id="imageToolsPreviewPlong" style="width:80px; height:100px; border:1px dashed #ccc; display:flex; align-items-center; justify-content:center; background-color: #f8f9fa;">
+                                <p class="text-muted small text-center mb-0" style="font-size: 0.7rem;">Preview</p>
+                              </div>
+                              <div style="width:100px;">
+                                <input type="number" 
+                                      class="form-control form-control-sm text-center" 
+                                      id="imageToolPlongKanan" 
+                                      min="0" 
+                                      step="1" 
+                                      placeholder="0">
+                              </div>
+                            </div>
+                            <div class="mt-2" style="width:100px;">
+                              <input type="number" 
+                                    class="form-control form-control-sm text-center" 
+                                    id="imageToolPlongBawah" 
+                                    min="0" 
+                                    step="1" 
+                                    placeholder="0">
+                            </div>
+                          </div>
+                          <small class="text-muted d-block mt-3 text-center">
+                            Jumlah lubang plong di setiap sisi.
+                          </small>
                         </div>
-                        <div class="col-6">
-                          <label for="imageToolPlongBawah" class="form-label small mb-1">Plong Bawah</label>
-                          <input type="number" class="form-control form-control-sm" id="imageToolPlongBawah" min="0" step="1">
-                        </div>
-                        <div class="col-6">
-                          <label for="imageToolPlongKiri" class="form-label small mb-1">Plong Kiri</label>
-                          <input type="number" class="form-control form-control-sm" id="imageToolPlongKiri" min="0" step="1">
-                        </div>
-                        <div class="col-6">
-                          <label for="imageToolPlongKanan" class="form-label small mb-1">Plong Kanan</label>
-                          <input type="number" class="form-control form-control-sm" id="imageToolPlongKanan" min="0" step="1">
-                        </div>
-                      </div>
-                      <small class="text-muted d-block mt-1">Jumlah lubang plong di setiap sisi.</small>
                     </div>
                   </div>
                 </div>
@@ -1265,9 +1305,34 @@
           </div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-          <button type="button" class="btn btn-primary" id="btnApplyImageTools">Terapkan Perubahan</button>
+        <div class="modal-footer justify-content-between">
+          <div class="d-flex align-items-center gap-2 flex-wrap">
+              <select class="form-select form-select-sm" id="imageToolTemplateSelect" style="max-width: 200px;">
+                <option value="">-- Pilih template --</option>
+              </select>
+              <button type="button"
+                class="btn btn-sm btn-outline-primary"
+                id="btnLoadImageToolsTemplate">
+                <i class="fa fa-folder-open me-1"></i> Load
+              </button>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <input type="text"
+              class="form-control form-control-sm"
+              id="imageToolTemplateName"
+              placeholder="Nama template finishing"
+              style="max-width: 220px;">
+            <button type="button"
+              class="btn btn-sm btn-outline-secondary"
+              id="btnSaveImageToolsTemplate">
+              <i class="fa fa-save me-1"></i> Save Template
+            </button>
+          </div>
+
+          <div>
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="button" class="btn btn-primary" id="btnApplyImageTools">Terapkan Perubahan</button>
+          </div>
         </div>
       </div>
     </div>

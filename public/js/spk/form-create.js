@@ -455,6 +455,102 @@
             return;
         }
 
+        if (e.target.closest("#btnSaveImageToolsTemplate")) {
+            e.preventDefault();
+        
+            const nameInput = document.getElementById("imageToolTemplateName");
+            const templateName = (nameInput?.value || "").trim();
+        
+            if (!templateName) {
+                SafeHelper.notify("warning", "Template", "Nama template wajib diisi.");
+                return;
+            }
+        
+            let payload;
+            try {
+                payload = buildImageToolsPayload();
+            } catch (err) {
+                console.error(err);
+                SafeHelper.notify("error", "Template", err.message || "Gagal membangun payload template.");
+                return;
+            }
+        
+            (async () => {
+                try {
+                    const token =
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute("content") || "";
+        
+                    const response = await fetch("/backend/finishing-templates", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": token,
+                        },
+                        body: JSON.stringify({
+                            nama: templateName,
+                            payload: payload,
+                        }),
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error("HTTP status " + response.status);
+                    }
+        
+                    const data = await response.json();
+                    if (data.success) {
+                        SafeHelper.notify(
+                            "success",
+                            "Template",
+                            "Template finishing berhasil disimpan.",
+                        );
+                    } else {
+                        SafeHelper.notify(
+                            "warning",
+                            "Template",
+                            data.message || "Gagal menyimpan template.",
+                        );
+                    }
+                } catch (error) {
+                    console.error(error);
+                    SafeHelper.notify(
+                        "error",
+                        "Template",
+                        "Terjadi kesalahan saat menyimpan template.",
+                    );
+                }
+            })();
+        
+            return;
+        }
+
+        if (e.target.closest("#btnLoadImageToolsTemplate")) {
+            e.preventDefault();
+            const select = document.getElementById("imageToolTemplateSelect");
+            const id = select?.value;
+            if (!id) {
+                SafeHelper.notify("warning", "Load Template", "Pilih template terlebih dahulu.");
+                return;
+            }
+            (async () => {
+                try {
+                    const res = await fetch(`/backend/finishing-templates/${id}`);
+                    const data = await res.json();
+                    if (!data.success || !data.payload) {
+                        SafeHelper.notify("warning", "Load Template", data.message || "Template tidak ditemukan.");
+                        return;
+                    }
+                    applyImageToolsPayload(data.payload);
+                    SafeHelper.notify("success", "Load Template", `Template "${data.nama || ""}" berhasil dimuat.`);
+                } catch (err) {
+                    console.error(err);
+                    SafeHelper.notify("error", "Load Template", "Gagal memuat template.");
+                }
+            })();
+            return;
+        }
+
         // Item actions di daftar
         if (e.target.closest("#itemCardsContainer")) {
             // Edit item
@@ -1350,6 +1446,10 @@
                 data.harga_reseller_json || [],
             );
         });
+        const bentukPlongSelect = document.getElementById("imageToolBentukPlong");
+        if (bentukPlongSelect) {
+            bentukPlongSelect.addEventListener("change", togglePlongDiameterInputs);
+        }
     }
 
     function openModalTambahItem() {
@@ -1505,6 +1605,27 @@
         const value = (el.value ?? "").trim();
         return value === "" ? undefined : value;
     }
+    function getImageToolsColorValue(selector) {
+        const el = document.querySelector(selector);
+        if (!el) return undefined;
+        const value = (el.value ?? "").trim();
+        if (value === "") return undefined;
+        const initial = el.dataset.initialColor ?? "";
+        return value === initial ? undefined : value;
+    }
+
+    function storeImageToolsInitialColorValues() {
+        const colorSelectors = [
+            "#imageToolWarnaPesan",
+            "#imageToolWarnaLatar",
+            "#imageToolWarnaGaris",
+            "#imageToolWarnaPlong",
+        ];
+        colorSelectors.forEach((sel) => {
+            const el = document.querySelector(sel);
+            if (el) el.dataset.initialColor = (el.value ?? "").trim();
+        });
+    }
 
     function getImageToolsNumberValue(selector) {
         const el = document.querySelector(selector);
@@ -1531,6 +1652,96 @@
         return imageToolsModalInstance;
     }
 
+    function updateImageToolsPreviews() {
+        const defaultFile = modalUploadedFiles[0];
+        if (!defaultFile) {
+            // Tidak ada file default - tampilkan placeholder
+            const previewLebihan = document.getElementById("imageToolsPreviewLebihan");
+            const previewPlong = document.getElementById("imageToolsPreviewPlong");
+            const previewContainer = document.getElementById("imageToolsPreviewContainer");
+            
+            if (previewLebihan) {
+                previewLebihan.innerHTML = '<p class="text-muted small text-center mb-0" style="font-size: 0.7rem;">Preview</p>';
+            }
+            if (previewPlong) {
+                previewPlong.innerHTML = '<p class="text-muted small text-center mb-0" style="font-size: 0.7rem;">Preview</p>';
+            }
+            if (previewContainer) {
+                previewContainer.innerHTML = '<p class="text-muted small text-center">Preview akan ditampilkan di sini</p>';
+            }
+            return;
+        }
+
+        // Dapatkan URL preview
+        let previewUrl = null;
+        const path = defaultFile.path || defaultFile.sourcePath || "";
+        
+        if (defaultFile.source === "local" && defaultFile.file instanceof File) {
+            // File lokal (dari upload) - gunakan object URL
+            if (orderanPreviewObjectUrl) {
+                previewUrl = orderanPreviewObjectUrl;
+            } else {
+                previewUrl = URL.createObjectURL(defaultFile.file);
+            }
+        } else if (path) {
+            if (path.startsWith("http://") || path.startsWith("https://")) {
+                previewUrl = path;
+            } else {
+                // Gunakan endpoint preview dari controller
+                previewUrl = `/backend/preview-file?path=${encodeURIComponent(path)}`;
+            }
+        }
+
+        if (!previewUrl) {
+            const previewLebihan = document.getElementById("imageToolsPreviewLebihan");
+            const previewPlong = document.getElementById("imageToolsPreviewPlong");
+            const previewContainer = document.getElementById("imageToolsPreviewContainer");
+            
+            if (previewLebihan) {
+                previewLebihan.innerHTML = '<p class="text-muted small text-center mb-0" style="font-size: 0.7rem;">Tidak ada file</p>';
+            }
+            if (previewPlong) {
+                previewPlong.innerHTML = '<p class="text-muted small text-center mb-0" style="font-size: 0.7rem;">Tidak ada file</p>';
+            }
+            if (previewContainer) {
+                previewContainer.innerHTML = '<p class="text-muted small text-center">File tidak bisa dipreview</p>';
+            }
+            return;
+        }
+
+        const previewLebihan = document.getElementById("imageToolsPreviewLebihan");
+        if (previewLebihan) {
+            previewLebihan.innerHTML = `<img src="${previewUrl}" alt="Preview" style="max-width:100%; max-height:100%; object-fit: contain;">`;
+        }
+
+        const previewPlong = document.getElementById("imageToolsPreviewPlong");
+        if (previewPlong) {
+            previewPlong.innerHTML = `<img src="${previewUrl}" alt="Preview" style="max-width:100%; max-height:100%; object-fit: contain;">`;
+        }
+
+        const previewContainer = document.getElementById("imageToolsPreviewContainer");
+        if (previewContainer) {
+            previewContainer.innerHTML = `<img src="${previewUrl}" alt="Preview" style="max-width:100%; max-height:100%; object-fit: contain;">`;
+        }
+    }
+
+    function togglePlongDiameterInputs() {
+        const bentukSelect = document.getElementById("imageToolBentukPlong");
+        const diameterPanjangContainer = document.getElementById("imageToolDiameterPanjangContainer");
+        
+        if (!bentukSelect || !diameterPanjangContainer) return;
+        
+        const bentuk = bentukSelect.value;
+        
+        if (bentuk === "circle") {
+            diameterPanjangContainer.style.display = "none";
+        } else if (bentuk === "square") {
+            diameterPanjangContainer.style.display = "";
+        } else {
+            diameterPanjangContainer.style.display = "none";
+        }
+    }
+
     function buildImageToolsPayload() {
         const defaultFile = modalUploadedFiles[0];
         if (!defaultFile) {
@@ -1547,16 +1758,24 @@
         // Field string
         const stringFields = [
             { key: "pesan", selector: "#imageToolPesan" },
-            { key: "warna_pesan", selector: "#imageToolWarnaPesan" },
-            { key: "WarnaBackground", selector: "#imageToolWarnaLatar" },
-            { key: "WarnaGaris", selector: "#imageToolWarnaGaris" },
-            { key: "warna_plong", selector: "#imageToolWarnaPlong" },
             { key: "jenis_plong", selector: "#imageToolJenisPlong" },
             { key: "bentuk_plong", selector: "#imageToolBentukPlong" },
         ];
 
         stringFields.forEach(({ key, selector }) => {
             const v = getImageToolsStringValue(selector);
+            if (v !== undefined) payload[key] = v;
+        });
+
+        const colorFields = [
+            { key: "warna_pesan", selector: "#imageToolWarnaPesan" },
+            { key: "WarnaBackground", selector: "#imageToolWarnaLatar" },
+            { key: "WarnaGaris", selector: "#imageToolWarnaGaris" },
+            { key: "warna_plong", selector: "#imageToolWarnaPlong" },
+        ];
+
+        colorFields.forEach(({ key, selector }) => {
+            const v = getImageToolsColorValue(selector);
             if (v !== undefined) payload[key] = v;
         });
 
@@ -1586,10 +1805,10 @@
             { key: "UkuranGaris", selector: "#imageToolUkuranGaris" },
     
             // Plong – jarak dari tepi
-            { key: "jarak_plong_atas", selector: "#imageToolJarakPlongAtas" },
-            { key: "jarak_plong_bawah", selector: "#imageToolJarakPlongBawah" },
-            { key: "jarak_plong_kiri", selector: "#imageToolJarakPlongKiri" },
-            { key: "jarak_plong_kanan", selector: "#imageToolJarakPlongKanan" },
+            { key: "jarak_plong_atas", selector: "#imageToolJarakPlong" },
+            { key: "jarak_plong_bawah", selector: "#imageToolJarakPlong" },
+            { key: "jarak_plong_kiri", selector: "#imageToolJarakPlong" },
+            { key: "jarak_plong_kanan", selector: "#imageToolJarakPlong" },
     
             // Plong – ukuran lubang
             { key: "diameter_lebar", selector: "#imageToolDiameterLebar" },
@@ -1614,6 +1833,97 @@
         return payload;
     }
 
+    const PAYLOAD_TO_SELECTOR = {
+        pesan: "#imageToolPesan",
+        jenis_plong: "#imageToolJenisPlong",
+        bentuk_plong: "#imageToolBentukPlong",
+        warna_pesan: "#imageToolWarnaPesan",
+        WarnaBackground: "#imageToolWarnaLatar",
+        WarnaGaris: "#imageToolWarnaGaris",
+        warna_plong: "#imageToolWarnaPlong",
+        image_scale: "#imageToolImageScale",
+        ukuran_pesan: "#imageToolUkuranPesan",
+        posX_pesan: "#imageToolPosX",
+        posY_pesan: "#imageToolPosY",
+        rotasi_pesan: "#imageToolRotasiPesan",
+        CopyX: "#imageToolCopyX",
+        CopyY: "#imageToolCopyY",
+        jarak_gambarX: "#imageToolJarakX",
+        jarak_gambarY: "#imageToolJarakY",
+        rotasi_copy: "#imageToolRotasiCopy",
+        Lebihan_kiri: "#imageToolLebihanKiri",
+        Lebihan_kanan: "#imageToolLebihanKanan",
+        Lebihan_atas: "#imageToolLebihanAtas",
+        Lebihan_bawah: "#imageToolLebihanBawah",
+        UkuranGaris: "#imageToolUkuranGaris",
+        jarak_plong_atas: "#imageToolJarakPlong",
+        jarak_plong_bawah: "#imageToolJarakPlong",
+        jarak_plong_kiri: "#imageToolJarakPlong",
+        jarak_plong_kanan: "#imageToolJarakPlong",
+        diameter_lebar: "#imageToolDiameterLebar",
+        diameter_panjang: "#imageToolDiameterPanjang",
+        Plong_atas: "#imageToolPlongAtas",
+        Plong_bawah: "#imageToolPlongBawah",
+        Plong_kiri: "#imageToolPlongKiri",
+        Plong_kanan: "#imageToolPlongKanan",
+    };
+
+    function applyImageToolsPayload(payload) {
+        if (!payload || typeof payload !== "object") return;
+
+        const processedSelectors = new Set();
+
+        for (const [key, value] of Object.entries(payload)) {
+            if (value === undefined || value === null || key === "AlamatFile") continue;
+
+            let selector = PAYLOAD_TO_SELECTOR[key];
+            if (!selector) continue;
+
+            const el = document.querySelector(selector);
+            if (!el) continue;
+
+            const isColor = el.type === "color";
+            const isSelect = el.tagName === "SELECT";
+            const isNumber = el.type === "number";
+
+            if (isColor || isSelect) {
+                el.value = String(value);
+            } else if (isNumber) {
+                el.value = Number(value);
+            } else {
+                el.value = String(value);
+            }
+
+            processedSelectors.add(selector);
+        }
+
+        togglePlongDiameterInputs();
+    }
+
+    async function loadFinishingTemplatesIntoSelect() {
+        const select = document.getElementById("imageToolTemplateSelect");
+        if (!select) return;
+
+        const firstOption = select.querySelector('option[value=""]');
+        select.innerHTML = "";
+        if (firstOption) select.appendChild(firstOption);
+
+        try {
+            const res = await fetch("/backend/finishing-templates");
+            const data = await res.json();
+            if (!data.success || !Array.isArray(data.templates)) return;
+
+            data.templates.forEach((t) => {
+                const opt = document.createElement("option");
+                opt.value = t.id;
+                opt.textContent = t.nama;
+                select.appendChild(opt);
+            });
+        } catch (e) {
+            console.error("Gagal memuat daftar template:", e);
+        }
+    }
+
     function getFileIcon(type) {
         if (!type) return "fa-file";
         if (type.includes("pdf")) return "fa-file-pdf";
@@ -1622,31 +1932,6 @@
             return "fa-file-image";
         return "fa-file";
     }
-
-    // function updateModalFinishingCalc() {
-    //     const checkboxes = document.querySelectorAll('#modalFinishingGroups input[type="checkbox"]:checked');
-    //     const jumlah = parseInt(document.getElementById('modalJumlahInput')?.value) || 1;
-
-    //     let totalFinishing = 0;
-    //     modalSelectedFinishing = [];
-
-    //     checkboxes.forEach(cb => {
-    //         const harga = parseInt(cb.dataset.harga) || 0;
-    //         const label = cb.closest('.finishing-option').querySelector('.badge')?.textContent || cb.value;
-    //         modalSelectedFinishing.push({
-    //             value: cb.value,
-    //             label: label,
-    //             harga: harga,
-    //             subtotal: harga * jumlah
-    //         });
-    //         totalFinishing += harga * jumlah;
-    //     });
-
-    //     document.getElementById('modalFinishingCount').textContent = modalSelectedFinishing.length + ' item';
-    //     document.getElementById('modalFinishingTotal').textContent = 'Rp ' + totalFinishing.toLocaleString('id-ID');
-
-    //     updateModalSummary();
-    // }
 
     function updateModalSummary() {
         // Produk
@@ -2100,6 +2385,19 @@
                 syncImageDimensions();
             }
 
+            if (e.target.closest("#btnLebihanKelilingKunci")) {
+                e.preventDefault();
+                const inputKeliling = document.getElementById("imageToolLebihanKeliling");
+                const value = parseFloat(inputKeliling?.value);
+                if (!Number.isFinite(value)) return;
+                const ids = ["imageToolLebihanAtas", "imageToolLebihanKiri", "imageToolLebihanBawah", "imageToolLebihanKanan"];
+                ids.forEach((id) => {
+                    const el = document.getElementById(id);
+                    if (el) el.value = value.toFixed(1);
+                });
+                return;
+            }
+
             if (e.target.closest("#btnImageTools")) {
                 e.preventDefault();
                 const modalInstance = getImageToolsModalInstance();
@@ -2113,6 +2411,10 @@
                     return;
                 }
                 modalInstance.show();
+                loadFinishingTemplatesIntoSelect();
+                setTimeout(() => storeImageToolsInitialColorValues(), 0);
+                togglePlongDiameterInputs();
+                updateImageToolsPreviews();
                 return;
             }
         
@@ -3071,6 +3373,7 @@
         renderModalUploadedFiles();
         updateModalSummary();
         renderOrderanPreviewTab();
+        updateImageToolsPreviews();
     }
 
     // Attach Explorer Events
@@ -3140,6 +3443,7 @@
     }
 
     function renderOrderanPreviewTab() {
+        updateImageToolsPreviews();
         const container = document.getElementById("orderanPreviewContainer");
         if (!container) return;
 
