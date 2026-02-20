@@ -650,6 +650,7 @@
                             <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
                           </div>
                       </div>
+                    </div>
 
                     {{-- Controls untuk File PDF --}}
                     <div id="pdfFileControls" class="mb-3" style="display: none;">

@@ -322,6 +322,9 @@
             }
         }
         updateFileImageControlUnits();
+        if (currentFileImageInfo) {
+            updateImageControls(currentFileImageInfo);
+        }
         updateSyncButtonState();
     });
 
@@ -469,6 +472,7 @@
             let payload;
             try {
                 payload = buildImageToolsPayload();
+                delete payload.AlamatFile;
             } catch (err) {
                 console.error(err);
                 SafeHelper.notify("error", "Template", err.message || "Gagal membangun payload template.");
