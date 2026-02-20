@@ -999,7 +999,7 @@
   <div class="modal fade" id="modalImageTools" tabindex="-1" aria-labelledby="modalImageToolsLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl modal-dialog-centered">
       <div class="modal-content">
-        <div class="modal-header">
+        <div class="modal-header bg-info">
           <h5 class="modal-title" id="modalImageToolsLabel"><i class="fa fa-magic me-2"></i>Image Tools</h5>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
@@ -1007,6 +1007,16 @@
           <div class="row">
             <!-- Kolom Kiri: Kontrol/Setting -->
             <div class="col-lg-9">
+              <div class="d-flex align-items-center gap-2 flex-wrap mb-3">
+                <select class="form-select form-select-sm" id="imageToolTemplateSelect" style="max-width: 200px;">
+                  <option value="">-- Pilih template --</option>
+                </select>
+                <button type="button"
+                  class="btn btn-sm btn-outline-primary"
+                  id="btnLoadImageToolsTemplate">
+                  <i class="fa fa-folder-open me-1"></i> Load
+                </button>
+              </div>
               <ul class="nav nav-tabs" id="imageToolsTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="tab-teks" data-bs-toggle="tab" data-bs-target="#pane-teks"
@@ -1035,7 +1045,7 @@
                         <input type="text" class="form-control" id="imageToolPesan" placeholder="Masukkan pesan">
                       </div>
                       <div class="mb-3">
-                        <label for="imageToolUkuranPesan" class="form-label">Ukuran Pesan (em)</label>
+                        <label for="imageToolUkuranPesan" class="form-label">Ukuran Pesan (pt)</label>
                         <input type="number" class="form-control" id="imageToolUkuranPesan" placeholder="Misal 1.5"
                           step="0.1">
                       </div>
@@ -1047,19 +1057,21 @@
                     </div>
                     <div class="col-md-6">
                       <div class="mb-3">
-                        <label for="imageToolPosX" class="form-label">Posisi X (%)</label>
-                        <input type="number" class="form-control" id="imageToolPosX" placeholder="0-1" step="0.05" min="0"
+                        <label for="imageToolPosX" class="form-label">Posisi X (cm)</label>
+                        <input type="number" class="form-control" id="imageToolPosX" placeholder="Posisi X (cm)" step="0.05" min="0"
                           max="1">
                       </div>
                       <div class="mb-3">
-                        <label for="imageToolPosY" class="form-label">Posisi Y (%)</label>
-                        <input type="number" class="form-control" id="imageToolPosY" placeholder="0-1" step="0.05" min="0"
+                        <label for="imageToolPosY" class="form-label">Posisi Y (cm)</label>
+                        <input type="number" class="form-control" id="imageToolPosY" placeholder="Posisi Y (cm)" step="0.05" min="0"
                           max="1">
                       </div>
                       <div class="mb-3">
-                        <label for="imageToolRotasiPesan" class="form-label">Rotasi Pesan (°)</label>
-                        <input type="number" class="form-control" id="imageToolRotasiPesan" placeholder="Misal 0"
-                          step="1">
+                        <label for="imageToolRotasiPesan" class="form-label">Orientasi Pesan</label>
+                        <select class="form-select" id="imageToolRotasiPesan">
+                          <option value="0">Horizontal</option>
+                          <option value="90">Vertical</option>
+                        </select>
                       </div>
                     </div>
                   </div>
@@ -1081,8 +1093,11 @@
                           min="1">
                       </div>
                       <div class="mb-3">
-                        <label for="imageToolRotasiCopy" class="form-label">Rotasi Tiap Gambar (°)</label>
-                        <input type="number" class="form-control" id="imageToolRotasiCopy" placeholder="Misal 0" step="1">
+                        <label for="imageToolRotasiCopy" class="form-label">Orientasi Tiap Gambar</label>
+                        <select class="form-select" id="imageToolRotasiCopy">
+                          <option value="0">Original</option>
+                          <option value="180">Flip</option>
+                        </select>
                       </div>
                     </div>
                     <div class="col-md-6">
@@ -1157,15 +1172,26 @@
                     </div>
                     <div class="col-md-6">
                       <h6 class="fw-semibold mb-2">Latar & Garis</h6>
-                      <div class="mb-3">
-                        <label for="imageToolWarnaLatar" class="form-label">Warna Latar</label>
-                        <input type="color" class="form-control form-control-color" id="imageToolWarnaLatar"
-                          title="Pilih warna">
-                      </div>
-                      <div class="mb-3">
-                        <label for="imageToolWarnaGaris" class="form-label">Warna Garis</label>
-                        <input type="color" class="form-control form-control-color" id="imageToolWarnaGaris"
-                          title="Pilih warna">
+                      <div class="row mb-3">
+                        <div class="col-md-6">
+                          <label for="imageToolWarnaLatar" class="form-label">
+                            Warna Latar
+                          </label>
+                          <input type="color"
+                                class="form-control form-control-color w-100"
+                                id="imageToolWarnaLatar"
+                                title="Pilih warna">
+                        </div>
+
+                        <div class="col-md-6">
+                          <label for="imageToolWarnaGaris" class="form-label">
+                            Warna Garis
+                          </label>
+                          <input type="color"
+                                class="form-control form-control-color w-100"
+                                id="imageToolWarnaGaris"
+                                title="Pilih warna">
+                        </div>
                       </div>
                       <div class="mb-3">
                         <label for="imageToolUkuranGaris" class="form-label">Ukuran Garis (cm)</label>
@@ -1203,8 +1229,8 @@
                         <label for="imageToolBentukPlong" class="form-label">Bentuk</label>
                         <select class="form-select" id="imageToolBentukPlong">
                           <option value="">Pilih bentuk</option>
-                          <option value="circle">Lingkaran</option>
-                          <option value="square">Persegi</option>
+                          <option value="circle">●</option>
+                          <option value="square">■</option>
                         </select>
                       </div>
                       <div class="mb-3">
@@ -1223,7 +1249,7 @@
                           <span class="input-group-text">cm</span>
                         </div>
 
-                        <h6 class="fw-semibold mb-2">Ukuran & Jumlah Plong</h6>
+                        <h6 class="fw-semibold mb-2">Ukuran Plong</h6>
                         <div class="input-group mb-2">
                           <span class="input-group-text" style="width: 120px;">Diameter Lebar</span>
                           <input type="number" class="form-control" id="imageToolDiameterLebar" placeholder="cm" step="0.1">
@@ -1238,7 +1264,7 @@
                     </div>
 
                     <!-- Kolom 3: Ukuran & jumlah plong -->
-                    <div class="col-md-6">
+                    <div class="col-md-6" id="imageToolPlongCountContainer" style="display:none">
                         <h6 class="fw-semibold mb-3 text-center">Plong</h6>
                         <div class="p-3">
                           <div class="d-flex flex-column align-items-center">
@@ -1307,16 +1333,6 @@
         </div>
 
         <div class="modal-footer justify-content-between">
-          <div class="d-flex align-items-center gap-2 flex-wrap">
-              <select class="form-select form-select-sm" id="imageToolTemplateSelect" style="max-width: 200px;">
-                <option value="">-- Pilih template --</option>
-              </select>
-              <button type="button"
-                class="btn btn-sm btn-outline-primary"
-                id="btnLoadImageToolsTemplate">
-                <i class="fa fa-folder-open me-1"></i> Load
-              </button>
-          </div>
           <div class="d-flex align-items-center gap-2">
             <input type="text"
               class="form-control form-control-sm"

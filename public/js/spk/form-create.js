@@ -1609,13 +1609,37 @@
         const value = (el.value ?? "").trim();
         return value === "" ? undefined : value;
     }
+
+    function wireImageToolsColorTouchedFlag() {
+        const selectors = [
+            "#imageToolWarnaPesan",
+            "#imageToolWarnaLatar",
+            "#imageToolWarnaGaris",
+            "#imageToolWarnaPlong",
+        ];
+    
+        selectors.forEach((sel) => {
+            const el = document.querySelector(sel);
+            if (!el) return;
+    
+            if (el.dataset.touchedWired === "1") return;
+            el.dataset.touchedWired = "1";
+    
+            el.addEventListener("input", () => {
+                el.dataset.touched = "1";
+            });
+            el.addEventListener("change", () => {
+                el.dataset.touched = "1";
+            });
+        });
+    }
     function getImageToolsColorValue(selector) {
         const el = document.querySelector(selector);
         if (!el) return undefined;
         const value = (el.value ?? "").trim();
         if (value === "") return undefined;
-        const initial = el.dataset.initialColor ?? "";
-        return value === initial ? undefined : value;
+        
+        return el.dataset.touched === "1" ? value : undefined;
     }
 
     function storeImageToolsInitialColorValues() {
@@ -1654,6 +1678,84 @@
             }
         }
         return imageToolsModalInstance;
+    }
+
+    function resetImageToolsForm() {
+        const textInputs = [
+            "#imageToolPesan",
+            "#imageToolJenisPlong",
+            "#imageToolBentukPlong",
+            "#imageToolImageScale",
+            "#imageToolUkuranPesan",
+            "#imageToolPosX",
+            "#imageToolPosY",
+            "#imageToolRotasiPesan",
+            "#imageToolCopyX",
+            "#imageToolCopyY",
+            "#imageToolJarakX",
+            "#imageToolJarakY",
+            "#imageToolRotasiCopy",
+            "#imageToolLebihanKiri",
+            "#imageToolLebihanKanan",
+            "#imageToolLebihanAtas",
+            "#imageToolLebihanBawah",
+            "#imageToolLebihanKeliling",
+            "#imageToolUkuranGaris",
+            "#imageToolJarakPlong",
+            "#imageToolDiameterLebar",
+            "#imageToolDiameterPanjang",
+            "#imageToolPlongAtas",
+            "#imageToolPlongBawah",
+            "#imageToolPlongKiri",
+            "#imageToolPlongKanan",
+        ];
+
+        textInputs.forEach((selector) => {
+            const el = document.querySelector(selector);
+            if (el) {
+                if (el.type === "number") {
+                    el.value = "";
+                } else if (el.tagName === "SELECT") {
+                    el.selectedIndex = 0; 
+                } else {
+                    el.value = "";
+                }
+            }
+        });
+
+        // Reset color inputs ke default (#000000)
+        const colorInputs = [
+            "#imageToolWarnaPesan",
+            "#imageToolWarnaLatar",
+            "#imageToolWarnaGaris",
+            "#imageToolWarnaPlong",
+        ];
+
+        colorInputs.forEach((selector) => {
+            const el = document.querySelector(selector);
+            if (el && el.type === "color") {
+                el.value = "#000000";
+            }
+        });
+
+        // Reset template name input
+        const templateNameInput = document.getElementById("imageToolTemplateName");
+        if (templateNameInput) templateNameInput.value = "";
+
+        // Reset template select
+        const templateSelect = document.getElementById("imageToolTemplateSelect");
+        if (templateSelect) templateSelect.value = "";
+
+        // Reset tab ke tab pertama (Teks & Pesan)
+        const firstTab = document.getElementById("tab-teks");
+        if (firstTab) {
+            const tabInstance = window.bootstrap?.Tab?.getInstance(firstTab);
+            if (tabInstance) {
+                tabInstance.show();
+            } else {
+                firstTab.click();
+            }
+        }
     }
 
     function updateImageToolsPreviews() {
@@ -1727,6 +1829,15 @@
         if (previewContainer) {
             previewContainer.innerHTML = `<img src="${previewUrl}" alt="Preview" style="max-width:100%; max-height:100%; object-fit: contain;">`;
         }
+    }
+    
+    function togglePlongCountByJenis() {
+        const jenisEl = document.getElementById("imageToolJenisPlong");
+        const container = document.getElementById("imageToolPlongCountContainer");
+        if (!jenisEl || !container) return;
+    
+        const jenis = jenisEl.value;
+        container.style.display = jenis === "plong_per_jarak" ? "" : "none";
     }
 
     function togglePlongDiameterInputs() {
@@ -1889,6 +2000,10 @@
             const isColor = el.type === "color";
             const isSelect = el.tagName === "SELECT";
             const isNumber = el.type === "number";
+
+            if (el.type === "color") {
+                el.dataset.touched = "1";
+            }
 
             if (isColor || isSelect) {
                 el.value = String(value);
@@ -2414,10 +2529,18 @@
                     );
                     return;
                 }
+                const jenisPlongEl = document.getElementById("imageToolJenisPlong");
+                if (jenisPlongEl) {
+                    jenisPlongEl.addEventListener("change", togglePlongCountByJenis);
+                }
+                
+                resetImageToolsForm();
+                wireImageToolsColorTouchedFlag();
                 modalInstance.show();
                 loadFinishingTemplatesIntoSelect();
                 setTimeout(() => storeImageToolsInitialColorValues(), 0);
                 togglePlongDiameterInputs();
+                togglePlongCountByJenis();
                 updateImageToolsPreviews();
                 return;
             }
