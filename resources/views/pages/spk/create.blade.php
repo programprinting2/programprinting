@@ -650,6 +650,20 @@
                             <input type="text" class="form-control form-control-sm" id="fileImageArea" readonly>
                           </div>
                       </div>
+                      <div class="row mb-3">
+                          <div class="col-12">
+                              <div class="d-flex align-items-center gap-2">
+                                  <select class="form-select form-select-sm" id="quickTemplateSelect" style="max-width: 250px;">
+                                      <option value="">-- Pilih template finishing --</option>
+                                  </select>
+                                  <button type="button"
+                                      class="btn btn-sm btn-primary"
+                                      id="btnQuickApplyTemplate">
+                                      <i class="fa fa-magic me-1"></i> Apply Template
+                                  </button>
+                              </div>
+                          </div>
+                      </div>
                     </div>
 
                     {{-- Controls untuk File PDF --}}
@@ -1216,15 +1230,7 @@
                     <!-- Kolom 1: Jenis, Bentuk, Warna -->
                     <div class="col-md-6">
                       <h6 class="fw-semibold mb-2">Jenis & Bentuk</h6>
-                      <div class="mb-3">
-                        <label for="imageToolJenisPlong" class="form-label">Jenis</label>
-                        <select class="form-select" id="imageToolJenisPlong">
-                          <option value="">Pilih jenis</option>
-                          <option value="pojok">Pojok</option>
-                          <option value="plong_per_jarak">Plong per Jarak</option>
-                        </select>
-                        <small class="text-muted d-block mt-1">Pilih apakah plong hanya di pojok atau berulang per jarak.</small>
-                      </div>
+                      <input type="hidden" id="imageToolJenisPlong" value="plong_per_jarak">
                       <div class="mb-3">
                         <label for="imageToolBentukPlong" class="form-label">Bentuk</label>
                         <select class="form-select" id="imageToolBentukPlong">
@@ -1264,7 +1270,7 @@
                     </div>
 
                     <!-- Kolom 3: Ukuran & jumlah plong -->
-                    <div class="col-md-6" id="imageToolPlongCountContainer" style="display:none">
+                    <div class="col-md-6">
                         <h6 class="fw-semibold mb-3 text-center">Plong</h6>
                         <div class="p-3">
                           <div class="d-flex flex-column align-items-center">
@@ -1311,6 +1317,26 @@
                           <small class="text-muted d-block mt-3 text-center">
                             Jumlah lubang plong di setiap sisi.
                           </small>
+                          <div class="mt-3">
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" id="imageToolPlongLipat4">
+                              <label class="form-check-label small" for="imageToolPlongLipat4">
+                                Lipat Plong 4
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" id="imageToolPlongAtasPerM">
+                              <label class="form-check-label small" for="imageToolPlongAtasPerM">
+                                Atas per m
+                              </label>
+                            </div>
+                            <div class="form-check">
+                              <input class="form-check-input" type="checkbox" id="imageToolPlongBawahPojok">
+                              <label class="form-check-label small" for="imageToolPlongBawahPojok">
+                                Bawah Pojok
+                              </label>
+                            </div>
+                          </div>
                         </div>
                     </div>
                   </div>
