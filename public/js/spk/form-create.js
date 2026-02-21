@@ -1785,6 +1785,11 @@
             if (cb) cb.checked = false;
         });
 
+        ["imageToolAktifTeksPesan", "imageToolAktifDuplikasiLayout", "imageToolAktifKanvasLatar", "imageToolAktifPlong"].forEach((id) => {
+            const el = document.getElementById(id);
+            if (el) el.checked = false;
+        });
+
         textInputs.forEach((selector) => {
             const el = document.querySelector(selector);
             if (el) {
@@ -1923,6 +1928,25 @@
         }
     }
 
+    const PAYLOAD_KEYS_BY_TAB = {
+        teks: ["pesan", "warna_pesan", "ukuran_pesan", "posX_pesan", "posY_pesan", "rotasi_pesan"],
+        layout: ["CopyX", "CopyY", "jarak_gambarX", "jarak_gambarY", "rotasi_copy"],
+        kanvas: ["image_scale", "WarnaBackground", "WarnaGaris", "Lebihan_kiri", "Lebihan_kanan", "Lebihan_atas", "Lebihan_bawah", "UkuranGaris"],
+        plong: ["jenis_plong", "bentuk_plong", "warna_plong", "jarak_plong_atas", "jarak_plong_bawah", "jarak_plong_kiri", "jarak_plong_kanan", "diameter_lebar", "diameter_panjang", "Plong_atas", "Plong_bawah", "Plong_kiri", "Plong_kanan"],
+    };
+
+    const TAB_CHECKBOX_IDS = {
+        teks: "imageToolAktifTeksPesan",
+        layout: "imageToolAktifDuplikasiLayout",
+        kanvas: "imageToolAktifKanvasLatar",
+        plong: "imageToolAktifPlong",
+    };
+
+    function isTabPayloadEnabled(tabKey) {
+        const cb = document.getElementById(TAB_CHECKBOX_IDS[tabKey]);
+        return cb ? cb.checked : false;
+    }
+
     function buildImageToolsPayload() {
         const defaultFile = modalUploadedFiles[0];
         if (!defaultFile) {
@@ -1936,78 +1960,66 @@
 
         const payload = { AlamatFile: filepath };
 
-        // Field string
         const stringFields = [
-            { key: "pesan", selector: "#imageToolPesan" },
-            { key: "jenis_plong", selector: "#imageToolJenisPlong" },
-            { key: "bentuk_plong", selector: "#imageToolBentukPlong" },
+            { key: "pesan", tab: "teks", selector: "#imageToolPesan" },
+            { key: "jenis_plong", tab: "plong", selector: "#imageToolJenisPlong" },
+            { key: "bentuk_plong", tab: "plong", selector: "#imageToolBentukPlong" },
         ];
 
-        stringFields.forEach(({ key, selector }) => {
+        stringFields.forEach(({ key, tab, selector }) => {
+            if (!isTabPayloadEnabled(tab)) return;
             const v = getImageToolsStringValue(selector);
             if (v !== undefined) payload[key] = v;
         });
 
         const colorFields = [
-            { key: "warna_pesan", selector: "#imageToolWarnaPesan" },
-            { key: "WarnaBackground", selector: "#imageToolWarnaLatar" },
-            { key: "WarnaGaris", selector: "#imageToolWarnaGaris" },
-            { key: "warna_plong", selector: "#imageToolWarnaPlong" },
+            { key: "warna_pesan", tab: "teks", selector: "#imageToolWarnaPesan" },
+            { key: "WarnaBackground", tab: "kanvas", selector: "#imageToolWarnaLatar" },
+            { key: "WarnaGaris", tab: "kanvas", selector: "#imageToolWarnaGaris" },
+            { key: "warna_plong", tab: "plong", selector: "#imageToolWarnaPlong" },
         ];
 
-        colorFields.forEach(({ key, selector }) => {
+        colorFields.forEach(({ key, tab, selector }) => {
+            if (!isTabPayloadEnabled(tab)) return;
             const v = getImageToolsColorValue(selector);
             if (v !== undefined) payload[key] = v;
         });
 
-        // Field angka
         const numberFields = [
-            // Skala gambar
-            { key: "image_scale", selector: "#imageToolImageScale" },
-    
-            // Pesan
-            { key: "ukuran_pesan", selector: "#imageToolUkuranPesan" },
-            { key: "posX_pesan", selector: "#imageToolPosX" },
-            { key: "posY_pesan", selector: "#imageToolPosY" },
-            { key: "rotasi_pesan", selector: "#imageToolRotasiPesan" },
-    
-            // Duplikasi & jarak antar gambar
-            { key: "CopyX", selector: "#imageToolCopyX" },
-            { key: "CopyY", selector: "#imageToolCopyY" },
-            { key: "jarak_gambarX", selector: "#imageToolJarakX" },
-            { key: "jarak_gambarY", selector: "#imageToolJarakY" },
-            { key: "rotasi_copy", selector: "#imageToolRotasiCopy" },
-    
-            // Lebihan & garis
-            { key: "Lebihan_kiri", selector: "#imageToolLebihanKiri" },
-            { key: "Lebihan_kanan", selector: "#imageToolLebihanKanan" },
-            { key: "Lebihan_atas", selector: "#imageToolLebihanAtas" },
-            { key: "Lebihan_bawah", selector: "#imageToolLebihanBawah" },
-            { key: "UkuranGaris", selector: "#imageToolUkuranGaris" },
-    
-            // Plong – jarak dari tepi
-            { key: "jarak_plong_atas", selector: "#imageToolJarakPlong" },
-            { key: "jarak_plong_bawah", selector: "#imageToolJarakPlong" },
-            { key: "jarak_plong_kiri", selector: "#imageToolJarakPlong" },
-            { key: "jarak_plong_kanan", selector: "#imageToolJarakPlong" },
-    
-            // Plong – ukuran lubang
-            { key: "diameter_lebar", selector: "#imageToolDiameterLebar" },
-            { key: "diameter_panjang", selector: "#imageToolDiameterPanjang" },
-    
-            // Plong – jumlah per sisi
-            { key: "Plong_atas", selector: "#imageToolPlongAtas" },
-            { key: "Plong_bawah", selector: "#imageToolPlongBawah" },
-            { key: "Plong_kiri", selector: "#imageToolPlongKiri" },
-            { key: "Plong_kanan", selector: "#imageToolPlongKanan" },
+            { key: "image_scale", tab: "kanvas", selector: "#imageToolImageScale" },
+            { key: "ukuran_pesan", tab: "teks", selector: "#imageToolUkuranPesan" },
+            { key: "posX_pesan", tab: "teks", selector: "#imageToolPosX" },
+            { key: "posY_pesan", tab: "teks", selector: "#imageToolPosY" },
+            { key: "rotasi_pesan", tab: "teks", selector: "#imageToolRotasiPesan" },
+            { key: "CopyX", tab: "layout", selector: "#imageToolCopyX" },
+            { key: "CopyY", tab: "layout", selector: "#imageToolCopyY" },
+            { key: "jarak_gambarX", tab: "layout", selector: "#imageToolJarakX" },
+            { key: "jarak_gambarY", tab: "layout", selector: "#imageToolJarakY" },
+            { key: "rotasi_copy", tab: "layout", selector: "#imageToolRotasiCopy" },
+            { key: "Lebihan_kiri", tab: "kanvas", selector: "#imageToolLebihanKiri" },
+            { key: "Lebihan_kanan", tab: "kanvas", selector: "#imageToolLebihanKanan" },
+            { key: "Lebihan_atas", tab: "kanvas", selector: "#imageToolLebihanAtas" },
+            { key: "Lebihan_bawah", tab: "kanvas", selector: "#imageToolLebihanBawah" },
+            { key: "UkuranGaris", tab: "kanvas", selector: "#imageToolUkuranGaris" },
+            { key: "jarak_plong_atas", tab: "plong", selector: "#imageToolJarakPlong" },
+            { key: "jarak_plong_bawah", tab: "plong", selector: "#imageToolJarakPlong" },
+            { key: "jarak_plong_kiri", tab: "plong", selector: "#imageToolJarakPlong" },
+            { key: "jarak_plong_kanan", tab: "plong", selector: "#imageToolJarakPlong" },
+            { key: "diameter_lebar", tab: "plong", selector: "#imageToolDiameterLebar" },
+            { key: "diameter_panjang", tab: "plong", selector: "#imageToolDiameterPanjang" },
+            { key: "Plong_atas", tab: "plong", selector: "#imageToolPlongAtas" },
+            { key: "Plong_bawah", tab: "plong", selector: "#imageToolPlongBawah" },
+            { key: "Plong_kiri", tab: "plong", selector: "#imageToolPlongKiri" },
+            { key: "Plong_kanan", tab: "plong", selector: "#imageToolPlongKanan" },
         ];
 
-        numberFields.forEach(({ key, selector }) => {
+        numberFields.forEach(({ key, tab, selector }) => {
+            if (!isTabPayloadEnabled(tab)) return;
             const v = getImageToolsNumberValue(selector);
             if (v !== undefined) payload[key] = v;
         });
 
-        if (payload.image_scale === undefined) {
+        if (payload.image_scale === undefined && isTabPayloadEnabled("kanvas")) {
             payload.image_scale = 100;
         }
 

@@ -1031,6 +1031,24 @@
                   <i class="fa fa-folder-open me-1"></i> Load
                 </button>
               </div>
+              <div class="d-flex flex-wrap gap-3 mb-2">
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="imageToolAktifTeksPesan">
+                  <label class="form-check-label small" for="imageToolAktifTeksPesan">Aktifkan Teks & Pesan</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="imageToolAktifDuplikasiLayout">
+                  <label class="form-check-label small" for="imageToolAktifDuplikasiLayout">Aktifkan Duplikasi & Layout</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="imageToolAktifKanvasLatar">
+                  <label class="form-check-label small" for="imageToolAktifKanvasLatar">Aktifkan Kanvas & Latar</label>
+                </div>
+                <div class="form-check form-check-inline">
+                  <input class="form-check-input" type="checkbox" id="imageToolAktifPlong">
+                  <label class="form-check-label small" for="imageToolAktifPlong">Aktifkan Plong</label>
+                </div>
+              </div>
               <ul class="nav nav-tabs" id="imageToolsTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                   <button class="nav-link active" id="tab-teks" data-bs-toggle="tab" data-bs-target="#pane-teks"
