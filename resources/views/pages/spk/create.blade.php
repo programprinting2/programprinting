@@ -1074,29 +1074,29 @@
                     <div class="col-md-6">
                       <div class="mb-3">
                         <label for="imageToolPesan" class="form-label">Pesan</label>
-                        <input type="text" class="form-control" id="imageToolPesan" placeholder="Masukkan pesan">
+                        <input type="text" class="form-control" id="imageToolPesan" placeholder="Masukkan pesan" value="POLOS">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolUkuranPesan" class="form-label">Ukuran Pesan (pt)</label>
                         <input type="number" class="form-control" id="imageToolUkuranPesan" placeholder="Misal 1.5"
-                          step="0.1">
+                          step="0.1" value="0.8">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolWarnaPesan" class="form-label">Warna Pesan</label>
                         <input type="color" class="form-control form-control-color" id="imageToolWarnaPesan"
-                          title="Pilih warna">
+                          title="Pilih warna" value="#000000">
                       </div>
                     </div>
                     <div class="col-md-6">
                       <div class="mb-3">
                         <label for="imageToolPosX" class="form-label">Posisi X (cm)</label>
                         <input type="number" class="form-control" id="imageToolPosX" placeholder="Posisi X (cm)" step="0.05" min="0"
-                          max="1">
+                          max="1" value="3">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolPosY" class="form-label">Posisi Y (cm)</label>
                         <input type="number" class="form-control" id="imageToolPosY" placeholder="Posisi Y (cm)" step="0.05" min="0"
-                          max="1">
+                          max="1" value="1">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolRotasiPesan" class="form-label">Orientasi Pesan</label>
@@ -1117,12 +1117,12 @@
                       <div class="mb-3">
                         <label for="imageToolCopyX" class="form-label">Jumlah Kolom (X)</label>
                         <input type="number" class="form-control" id="imageToolCopyX" placeholder="Masukkan jumlah kolom"
-                          min="1">
+                          min="1" value="2">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolCopyY" class="form-label">Jumlah Baris (Y)</label>
                         <input type="number" class="form-control" id="imageToolCopyY" placeholder="Masukkan jumlah baris"
-                          min="1">
+                          min="1" value="2">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolRotasiCopy" class="form-label">Orientasi Tiap Gambar</label>
@@ -1137,12 +1137,12 @@
                       <div class="mb-3">
                         <label for="imageToolJarakX" class="form-label">Jarak Horizontal (cm)</label>
                         <input type="number" class="form-control" id="imageToolJarakX" placeholder="Masukkan jarak"
-                          step="0.1">
+                          step="0.1" value="0">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolJarakY" class="form-label">Jarak Vertikal (cm)</label>
                         <input type="number" class="form-control" id="imageToolJarakY" placeholder="Masukkan jarak"
-                          step="0.1">
+                          step="0.1" value="0">
                       </div>
                     </div>
                   </div>
@@ -1168,7 +1168,7 @@
                                 class="form-control text-center" 
                                 id="imageToolLebihanAtas" 
                                 placeholder="cm" 
-                                step="0.1">
+                                step="0.1" value="2.5">
                         </div>
                         <div class="d-flex align-items-center justify-content-center gap-3">
                           <div style="width:120px;">
@@ -1176,7 +1176,7 @@
                                   class="form-control text-center" 
                                   id="imageToolLebihanKiri" 
                                   placeholder="cm" 
-                                  step="0.1">
+                                  step="0.1" value="2.5">
                           </div>
 
                           <!-- FOTO PREVIEW -->
@@ -1189,7 +1189,7 @@
                                   class="form-control text-center" 
                                   id="imageToolLebihanKanan" 
                                   placeholder="cm" 
-                                  step="0.1">
+                                  step="0.1" value="2.5">
                           </div>
                         </div>
 
@@ -1198,7 +1198,7 @@
                                 class="form-control text-center" 
                                 id="imageToolLebihanBawah" 
                                 placeholder="cm" 
-                                step="0.1">
+                                step="0.1" value="2.5">
                         </div>
                       </div>
                     </div>
@@ -1212,7 +1212,7 @@
                           <input type="color"
                                 class="form-control form-control-color w-100"
                                 id="imageToolWarnaLatar"
-                                title="Pilih warna">
+                                title="Pilih warna" value="#ffffff">
                         </div>
 
                         <div class="col-md-6">
@@ -1222,13 +1222,13 @@
                           <input type="color"
                                 class="form-control form-control-color w-100"
                                 id="imageToolWarnaGaris"
-                                title="Pilih warna">
+                                title="Pilih warna" value="#000000">
                         </div>
                       </div>
                       <div class="mb-3">
                         <label for="imageToolUkuranGaris" class="form-label">Ukuran Garis (cm)</label>
                         <input type="number" class="form-control" id="imageToolUkuranGaris" placeholder="Masukkan ukuran"
-                          step="0.01">
+                          step="0.01" value="1">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolImageScale" class="form-label">Skala Gambar (%)</label>
@@ -1259,7 +1259,7 @@
                       </div>
                       <div class="mb-3">
                         <label for="imageToolWarnaPlong" class="form-label">Warna Plong</label>
-                        <input type="color" class="form-control form-control-color" id="imageToolWarnaPlong" title="Pilih warna">
+                        <input type="color" class="form-control form-control-color" id="imageToolWarnaPlong" title="Pilih warna" value="#ffffff">
                       </div>
                     </div>
 
@@ -1269,14 +1269,14 @@
                         <h6 class="fw-semibold mb-2">Jarak Plong dari Tepi (cm)</h6>
                         <div class="input-group mb-2">
                           <span class="input-group-text" style="width: 80px;">Jarak Plong</span>
-                          <input type="number" class="form-control" id="imageToolJarakPlong" placeholder="cm" step="0.1">
+                          <input type="number" class="form-control" id="imageToolJarakPlong" placeholder="cm" step="0.1" value="2">
                           <span class="input-group-text">cm</span>
                         </div>
 
                         <h6 class="fw-semibold mb-2">Ukuran Plong</h6>
                         <div class="input-group mb-2">
                           <span class="input-group-text" style="width: 120px;">Diameter Lebar</span>
-                          <input type="number" class="form-control" id="imageToolDiameterLebar" placeholder="cm" step="0.1">
+                          <input type="number" class="form-control" id="imageToolDiameterLebar" placeholder="cm" step="0.1" value="1">
                           <span class="input-group-text">cm</span>
                         </div>
                         <div class="input-group mb-3" id="imageToolDiameterPanjangContainer">
@@ -1391,6 +1391,7 @@
           </div>
 
           <div>
+            <button type="button" class="btn btn-danger" id="btnResetImageTools">Reset</button>
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
             <button type="button" class="btn btn-primary" id="btnApplyImageTools">Terapkan Perubahan</button>
           </div>

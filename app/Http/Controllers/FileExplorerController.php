@@ -106,25 +106,52 @@ class FileExplorerController extends Controller
             abort(403, 'Tipe file tidak didukung untuk preview.');
         }
 
+        // ETag & Last-Modified berdasarkan path + mtime + size agar cache invalid saat isi file berubah
+        $mtime = filemtime($realPath);
+        $size = filesize($realPath);
+        $etag = '"' . md5($realPath . $mtime . $size) . '"';
+        $lastModified = gmdate('D, d M Y H:i:s \G\M\T', $mtime);
+
+        $request->headers->set('If-None-Match', $request->header('If-None-Match'));
+        if ($request->header('If-None-Match') === $etag) {
+            return response('', 304)->withHeaders([
+                'Cache-Control' => 'private, max-age=0, must-revalidate',
+                'ETag' => $etag,
+                'Last-Modified' => $lastModified,
+            ]);
+        }
+        if ($request->header('If-Modified-Since') === $lastModified) {
+            return response('', 304)->withHeaders([
+                'Cache-Control' => 'private, max-age=0, must-revalidate',
+                'ETag' => $etag,
+                'Last-Modified' => $lastModified,
+            ]);
+        }
+
+        $headers = [
+            'Cache-Control' => 'private, max-age=0, must-revalidate',
+            'ETag' => $etag,
+            'Last-Modified' => $lastModified,
+        ];
+
         if ($mime === 'application/pdf') {
-            return response()->file($realPath, ['Content-Type' => $mime, 'Cache-Control' => 'public, max-age=604800']);
+            return response()->file($realPath, array_merge($headers, ['Content-Type' => $mime]));
         }
 
         try {
             $img = Image::read($realPath)
                 ->scaleDown(width: 1024)
                 ->toWebp(quality: 70);
-                
-                return response($img->toString(), 200, [
-                    'Content-Type' => 'image/webp',
-                    'Cache-Control' => 'public, max-age=604800',
-                ]);
+
+            return response($img->toString(), 200, array_merge($headers, [
+                'Content-Type' => 'image/webp',
+            ]));
         } catch (\Exception $e) {
-            return response()->stream(function() use ($realPath) {
+            return response()->stream(function () use ($realPath) {
                 $stream = fopen($realPath, 'rb');
                 fpassthru($stream);
                 fclose($stream);
-            }, 200, ['Content-Type' => $mime]);
+            }, 200, array_merge($headers, ['Content-Type' => $mime]));
         }
     }
 

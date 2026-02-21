@@ -1750,83 +1750,75 @@
         return imageToolsModalInstance;
     }
 
+    const IMAGE_TOOLS_DEFAULTS = {
+        "#imageToolPesan": "POLOS",
+        "#imageToolJenisPlong": "plong_per_jarak",
+        "#imageToolBentukPlong": "circle",
+        "#imageToolImageScale": "100",
+        "#imageToolUkuranPesan": "0.8",
+        "#imageToolPosX": "3",
+        "#imageToolPosY": "1",
+        "#imageToolRotasiPesan": "0",
+        "#imageToolCopyX": "2",
+        "#imageToolCopyY": "2",
+        "#imageToolJarakX": "0",
+        "#imageToolJarakY": "0",
+        "#imageToolRotasiCopy": "0",
+        "#imageToolLebihanKiri": "2.5",
+        "#imageToolLebihanKanan": "2.5",
+        "#imageToolLebihanAtas": "2.5",
+        "#imageToolLebihanBawah": "2.5",
+        "#imageToolLebihanKeliling": "2.5",
+        "#imageToolUkuranGaris": "1",
+        "#imageToolJarakPlong": "2",
+        "#imageToolDiameterLebar": "1",
+        "#imageToolDiameterPanjang": "0",
+        "#imageToolPlongAtas": "0",
+        "#imageToolPlongBawah": "0",
+        "#imageToolPlongKiri": "0",
+        "#imageToolPlongKanan": "0",
+        "#imageToolWarnaPesan": "#000000",
+        "#imageToolWarnaLatar": "#ffffff",
+        "#imageToolWarnaGaris": "#000000",
+        "#imageToolWarnaPlong": "#ffffff",
+    };
+
     function resetImageToolsForm() {
-        const textInputs = [
-            "#imageToolPesan",
-            "#imageToolJenisPlong",
-            "#imageToolBentukPlong",
-            "#imageToolImageScale",
-            "#imageToolUkuranPesan",
-            "#imageToolPosX",
-            "#imageToolPosY",
-            "#imageToolRotasiPesan",
-            "#imageToolCopyX",
-            "#imageToolCopyY",
-            "#imageToolJarakX",
-            "#imageToolJarakY",
-            "#imageToolRotasiCopy",
-            "#imageToolLebihanKiri",
-            "#imageToolLebihanKanan",
-            "#imageToolLebihanAtas",
-            "#imageToolLebihanBawah",
-            "#imageToolLebihanKeliling",
-            "#imageToolUkuranGaris",
-            "#imageToolJarakPlong",
-            "#imageToolDiameterLebar",
-            "#imageToolDiameterPanjang",
-            "#imageToolPlongAtas",
-            "#imageToolPlongBawah",
-            "#imageToolPlongKiri",
-            "#imageToolPlongKanan",
-        ];
-
-        ["imageToolPlongLipat4", "imageToolPlongAtasPerM", "imageToolPlongBawahPojok"].forEach((id) => {
-            const cb = document.getElementById(id);
-            if (cb) cb.checked = false;
-        });
-
+        // Reset checkbox tab
         ["imageToolAktifTeksPesan", "imageToolAktifDuplikasiLayout", "imageToolAktifKanvasLatar", "imageToolAktifPlong"].forEach((id) => {
             const el = document.getElementById(id);
             if (el) el.checked = false;
         });
 
-        textInputs.forEach((selector) => {
+        // Reset checkbox plong
+        ["imageToolPlongLipat4", "imageToolPlongAtasPerM", "imageToolPlongBawahPojok"].forEach((id) => {
+            const cb = document.getElementById(id);
+            if (cb) cb.checked = false;
+        });
+
+        Object.entries(IMAGE_TOOLS_DEFAULTS).forEach(([selector, defaultVal]) => {
             const el = document.querySelector(selector);
-            if (el) {
-                if (el.type === "number") {
-                    el.value = "";
-                } else if (el.tagName === "SELECT") {
-                    el.selectedIndex = 0; 
+            if (!el) return;
+            if (el.type === "color") {
+                el.value = defaultVal;
+            } else if (el.tagName === "SELECT") {
+                const opt = el.querySelector(`option[value="${defaultVal}"]`);
+                if (opt) {
+                    opt.selected = true;
                 } else {
-                    el.value = "";
+                    el.selectedIndex = 0;
                 }
+            } else {
+                el.value = defaultVal;
             }
         });
 
-        // Reset color inputs ke default (#000000)
-        const colorInputs = [
-            "#imageToolWarnaPesan",
-            "#imageToolWarnaLatar",
-            "#imageToolWarnaGaris",
-            "#imageToolWarnaPlong",
-        ];
-
-        colorInputs.forEach((selector) => {
-            const el = document.querySelector(selector);
-            if (el && el.type === "color") {
-                el.value = "#000000";
-            }
-        });
-
-        // Reset template name input
+        // Reset template name & select
         const templateNameInput = document.getElementById("imageToolTemplateName");
         if (templateNameInput) templateNameInput.value = "";
-
-        // Reset template select
         const templateSelect = document.getElementById("imageToolTemplateSelect");
         if (templateSelect) templateSelect.value = "";
 
-        // Reset tab ke tab pertama (Teks & Pesan)
         const firstTab = document.getElementById("tab-teks");
         if (firstTab) {
             const tabInstance = window.bootstrap?.Tab?.getInstance(firstTab);
@@ -1836,6 +1828,8 @@
                 firstTab.click();
             }
         }
+
+        togglePlongDiameterInputs();
     }
 
     function updateImageToolsPreviews() {
@@ -2723,6 +2717,12 @@
                         );
                     }
                 })();
+            }
+
+            if (e.target.closest("#btnResetImageTools")) {
+                e.preventDefault();
+                resetImageToolsForm();
+                return;
             }
 
             if (e.target.closest("#btnQuickApplyTemplate")) {
