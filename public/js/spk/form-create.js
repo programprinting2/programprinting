@@ -1734,12 +1734,6 @@
         return Number.isNaN(num) ? undefined : num;
     }
 
-    function getFileNameFromPath(path) {
-        if (!path) return "";
-        const parts = path.split(/[\\/]/);
-        return parts[parts.length - 1] || path;
-    }
-
     function getImageToolsModalInstance() {
         if (!imageToolsModalInstance) {
             const el = document.getElementById("modalImageTools");
@@ -2663,30 +2657,6 @@
                         const data = await response.json();
 
                         if (data && data.status === "success" && data.output_path) {
-                            const defaultFile = modalUploadedFiles[0];
-
-                            const newName = getFileNameFromPath(data.output_path) || (defaultFile?.name || "Processed File");
-
-                            // Cek apakah sudah ada nama yang sama
-                            const existingIndex = modalUploadedFiles.findIndex(
-                                (f) => (f.name || "").toLowerCase() === newName.toLowerCase()
-                            );
-
-                            if (existingIndex === -1) {
-                                modalUploadedFiles.push({
-                                    name: newName,
-                                    path: data.output_path,
-                                    size: defaultFile?.size || 0,
-                                    type: defaultFile?.type || "image",
-                                    source: "local",
-                                });
-                            } else {
-                                modalUploadedFiles[existingIndex] = {
-                                    ...modalUploadedFiles[existingIndex],
-                                    path: data.output_path,
-                                };
-                            }
-
                             renderModalUploadedFiles();
                             updateModalSummary();
                             renderOrderanPreviewTab();
@@ -2792,30 +2762,6 @@
                             const data = await response.json();
 
                             if (data && data.status === "success" && data.output_path) {
-                                const newName = getFileNameFromPath(data.output_path) || (defaultFile?.name || "Processed File");
-
-                                const existingIndex = modalUploadedFiles.findIndex(
-                                    (f) => (f.name || "").toLowerCase() === newName.toLowerCase()
-                                );
-
-                                if (existingIndex === -1) {
-                                    modalUploadedFiles.push({
-                                        name: newName,
-                                        path: data.output_path,
-                                        size: defaultFile?.size || 0,
-                                        type: defaultFile?.type || "image",
-                                        source: "local",
-                                    });
-                                } else {
-                                    modalUploadedFiles[existingIndex] = {
-                                        name: newName,
-                                        path: data.output_path,
-                                        size: defaultFile?.size || 0,
-                                        type: defaultFile?.type || "image",
-                                        source: "local",
-                                    };
-                                }
-
                                 renderModalUploadedFiles();
                                 updateModalSummary();
                                 renderOrderanPreviewTab();
@@ -3801,6 +3747,21 @@
         }
     }
 
+    function getOutputPathForPreview(currentPath) {
+        if (!currentPath || typeof currentPath !== "string") return "";
+        console.log(currentPath);
+        return currentPath.replace(/(\.[^/.]+)$/, "_output$1");
+    }
+
+    function checkOutputFileExists(outputPath) {
+        if (!outputPath) return Promise.resolve(false);
+        console.log(outputPath);
+        return fetch(`/backend/file-exists?path=${encodeURIComponent(outputPath)}`)
+            .then((r) => r.json())
+            .then((data) => data.success && data.exists === true)
+            .catch(() => false);
+    }
+
     function renderOrderanPreviewTab() {
         updateImageToolsPreviews();
         loadQuickTemplatesIntoSelect();
@@ -3907,23 +3868,40 @@
                             showImageControls();
                             resetModalJumlahInput();
 
-                            infoEl.innerHTML = `
-                                <div class="card border-light shadow-sm p-3 mb-3">
-                                    <div class="row small text-dark">
-                                        <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi ? d.dpi.split("x")[0] : "-"}</div>
-                                        <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${
-                                            d.size_mb != null
-                                                ? d.size_mb + " MB"
-                                                : d.size_bytes != null
-                                                  ? (
-                                                        d.size_bytes / 1024
-                                                    ).toFixed(1) + " KB"
-                                                  : "-"
-                                        }</div>
-                                        <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || "-"}</div>
+                            const outputPath = getOutputPathForPreview(path);
+                            checkOutputFileExists(outputPath).then((hasOutput) => {
+                                const outputFileLabel = hasOutput
+                                    ? `Yes <button type="button" class="btn btn-link btn-sm p-0 ms-1 align-baseline" id="btnPreviewOutputFile" data-output-path="${outputPath.replace(/"/g, '&quot;')}" title="Preview file _output"><i class="fas fa-external-link-alt"></i></button>`
+                                    : "No";
+
+                                infoEl.innerHTML = `
+                                    <div class="card border-light shadow-sm p-3 mb-3">
+                                        <div class="row small text-dark">
+                                            <div class="col-6 mb-2"><strong>DPI:</strong> ${d.dpi ? d.dpi.split("x")[0] : "-"}</div>
+                                            <div class="col-6 mb-2"><strong>Ukuran file:</strong> ${
+                                                d.size_mb != null
+                                                    ? d.size_mb + " MB"
+                                                    : d.size_bytes != null
+                                                        ? (d.size_bytes / 1024).toFixed(1) + " KB"
+                                                        : "-"
+                                            }</div>
+                                            <div class="col-6 mb-2"><strong>Color mode:</strong> ${d.color_mode || "-"}</div>
+                                            <div class="col-6 mb-2"><strong>Output File:</strong> ${outputFileLabel}</div>
+                                        </div>
                                     </div>
-                                </div>
-                            `;
+                                `;
+
+                                const btnOutput = document.getElementById("btnPreviewOutputFile");
+                                if (btnOutput) {
+                                    btnOutput.addEventListener("click", function (ev) {
+                                        ev.preventDefault();
+                                        const outPath = btnOutput.getAttribute("data-output-path");
+                                        if (!outPath) return;
+                                        const previewUrl = `/backend/preview-file?path=${encodeURIComponent(outPath)}`;
+                                        window.open(previewUrl, "_blank", "noopener,noreferrer");
+                                    });
+                                }
+                            });
                         })
                         .catch(() => {
                             infoEl.innerHTML =
