@@ -3843,7 +3843,7 @@
                 !(defaultFile.file instanceof File);
             container.innerHTML = `
                 <div class="w-100 text-center">
-                    <img id="previewImage" src="${url}" style="max-height: 300px; width: auto; transform: rotate(${imageRotationDegrees}deg); transform-origin: center; transition: transform .15s ease;" class="img-fluid rounded" alt="${defaultFile.name || ""}  ">
+                    <img id="previewImage" src="${url}" style="max-height: 300px; max-width: 80%; width: auto; transform: rotate(${imageRotationDegrees}deg); transform-origin: center; transition: transform .15s ease;" class="img-fluid rounded" alt="${defaultFile.name || ""}  ">
                 </div>
             `;
             const infoEl = document.getElementById("orderanPreviewFileInfo");
