@@ -96,27 +96,45 @@ class SpkService
                 'tanggal_spk' => $data['tanggal_spk'],
                 'pelanggan_id' => $data['pelanggan_id'],
                 'catatan' => $data['catatan'] ?? null,
+                'status' => $data['status'] ?? $spk->status,
                 'updated_by' => auth()->id(),
             ];
 
             $this->spkRepository->update($id, $updateData);
 
+            if (!empty($data['items']) && is_array($data['items'])) {
+
+                // Hapus semua item lama
+                $oldItems = $this->spkItemRepository->getBySpk($id);
+                foreach ($oldItems as $oldItem) {
+                    $this->spkItemRepository->delete($oldItem->id);
+                }
+
+                foreach ($data['items'] as $itemData) {
+                    $this->createSpkItem($id, $itemData);
+                }
+            }
+            $spk = $this->spkRepository->findWithRelations($id);
+            if ($spk) {
+                $spk->updateTotalBiaya();
+            }
+
             DB::commit();
 
             Log::info('SPK updated successfully', [
                 'spk_id' => $id,
-                'pelanggan_id' => $data['pelanggan_id']
+                'pelanggan_id' => $data['pelanggan_id'],
             ]);
 
-            return $this->spkRepository->findWithRelations($id);
-
+            return $spk;
         } catch (\Exception $e) {
             DB::rollback();
             Log::error('Failed to update SPK', [
                 'spk_id' => $id,
                 'error' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
+
             throw new InvalidSpkDataException('Gagal mengupdate SPK: ' . $e->getMessage());
         }
     }

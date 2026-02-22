@@ -59,7 +59,7 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function findWithRelations(int $id): ?SPK
     {
-        return $this->model->with(['pelanggan', 'items.produk', 'createdBy', 'updatedBy', 'activityLogs'])->find($id);
+        return $this->model->with(['pelanggan', 'items.produk', 'items.produk.satuan', 'createdBy', 'updatedBy', 'activityLogs'])->find($id);
     }
 
     public function findByNomor(string $nomor): ?SPK

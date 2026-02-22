@@ -344,6 +344,48 @@
 
     // --- Init ---
     document.addEventListener("DOMContentLoaded", () => {
+        if (window.SPK_EDIT_INITIAL) {
+            const initial = window.SPK_EDIT_INITIAL;
+
+            if (Array.isArray(initial.items) && initial.items.length) {
+                itemsData = initial.items.map((item) => {
+                    return {
+                        ...item,
+                        tugasProduksi:
+                            item.tugasProduksi || item.tugas_produksi || [],
+                        filePendukung:
+                            item.filePendukung ||
+                            item.file_pendukung ||
+                            item.files ||
+                            [],
+                        files:
+                            item.files ||
+                            item.file_pendukung ||
+                            item.filePendukung ||
+                            [],
+                        tipe_finishing: item.tipe_finishing || [],
+                    };
+                });
+            }
+
+            if (initial.customer) {
+                const c = initial.customer;
+                if (el.namaCustomerInput()) {
+                    el.namaCustomerInput().value =
+                        (c.nama || "") + (c.kode ? ` [${c.kode}]` : "");
+                }
+                if (el.customerIdInput()) {
+                    el.customerIdInput().value = c.id || "";
+                }
+                const kategoriEl = document.getElementById(
+                    "customerKategoriHarga",
+                );
+                if (kategoriEl) {
+                    kategoriEl.value = c.kategori_harga || "Umum";
+                }
+            }
+        }
+
         wireGlobalDelegates();
         initFileUpload();
         initExternalModals();

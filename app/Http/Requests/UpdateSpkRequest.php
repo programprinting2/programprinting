@@ -2,43 +2,20 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
-
-class UpdateSpkRequest extends FormRequest
+class UpdateSpkRequest extends StoreSpkRequest
 {
-    public function authorize(): bool
-    {
-        return true;
-    }
-
     public function rules(): array
     {
-        return [
-            'pelanggan_id' => 'required|exists:pelanggan,id',
-            'status' => 'nullable|string|in:draft,proses_bayar,proses_produksi,sudah_cetak,siap_antar',
-            'tanggal_spk' => 'required|date|before_or_equal:today',
-            'catatan' => 'nullable|string|max:1000',
-        ];
+        $rules = parent::rules();
+        $rules['tanggal_spk'] .= '|before_or_equal:today';
+
+        return $rules;
     }
 
     public function messages(): array
     {
-        return [
-            'pelanggan_id.required' => 'Pelanggan harus dipilih',
-            'pelanggan_id.exists' => 'Pelanggan tidak ditemukan',
-            'tanggal_spk.required' => 'Tanggal SPK harus diisi',
+        return array_merge(parent::messages(), [
             'tanggal_spk.before_or_equal' => 'Tanggal SPK tidak boleh di masa depan',
-            'catatan.max' => 'Catatan maksimal 1000 karakter',
-        ];
+        ]);
     }
 }
-
-
-
-
-
-
-
-
-
-
