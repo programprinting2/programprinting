@@ -32,7 +32,7 @@
 
     // --- State Global ---
     let itemsData = [];
-    let tugasProduksiTabData = [];
+    // let tugasProduksiTabData = [];
     let filePendukungData = [];
 
     let editItemIndex = null;
@@ -390,7 +390,7 @@
         initFileUpload();
         initExternalModals();
         renderItemCards();
-        updateTugasTabTable();
+        // updateTugasTabTable();
         renderFilePendukungTable();
         initModalTambahItem();
     });
@@ -447,54 +447,54 @@
         }
 
         // Tugas Produksi - Tab
-        if (
-            e.target.closest("#btnTambahTugasTab") ||
-            e.target.closest("#btnTambahTugasPertama")
-        ) {
-            editTugasTabIndex = null;
-            if (el.formTugas()) el.formTugas().reset();
-            if (el.modalTugasLabel())
-                el.modalTugasLabel().textContent = "Tambah Tugas Produksi";
-            const btnSimpan = document.getElementById("btnSimpanTugas");
-            if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
-            new bootstrap.Modal(el.modalTugas()).show();
-            return;
-        }
+        // if (
+        //     e.target.closest("#btnTambahTugasTab") ||
+        //     e.target.closest("#btnTambahTugasPertama")
+        // ) {
+        //     editTugasTabIndex = null;
+        //     if (el.formTugas()) el.formTugas().reset();
+        //     if (el.modalTugasLabel())
+        //         el.modalTugasLabel().textContent = "Tambah Tugas Produksi";
+        //     const btnSimpan = document.getElementById("btnSimpanTugas");
+        //     if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
+        //     new bootstrap.Modal(el.modalTugas()).show();
+        //     return;
+        // }
 
-        // Edit tugas di tab
-        if (e.target.closest(".btn-edit-tugas-tab")) {
-            const idx = parseInt(
-                e.target
-                    .closest(".btn-edit-tugas-tab")
-                    .getAttribute("data-idx"),
-            );
-            editTugasTabIndex = idx;
-            const tugas = tugasProduksiTabData[idx];
-            if (!tugas) return;
-            el.inputNamaTugas().value = tugas.nama;
-            el.inputDitugaskan().value = tugas.ditugaskan;
-            el.inputMesin().value = tugas.mesin || "";
-            el.inputWaktu().value = tugas.waktu;
-            el.inputHarga().value = tugas.harga;
-            el.inputDeskripsi().value = tugas.deskripsi || "";
-            el.modalTugasLabel().textContent = "Edit Tugas Produksi";
-            const btnSimpan = document.getElementById("btnSimpanTugas");
-            if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
-            new bootstrap.Modal(el.modalTugas()).show();
-            return;
-        }
+        // // Edit tugas di tab
+        // if (e.target.closest(".btn-edit-tugas-tab")) {
+        //     const idx = parseInt(
+        //         e.target
+        //             .closest(".btn-edit-tugas-tab")
+        //             .getAttribute("data-idx"),
+        //     );
+        //     editTugasTabIndex = idx;
+        //     const tugas = tugasProduksiTabData[idx];
+        //     if (!tugas) return;
+        //     el.inputNamaTugas().value = tugas.nama;
+        //     el.inputDitugaskan().value = tugas.ditugaskan;
+        //     el.inputMesin().value = tugas.mesin || "";
+        //     el.inputWaktu().value = tugas.waktu;
+        //     el.inputHarga().value = tugas.harga;
+        //     el.inputDeskripsi().value = tugas.deskripsi || "";
+        //     el.modalTugasLabel().textContent = "Edit Tugas Produksi";
+        //     const btnSimpan = document.getElementById("btnSimpanTugas");
+        //     if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
+        //     new bootstrap.Modal(el.modalTugas()).show();
+        //     return;
+        // }
 
-        // Hapus tugas di tab
-        if (e.target.closest(".btn-delete-tugas-tab")) {
-            const idx = parseInt(
-                e.target
-                    .closest(".btn-delete-tugas-tab")
-                    .getAttribute("data-idx"),
-            );
-            tugasProduksiTabData.splice(idx, 1);
-            updateTugasTabTable();
-            return;
-        }
+        // // Hapus tugas di tab
+        // if (e.target.closest(".btn-delete-tugas-tab")) {
+        //     const idx = parseInt(
+        //         e.target
+        //             .closest(".btn-delete-tugas-tab")
+        //             .getAttribute("data-idx"),
+        //     );
+        //     tugasProduksiTabData.splice(idx, 1);
+        //     updateTugasTabTable();
+        //     return;
+        // }
 
         // File pendukung - browse
         if (
@@ -698,84 +698,84 @@
                 return;
             }
             // Tambah tugas per item
-            if (e.target.closest(".btn-tambah-tugas-item")) {
-                const idx = parseInt(
-                    e.target
-                        .closest(".btn-tambah-tugas-item")
-                        .getAttribute("data-idx"),
-                );
-                itemTugasEditIndex = idx;
-                itemTugasEditTaskIndex = null;
-                if (el.formTugas()) el.formTugas().reset();
-                const item = itemsData[idx];
-                if (el.modalTugasLabel())
-                    el.modalTugasLabel().textContent =
-                        "Tambah Tugas Produksi untuk: " +
-                        (item?.nama_produk || "Item");
-                const btnSimpan = document.getElementById("btnSimpanTugas");
-                if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
-                new bootstrap.Modal(el.modalTugas()).show();
-                return;
-            }
-            // Edit tugas per item
-            if (
-                e.target.closest(".btn-edit-tugas-item") &&
-                e.target
-                    .closest(".btn-edit-tugas-item")
-                    .hasAttribute("data-tugas")
-            ) {
-                const idx = parseInt(
-                    e.target
-                        .closest(".btn-edit-tugas-item")
-                        .getAttribute("data-idx"),
-                );
-                const tIdx = parseInt(
-                    e.target
-                        .closest(".btn-edit-tugas-item")
-                        .getAttribute("data-tugas"),
-                );
-                itemTugasEditIndex = idx;
-                itemTugasEditTaskIndex = tIdx;
-                const tugas = itemsData[idx]?.tugasProduksi?.[tIdx];
-                if (!tugas) return;
-                el.inputNamaTugas().value = tugas.nama;
-                el.inputDitugaskan().value = tugas.ditugaskan;
-                el.inputMesin().value = tugas.mesin || "";
-                el.inputWaktu().value = tugas.waktu;
-                el.inputHarga().value = tugas.harga;
-                el.inputDeskripsi().value = tugas.deskripsi || "";
-                el.modalTugasLabel().textContent =
-                    "Edit Tugas Produksi untuk: " +
-                    (itemsData[idx]?.nama_produk || "Item");
-                const btnSimpan = document.getElementById("btnSimpanTugas");
-                if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
-                new bootstrap.Modal(el.modalTugas()).show();
-                return;
-            }
-            // Hapus tugas per item
-            if (e.target.closest(".btn-delete-tugas-item")) {
-                const idx = parseInt(
-                    e.target
-                        .closest(".btn-delete-tugas-item")
-                        .getAttribute("data-idx"),
-                );
-                const tIdx = parseInt(
-                    e.target
-                        .closest(".btn-delete-tugas-item")
-                        .getAttribute("data-tugas"),
-                );
-                SafeHelper.confirm(
-                    "Konfirmasi",
-                    "Apakah Anda yakin ingin menghapus tugas ini?",
-                    "Ya, Hapus",
-                    "Batal",
-                ).then((confirmed) => {
-                    if (!confirmed) return;
-                    itemsData[idx]?.tugasProduksi?.splice(tIdx, 1);
-                    renderItemCards();
-                });
-                return;
-            }
+            // if (e.target.closest(".btn-tambah-tugas-item")) {
+            //     const idx = parseInt(
+            //         e.target
+            //             .closest(".btn-tambah-tugas-item")
+            //             .getAttribute("data-idx"),
+            //     );
+            //     itemTugasEditIndex = idx;
+            //     itemTugasEditTaskIndex = null;
+            //     if (el.formTugas()) el.formTugas().reset();
+            //     const item = itemsData[idx];
+            //     if (el.modalTugasLabel())
+            //         el.modalTugasLabel().textContent =
+            //             "Tambah Tugas Produksi untuk: " +
+            //             (item?.nama_produk || "Item");
+            //     const btnSimpan = document.getElementById("btnSimpanTugas");
+            //     if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
+            //     new bootstrap.Modal(el.modalTugas()).show();
+            //     return;
+            // }
+            // // Edit tugas per item
+            // if (
+            //     e.target.closest(".btn-edit-tugas-item") &&
+            //     e.target
+            //         .closest(".btn-edit-tugas-item")
+            //         .hasAttribute("data-tugas")
+            // ) {
+            //     const idx = parseInt(
+            //         e.target
+            //             .closest(".btn-edit-tugas-item")
+            //             .getAttribute("data-idx"),
+            //     );
+            //     const tIdx = parseInt(
+            //         e.target
+            //             .closest(".btn-edit-tugas-item")
+            //             .getAttribute("data-tugas"),
+            //     );
+            //     itemTugasEditIndex = idx;
+            //     itemTugasEditTaskIndex = tIdx;
+            //     const tugas = itemsData[idx]?.tugasProduksi?.[tIdx];
+            //     if (!tugas) return;
+            //     el.inputNamaTugas().value = tugas.nama;
+            //     el.inputDitugaskan().value = tugas.ditugaskan;
+            //     el.inputMesin().value = tugas.mesin || "";
+            //     el.inputWaktu().value = tugas.waktu;
+            //     el.inputHarga().value = tugas.harga;
+            //     el.inputDeskripsi().value = tugas.deskripsi || "";
+            //     el.modalTugasLabel().textContent =
+            //         "Edit Tugas Produksi untuk: " +
+            //         (itemsData[idx]?.nama_produk || "Item");
+            //     const btnSimpan = document.getElementById("btnSimpanTugas");
+            //     if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
+            //     new bootstrap.Modal(el.modalTugas()).show();
+            //     return;
+            // }
+            // // Hapus tugas per item
+            // if (e.target.closest(".btn-delete-tugas-item")) {
+            //     const idx = parseInt(
+            //         e.target
+            //             .closest(".btn-delete-tugas-item")
+            //             .getAttribute("data-idx"),
+            //     );
+            //     const tIdx = parseInt(
+            //         e.target
+            //             .closest(".btn-delete-tugas-item")
+            //             .getAttribute("data-tugas"),
+            //     );
+            //     SafeHelper.confirm(
+            //         "Konfirmasi",
+            //         "Apakah Anda yakin ingin menghapus tugas ini?",
+            //         "Ya, Hapus",
+            //         "Batal",
+            //     ).then((confirmed) => {
+            //         if (!confirmed) return;
+            //         itemsData[idx]?.tugasProduksi?.splice(tIdx, 1);
+            //         renderItemCards();
+            //     });
+            //     return;
+            // }
         }
 
         // Hapus file pendukung
@@ -799,61 +799,61 @@
 
     function handleGlobalSubmit(e) {
         // Form modal tugas produksi (selalu prevent default)
-        if (e.target.id === "formTugasProduksi") {
-            e.preventDefault();
-            const tugas = {
-                nama: el.inputNamaTugas().value,
-                ditugaskan: el.inputDitugaskan().value,
-                ditugaskan_id:
-                    document.getElementById("inputDitugaskanId")?.value || "",
-                mesin: el.inputMesin().value,
-                waktu: el.inputWaktu().value,
-                harga: el.inputHarga().value,
-                deskripsi: el.inputDeskripsi().value,
-            };
-            // Validasi minimal
-            if (!tugas.nama || !tugas.ditugaskan || !tugas.waktu) {
-                SafeHelper.notify(
-                    "error",
-                    "Error",
-                    "Nama/ditugaskan/waktu wajib diisi",
-                );
-                return;
-            }
+        // if (e.target.id === "formTugasProduksi") {
+        //     e.preventDefault();
+        //     const tugas = {
+        //         nama: el.inputNamaTugas().value,
+        //         ditugaskan: el.inputDitugaskan().value,
+        //         ditugaskan_id:
+        //             document.getElementById("inputDitugaskanId")?.value || "",
+        //         mesin: el.inputMesin().value,
+        //         waktu: el.inputWaktu().value,
+        //         harga: el.inputHarga().value,
+        //         deskripsi: el.inputDeskripsi().value,
+        //     };
+        //     // Validasi minimal
+        //     if (!tugas.nama || !tugas.ditugaskan || !tugas.waktu) {
+        //         SafeHelper.notify(
+        //             "error",
+        //             "Error",
+        //             "Nama/ditugaskan/waktu wajib diisi",
+        //         );
+        //         return;
+        //     }
 
-            // Jika form item aktif, simpan ke item tertentu
-            const itemTabActive = document
-                .getElementById("itemPekerjaan")
-                ?.classList.contains("active");
-            if (itemTabActive && itemTugasEditIndex !== null) {
-                if (!Array.isArray(itemsData[itemTugasEditIndex].tugasProduksi))
-                    itemsData[itemTugasEditIndex].tugasProduksi = [];
-                if (itemTugasEditTaskIndex !== null) {
-                    itemsData[itemTugasEditIndex].tugasProduksi[
-                        itemTugasEditTaskIndex
-                    ] = tugas;
-                } else {
-                    itemsData[itemTugasEditIndex].tugasProduksi.push(tugas);
-                }
-                renderItemCards();
-                bootstrap.Modal.getOrCreateInstance(el.modalTugas()).hide();
-                itemTugasEditIndex = null;
-                itemTugasEditTaskIndex = null;
-                return;
-            }
-            // Jika di tab tugas global
-            if (el.tabTugasPane()?.classList.contains("active")) {
-                if (editTugasTabIndex !== null) {
-                    tugasProduksiTabData[editTugasTabIndex] = tugas;
-                } else {
-                    tugasProduksiTabData.push(tugas);
-                }
-                updateTugasTabTable();
-                bootstrap.Modal.getOrCreateInstance(el.modalTugas()).hide();
-                editTugasTabIndex = null;
-            }
-            return;
-        }
+        //     // Jika form item aktif, simpan ke item tertentu
+        //     const itemTabActive = document
+        //         .getElementById("itemPekerjaan")
+        //         ?.classList.contains("active");
+        //     if (itemTabActive && itemTugasEditIndex !== null) {
+        //         if (!Array.isArray(itemsData[itemTugasEditIndex].tugasProduksi))
+        //             itemsData[itemTugasEditIndex].tugasProduksi = [];
+        //         if (itemTugasEditTaskIndex !== null) {
+        //             itemsData[itemTugasEditIndex].tugasProduksi[
+        //                 itemTugasEditTaskIndex
+        //             ] = tugas;
+        //         } else {
+        //             itemsData[itemTugasEditIndex].tugasProduksi.push(tugas);
+        //         }
+        //         renderItemCards();
+        //         bootstrap.Modal.getOrCreateInstance(el.modalTugas()).hide();
+        //         itemTugasEditIndex = null;
+        //         itemTugasEditTaskIndex = null;
+        //         return;
+        //     }
+        //     // Jika di tab tugas global
+        //     if (el.tabTugasPane()?.classList.contains("active")) {
+        //         if (editTugasTabIndex !== null) {
+        //             tugasProduksiTabData[editTugasTabIndex] = tugas;
+        //         } else {
+        //             tugasProduksiTabData.push(tugas);
+        //         }
+        //         // updateTugasTabTable();
+        //         bootstrap.Modal.getOrCreateInstance(el.modalTugas()).hide();
+        //         editTugasTabIndex = null;
+        //     }
+        //     return;
+        // }
 
         // Form utama SPK: siapkan hidden inputs lalu biarkan submit normal
         if (e.target.id === "formTambahSPK") {
@@ -874,10 +874,10 @@
                 return;
             }
 
-            if (el.itemsHidden())
-                el.itemsHidden().value = JSON.stringify(itemsData);
-            if (el.tugasHidden())
-                el.tugasHidden().value = JSON.stringify(tugasProduksiTabData);
+            // if (el.itemsHidden())
+            //     el.itemsHidden().value = JSON.stringify(itemsData);
+            // if (el.tugasHidden())
+            //     el.tugasHidden().value = JSON.stringify(tugasProduksiTabData);
             if (el.filePendukungHidden()) {
                 el.filePendukungHidden().value = JSON.stringify(
                     filePendukungData.map((f) => ({
@@ -916,7 +916,7 @@
         filePendukungData = [];
         renderItemCards();
         renderFilePendukungTable();
-        updateTugasTabTable();
+        // updateTugasTabTable();
     }
 
     function isModalItemVisible() {
@@ -994,7 +994,7 @@
             raw_produk: currentSelectedProduk
                 ? deepClone(currentSelectedProduk)
                 : null,
-            tugasProduksi: deepClone(tugasProduksiTabData),
+            // tugasProduksi: deepClone(tugasProduksiTabData),
             filePendukung: deepClone(modalUploadedFiles),
             tipe_finishing: deepClone(modalFinishingData),
         };
@@ -1132,7 +1132,7 @@
 
         renderModalFinishingAccordion();
         renderModalUploadedFiles();
-        updateTugasTabTable();
+        // updateTugasTabTable();
 
         // Relasi Produk (Bahan Baku & Komponen)
         if (item.produk_id) {
@@ -1197,9 +1197,6 @@
             container.innerHTML += `
               <div class="row g-0 border-bottom align-items-center item-card">
                 <div class="col-3 p-3 fw-semibold">
-                  <button type="button" class="btn btn-link p-0 me-2 btn-toggle-accordion" data-bs-toggle="collapse" data-bs-target="#${collapseId}" aria-expanded="false" aria-controls="${collapseId}" style="vertical-align:middle;">
-                    <i class="fa fa-chevron-down"></i>
-                  </button>
                   ${item.nama_produk}
                 </div>
                 <div class="col-2 p-3">${item.jumlah}</div>
@@ -1219,139 +1216,87 @@
                   </div>
                 </div>
               </div>
-              <div class="row g-0">
-                <div class="col-12 p-0">
-                  <div class="collapse" id="${collapseId}">
-                    <div class="p-3 border-top">
-                      <div class="d-flex align-items-center mb-2">
-                        <i class="fa fa-tasks me-2"></i>
-                        <span class="fw-semibold">${tugasCount} Tugas Produksi</span>
-                        <button type="button" class="btn btn-outline-primary btn-sm ms-auto btn-tambah-tugas-item" data-idx="${idx}"><i class="fa fa-plus me-1"></i>Tambah Tugas</button>
-                      </div>
-                      ${
-                          tugasCount > 0
-                              ? `
-                        <div class="table-responsive mb-0">
-                          <table class="table table-bordered table-sm align-middle mb-0">
-                            <thead class="table-light">
-                              <tr>
-                                <th>Nama Tugas</th>
-                                <th>Ditugaskan Ke</th>
-                                <th>Est. Jam</th>
-                                <th>Harga</th>
-                                <th>Mesin</th>
-                                <th>Aksi</th>
-                              </tr>
-                            </thead>
-                            <tbody>
-                              ${item.tugasProduksi
-                                  .map(
-                                      (tugas, tIdx) => `
-                                <tr>
-                                  <td>${tugas.nama}</td>
-                                  <td>${tugas.ditugaskan}</td>
-                                  <td>${tugas.waktu} jam</td>
-                                  <td>Rp ${parseInt(tugas.harga || 0).toLocaleString()}</td>
-                                  <td>${tugas.mesin || "-"}</td>
-                                  <td>
-                                    <button type="button" class="btn btn-sm btn-light btn-edit-tugas-item" data-idx="${idx}" data-tugas="${tIdx}" title="Edit"><i class="fa fa-edit"></i></button>
-                                    <button type="button" class="btn btn-sm btn-light text-danger btn-delete-tugas-item" data-idx="${idx}" data-tugas="${tIdx}" title="Hapus"><i class="fa fa-trash"></i></button>
-                                  </td>
-                                </tr>
-                              `,
-                                  )
-                                  .join("")}
-                            </tbody>
-                          </table>
-                        </div>
-                      `
-                              : `<div class='text-muted text-center py-3'>Belum ada tugas produksi</div>`
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
             `;
         });
     }
 
     // --- Tugas Tab ---
-    function updateTugasTabTable() {
-        let emptyState = el.emptyTugasState();
-        let tableState = document.getElementById("tugasTabTableState");
-        if (!tableState) {
-            tableState = document.createElement("div");
-            tableState.id = "tugasTabTableState";
-            tableState.innerHTML = `
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                  <div class="fw-semibold">Daftar Tugas Produksi</div>
-                  <button type="button" class="btn btn-primary btn-sm" id="btnTambahTugasTab"><i class="fa fa-plus me-1"></i>Tambah Tugas</button>
-                </div>
-                <div class="table-responsive mb-3">
-                  <table class="table table-bordered align-middle mb-0">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Nama Tugas</th>
-                        <th>Ditugaskan Ke</th>
-                        <th>Mesin</th>
-                        <th>Est. Jam</th>
-                        <th>Harga</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody id="tugasTabBody"></tbody>
-                  </table>
-                </div>
-            `;
-            if (emptyState) emptyState.parentNode.appendChild(tableState);
-        }
-        if (tugasProduksiTabData.length === 0) {
-            if (!el.emptyTugasState()) {
-                const tabPane = el.tabTugasPane();
-                const emptyDiv = document.createElement("div");
-                emptyDiv.id = "emptyTugasState";
-                emptyDiv.className =
-                    "d-flex flex-column align-items-center justify-content-center py-5";
-                emptyDiv.style =
-                    "min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;";
-                emptyDiv.innerHTML = `
-                  <div class="mb-3">
-                    <svg width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="32" cy="32" r="30" stroke="#cfd8dc" stroke-width="4" fill="#f4f6f8"/>
-                      <path d="M32 18v14l8 4" stroke="#b0bec5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                  </div>
-                  <h5 class="fw-semibold text-secondary mb-1">Belum ada tugas</h5>
-                  <div class="text-muted mb-3">Tambahkan tugas produksi untuk item ini</div>
-                  <button type="button" class="btn btn-outline-primary btn-lg px-4 py-2" id="btnTambahTugasPertama"><i class="fa fa-plus me-2"></i>Tambah Tugas Pertama</button>
-                `;
-                tabPane.appendChild(emptyDiv);
-            }
-            if (tableState) tableState.style.display = "none";
-        } else {
-            if (emptyState) emptyState.remove();
-            if (tableState) tableState.style.display = "";
-            const tbody = document.getElementById("tugasTabBody");
-            if (tbody) {
-                tbody.innerHTML = "";
-                tugasProduksiTabData.forEach((tugas, idx) => {
-                    tbody.innerHTML += `
-                      <tr>
-                        <td>${tugas.nama}</td>
-                        <td>${tugas.ditugaskan}</td>
-                        <td>${tugas.mesin || "-"}</td>
-                        <td>${tugas.waktu} jam</td>
-                        <td>Rp ${parseInt(tugas.harga || 0).toLocaleString()}</td>
-                        <td>
-                          <button type="button" class="btn btn-sm btn-light btn-edit-tugas-tab" data-idx="${idx}" title="Edit"><i class="fa fa-edit"></i></button>
-                          <button type="button" class="btn btn-sm btn-light text-danger btn-delete-tugas-tab" data-idx="${idx}" title="Hapus"><i class="fa fa-trash"></i></button>
-                        </td>
-                      </tr>
-                    `;
-                });
-            }
-        }
-    }
+    // function updateTugasTabTable() {
+    //     let emptyState = el.emptyTugasState();
+    //     let tableState = document.getElementById("tugasTabTableState");
+    //     if (!tableState) {
+    //         tableState = document.createElement("div");
+    //         tableState.id = "tugasTabTableState";
+    //         tableState.innerHTML = `
+    //             <div class="d-flex justify-content-between align-items-center mb-3">
+    //               <div class="fw-semibold">Daftar Tugas Produksi</div>
+    //               <button type="button" class="btn btn-primary btn-sm" id="btnTambahTugasTab"><i class="fa fa-plus me-1"></i>Tambah Tugas</button>
+    //             </div>
+    //             <div class="table-responsive mb-3">
+    //               <table class="table table-bordered align-middle mb-0">
+    //                 <thead class="table-light">
+    //                   <tr>
+    //                     <th>Nama Tugas</th>
+    //                     <th>Ditugaskan Ke</th>
+    //                     <th>Mesin</th>
+    //                     <th>Est. Jam</th>
+    //                     <th>Harga</th>
+    //                     <th>Aksi</th>
+    //                   </tr>
+    //                 </thead>
+    //                 <tbody id="tugasTabBody"></tbody>
+    //               </table>
+    //             </div>
+    //         `;
+    //         if (emptyState) emptyState.parentNode.appendChild(tableState);
+    //     }
+    //     if (tugasProduksiTabData.length === 0) {
+    //         if (!el.emptyTugasState()) {
+    //             const tabPane = el.tabTugasPane();
+    //             const emptyDiv = document.createElement("div");
+    //             emptyDiv.id = "emptyTugasState";
+    //             emptyDiv.className =
+    //                 "d-flex flex-column align-items-center justify-content-center py-5";
+    //             emptyDiv.style =
+    //                 "min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;";
+    //             emptyDiv.innerHTML = `
+    //               <div class="mb-3">
+    //                 <svg width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
+    //                   <circle cx="32" cy="32" r="30" stroke="#cfd8dc" stroke-width="4" fill="#f4f6f8"/>
+    //                   <path d="M32 18v14l8 4" stroke="#b0bec5" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    //                 </svg>
+    //               </div>
+    //               <h5 class="fw-semibold text-secondary mb-1">Belum ada tugas</h5>
+    //               <div class="text-muted mb-3">Tambahkan tugas produksi untuk item ini</div>
+    //               <button type="button" class="btn btn-outline-primary btn-lg px-4 py-2" id="btnTambahTugasPertama"><i class="fa fa-plus me-2"></i>Tambah Tugas Pertama</button>
+    //             `;
+    //             tabPane.appendChild(emptyDiv);
+    //         }
+    //         if (tableState) tableState.style.display = "none";
+    //     } else {
+    //         if (emptyState) emptyState.remove();
+    //         if (tableState) tableState.style.display = "";
+    //         const tbody = document.getElementById("tugasTabBody");
+    //         if (tbody) {
+    //             tbody.innerHTML = "";
+    //             tugasProduksiTabData.forEach((tugas, idx) => {
+    //                 tbody.innerHTML += `
+    //                   <tr>
+    //                     <td>${tugas.nama}</td>
+    //                     <td>${tugas.ditugaskan}</td>
+    //                     <td>${tugas.mesin || "-"}</td>
+    //                     <td>${tugas.waktu} jam</td>
+    //                     <td>Rp ${parseInt(tugas.harga || 0).toLocaleString()}</td>
+    //                     <td>
+    //                       <button type="button" class="btn btn-sm btn-light btn-edit-tugas-tab" data-idx="${idx}" title="Edit"><i class="fa fa-edit"></i></button>
+    //                       <button type="button" class="btn btn-sm btn-light text-danger btn-delete-tugas-tab" data-idx="${idx}" title="Hapus"><i class="fa fa-trash"></i></button>
+    //                     </td>
+    //                   </tr>
+    //                 `;
+    //             });
+    //         }
+    //     }
+    // }
 
     // --- File Pendukung ---
     function initFileUpload() {

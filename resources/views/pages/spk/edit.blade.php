@@ -37,7 +37,7 @@
     @csrf
     @method('PUT')
     <input type="hidden" name="items" id="itemsInput">
-    <input type="hidden" name="tugas_produksi" id="tugasProduksiInput">
+    <!-- <input type="hidden" name="tugas_produksi" id="tugasProduksiInput"> -->
     <div class="row">
       <!-- Sidebar kiri: informasi pelanggan -->
       <div class="col-md-3">
@@ -80,106 +80,26 @@
       <div class="col-md-9">
         <div class="card border-0 shadow-none">
           <div class="card-body p-0">
-            <ul class="nav nav-tabs mb-3" id="tabSPK" role="tablist">
-              <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="item-tab" data-bs-toggle="tab" data-bs-target="#itemPekerjaan"
-                  type="button" role="tab">Item Pekerjaan</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="tugas-tab" data-bs-toggle="tab" data-bs-target="#tugasProduksi" type="button"
-                  role="tab">Tugas Produksi</button>
-              </li>
-              <li class="nav-item" role="presentation">
-                <button class="nav-link" id="file-tab" data-bs-toggle="tab" data-bs-target="#filePendukung" type="button"
-                  role="tab">File Pendukung</button>
-              </li>
-            </ul>
-            <div class="tab-content" id="tabSPKContent">
-              <div class="tab-pane fade show active" id="itemPekerjaan" role="tabpanel">
-                <!-- Tabel Item SPK -->
-                <div class="card border-0 shadow-sm">
-                  <div class="card-header d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 fw-semibold"><i class="fa fa-list me-2"></i>Daftar Item Pekerjaan</h6>
-                    <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i
-                        class="fa fa-plus"></i> Tambah Item</button>
-                  </div>
-                  <div class="card-body p-0">
-                    <!-- Header Table-like -->
-                    <div class="row g-0 border-bottom bg-light fw-semibold small">
-                      <div class="col-3 p-3">Nama Item</div>
-                      <div class="col-2 p-3">Jumlah</div>
-                      <div class="col-2 p-3">Satuan</div>
-                      <div class="col-2 p-3">Bahan Baku</div>
-                      <div class="col-2 p-3">Keterangan</div>
-                      <div class="col-1 p-3 text-center">Aksi</div>
-                    </div>
-
-                    <!-- Container untuk item cards -->
-                    <div id="itemCardsContainer">
-                      <div class="text-center text-muted py-4" id="noItemsMessage">
-                        <i class="fa fa-list-alt fa-2x mb-2"></i>
-                        <p class="mb-0">Belum ada item yang ditambahkan</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+            <div class="card border-0 shadow-sm">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-semibold"><i class="fa fa-list me-2"></i>Daftar Item Pekerjaan</h6>
+                <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
               </div>
-              <!-- Tab Tugas Produksi -->
-              <div class="tab-pane fade px-3" id="tugasProduksi" role="tabpanel">
-                <div id="emptyTugasState" class="d-flex flex-column align-items-center justify-content-center py-5"
-                  style="min-height:320px; border:1.5px dashed #e3e6ea; border-radius:12px; background:#f8fafc;">
-                  <div class="mb-3">
-                    <svg width="64" height="64" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="32" cy="32" r="30" stroke="#cfd8dc" stroke-width="4" fill="#f4f6f8" />
-                      <path d="M32 18v14l8 4" stroke="#b0bec5" stroke-width="3" stroke-linecap="round"
-                        stroke-linejoin="round" />
-                    </svg>
+              <div class="card-body p-0">
+                <div class="row g-0 border-bottom bg-light fw-semibold small">
+                  <div class="col-3 p-3">Nama Item</div>
+                  <div class="col-2 p-3">Jumlah</div>
+                  <div class="col-2 p-3">Satuan</div>
+                  <div class="col-2 p-3">Bahan Baku</div>
+                  <div class="col-2 p-3">Keterangan</div>
+                  <div class="col-1 p-3 text-center">Aksi</div>
+                </div>
+                <div id="itemCardsContainer">
+                  <div class="text-center text-muted py-4" id="noItemsMessage">
+                    <i class="fa fa-list-alt fa-2x mb-2"></i>
+                    <p class="mb-0">Belum ada item yang ditambahkan</p>
                   </div>
-                  <h5 class="fw-semibold text-secondary mb-1">Belum ada tugas</h5>
-                  <div class="text-muted mb-3">Tambahkan tugas produksi untuk item ini</div>
-                  <button type="button" class="btn btn-outline-primary btn-lg px-4 py-2" id="btnTambahTugasPertama">
-                    <i class="fa fa-plus me-2"></i>Tambah Tugas Pertama
-                  </button>
                 </div>
-              </div>
-              <!-- Modal Tambah/Edit Tugas Produksi -->
-              <div class="tab-pane fade px-3" id="filePendukung" role="tabpanel">
-                <div class="mb-4 d-flex justify-content-between align-items-center">
-                  <div>
-                    <h6 class="fw-semibold mb-1">File Pendukung SPK</h6>
-                    <p class="text-muted small mb-0">Hanya menyimpan path file, tidak melakukan upload ke server.</p>
-                  </div>
-                  <button type="button" class="btn btn-primary" id="btnOpenExplorerSPK">
-                    <i class="fa fa-folder-open me-1"></i> Pilih File dari Drive
-                  </button>
-                </div>
-
-                <div class="mb-3">
-                  <!-- <div id="dropZone" class="border-2 border-dashed rounded p-4 text-center bg-light mb-3" style="cursor:pointer;">
-                                                                  <i class="fa fa-cloud-upload fa-2x text-primary mb-2"></i>
-                                                                  <div class="mb-2">Drag & drop file di sini atau <span class="text-primary" style="text-decoration:underline;cursor:pointer;" id="btnBrowseFile">klik untuk pilih file</span></div>
-                                                                  <small class="text-muted">Maksimal 10MB per file. Tipe: PDF, JPG, PNG, DOCX, XLSX, ZIP, dll.</small>
-                                                                  <input type="file" id="inputFilePendukung" multiple style="display:none;">
-                                                                </div> -->
-                </div>
-                <div class="table-responsive mb-3">
-                  <table class="table table-bordered align-middle mb-0" id="tabelFilePendukung">
-                    <thead class="table-light">
-                      <tr>
-                        <th>Nama File</th>
-                        <th>Tipe</th>
-                        <th>Ukuran</th>
-                        <th>Aksi</th>
-                      </tr>
-                    </thead>
-                    <tbody id="filePendukungBody">
-                      <tr>
-                        <td colspan="4" class="text-center text-muted">Belum ada file pendukung</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                <input type="hidden" name="file_pendukung" id="filePendukungInput">
               </div>
             </div>
           </div>
@@ -1072,12 +992,12 @@
                       <div class="mb-3">
                         <label for="imageToolPosX" class="form-label">Posisi X (cm)</label>
                         <input type="number" class="form-control" id="imageToolPosX" placeholder="Posisi X (cm)" step="0.05" min="0"
-                          max="1" value="3">
+                          max="1" value="1">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolPosY" class="form-label">Posisi Y (cm)</label>
                         <input type="number" class="form-control" id="imageToolPosY" placeholder="Posisi Y (cm)" step="0.05" min="0"
-                          max="1" value="1">
+                          max="1" value="3">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolRotasiPesan" class="form-label">Orientasi Pesan</label>
@@ -1209,7 +1129,7 @@
                       <div class="mb-3">
                         <label for="imageToolUkuranGaris" class="form-label">Ukuran Garis (cm)</label>
                         <input type="number" class="form-control" id="imageToolUkuranGaris" placeholder="Masukkan ukuran"
-                          step="0.01" value="1">
+                          step="0.01" value="0.1">
                       </div>
                       <div class="mb-3">
                         <label for="imageToolImageScale" class="form-label">Skala Gambar (%)</label>
