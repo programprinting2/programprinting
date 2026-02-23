@@ -36,9 +36,6 @@
     let filePendukungData = [];
 
     let editItemIndex = null;
-    let itemTugasEditIndex = null;
-    let itemTugasEditTaskIndex = null;
-    let editTugasTabIndex = null;
 
     // Preview item state
 
@@ -392,6 +389,7 @@
         renderItemCards();
         // updateTugasTabTable();
         renderFilePendukungTable();
+        updateRingkasanBiaya();
         initModalTambahItem();
     });
 
@@ -710,6 +708,7 @@
                     if (!confirmed) return;
                     itemsData.splice(idx, 1);
                     renderItemCards();
+                    updateRingkasanBiaya();
                 });
                 return;
             }
@@ -890,8 +889,8 @@
                 return;
             }
 
-            // if (el.itemsHidden())
-            //     el.itemsHidden().value = JSON.stringify(itemsData);
+            if (el.itemsHidden())
+                el.itemsHidden().value = JSON.stringify(itemsData);
             // if (el.tugasHidden())
             //     el.tugasHidden().value = JSON.stringify(tugasProduksiTabData);
             if (el.filePendukungHidden()) {
@@ -928,10 +927,11 @@
         }
         // Reset form item + tab item terkait
         resetItemFormUI();
-        tugasProduksiTabData = [];
+        // tugasProduksiTabData = [];
         filePendukungData = [];
         renderItemCards();
         renderFilePendukungTable();
+        updateRingkasanBiaya();
         // updateTugasTabTable();
     }
 
@@ -1136,9 +1136,9 @@
         }
 
         // Tab data
-        tugasProduksiTabData = Array.isArray(item.tugasProduksi)
-            ? deepClone(item.tugasProduksi)
-            : [];
+        // tugasProduksiTabData = Array.isArray(item.tugasProduksi)
+        //     ? deepClone(item.tugasProduksi)
+        //     : [];
         modalUploadedFiles = Array.isArray(item.filePendukung)
             ? deepClone(item.filePendukung)
             : [];
@@ -1234,6 +1234,50 @@
               </div>
             `;
         });
+    }
+
+    function updateRingkasanBiaya() {
+        const totalItem = itemsData.length;
+
+        const totalBiaya = itemsData.reduce((sum, item) => {
+            const biayaProduk = parseFloat(item.biaya_produk || 0) || 0;
+
+            // Finishing: sama seperti di model, ambil total dari tiap finishing
+            const biayaFinishing = Array.isArray(item.tipe_finishing)
+                ? item.tipe_finishing.reduce(
+                      (s, f) => s + parseFloat(f.total || 0) || 0,
+                      0,
+                  )
+                : 0;
+
+            // Tugas produksi per item
+            const biayaTugas = Array.isArray(item.tugasProduksi)
+                ? item.tugasProduksi.reduce(
+                      (s, t) =>
+                          s +
+                          (parseFloat(t.biaya || t.harga || 0) || 0),
+                      0,
+                  )
+                : 0;
+
+            return sum + biayaProduk + biayaFinishing + biayaTugas;
+        }, 0);
+
+        const elTotalItem = document.querySelector(".ringkasan-total-item");
+        const elTotalBiaya = document.querySelector(".ringkasan-total-biaya");
+        const elTotalSpk = document.querySelector(".ringkasan-total-spk");
+
+        if (elTotalItem) {
+            elTotalItem.textContent = String(totalItem);
+        }
+        if (elTotalBiaya) {
+            elTotalBiaya.textContent =
+                "Rp " + totalBiaya.toLocaleString("id-ID");
+        }
+        if (elTotalSpk) {
+            elTotalSpk.textContent =
+                "Rp " + totalBiaya.toLocaleString("id-ID");
+        }
     }
 
     // --- Tugas Tab ---
@@ -2849,30 +2893,30 @@
             }
         });
 
-        document.addEventListener("change", (e) => {
-            if (e.target.matches("input[data-finishing-index]")) {
-                const input = e.target;
-                const index = parseInt(
-                    input.getAttribute("data-finishing-index"),
-                );
-                const newJumlah = input.value;
+        // document.addEventListener("change", (e) => {
+        //     if (e.target.matches("input[data-finishing-index]")) {
+        //         const input = e.target;
+        //         const index = parseInt(
+        //             input.getAttribute("data-finishing-index"),
+        //         );
+        //         const newJumlah = input.value;
 
-                updateFinishingJumlah(index, newJumlah);
-            }
-        });
+        //         updateFinishingJumlah(index, newJumlah);
+        //     }
+        // });
 
-        document.addEventListener("change", (e) => {
-            if (e.target.matches("input[data-finishing-field]")) {
-                const input = e.target;
-                const index = parseInt(
-                    input.getAttribute("data-finishing-index"),
-                );
-                const field = input.getAttribute("data-finishing-field");
-                const value = input.value;
+        // document.addEventListener("change", (e) => {
+        //     if (e.target.matches("input[data-finishing-field]")) {
+        //         const input = e.target;
+        //         const index = parseInt(
+        //             input.getAttribute("data-finishing-index"),
+        //         );
+        //         const field = input.getAttribute("data-finishing-field");
+        //         const value = input.value;
 
-                updateFinishingField(index, field, value);
-            }
-        });
+        //         updateFinishingField(index, field, value);
+        //     }
+        // });
 
         const urgentToggle = modal.querySelector("#modalUrgentToggle");
         const urgentValue = modal.querySelector("#modalUrgentValue");
