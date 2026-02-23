@@ -391,6 +391,7 @@
         renderFilePendukungTable();
         updateRingkasanBiaya();
         initModalTambahItem();
+        updateRekapTab();
     });
 
     // --- Event Delegation ---
@@ -709,6 +710,7 @@
                     itemsData.splice(idx, 1);
                     renderItemCards();
                     updateRingkasanBiaya();
+                    updateRekapTab();
                 });
                 return;
             }
@@ -932,6 +934,7 @@
         renderItemCards();
         renderFilePendukungTable();
         updateRingkasanBiaya();
+        updateRekapTab();
         // updateTugasTabTable();
     }
 
@@ -1278,6 +1281,101 @@
             elTotalSpk.textContent =
                 "Rp " + totalBiaya.toLocaleString("id-ID");
         }
+    }
+
+    function updateRekapTab() {
+        const tbody = document.getElementById("rekapItemsBody");
+        if (!tbody) return;
+
+        if (!Array.isArray(itemsData) || itemsData.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Belum ada data rekap</td>
+                </tr>
+            `;
+            return;
+        }
+
+        // Rekap per produk
+        const rekap = {};
+
+        itemsData.forEach((item) => {
+            const raw = item.raw_produk || {};
+            const produkId = item.produk_id || raw.id || null;
+            const kodeProduk = raw.kode_produk || "";
+            const namaProduk = item.nama_produk || raw.nama_produk || "-";
+            const satuan = item.satuan || "pcs";
+            const isMetric =
+                raw.is_metric === true || raw.is_metric === "true";
+            const metricUnit = raw.metric_unit || "cm";
+
+            const key = produkId ? `id:${produkId}` : `nama:${namaProduk}`;
+
+            if (!rekap[key]) {
+                rekap[key] = {
+                    produkId,
+                    namaProduk,
+                    kodeProduk,
+                    satuan,
+                    isMetric,
+                    metricUnit,
+                    totalQty: 0,
+                    totalMetric: 0,
+                };
+            }
+
+            const qty = parseFloat(item.jumlah || 0) || 0;
+
+            rekap[key].totalQty += qty;
+
+            if (isMetric) {
+                const panjang = parseFloat(item.panjang || 0) || 0;
+                const lebar = parseFloat(item.lebar || 0) || 0;
+                const luas = panjang * lebar; 
+                if (luas > 0 && qty > 0) {
+                    rekap[key].totalMetric += qty * luas;
+                }
+            }
+        });
+
+        const rows = Object.values(rekap);
+        if (rows.length === 0) {
+            tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" class="text-center text-muted">Belum ada data rekap</td>
+                </tr>
+            `;
+            return;
+        }
+
+        tbody.innerHTML = rows
+            .map((r) => {
+                const totalQtyText = r.totalQty.toLocaleString("id-ID", {
+                    maximumFractionDigits: 2,
+                });
+
+                const totalMetricText = r.isMetric
+                    ? r.totalMetric.toLocaleString("id-ID", {
+                          maximumFractionDigits: 2,
+                      })
+                    : "-";
+
+                const metricUnitText = r.isMetric
+                    ? (r.metricUnit || "cm") + "²"
+                    : "-";
+
+                return `
+                    <tr>
+                      <td>${r.namaProduk}</td>
+                      <td>${r.kodeProduk || "-"}</td>
+                      <td class="text-end">${totalQtyText}</td>
+                      <td>${r.satuan}</td>
+                      <td class="text-end">${totalMetricText}</td>
+                      <td>${metricUnitText}</td>
+                    </tr>
+                `;
+            })
+            .join("");
     }
 
     // --- Tugas Tab ---
