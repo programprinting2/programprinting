@@ -188,6 +188,7 @@ Route::group(['prefix' => 'backend'], function () {
     Route::post('/finishing-templates', [\App\Http\Controllers\FinishingTemplateController::class, 'store'])->name('backend.finishing-templates.store');
     Route::get('/finishing-templates', [\App\Http\Controllers\FinishingTemplateController::class, 'index'])->name('backend.finishing-templates.index');
     Route::get('/finishing-templates/{id}', [\App\Http\Controllers\FinishingTemplateController::class, 'show'])->name('backend.finishing-templates.show');
+    Route::put('/finishing-templates/{id}', [\App\Http\Controllers\FinishingTemplateController::class, 'update'])->name('backend.finishing-templates.update');
 
 });
 

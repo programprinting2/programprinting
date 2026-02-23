@@ -581,6 +581,48 @@
             return;
         }
 
+        if (e.target.closest("#btnUpdateImageToolsTemplate")) {
+            e.preventDefault();
+            const select = document.getElementById("imageToolTemplateSelect");
+            const id = select?.value;
+            if (!id) {
+                SafeHelper.notify("warning", "Update Template", "Pilih template yang akan diperbarui.");
+                return;
+            }
+            let payload;
+            try {
+                payload = buildPayloadForTemplate();
+            } catch (err) {
+                console.error(err);
+                SafeHelper.notify("error", "Update Template", err.message || "Gagal membangun payload template.");
+                return;
+            }
+            (async () => {
+                try {
+                    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+                    const response = await fetch(`/backend/finishing-templates/${id}`, {
+                        method: "PUT",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "X-CSRF-TOKEN": token,
+                        },
+                        body: JSON.stringify({ payload: payload }),
+                    });
+                    if (!response.ok) throw new Error("HTTP status " + response.status);
+                    const data = await response.json();
+                    if (data.success) {
+                        SafeHelper.notify("success", "Update Template", data.message || "Template berhasil diperbarui.");
+                    } else {
+                        SafeHelper.notify("warning", "Update Template", data.message || "Gagal memperbarui template.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    SafeHelper.notify("error", "Update Template", "Gagal memperbarui template.");
+                }
+            })();
+            return;
+        }
+
         if (e.target.closest("#imageToolPlongLipat4")) {
             const cb = document.getElementById("imageToolPlongLipat4");
             if (!cb) return;
@@ -638,32 +680,6 @@
                 const elBawah = document.getElementById("imageToolPlongBawah");
                 if (elBawah) elBawah.value = 2;
             }
-            return;
-        }
-
-        if (e.target.closest("#btnLoadImageToolsTemplate")) {
-            e.preventDefault();
-            const select = document.getElementById("imageToolTemplateSelect");
-            const id = select?.value;
-            if (!id) {
-                SafeHelper.notify("warning", "Load Template", "Pilih template terlebih dahulu.");
-                return;
-            }
-            (async () => {
-                try {
-                    const res = await fetch(`/backend/finishing-templates/${id}`);
-                    const data = await res.json();
-                    if (!data.success || !data.payload) {
-                        SafeHelper.notify("warning", "Load Template", data.message || "Template tidak ditemukan.");
-                        return;
-                    }
-                    applyImageToolsPayload(data.payload);
-                    SafeHelper.notify("success", "Load Template", `Template "${data.nama || ""}" berhasil dimuat.`);
-                } catch (err) {
-                    console.error(err);
-                    SafeHelper.notify("error", "Load Template", "Gagal memuat template.");
-                }
-            })();
             return;
         }
 
@@ -1737,8 +1753,8 @@
         "#imageToolBentukPlong": "circle",
         "#imageToolImageScale": "100",
         "#imageToolUkuranPesan": "0.8",
-        "#imageToolPosX": "3",
-        "#imageToolPosY": "1",
+        "#imageToolPosX": "1",
+        "#imageToolPosY": "3",
         "#imageToolRotasiPesan": "0",
         "#imageToolCopyX": "2",
         "#imageToolCopyY": "2",
@@ -1750,7 +1766,7 @@
         "#imageToolLebihanAtas": "2.5",
         "#imageToolLebihanBawah": "2.5",
         "#imageToolLebihanKeliling": "2.5",
-        "#imageToolUkuranGaris": "1",
+        "#imageToolUkuranGaris": "0.1",
         "#imageToolJarakPlong": "2",
         "#imageToolDiameterLebar": "1",
         "#imageToolDiameterPanjang": "0",
@@ -1922,6 +1938,18 @@
         return cb ? cb.checked : false;
     }
 
+    function buildPayloadForTemplate() {
+        const payload = buildImageToolsPayload();
+        delete payload.AlamatFile;
+        payload._modalFlags = {
+            imageToolAktifTeksPesan: document.getElementById("imageToolAktifTeksPesan")?.checked ?? false,
+            imageToolAktifDuplikasiLayout: document.getElementById("imageToolAktifDuplikasiLayout")?.checked ?? false,
+            imageToolAktifKanvasLatar: document.getElementById("imageToolAktifKanvasLatar")?.checked ?? false,
+            imageToolAktifPlong: document.getElementById("imageToolAktifPlong")?.checked ?? false,
+        };
+        return payload;
+    }
+
     function buildImageToolsPayload() {
         const defaultFile = modalUploadedFiles[0];
         if (!defaultFile) {
@@ -2069,6 +2097,14 @@
             processedSelectors.add(selector);
         }
 
+        if (payload._modalFlags && typeof payload._modalFlags === "object") {
+            const flags = payload._modalFlags;
+            ["imageToolAktifTeksPesan", "imageToolAktifDuplikasiLayout", "imageToolAktifKanvasLatar", "imageToolAktifPlong"].forEach((id) => {
+                const el = document.getElementById(id);
+                if (el && typeof flags[id] === "boolean") el.checked = flags[id];
+            });
+        }
+
         togglePlongDiameterInputs();
     }
 
@@ -2103,6 +2139,29 @@
         const firstOption = select.querySelector('option[value=""]');
         select.innerHTML = "";
         if (firstOption) select.appendChild(firstOption);
+
+        if (!select.dataset.changeListenerAttached) {
+            select.dataset.changeListenerAttached = "1";
+            select.addEventListener("change", function () {
+                const id = this.value;
+                if (!id) return;
+                (async () => {
+                    try {
+                        const res = await fetch(`/backend/finishing-templates/${id}`);
+                        const data = await res.json();
+                        if (!data.success || !data.payload) {
+                            SafeHelper.notify("warning", "Load Template", data.message || "Template tidak ditemukan.");
+                            return;
+                        }
+                        applyImageToolsPayload(data.payload);
+                        SafeHelper.notify("success", "Load Template", `Template "${data.nama || ""}" berhasil dimuat.`);
+                    } catch (err) {
+                        console.error(err);
+                        SafeHelper.notify("error", "Load Template", "Gagal memuat template.");
+                    }
+                })();
+            });
+        }
 
         try {
             const res = await fetch("/backend/finishing-templates");

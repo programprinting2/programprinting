@@ -926,10 +926,8 @@
                 <select class="form-select form-select-sm" id="imageToolTemplateSelect" style="max-width: 200px;">
                   <option value="">-- Pilih template --</option>
                 </select>
-                <button type="button"
-                  class="btn btn-sm btn-outline-primary"
-                  id="btnLoadImageToolsTemplate">
-                  <i class="fa fa-folder-open me-1"></i> Load
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="btnUpdateImageToolsTemplate">
+                  <i class="fa fa-save me-1"></i> Update Template
                 </button>
               </div>
               <div class="d-flex flex-wrap gap-3 mb-2">

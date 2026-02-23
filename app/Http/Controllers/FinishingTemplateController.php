@@ -66,14 +66,13 @@ class FinishingTemplateController extends Controller
             ->where('nama_parameter', 'FINISHING TEMPLATE')
             ->firstOrFail();
 
-        // /** @var \App\Models\DetailParameter $detail */
         $templatePayload = $data['payload'];
         unset($templatePayload['AlamatFile']);
         
         $detail = new DetailParameter();
         $detail->master_parameter_id = $parameter->id;
-        $detail->nama_detail_parameter = $data['nama']; // sesuaikan dengan nama kolom
-        $detail->keterangan = json_encode($data['payload'], JSON_UNESCAPED_UNICODE); // atau kolom lain untuk json
+        $detail->nama_detail_parameter = $data['nama']; 
+        $detail->keterangan = json_encode($data['payload'], JSON_UNESCAPED_UNICODE);
         $detail->save();
 
         return response()->json([
@@ -82,4 +81,30 @@ class FinishingTemplateController extends Controller
             'id'      => $detail->id,
         ]);
     }
+
+    public function update(Request $request, int $id): JsonResponse
+{
+    $data = $request->validate([
+        'payload' => ['required', 'array'],
+        'nama'    => ['nullable', 'string', 'max:255'],
+    ]);
+
+    $detail = DetailParameter::query()
+        ->whereHas('masterParameter', fn ($q) => $q->where('nama_parameter', 'FINISHING TEMPLATE'))
+        ->findOrFail($id);
+
+    $templatePayload = $data['payload'];
+    unset($templatePayload['AlamatFile']);
+
+    $detail->keterangan = json_encode($templatePayload, JSON_UNESCAPED_UNICODE);
+    if (!empty($data['nama'])) {
+        $detail->nama_detail_parameter = $data['nama'];
+    }
+    $detail->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Template berhasil diperbarui.',
+    ]);
+}
 }
