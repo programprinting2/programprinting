@@ -28,6 +28,7 @@ use App\Http\Controllers\CariController;
 use App\Http\Controllers\GudangController;
 use App\Http\Controllers\RakController;
 use App\Http\Controllers\HutangController; 
+use App\Http\Controllers\PekerjaanController;
 
 
 Route::get('/', function () {
@@ -219,6 +220,8 @@ Route::group(['prefix' => 'spk'], function () {
     Route::patch('/{spk}/acc', [SPKController::class, 'accToPayment'])
     ->name('spk.acc');
 });
+
+Route::get('/pekerjaan', [PekerjaanController::class, 'index'])->name('pekerjaan.index');
 
 //Hutang Route
 Route::get('/hutang', [HutangController::class, 'index'])->name('hutang.index');

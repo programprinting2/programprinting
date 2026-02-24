@@ -34,12 +34,14 @@ class SPKController extends Controller
             $filters = $request->only([
                 'search',
                 'customer_id',
-                'status'
+                'status',
             ]);
-
+    
+            $filters['created_by'] = auth()->id() ?? 1; 
+    
             $spk = $this->spkService->getPaginatedSpk(10, $filters);
             $customers = Pelanggan::where('status', true)->get();
-
+    
             return view('pages.spk.index', compact('spk', 'customers'));
         } catch (\Exception $e) {
             Log::error('Error loading SPK index', ['error' => $e->getMessage()]);

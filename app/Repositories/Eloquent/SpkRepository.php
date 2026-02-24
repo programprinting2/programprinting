@@ -36,16 +36,20 @@ class SpkRepository implements SpkRepositoryInterface
             $query->where('pelanggan_id', $filters['customer_id']);
         }
 
-        // FILTER SEARCH
+        // FILTER USER PEMBUAT SPK
+        if (!empty($filters['created_by'])) {
+            $query->where('created_by', $filters['created_by']);
+        }
+
+        // FILTER SEARCH (nomor SPK, status, pelanggan)
         if (!empty($filters['search'])) {
             $search = $filters['search'];
-
             $query->where(function ($q) use ($search) {
                 $q->where('nomor_spk', 'ILIKE', "%{$search}%")
-                    ->orWhere('status', 'ILIKE', "%{$search}%")
-                    ->orWhereHas('pelanggan', function ($sub) use ($search) {
-                        $sub->where('nama', 'ILIKE', "%{$search}%");
-                    });
+                ->orWhere('status', 'ILIKE', "%{$search}%")
+                ->orWhereHas('pelanggan', function ($sub) use ($search) {
+                    $sub->where('nama', 'ILIKE', "%{$search}%");
+                });
             });
         }
 

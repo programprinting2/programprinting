@@ -106,6 +106,15 @@
         </a>
       </li>
 
+      <!-- Pekerjaan  -->
+      <li class="nav-item {{ active_class(['pekerjaan/*', 'pekerjaan']) }}">
+        <a class="nav-link" href="{{ url('/pekerjaan') }}" role="button">
+          <i class="link-icon" data-feather="briefcase"></i>
+          <span class="link-title">Pekerjaan</span>
+        </a>
+      </li>
+
+
       <li class="nav-item nav-category">Email</li>
       <li class="nav-item {{ active_class(['email/*']) }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#email" role="button"
