@@ -85,62 +85,54 @@
                 <h6 class="mb-0 fw-semibold"><i class="fa fa-list me-2"></i>Daftar Item Pekerjaan</h6>
                 <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
               </div>
-              <div class="card-body p-0">
-                {{-- Tabs Detail / Rekap --}}
-                <ul class="nav nav-tabs" id="tabSPKDetailRekap" role="tablist">
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab-detail-btn" data-bs-toggle="tab"
-                            data-bs-target="#tabDetail" type="button" role="tab">
-                      Detail
-                    </button>
-                  </li>
-                  <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-rekap-btn" data-bs-toggle="tab"
-                            data-bs-target="#tabRekap" type="button" role="tab">
-                      Rekap
-                    </button>
-                  </li>
-                </ul>
-
-                <div class="tab-content" id="tabSPKDetailRekapContent">
-                  {{-- TAB DETAIL --}}
-                  <div class="tab-pane fade show active p-3" id="tabDetail" role="tabpanel" aria-labelledby="tab-detail-btn">
-                    <div class="row g-0 border-bottom bg-light fw-semibold small">
-                      <div class="col-3 p-3">Nama Item</div>
-                      <div class="col-2 p-3">Jumlah</div>
-                      <div class="col-2 p-3">Satuan</div>
-                      <div class="col-2 p-3">Bahan Baku</div>
-                      <div class="col-2 p-3">Keterangan</div>
-                      <div class="col-1 p-3 text-center">Aksi</div>
-                    </div>
-                    <div id="itemCardsContainer">
-                      <div class="text-center text-muted py-4" id="noItemsMessage">
-                        <i class="fa fa-list-alt fa-2x mb-2"></i>
-                        <p class="mb-0">Belum ada item yang ditambahkan</p>
-                      </div>
-                    </div>
+              <div class="card-body p-3">
+                <div class="row g-2 border-bottom bg-light fw-semibold small">
+                  <div class="col-3 p-3">Nama Item</div>
+                  <div class="col-2 p-3">Jumlah</div>
+                  <div class="col-2 p-3">Satuan</div>
+                  <div class="col-2 p-3">Bahan Baku</div>
+                  <div class="col-2 p-3">Keterangan</div>
+                  <div class="col-1 p-3 text-center">Aksi</div>
+                </div>
+                <div id="itemCardsContainer">
+                  <div class="text-center text-muted py-4" id="noItemsMessage">
+                    <i class="fa fa-list-alt fa-2x mb-2"></i>
+                    <p class="mb-0">Belum ada item yang ditambahkan</p>
                   </div>
+                </div>
 
-                  {{-- TAB REKAP --}}
-                  <div class="tab-pane fade p-3" id="tabRekap" role="tabpanel" aria-labelledby="tab-rekap-btn">
-                    <div class="table-responsive">
-                      <table class="table table-sm table-bordered align-middle mb-0">
-                        <thead class="table-light">
-                          <tr>
-                            <th>Produk</th>
-                            <th>Kode</th>
-                            <th class="text-end">Total Qty</th>
-                            <th>Satuan</th>
-                            <th class="text-end">Total Metric</th>
-                            <th>Unit Metric</th>
-                          </tr>
-                        </thead>
-                        <tbody id="rekapItemsBody">
-                          <tr>
-                            <td colspan="6" class="text-center text-muted">Belum ada data rekap</td>
-                          </tr>
-                        </tbody>
-                      </table>
+                <div class="accordion mt-3" id="rekapAccordion">
+                  <div class="accordion-item">
+                    <h2 class="accordion-header" id="rekapHeading">
+                      <button class="accordion-button collapsed" type="button"
+                              data-bs-toggle="collapse" data-bs-target="#rekapCollapse"
+                              aria-expanded="false" aria-controls="rekapCollapse">
+                        Rekap Produk
+                      </button>
+                    </h2>
+                    <div id="rekapCollapse" class="accordion-collapse collapse"
+                        aria-labelledby="rekapHeading" data-bs-parent="#rekapAccordion">
+                      <div class="accordion-body">
+                        <div class="table-responsive">
+                          <table class="table table-sm table-bordered align-middle mb-0">
+                            <thead class="table-light">
+                              <tr>
+                                <th>Produk</th>
+                                <th>Kode</th>
+                                <th class="text-end">Total Qty</th>
+                                <th>Satuan</th>
+                                <th class="text-end">Total Metric</th>
+                                <th>Unit Metric</th>
+                              </tr>
+                            </thead>
+                            <tbody id="rekapItemsBody">
+                              <tr>
+                                <td colspan="6" class="text-center text-muted">Belum ada data rekap</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
