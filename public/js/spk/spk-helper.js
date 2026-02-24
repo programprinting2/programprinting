@@ -121,10 +121,12 @@ if (typeof SPKHelper === 'undefined') {
         showNotification: function(title, message, type = 'info') {
             if (typeof Swal !== 'undefined') {
                 Swal.fire({
+                    toast: true,
+                    position: 'bottom-end',
+                    showConfirmButton: false,
                     title: title,
                     text: message,
                     icon: type,
-                    confirmButtonText: 'OK',
                     timer: 3000, 
                     timerProgressBar: true
                 });

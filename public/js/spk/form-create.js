@@ -1240,7 +1240,10 @@
     }
 
     function updateRingkasanBiaya() {
-        const totalItem = itemsData.length;
+        const totalItem = itemsData.reduce((sum, item) => {
+            const qty = parseFloat(item.jumlah || 0) || 0;
+            return sum + qty;
+        }, 0);
 
         const totalBiaya = itemsData.reduce((sum, item) => {
             const biayaProduk = parseFloat(item.biaya_produk || 0) || 0;
@@ -1271,7 +1274,9 @@
         const elTotalSpk = document.querySelector(".ringkasan-total-spk");
 
         if (elTotalItem) {
-            elTotalItem.textContent = String(totalItem);
+            elTotalItem.textContent = totalItem.toLocaleString("id-ID", {
+                maximumFractionDigits: 2,
+            });
         }
         if (elTotalBiaya) {
             elTotalBiaya.textContent =
@@ -1721,6 +1726,14 @@
         form.querySelector("#modalLebarInput").value = "0";
         document.getElementById("modalProdukSelect").value = "";
         document.getElementById("modalProdukId").value = "";
+
+        const pdfQtyInput = document.getElementById("filePdfQty");
+        const pdfSummaryInput = document.getElementById("filePdfSummary");
+        const pdfSummaryUnit = document.getElementById("filePdfSummaryUnit");
+    
+        if (pdfQtyInput) pdfQtyInput.value = "";
+        if (pdfSummaryInput) pdfSummaryInput.value = "";
+        if (pdfSummaryUnit) pdfSummaryUnit.textContent = "-";
 
         const satuanDisplay = document.getElementById("modalSatuanDisplay");
         const satuanPanjang = document.getElementById("modalSatuanPanjang");
@@ -4102,6 +4115,8 @@
                 }
             }
         } else if (isPdf) {
+            hideImageControls();
+            showPdfControls();
             const path = defaultFile.path || defaultFile.sourcePath || "";
             const hasServerPath =
                 path &&
