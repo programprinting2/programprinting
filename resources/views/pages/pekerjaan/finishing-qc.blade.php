@@ -2,12 +2,12 @@
 
 @section('content')
 
-    <nav class="page-breadcrumb">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Transaksi</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Pekerjaan</li>
-        </ol>
-    </nav>
+  <nav class="page-breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="#">Pekerjaan</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Finishing / QC</li>
+    </ol>
+  </nav>
 
   <div class="row">
     <div class="col-md-12 grid-margin stretch-card">
@@ -15,8 +15,8 @@
         <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="row">
-            <h6 class="card-title mb-0">Data Pekerjaan</h6>
-            <p class="text-muted mb-3">Daftar semua SPK yang sedang dan sudah diproses.</p>
+            <h6 class="card-title mb-0">Data Pekerjaan Finishing / QC</h6>
+            <p class="text-muted mb-3">Daftar semua SPK yang perlu dilakukan Finishing / QC.</p>
     </div>
           </div>
 
@@ -25,7 +25,7 @@
 
           <!-- Form Pencarian dan Filter -->
           <form id="searchForm" class="row g-3 mb-4">
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <label class="form-label small">&nbsp;</label>
               <div class="input-group">
                 <span class="input-group-text bg-light">
@@ -33,8 +33,8 @@
                 </span>
                 <input type="text" class="form-control" name="search" placeholder="Cari nomor SPK, pelanggan, atau status..." value="{{ request('search') }}">
               </div>
-            </div>
-            <div class="col-md-3">
+            </div> -->
+            <div class="col-md-7">
               <label class="form-label small">&nbsp;</label>
               <select class="form-select" name="customer_id">
                 <option value="">Semua Pelanggan</option>
@@ -51,9 +51,12 @@
                   <option value="">Semua Status</option>
                   <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                   <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
-                  <option value="proses_produksi" {{ request('status') == 'proses_produksi' ? 'selected' : '' }}>Proses Produksi</option>
-                  <option value="sudah_cetak" {{ request('status') == 'sudah_cetak' ? 'selected' : '' }}>Sudah Cetak</option>
-                  <option value="siap_antar" {{ request('status') == 'siap_antar' ? 'selected' : '' }}>Siap Antar</option>
+                  <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
+                  <option value="manager_approval_produksi" {{ request('status') == 'manager_approval_produksi' ? 'selected' : '' }}>Manager Approval Produksi</option>
+                  <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
+                  <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
+                  <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
+                  <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
               </select>
             </div>
             <!-- <div class="col-md-2">
@@ -109,44 +112,52 @@
                       @endif
                     </td>
                     <td>
-                    @php
-                      $statusSteps = [
-                          'draft'           => 1,
-                          'proses_bayar'    => 2,
-                          'proses_produksi' => 3,
-                          'sudah_cetak'     => 4,
-                          'siap_antar'      => 5,
-                      ];
+                        @php
+                            $statusSteps = [
+                                'draft'                     => 1,
+                                'proses_bayar'              => 2,
+                                'manager_approval_order'    => 3,
+                                'manager_approval_produksi' => 4,
+                                'operator_cetak'            => 5,
+                                'finishing_qc'              => 6,
+                                'siap_diambil'              => 7,
+                                'selesai'                   => 8,
+                            ];
 
-                      $statusLabels = [
-                          'draft'           => 'Draft',
-                          'proses_bayar'    => 'Proses Pembayaran',
-                          'proses_produksi' => 'Proses Produksi',
-                          'sudah_cetak'     => 'Sudah Cetak',
-                          'siap_antar'      => 'Siap Antar',
-                      ];
+                            $statusLabels = [
+                                'draft'                     => 'Draft',
+                                'proses_bayar'              => 'Proses Pembayaran',
+                                'manager_approval_order'    => 'Manager Approval Order',
+                                'manager_approval_produksi' => 'Manager Approval Produksi',
+                                'operator_cetak'            => 'Operator Cetak',
+                                'finishing_qc'              => 'Finishing / QC',
+                                'siap_diambil'              => 'Siap Diambil',
+                                'selesai'                   => 'Selesai',
+                            ];
 
-                      $statusIcons = [
-                          'draft'           => 'fa-file-alt',
-                          'proses_bayar'    => 'fa-credit-card',
-                          'proses_produksi' => 'fa-cogs',
-                          'sudah_cetak'     => 'fa-print',
-                          'siap_antar'      => 'fa-truck',
-                      ];
+                            $statusIcons = [
+                                'draft'                     => 'fa-file-alt',
+                                'proses_bayar'              => 'fa-money-bill-wave',
+                                'manager_approval_order'    => 'fa-user-check',
+                                'manager_approval_produksi' => 'fa-cogs',
+                                'operator_cetak'            => 'fa-print',
+                                'finishing_qc'              => 'fa-check-double',
+                                'siap_diambil'              => 'fa-truck',
+                                'selesai'                   => 'fa-flag-checkered',
+                            ];
 
-                      $currentStep  = $statusSteps[$item->status] ?? 0;
-                      $currentLabel = $statusLabels[$item->status] ?? ($item->status ?? '-');
-                    @endphp
+                            $currentStep  = $statusSteps[$item->status] ?? 0;
+                            $currentLabel = $statusLabels[$item->status] ?? ($item->status ?? '-');
+                        @endphp
 
-                    <div class="d-flex align-items-center gap-2 flex-wrap">
-                      @foreach($statusSteps as $key => $step)
-                        <i class="fa {{ $statusIcons[$key] }}
-                                  {{ $step <= $currentStep ? 'text-primary' : 'text-muted' }}"
-                          style="font-size: 0.85rem;"></i>
-                      @endforeach
-                    </div>
-
-                    <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
+                        <div class="d-flex align-items-center gap-1">
+                            @foreach($statusSteps as $status => $step)
+                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }}
+                                          {{ $step <= $currentStep ? 'text-primary' : 'text-muted' }}"
+                                  style="font-size: 0.8rem;"></i>
+                            @endforeach
+                        </div>
+                        <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
                     </td>
                     <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
                     <!-- <td>
@@ -164,14 +175,18 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'draft')
-                          <form action="{{ route('spk.acc', $item->id) }}" method="POST" class="d-inline-block form-acc-spk">
+                        @if($item->status === 'finishing_qc')
+                        <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
+                                class="d-inline-block form-status-spk">
                             @csrf
                             @method('PATCH')
-                            <button type="button" class="btn btn-success btn-xs btn-icon rounded btn-acc-spk" title="ACC ke Proses Bayar">
-                              <i class="link-icon icon-sm" data-feather="check-circle"></i>
+                            <input type="hidden" name="action" value="">
+                            <button type="button"
+                                    class="btn btn-success btn-xs btn-icon rounded btn-status-manager"
+                                    title="Setujui / Tolak SPK">
+                            <i class="link-icon icon-sm" data-feather="check-circle"></i>
                             </button>
-                          </form>
+                        </form>
                         @endif
                         <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
                           @csrf
@@ -293,24 +308,35 @@
       });
     @endif
 
-    document.querySelectorAll('.btn-acc-spk').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
+    document.querySelectorAll('.btn-status-manager').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
         e.preventDefault();
+        const form = btn.closest('form');
+        if (!form) return;
+        const actionInput = form.querySelector('input[name="action"]');
+
         Swal.fire({
-          title: 'ACC SPK ini?',
-          text: 'Status akan diubah menjadi Proses Pembayaran dan Anda akan diarahkan ke halaman kasir.',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#198754',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Ya, Acc',
-          cancelButtonText: 'Batal'
+            title: 'Proses SPK ini?',
+            text: 'Pilih Setuju untuk selesai, atau Tolak untuk kembali ke Finishing / QC.',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#198754',
+            denyButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Setuju',
+            denyButtonText: 'Tolak',
+            cancelButtonText: 'Batal'
         }).then((result) => {
-          if (result.isConfirmed) {
-            btn.closest('form').submit();
-          }
+            if (result.isConfirmed) {
+            if (actionInput) actionInput.value = 'approve';
+            form.submit();
+            } else if (result.isDenied) {
+            if (actionInput) actionInput.value = 'reject';
+            form.submit();
+            }
         });
-      });
+        });
     });
 
     document.querySelectorAll('.btn-hapus-spk').forEach(function(btn) {

@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Pelanggan;
 use App\Services\SpkService;
+use App\Models\Pelanggan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\View\View;
 
 class PekerjaanController extends Controller
@@ -15,27 +13,47 @@ class PekerjaanController extends Controller
         private SpkService $spkService
     ) {}
 
-    public function index(Request $request): View
+    public function managerOrder(Request $request): View
     {
-        try {
-            $filters = $request->only([
-                'search',
-                'customer_id',
-                'status',
-            ]);
+        $filters = $request->only(['search', 'customer_id']);
+        $filters['status'] = 'manager_approval_order';
 
-            // Pekerjaan = semua SPK, jadi cukup pakai getPaginatedSpk biasa
-            $spk = $this->spkService->getPaginatedSpk(10, $filters);
-            $customers = Pelanggan::where('status', true)->get();
+        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $customers = Pelanggan::where('status', true)->get();
 
-            return view('pages.pekerjaan.index', compact('spk', 'customers'));
-        } catch (\Exception $e) {
-            Log::error('Error loading Pekerjaan index', ['error' => $e->getMessage()]);
+        return view('pages.pekerjaan.manager-order', compact('spk', 'customers'));
+    }
 
-            return view('pages.pekerjaan.index', [
-                'spk' => new LengthAwarePaginator([], 0, 10),
-                'customers' => collect(),
-            ])->with('error', 'Gagal memuat data pekerjaan');
-        }
+    public function managerProduksi(Request $request): View
+    {
+        $filters = $request->only(['search', 'customer_id']);
+        $filters['status'] = 'manager_approval_produksi';
+
+        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $customers = Pelanggan::where('status', true)->get();
+
+        return view('pages.pekerjaan.manager-produksi', compact('spk', 'customers'));
+    }
+
+    public function operatorCetak(Request $request): View
+    {
+        $filters = $request->only(['search', 'customer_id']);
+        $filters['status'] = 'operator_cetak';
+
+        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $customers = Pelanggan::where('status', true)->get();
+
+        return view('pages.pekerjaan.operator-cetak', compact('spk', 'customers'));
+    }
+
+    public function finishingQc(Request $request): View
+    {
+        $filters = $request->only(['search', 'customer_id']);
+        $filters['status'] = 'finishing_qc';
+
+        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $customers = Pelanggan::where('status', true)->get();
+
+        return view('pages.pekerjaan.finishing-qc', compact('spk', 'customers'));
     }
 }

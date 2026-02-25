@@ -242,4 +242,49 @@ class SPKController extends Controller
                 ->with('error', 'Gagal ACC SPK ke proses pembayaran.');
         }
     }
+
+    public function updateStatus(Request $request, SPK $spk): RedirectResponse
+    {
+        $action = $request->input('action'); 
+
+        $flow = [
+            'draft',
+            'proses_bayar',
+            'manager_approval_order',
+            'manager_approval_produksi',
+            'operator_cetak',
+            'finishing_qc',
+            'siap_diambil',
+            'selesai',
+        ];
+
+        $currentStatus = $spk->status;
+        $index = array_search($currentStatus, $flow, true);
+
+        if ($index === false) {
+            return back()->with('error', 'Status SPK saat ini tidak dikenali.');
+        }
+
+        $newStatus = $currentStatus;
+
+        if ($action === 'approve') {
+            if ($index < count($flow) - 1) {
+                $newStatus = $flow[$index + 1];
+            }
+        } elseif ($action === 'reject') {
+            if ($index > 0) {
+                $newStatus = $flow[$index - 1];
+            }
+        } else {
+            return back()->with('error', 'Aksi status tidak valid.');
+        }
+
+        if ($newStatus === $currentStatus) {
+            return back()->with('error', 'Tidak ada perubahan status yang dilakukan.');
+        }
+
+        $spk->update(['status' => $newStatus]);
+
+        return back()->with('success', "Status SPK berhasil diubah menjadi {$newStatus}.");
+    }
 }

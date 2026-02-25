@@ -217,11 +217,23 @@ Route::group(['prefix' => 'spk'], function () {
         'destroy' => 'spk.destroy',
     ])->parameters(['' => 'spk']);
 
-    Route::patch('/{spk}/acc', [SPKController::class, 'accToPayment'])
-    ->name('spk.acc');
+    Route::patch('/{spk}/acc', [SPKController::class, 'accToPayment'])->name('spk.acc');
+    Route::patch('/{spk}/status', [SPKController::class, 'updateStatus'])->name('spk.update-status');
 });
 
-Route::get('/pekerjaan', [PekerjaanController::class, 'index'])->name('pekerjaan.index');
+Route::group(['prefix' => 'pekerjaan'], function () {
+    Route::get('/manager-order', [PekerjaanController::class, 'managerOrder'])
+        ->name('pekerjaan.manager-order');
+
+    Route::get('/manager-produksi', [PekerjaanController::class, 'managerProduksi'])
+        ->name('pekerjaan.manager-produksi');
+
+    Route::get('/operator-cetak', [PekerjaanController::class, 'operatorCetak'])
+        ->name('pekerjaan.operator-cetak');
+
+    Route::get('/finishing-qc', [PekerjaanController::class, 'finishingQc'])
+        ->name('pekerjaan.finishing-qc');
+});
 
 //Hutang Route
 Route::get('/hutang', [HutangController::class, 'index'])->name('hutang.index');

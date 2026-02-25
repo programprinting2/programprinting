@@ -107,12 +107,36 @@
       </li>
 
       <!-- Pekerjaan  -->
-      <li class="nav-item {{ active_class(['pekerjaan/*', 'pekerjaan']) }}">
-        <a class="nav-link" href="{{ url('/pekerjaan') }}" role="button">
+      <li class="nav-item nav-category">Pekerjaan</li>
+
+      <li class="nav-item {{ active_class(['pekerjaan/manager-order*']) }}">
+        <a class="nav-link" href="{{ route('pekerjaan.manager-order') }}" role="button">
           <i class="link-icon" data-feather="briefcase"></i>
-          <span class="link-title">Pekerjaan</span>
+          <span class="link-title">Manager Order</span>
         </a>
       </li>
+
+      <li class="nav-item {{ active_class(['pekerjaan/manager-produksi*']) }}">
+        <a class="nav-link" href="{{ route('pekerjaan.manager-produksi') }}" role="button">
+          <i class="link-icon" data-feather="sliders"></i>
+          <span class="link-title">Manager Produksi</span>
+        </a>
+      </li>
+
+      <li class="nav-item {{ active_class(['pekerjaan/operator-cetak*']) }}">
+        <a class="nav-link" href="{{ route('pekerjaan.operator-cetak') }}" role="button">
+          <i class="link-icon" data-feather="printer"></i>
+          <span class="link-title">Operator Cetak</span>
+        </a>
+      </li>
+
+      <li class="nav-item {{ active_class(['pekerjaan/finishing-qc*']) }}">
+        <a class="nav-link" href="{{ route('pekerjaan.finishing-qc') }}" role="button">
+          <i class="link-icon" data-feather="check-square"></i>
+          <span class="link-title">Finishing / QC</span>
+        </a>
+      </li>
+
 
 
       <li class="nav-item nav-category">Email</li>

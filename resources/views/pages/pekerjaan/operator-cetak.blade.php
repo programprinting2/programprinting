@@ -4,8 +4,8 @@
 
   <nav class="page-breadcrumb">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="#">Transaksi</a></li>
-      <li class="breadcrumb-item active" aria-current="page">SPK</li>
+      <li class="breadcrumb-item"><a href="#">Pekerjaan</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Operator Cetak</li>
     </ol>
   </nav>
 
@@ -15,13 +15,8 @@
         <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="row">
-              <h6 class="card-title mb-0">Data SPK</h6>
-              <p class="text-muted mb-3">Kelola Surat Perintah Kerja untuk pelanggan</p>
-    </div>
-            <div class="d-flex align-items-center gap-3">
-              <a href="{{ route('spk.create') }}" class="btn btn-primary d-flex align-items-center gap-1">
-                <i class="fa fa-plus"></i> Buat SPK Baru
-    </a>
+            <h6 class="card-title mb-0">Data Pekerjaan Operator Cetak</h6>
+            <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Operator Cetak.</p>
     </div>
           </div>
 
@@ -30,7 +25,7 @@
 
           <!-- Form Pencarian dan Filter -->
           <form id="searchForm" class="row g-3 mb-4">
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <label class="form-label small">&nbsp;</label>
               <div class="input-group">
                 <span class="input-group-text bg-light">
@@ -38,8 +33,8 @@
                 </span>
                 <input type="text" class="form-control" name="search" placeholder="Cari nomor SPK, pelanggan, atau status..." value="{{ request('search') }}">
               </div>
-            </div>
-            <div class="col-md-3">
+            </div> -->
+            <div class="col-md-7">
               <label class="form-label small">&nbsp;</label>
               <select class="form-select" name="customer_id">
                 <option value="">Semua Pelanggan</option>
@@ -180,14 +175,18 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'draft')
-                          <form action="{{ route('spk.acc', $item->id) }}" method="POST" class="d-inline-block form-acc-spk">
+                        @if($item->status === 'operator_cetak')
+                        <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
+                                class="d-inline-block form-status-spk">
                             @csrf
                             @method('PATCH')
-                            <button type="button" class="btn btn-success btn-xs btn-icon rounded btn-acc-spk" title="ACC ke Proses Bayar">
-                              <i class="link-icon icon-sm" data-feather="check-circle"></i>
+                            <input type="hidden" name="action" value="">
+                            <button type="button"
+                                    class="btn btn-success btn-xs btn-icon rounded btn-status-manager"
+                                    title="Setujui / Tolak SPK">
+                            <i class="link-icon icon-sm" data-feather="check-circle"></i>
                             </button>
-                          </form>
+                        </form>
                         @endif
                         <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
                           @csrf
@@ -279,12 +278,12 @@
 
     // Reset filter
     $('#resetFilter').click(function() {
-      window.location.href = '{{ route("spk.index") }}';
+        window.location.href = '{{ route("spk.index") }}';
     });
 
     // Clear search
     $('#clearSearch').click(function() {
-      window.location.href = '{{ route("spk.index") }}';
+        window.location.href = '{{ route("spk.index") }}';
     });
 
     // Show loading spinner when page is loading
@@ -309,24 +308,35 @@
       });
     @endif
 
-    document.querySelectorAll('.btn-acc-spk').forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
+    document.querySelectorAll('.btn-status-manager').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
         e.preventDefault();
+        const form = btn.closest('form');
+        if (!form) return;
+        const actionInput = form.querySelector('input[name="action"]');
+
         Swal.fire({
-          title: 'ACC SPK ini?',
-          text: 'Status akan diubah menjadi Proses Pembayaran dan Anda akan diarahkan ke halaman kasir.',
-          icon: 'question',
-          showCancelButton: true,
-          confirmButtonColor: '#198754',
-          cancelButtonColor: '#6c757d',
-          confirmButtonText: 'Ya, Acc',
-          cancelButtonText: 'Batal'
+            title: 'Proses SPK ini?',
+            text: 'Pilih Setuju untuk lanjut ke Finishing/QC, atau Tolak untuk kembali ke Manager Produksi.',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#198754',
+            denyButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Setuju',
+            denyButtonText: 'Tolak',
+            cancelButtonText: 'Batal'
         }).then((result) => {
-          if (result.isConfirmed) {
-            btn.closest('form').submit();
-          }
+            if (result.isConfirmed) {
+            if (actionInput) actionInput.value = 'approve';
+            form.submit();
+            } else if (result.isDenied) {
+            if (actionInput) actionInput.value = 'reject';
+            form.submit();
+            }
         });
-      });
+        });
     });
 
     document.querySelectorAll('.btn-hapus-spk').forEach(function(btn) {
