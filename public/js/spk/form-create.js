@@ -1822,6 +1822,12 @@
                             ${isDefault ? "disabled" : ""}>
                             ${isDefault ? "Default" : "Set default"}
                     </button>
+                    <button type="button"
+                            class="btn btn-sm btn-link text-dark me-1 btn-open-folder-file"
+                            data-idx="${idx}"
+                            title="Buka folder file">
+                        <i class="fas fa-external-link-alt"></i>
+                    </button>
                     <button type="button" class="btn btn-sm btn-link text-danger btn-remove-file" data-idx="${idx}">
                         <i class="fa fa-times"></i>
                     </button>
@@ -2143,6 +2149,17 @@
             if (v !== undefined) payload[key] = v;
         });
 
+        const boolFields = [
+            { key: "single_pesan_kiri", tab: "teks", selector: "#imageToolSingleLeftMessage" },
+        ];
+    
+        boolFields.forEach(({ key, tab, selector }) => {
+            if (!isTabPayloadEnabled(tab)) return;
+            const el = document.querySelector(selector);
+            if (!el) return;
+            payload[key] = el.checked ? 1 : 0;
+        });
+
         const numberFields = [
             { key: "image_scale", tab: "kanvas", selector: "#imageToolImageScale" },
             { key: "ukuran_pesan", tab: "teks", selector: "#imageToolUkuranPesan" },
@@ -2186,6 +2203,7 @@
 
     const PAYLOAD_TO_SELECTOR = {
         pesan: "#imageToolPesan",
+        single_pesan_kiri: "#imageToolSingleLeftMessage",
         jenis_plong: "#imageToolJenisPlong",
         bentuk_plong: "#imageToolBentukPlong",
         warna_pesan: "#imageToolWarnaPesan",
@@ -2236,6 +2254,15 @@
             const isColor = el.type === "color";
             const isSelect = el.tagName === "SELECT";
             const isNumber = el.type === "number";
+
+            const isCheckbox = el.type === "checkbox";
+            if (isCheckbox) {
+                el.checked = Boolean(
+                    value === true ||
+                    value === 1 ||
+                    value === "1"
+                );
+            }
 
             if (el.type === "color") {
                 el.dataset.touched = "1";
@@ -2758,23 +2785,85 @@
         }
 
         // Remove file
+        // modal.addEventListener("click", (e) => {
+        //     const target = e.target.closest(".btn-set-default-file");
+        //     if (target) {
+        //         const idx = parseInt(target.getAttribute("data-idx"), 10);
+        //         if (
+        //             !isNaN(idx) &&
+        //             idx > 0 &&
+        //             Array.isArray(modalUploadedFiles)
+        //         ) {
+        //             const [selected] = modalUploadedFiles.splice(idx, 1);
+        //             modalUploadedFiles.unshift(selected);
+        //             imageRotationDegrees = 0;
+        //             renderModalUploadedFiles();
+        //             renderOrderanPreviewTab();
+        //         }
+        //     }
+
+        //     if (e.target.closest(".btn-remove-file")) {
+        //         const idx = parseInt(
+        //             e.target.closest(".btn-remove-file").dataset.idx,
+        //         );
+        //         modalUploadedFiles.splice(idx, 1);
+        //         renderModalUploadedFiles();
+        //         updateModalSummary();
+        //         renderOrderanPreviewTab();
+        //     }
+        // });
+
         modal.addEventListener("click", (e) => {
             const target = e.target.closest(".btn-set-default-file");
             if (target) {
                 const idx = parseInt(target.getAttribute("data-idx"), 10);
-                if (
-                    !isNaN(idx) &&
-                    idx > 0 &&
-                    Array.isArray(modalUploadedFiles)
-                ) {
+                if (!isNaN(idx) && idx > 0 && Array.isArray(modalUploadedFiles)) {
                     const [selected] = modalUploadedFiles.splice(idx, 1);
                     modalUploadedFiles.unshift(selected);
                     imageRotationDegrees = 0;
                     renderModalUploadedFiles();
                     renderOrderanPreviewTab();
                 }
+                return;
             }
-
+        
+            // Buka folder untuk file tertentu
+            const openBtn = e.target.closest(".btn-open-folder-file");
+            if (openBtn) {
+                const idx = parseInt(openBtn.getAttribute("data-idx"), 10);
+                const file = Array.isArray(modalUploadedFiles)
+                    ? modalUploadedFiles[idx]
+                    : null;
+                const filePath = file?.path || file?.sourcePath || "";
+        
+                if (!filePath) {
+                    alert("File tidak memiliki path yang valid.");
+                    return;
+                }
+        
+                (async () => {
+                    try {
+                        const response = await fetch(
+                            `/backend/open-folder-location?path=${encodeURIComponent(
+                                filePath,
+                            )}`,
+                        );
+                        const data = await response.json();
+                        if (!data.success) {
+                            alert(
+                                "Gagal membuka folder: " +
+                                    (data.message || "Unknown error"),
+                            );
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert("Terjadi kesalahan saat membuka folder.");
+                    }
+                })();
+        
+                return;
+            }
+        
             if (e.target.closest(".btn-remove-file")) {
                 const idx = parseInt(
                     e.target.closest(".btn-remove-file").dataset.idx,
@@ -2783,6 +2872,7 @@
                 renderModalUploadedFiles();
                 updateModalSummary();
                 renderOrderanPreviewTab();
+                return;
             }
         });
 
@@ -3950,13 +4040,11 @@
 
     function getOutputPathForPreview(currentPath) {
         if (!currentPath || typeof currentPath !== "string") return "";
-        console.log(currentPath);
         return currentPath.replace(/(\.[^/.]+)$/, "_output$1");
     }
 
     function checkOutputFileExists(outputPath) {
         if (!outputPath) return Promise.resolve(false);
-        console.log(outputPath);
         return fetch(`/backend/file-exists?path=${encodeURIComponent(outputPath)}`)
             .then((r) => r.json())
             .then((data) => data.success && data.exists === true)

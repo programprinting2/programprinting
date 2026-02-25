@@ -1030,6 +1030,13 @@
                       <div class="mb-3">
                         <label for="imageToolPesan" class="form-label">Pesan</label>
                         <input type="text" class="form-control" id="imageToolPesan" placeholder="Masukkan pesan" value="POLOS">
+
+                        <div class="form-check mt-2">
+                          <input class="form-check-input" type="checkbox" id="imageToolSingleLeftMessage">
+                          <label class="form-check-label small" for="imageToolSingleLeftMessage">
+                            1 pesan saja (kiri)
+                          </label>
+                        </div>
                       </div>
                       <div class="mb-3">
                         <label for="imageToolUkuranPesan" class="form-label">Ukuran Pesan (pt)</label>
@@ -1422,24 +1429,6 @@
 @endsection
 
 @push('custom-scripts')
-  <!-- <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const btnImageTools = document.getElementById('btnImageTools');
-      const modalImageToolsElement = document.getElementById('modalImageTools');
-      let imageToolsModalInstance = null;
-
-      if (modalImageToolsElement) {
-        imageToolsModalInstance = new bootstrap.Modal(modalImageToolsElement);
-      }
-
-      if (btnImageTools && imageToolsModalInstance) {
-        btnImageTools.addEventListener('click', function () {
-          imageToolsModalInstance.show();
-        });
-      }
-    });
-  </script> -->
-
   @include('backend.general-form.cari-all-produk', [
     'modalId' => 'modalCariProdukSPK',
     'inputId' => 'searchProdukSPK',

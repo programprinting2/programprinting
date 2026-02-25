@@ -1011,6 +1011,13 @@
                       <div class="mb-3">
                         <label for="imageToolPesan" class="form-label">Pesan</label>
                         <input type="text" class="form-control" id="imageToolPesan" placeholder="Masukkan pesan" value="POLOS">
+
+                        <div class="form-check mt-2">
+                          <input class="form-check-input" type="checkbox" id="imageToolSingleLeftMessage">
+                          <label class="form-check-label small" for="imageToolSingleLeftMessage">
+                            1 pesan saja (kiri)
+                          </label>
+                        </div>
                       </div>
                       <div class="mb-3">
                         <label for="imageToolUkuranPesan" class="form-label">Ukuran Pesan (pt)</label>
