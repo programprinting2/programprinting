@@ -142,13 +142,13 @@
 
                             $statusIcons = [
                                 'draft'                     => 'fa-file-alt',
-                                'proses_bayar'              => 'fa-money-bill-wave',
-                                'manager_approval_order'    => 'fa-user-check',
-                                'manager_approval_produksi' => 'fa-cogs',
+                                'proses_bayar'              => 'fas fa-cash-register',
+                                'manager_approval_order'    => 'fas fa-chalkboard-teacher',
+                                'manager_approval_produksi' => 'fas fa-person-booth',
                                 'operator_cetak'            => 'fa-print',
-                                'finishing_qc'              => 'fa-check-double',
-                                'siap_diambil'              => 'fa-truck',
-                                'selesai'                   => 'fa-flag-checkered',
+                                'finishing_qc'              => 'fas fa-people-carry',
+                                'siap_diambil'              => 'fas fa-shopping-cart',
+                                'selesai'                   => 'fa-check-double',
                             ];
 
                             $currentStep  = $statusSteps[$item->status] ?? 0;

@@ -5,7 +5,7 @@
   <nav class="page-breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="#">Pekerjaan</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Manager Order</li>
+      <li class="breadcrumb-item active" aria-current="page">Tandai Selesai</li>
     </ol>
   </nav>
 
@@ -15,8 +15,8 @@
         <div class="card-body">
     <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="row">
-            <h6 class="card-title mb-0">Data Pekerjaan Manager Order</h6>
-            <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Manager Order.</p>
+            <h6 class="card-title mb-0">Data Pekerjaan untuk Ditandai Selesai</h6>
+            <p class="text-muted mb-3">Daftar semua SPK yang akan ditandai selesai.</p>
     </div>
           </div>
 
@@ -175,8 +175,8 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'proses_bayar')
-                          <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
+                        @if($item->status === 'siap_diambil')
+                        <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
                                 class="d-inline-block form-status-spk">
                             @csrf
                             @method('PATCH')
@@ -184,9 +184,9 @@
                             <button type="button"
                                     class="btn btn-success btn-xs btn-icon rounded btn-status-manager"
                                     title="Setujui / Tolak SPK">
-                              <i class="link-icon icon-sm" data-feather="check-circle"></i>
+                            <i class="link-icon icon-sm" data-feather="check-circle"></i>
                             </button>
-                          </form>
+                        </form>
                         @endif
                         <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
                           @csrf
@@ -309,35 +309,35 @@
     @endif
 
     document.querySelectorAll('.btn-status-manager').forEach(function (btn) {
-    btn.addEventListener('click', function (e) {
-      e.preventDefault();
-      const form = btn.closest('form');
-      if (!form) return;
-      const actionInput = form.querySelector('input[name="action"]');
+        btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        const form = btn.closest('form');
+        if (!form) return;
+        const actionInput = form.querySelector('input[name="action"]');
 
-      Swal.fire({
-        title: 'Proses SPK ini?',
-        text: 'Pilih Setuju untuk lanjut ke Manager Produksi, atau Tolak untuk kembali ke Draft.',
-        icon: 'question',
-        showCancelButton: true,
-        showDenyButton: true,
-        confirmButtonColor: '#198754',
-        denyButtonColor: '#d33',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Setuju',
-        denyButtonText: 'Tolak',
-        cancelButtonText: 'Batal'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          if (actionInput) actionInput.value = 'approve';
-          form.submit();
-        } else if (result.isDenied) {
-          if (actionInput) actionInput.value = 'reject';
-          form.submit();
-        }
-      });
+        Swal.fire({
+            title: 'Proses SPK ini?',
+            text: 'Pilih Setuju untuk Selesai, atau Tolak untuk kembali ke Siap Ambil.',
+            icon: 'question',
+            showCancelButton: true,
+            showDenyButton: true,
+            confirmButtonColor: '#198754',
+            denyButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Setuju',
+            denyButtonText: 'Tolak',
+            cancelButtonText: 'Batal'
+        }).then((result) => {
+            if (result.isConfirmed) {
+            if (actionInput) actionInput.value = 'approve';
+            form.submit();
+            } else if (result.isDenied) {
+            if (actionInput) actionInput.value = 'reject';
+            form.submit();
+            }
+        });
+        });
     });
-  });
 
     document.querySelectorAll('.btn-hapus-spk').forEach(function(btn) {
       btn.addEventListener('click', function(e) {

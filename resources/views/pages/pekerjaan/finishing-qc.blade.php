@@ -25,7 +25,7 @@
 
           <!-- Form Pencarian dan Filter -->
           <form id="searchForm" class="row g-3 mb-4">
-            <!-- <div class="col-md-4">
+            <div class="col-md-7">
               <label class="form-label small">&nbsp;</label>
               <div class="input-group">
                 <span class="input-group-text bg-light">
@@ -33,8 +33,8 @@
                 </span>
                 <input type="text" class="form-control" name="search" placeholder="Cari nomor SPK, pelanggan, atau status..." value="{{ request('search') }}">
               </div>
-            </div> -->
-            <div class="col-md-7">
+            </div>
+            <div class="col-md-4">
               <label class="form-label small">&nbsp;</label>
               <select class="form-select" name="customer_id">
                 <option value="">Semua Pelanggan</option>
@@ -45,7 +45,7 @@
                 @endforeach
               </select>
             </div>
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <label class="form-label small">Status</label>
               <select class="form-select" name="status">
                   <option value="">Semua Status</option>
@@ -58,7 +58,7 @@
                   <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
                   <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
               </select>
-            </div>
+            </div> -->
             <!-- <div class="col-md-2">
               <label class="form-label small">Prioritas</label>
               <select class="form-select" name="prioritas">
@@ -137,13 +137,13 @@
 
                             $statusIcons = [
                                 'draft'                     => 'fa-file-alt',
-                                'proses_bayar'              => 'fa-money-bill-wave',
-                                'manager_approval_order'    => 'fa-user-check',
-                                'manager_approval_produksi' => 'fa-cogs',
+                                'proses_bayar'              => 'fas fa-cash-register',
+                                'manager_approval_order'    => 'fas fa-chalkboard-teacher',
+                                'manager_approval_produksi' => 'fas fa-person-booth',
                                 'operator_cetak'            => 'fa-print',
-                                'finishing_qc'              => 'fa-check-double',
-                                'siap_diambil'              => 'fa-truck',
-                                'selesai'                   => 'fa-flag-checkered',
+                                'finishing_qc'              => 'fas fa-people-carrye',
+                                'siap_diambil'              => 'fas fa-shopping-cart',
+                                'selesai'                   => 'fa-check-double',
                             ];
 
                             $currentStep  = $statusSteps[$item->status] ?? 0;

@@ -56,4 +56,26 @@ class PekerjaanController extends Controller
 
         return view('pages.pekerjaan.finishing-qc', compact('spk', 'customers'));
     }
+
+    public function siapAmbil(Request $request): View
+    {
+        $filters = $request->only(['search', 'customer_id']);
+        $filters['status'] = 'finishing_qc';
+
+        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $customers = Pelanggan::where('status', true)->get();
+
+        return view('pages.pekerjaan.siap-ambil', compact('spk', 'customers'));
+    }
+
+    public function tandaiSelesai(Request $request): View
+    {
+        $filters = $request->only(['search', 'customer_id']);
+        $filters['status'] = 'siap_diambil';
+
+        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $customers = Pelanggan::where('status', true)->get();
+
+        return view('pages.pekerjaan.tandai-selesai', compact('spk', 'customers'));
+    }
 }

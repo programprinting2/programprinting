@@ -233,6 +233,12 @@ Route::group(['prefix' => 'pekerjaan'], function () {
 
     Route::get('/finishing-qc', [PekerjaanController::class, 'finishingQc'])
         ->name('pekerjaan.finishing-qc');
+
+    Route::get('/siap-ambil', [PekerjaanController::class, 'siapAmbil'])
+        ->name('pekerjaan.siap-ambil');
+
+    Route::get('/tandai-selesai', [PekerjaanController::class, 'tandaiSelesai'])
+        ->name('pekerjaan.tandai-selesai');
 });
 
 //Hutang Route
