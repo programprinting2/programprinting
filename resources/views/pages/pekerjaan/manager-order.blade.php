@@ -84,10 +84,22 @@
             </div>
     </div>
 
+    <div class="d-flex gap-2 mb-2 justify-content-end">
+      <button type="button" class="btn btn-success btn-sm" id="btnApproveSelected" disabled>
+        Setujui SPK
+      </button>
+      <button type="button" class="btn btn-danger btn-sm" id="btnRejectSelected" disabled>
+        Tolak SPK
+      </button>
+    </div>
+
     <div class="table-responsive">
     <table class="table align-middle">
       <thead>
       <tr>
+      <th style="width: 32px;">
+        <input type="checkbox" id="checkAllSpk">
+      </th>
         <th>Nomor SPK</th>
                   <th>Tanggal SPK</th>
         <th>Pelanggan</th>
@@ -101,6 +113,11 @@
       <tbody>
       @forelse($spk as $item)
       <tr>
+                    <td>
+                      <input type="checkbox"
+                            class="checkSpkRow"
+                            value="{{ $item->id }}">
+                    </td>
                     <td class="fw-semibold">{{ $item->nomor_spk }}</td>
                     <td>
                       {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
@@ -200,7 +217,7 @@
       </tr>
     @empty
       <tr>
-                    <td colspan="8" class="text-center py-4">
+                    <td colspan="7" class="text-center py-4">
                       @if(request('search') || request('customer_id') || request('status') || request('prioritas'))
                         <div class="text-muted">
                           <i data-feather="search" class="icon-sm mb-2"></i>
@@ -358,5 +375,82 @@
         });
       });
     });
+
+    const checkAll = document.getElementById('checkAllSpk');
+    const btnApprove = document.getElementById('btnApproveSelected');
+    const btnReject = document.getElementById('btnRejectSelected');
+
+    const rowChecks = () => Array.from(document.querySelectorAll('.checkSpkRow'));
+    const getSelectedIds = () => rowChecks().filter(cb => cb.checked).map(cb => cb.value);
+
+    function updateBulkButtons() {
+      const anyChecked = getSelectedIds().length > 0;
+      if (btnApprove) btnApprove.disabled = !anyChecked;
+      if (btnReject) btnReject.disabled = !anyChecked;
+    }
+
+    if (checkAll) {
+      checkAll.addEventListener('change', function() {
+        rowChecks().forEach(cb => { cb.checked = checkAll.checked; });
+        updateBulkButtons();
+      });
+    }
+
+    document.addEventListener('change', function(e) {
+      if (e.target.classList && e.target.classList.contains('checkSpkRow')) {
+        const all = rowChecks();
+        if (checkAll) {
+          checkAll.checked = all.length > 0 && all.every(cb => cb.checked);
+          checkAll.indeterminate = all.some(cb => cb.checked) && !checkAll.checked;
+        }
+        updateBulkButtons();
+      }
+    });
+
+    async function bulkUpdateStatus(action) {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return;
+
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+      // Konfirmasi bulk
+      const result = await Swal.fire({
+        title: action === 'approve' ? 'Setujui semua terpilih?' : 'Tolak semua terpilih?',
+        text: `Jumlah SPK terpilih: ${ids.length}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya',
+        cancelButtonText: 'Batal'
+      });
+
+      if (!result.isConfirmed) return;
+  
+      for (const id of ids) {
+        const res = await fetch(`/spk/${encodeURIComponent(id)}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ action })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('Bulk update gagal untuk SPK:', id, text);
+          await Swal.fire('Gagal', `Gagal update status SPK ID ${id}`, 'error');
+          return;
+        }
+      }
+
+      await Swal.fire('Berhasil', 'Status SPK terpilih berhasil diproses.', 'success');
+      window.location.reload();
+    }
+
+    if (btnApprove) btnApprove.addEventListener('click', () => bulkUpdateStatus('approve'));
+    if (btnReject) btnReject.addEventListener('click', () => bulkUpdateStatus('reject'));
+
+    updateBulkButtons();
   </script>
 @endpush
