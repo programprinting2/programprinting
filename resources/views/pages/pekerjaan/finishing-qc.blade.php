@@ -175,7 +175,7 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'finishing_qc')
+                        @if($item->status === 'operator_cetak')
                         <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
                                 class="d-inline-block form-status-spk">
                             @csrf
@@ -317,7 +317,7 @@
 
         Swal.fire({
             title: 'Proses SPK ini?',
-            text: 'Pilih Setuju untuk selesai, atau Tolak untuk kembali ke Finishing / QC.',
+            text: 'Pilih Setuju untuk Siap Ambil, atau Tolak untuk kembali ke Finishing / QC.',
             icon: 'question',
             showCancelButton: true,
             showDenyButton: true,

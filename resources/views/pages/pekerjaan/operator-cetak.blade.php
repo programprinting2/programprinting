@@ -175,7 +175,7 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'operator_cetak')
+                        @if($item->status === 'manager_approval_produksi')
                         <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
                                 class="d-inline-block form-status-spk">
                             @csrf

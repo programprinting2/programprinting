@@ -16,7 +16,7 @@ class PekerjaanController extends Controller
     public function managerOrder(Request $request): View
     {
         $filters = $request->only(['search', 'customer_id']);
-        $filters['status'] = 'manager_approval_order';
+        $filters['status'] = 'proses_bayar';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $customers = Pelanggan::where('status', true)->get();
@@ -27,7 +27,7 @@ class PekerjaanController extends Controller
     public function managerProduksi(Request $request): View
     {
         $filters = $request->only(['search', 'customer_id']);
-        $filters['status'] = 'manager_approval_produksi';
+        $filters['status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $customers = Pelanggan::where('status', true)->get();
@@ -38,7 +38,7 @@ class PekerjaanController extends Controller
     public function operatorCetak(Request $request): View
     {
         $filters = $request->only(['search', 'customer_id']);
-        $filters['status'] = 'operator_cetak';
+        $filters['status'] = 'manager_approval_produksi';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $customers = Pelanggan::where('status', true)->get();
@@ -49,7 +49,7 @@ class PekerjaanController extends Controller
     public function finishingQc(Request $request): View
     {
         $filters = $request->only(['search', 'customer_id']);
-        $filters['status'] = 'finishing_qc';
+        $filters['status'] = 'operator_cetak';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $customers = Pelanggan::where('status', true)->get();
