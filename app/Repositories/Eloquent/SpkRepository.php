@@ -31,6 +31,11 @@ class SpkRepository implements SpkRepositoryInterface
             $query->where('status', $filters['status']);
         }
 
+        // FILTER EXCLUDE STATUS
+        if (!empty($filters['exclude_status'])) {
+            $query->where('status', '!=', $filters['exclude_status']);
+        }
+
         // FILTER CUSTOMER
         if (!empty($filters['customer_id'])) {
             $query->where('pelanggan_id', $filters['customer_id']);

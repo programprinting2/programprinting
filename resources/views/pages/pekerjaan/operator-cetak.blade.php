@@ -152,9 +152,19 @@
 
                         <div class="d-flex align-items-center gap-1">
                             @foreach($statusSteps as $status => $step)
-                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }}
-                                          {{ $step <= $currentStep ? 'text-primary' : 'text-muted' }}"
-                                  style="font-size: 0.8rem;"></i>
+                                @php
+                                    if ($step < $currentStep) {
+                                        $colorClass = 'text-primary'; // sudah lewat
+                                    } elseif ($step === $currentStep) {
+                                        $colorClass = ''; // warna custom kuning
+                                        $style = 'color: #FFC107;';
+                                    } else {
+                                        $colorClass = 'text-muted'; // belum
+                                        $style = '';
+                                    }
+                                @endphp
+                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}"
+                                  style="{{ $style ?? '' }} font-size: 0.8rem;"></i>
                             @endforeach
                         </div>
                         <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
