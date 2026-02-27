@@ -13,9 +13,12 @@ class KasirService
         private SpkRepositoryInterface $spkRepository
     ) {}
 
-    public function getSpkProsesBayar(Request $request): LengthAwarePaginator
+    public function getSpkBelumLunas(Request $request): LengthAwarePaginator
     {
-        $filters = ['status' => 'proses_bayar'] + $request->only('search', 'customer_id');
+        $filters = [
+            'exclude_status_pembayaran' => 'lunas',
+        ] + $request->only('search', 'customer_id');
+
         return $this->spkRepository->paginate(10, $filters);
     }
 
@@ -28,7 +31,31 @@ class KasirService
         return $spk;
     }
 
-    //  public function processPayment(SPK $spk, array $data): Pembayaran
-    // {
-    // }
+    public function storePayment(SPK $spk, array $data): SpkPembayaran
+    {
+        return DB::transaction(function () use ($spk, $data) {
+            /** @var SPK $locked */
+            $locked = SPK::query()->whereKey($spk->id)->lockForUpdate()->firstOrFail();
+
+            $payment = SpkPembayaran::create([
+                'spk_id' => $locked->id,
+                'jumlah' => $data['jumlah'],
+                'metode' => $data['metode'],
+                'tanggal' => $data['tanggal'],
+                'referensi' => $data['referensi'] ?? null,
+                'catatan' => $data['catatan'] ?? null,
+                'created_by' => auth()->id(),
+            ]);
+
+            $locked->refreshPembayaranSummary();
+
+            // if ($locked->status_pembayaran === 'lunas' && $locked->status === 'proses_bayar') {
+            //     $locked->update(['status' => 'proses_produksi']);
+            // }
+
+            ActivityLogService::log($locked, 'spk_pembayaran', 'Pembayaran SPK disimpan', 'info');
+
+            return $payment;
+        });
+    }
 }

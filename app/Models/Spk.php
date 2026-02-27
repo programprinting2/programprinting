@@ -58,16 +58,16 @@ class SPK extends Model
         return $this->morphMany(ActivityLog::class, 'loggable');
     }
 
-    public static function statusList(): array
-    {
-        return [
-            'draft'       => 'Draft',
-            'proses_bayar'      => 'Proses Pembayaran',
-            'proses_produksi'  => 'Proses Produksi',
-            'sudah_cetak'      => 'Sudah Cetak',
-            'siap_antar'       => 'Siap Antar',
-        ];
-    }
+    // public static function statusList(): array
+    // {
+    //     return [
+    //         'draft'       => 'Draft',
+    //         'proses_bayar'      => 'Proses Pembayaran',
+    //         'proses_produksi'  => 'Proses Produksi',
+    //         'sudah_cetak'      => 'Sudah Cetak',
+    //         'siap_antar'       => 'Siap Antar',
+    //     ];
+    // }
 
     public function updateTotalBiaya(): void
     {
@@ -75,8 +75,50 @@ class SPK extends Model
         $this->update(['total_biaya' => $total]);
     }
 
-    public function scopeByStatus($query, string $status)
+    // public function scopeByStatus($query, string $status)
+    // {
+    //     return $query->where('status', $status);
+    // }
+
+    public function pembayaran(): HasMany
     {
-        return $query->where('status', $status);
+        return $this->hasMany(SpkPembayaran::class, 'spk_id');
+    }
+
+    public static function pembayaranStatusList(): array
+    {
+        return [
+            'belum_bayar' => 'Belum Bayar',
+            'kurang_bayar' => 'Kurang Bayar',
+            'lunas' => 'Lunas',
+        ];
+    }
+
+    public function refreshPembayaranSummary(): void
+    {
+        $totalDibayar = (float) $this->pembayaran()->sum('jumlah');
+        $totalBiaya = (float) ($this->total_biaya ?? 0);
+
+        $statusPembayaran = 'belum_bayar';
+        if ($totalDibayar <= 0) {
+            $statusPembayaran = 'belum_bayar';
+        } elseif ($totalDibayar + 0.00001 < $totalBiaya) {
+            $statusPembayaran = 'kurang_bayar';
+        } else {
+            $statusPembayaran = 'lunas';
+        }
+
+        $this->update([
+            'total_dibayar' => $totalDibayar,
+            'status_pembayaran' => $statusPembayaran,
+        ]);
+    }
+
+    public function getSisaPembayaranAttribute(): float
+    {
+        $totalBiaya = (float) ($this->total_biaya ?? 0);
+        $totalDibayar = (float) ($this->total_dibayar ?? 0);
+
+        return max(0.0, $totalBiaya - $totalDibayar);
     }
 }

@@ -28,7 +28,7 @@
                 <th>Pelanggan</th>
                 <th>Tanggal SPK</th>
                 <th>Total Biaya</th>
-                <th>Status</th>
+                <th>Status Pembayaran</th>
                 <th>Aksi</th>
               </tr>
             </thead>
@@ -42,18 +42,31 @@
                   <td>{{ $spk->tanggal_spk?->format('d/m/Y') ?? '-' }}</td>
                   <td>Rp {{ number_format($spk->total_biaya ?? 0, 0, ',', '.') }}</td>
                   <td>
-                    <span class="badge bg-warning text-dark px-3">{{ $statusList[$spk->status] ?? $spk->status }}</span>
+                      @php
+                          $badgeClasses = [
+                              'belum_bayar' => 'bg-danger text-white', 
+                              'kurang_bayar' => 'bg-warning text-dark', 
+                              'lunas' => 'bg-primary text-white',       
+                          ];
+
+                          $status = $spk->status_pembayaran ?? 'belum_bayar';
+                          $badgeClass = $badgeClasses[$status] ?? 'bg-secondary text-white';
+                      @endphp
+
+                      <span class="badge {{ $badgeClass }} px-3">
+                          {{ $statusPembayaranList[$status] ?? ucfirst(str_replace('_', ' ', $status)) }}
+                      </span>
                   </td>
                   <td>
                     <a href="{{ route('spk.show', $spk) }}" class="btn btn-sm btn-outline-secondary" title="Lihat Detail"><i class="fas fa-file-alt"></i></a>
-                    <a href="{{ route('kasir.invoice.payment', $spk->id) }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
+                    <a href="{{ route('kasir.spk.payment', ['spk' => $spk->id]) }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
                     <!-- <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a> -->
                     <!-- <a href="{{ route('kasir.invoice.print', 'INV-2023-002') }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Cetak"><i class="fas fa-print"></i></a> -->
                   </td>
                 </tr>
               @empty
                 <tr>
-                  <td colspan="6" class="text-center text-muted py-4">Tidak ada SPK dengan status proses bayar</td>
+                  <td colspan="6" class="text-center text-muted py-4">Tidak ada SPK dengan status pembayaran belum lunas</td>
                 </tr>
               @endforelse
             </tbody>
@@ -64,8 +77,8 @@
           <div class="text-muted">Menampilkan {{ $spkList->count() }} dari {{ $spkList->total() }} SPK</div>
         </div>
         @if($spkList->hasPages())
-          <div class="d-flex justify-content-center mt-3">
-            {{ $spkList->links() }}
+          <div class="d-flex justify-content-center">
+          {{ $spkList->appends(request()->query())->links('pagination::bootstrap-4') }}
           </div>
         @endif
       </div>
