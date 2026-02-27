@@ -84,23 +84,40 @@
             </div>
     </div>
 
+    <div class="d-flex gap-2 mb-2 justify-content-end">
+      <button type="button" class="btn btn-success btn-sm" id="btnApproveSelected" disabled>
+        Setuju Terpilih
+      </button>
+      <button type="button" class="btn btn-danger btn-sm" id="btnRejectSelected" disabled>
+        Tolak Terpilih
+      </button>
+    </div>
+
     <div class="table-responsive">
     <table class="table align-middle">
       <thead>
       <tr>
+        <th style="width: 32px;">
+          <input type="checkbox" id="checkAllSpk">
+        </th>
         <th>Nomor SPK</th>
                   <th>Tanggal SPK</th>
         <th>Pelanggan</th>
         <th>Status</th>
-        <!-- <th>Prioritas</th> -->
-                  <th>Total Biaya</th>
-        <!-- <th>Item Pekerjaan</th> -->
                   <th>Aksi</th>
+                  <th>Otorisasi</th>
       </tr>
       </thead>
       <tbody>
       @forelse($spk as $item)
       <tr>
+      <td>
+                      @if($item->status === 'manager_approval_order')
+                        <input type="checkbox"
+                              class="checkSpkRow"
+                              value="{{ $item->id }}">
+                      @endif
+                    </td>
                     <td class="fw-semibold">{{ $item->nomor_spk }}</td>
                     <td>
                       {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
@@ -152,21 +169,26 @@
 
                         <div class="d-flex align-items-center gap-1">
                             @foreach($statusSteps as $status => $step)
-                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }}
-                                          {{ $step <= $currentStep ? 'text-primary' : 'text-muted' }}"
-                                  style="font-size: 0.8rem;"></i>
+                                @php
+                                    $colorClass = 'text-muted'; // default abu-abu
+                                    $style = '';
+
+                                    if ($step <= $currentStep) {
+                                        $colorClass = 'text-primary';
+                                    }
+
+                                    if ($status === 'manager_approval_order' && $item->status === 'manager_approval_order') {
+                                        $colorClass = '';
+                                        $style = 'color: #FFC107;';
+                                    }
+                                @endphp
+
+                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}"
+                                  style="{{ $style }} font-size: 0.8rem;"></i>
                             @endforeach
                         </div>
                         <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
                     </td>
-                    <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                    <!-- <td>
-                      <ul class="mb-0 list-unstyled">
-                        @foreach($item->items as $pekerjaan)
-                          <li><b>{{ $pekerjaan->nama_produk }}</b> ({{ $pekerjaan->jumlah }} {{ $pekerjaan->satuan }})</li>
-      @endforeach
-      </ul>
-      </td> -->
       <td>
                       <div class="btn-group gap-1" role="group">
                         <a href="{{ route('spk.show', $item->id) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">
@@ -175,7 +197,17 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'manager_approval_order')
+                        <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
+                          @csrf
+                          @method('DELETE')
+                          <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-spk" title="Hapus">
+                            <i class="link-icon icon-sm" data-feather="trash"></i>
+                          </button>
+                        </form>
+                      </div>
+      </td>
+      <td>
+      @if($item->status === 'manager_approval_order')
                         <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
                                 class="d-inline-block form-status-spk">
                             @csrf
@@ -188,19 +220,11 @@
                             </button>
                         </form>
                         @endif
-                        <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
-                          @csrf
-                          @method('DELETE')
-                          <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-spk" title="Hapus">
-                            <i class="link-icon icon-sm" data-feather="trash"></i>
-                          </button>
-                        </form>
-                      </div>
       </td>
       </tr>
     @empty
       <tr>
-                    <td colspan="8" class="text-center py-4">
+                    <td colspan="7" class="text-center py-4">
                       @if(request('search') || request('customer_id') || request('status') || request('prioritas'))
                         <div class="text-muted">
                           <i data-feather="search" class="icon-sm mb-2"></i>
@@ -358,5 +382,81 @@
         });
       });
     });
+
+    const checkAll = document.getElementById('checkAllSpk');
+    const btnApprove = document.getElementById('btnApproveSelected');
+    const btnReject = document.getElementById('btnRejectSelected');
+
+    const rowChecks = () => Array.from(document.querySelectorAll('.checkSpkRow'));
+    const getSelectedIds = () => rowChecks().filter(cb => cb.checked).map(cb => cb.value);
+
+    function updateBulkButtons() {
+      const anyChecked = getSelectedIds().length > 0;
+      if (btnApprove) btnApprove.disabled = !anyChecked;
+      if (btnReject) btnReject.disabled = !anyChecked;
+    }
+
+    if (checkAll) {
+      checkAll.addEventListener('change', function() {
+        rowChecks().forEach(cb => { cb.checked = checkAll.checked; });
+        updateBulkButtons();
+      });
+    }
+
+    document.addEventListener('change', function(e) {
+      if (e.target.classList && e.target.classList.contains('checkSpkRow')) {
+        const all = rowChecks();
+        if (checkAll) {
+          checkAll.checked = all.length > 0 && all.every(cb => cb.checked);
+          checkAll.indeterminate = all.some(cb => cb.checked) && !checkAll.checked;
+        }
+        updateBulkButtons();
+      }
+    });
+
+    async function bulkUpdateStatus(action) {
+      const ids = getSelectedIds();
+      if (ids.length === 0) return;
+
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
+
+      const result = await Swal.fire({
+        title: action === 'approve' ? 'Setujui semua terpilih?' : 'Tolak semua terpilih?',
+        text: `Jumlah SPK terpilih: ${ids.length}`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Ya',
+        cancelButtonText: 'Batal'
+      });
+
+      if (!result.isConfirmed) return;
+
+      for (const id of ids) {
+        const res = await fetch(`/spk/${encodeURIComponent(id)}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': token,
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({ action })
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          console.error('Bulk update gagal untuk SPK:', id, text);
+          await Swal.fire('Gagal', `Gagal update status SPK ID ${id}`, 'error');
+          return;
+        }
+      }
+
+      await Swal.fire('Berhasil', 'Status SPK terpilih berhasil diproses.', 'success');
+      window.location.reload();
+    }
+
+    if (btnApprove) btnApprove.addEventListener('click', () => bulkUpdateStatus('approve'));
+    if (btnReject) btnReject.addEventListener('click', () => bulkUpdateStatus('reject'));
+
+    updateBulkButtons();
   </script>
 @endpush

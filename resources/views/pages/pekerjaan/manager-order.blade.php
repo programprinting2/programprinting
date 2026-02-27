@@ -106,8 +106,8 @@
         <th>Status</th>
         <!-- <th>Prioritas</th> -->
                   <th>Total Biaya</th>
-        <!-- <th>Item Pekerjaan</th> -->
                   <th>Aksi</th>
+                  <th>Otorisasi</th>
       </tr>
       </thead>
       <tbody>
@@ -172,18 +172,21 @@
                         <div class="d-flex align-items-center gap-1">
                             @foreach($statusSteps as $status => $step)
                                 @php
-                                    if ($step < $currentStep) {
-                                        $colorClass = 'text-primary'; // sudah lewat
-                                    } elseif ($step === $currentStep) {
-                                        $colorClass = ''; // warna custom kuning
+                                    $colorClass = 'text-muted'; // default abu-abu
+                                    $style = '';
+
+                                    if ($step <= $currentStep) {
+                                        $colorClass = 'text-primary';
+                                    }
+
+                                    if ($status === 'proses_bayar' && $item->status === 'proses_bayar') {
+                                        $colorClass = '';
                                         $style = 'color: #FFC107;';
-                                    } else {
-                                        $colorClass = 'text-muted'; // belum
-                                        $style = '';
                                     }
                                 @endphp
+
                                 <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}"
-                                  style="{{ $style ?? '' }} font-size: 0.8rem;"></i>
+                                  style="{{ $style }} font-size: 0.8rem;"></i>
                             @endforeach
                         </div>
                         <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
@@ -204,7 +207,17 @@
                         <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'proses_bayar')
+                        <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
+                          @csrf
+                          @method('DELETE')
+                          <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-spk" title="Hapus">
+                            <i class="link-icon icon-sm" data-feather="trash"></i>
+                          </button>
+                        </form>
+                      </div>
+      </td>
+      <td>
+      @if($item->status === 'proses_bayar')
                           <form action="{{ route('spk.update-status', $item->id) }}" method="POST"
                                 class="d-inline-block form-status-spk">
                             @csrf
@@ -217,19 +230,11 @@
                             </button>
                           </form>
                         @endif
-                        <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
-                          @csrf
-                          @method('DELETE')
-                          <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-spk" title="Hapus">
-                            <i class="link-icon icon-sm" data-feather="trash"></i>
-                          </button>
-                        </form>
-                      </div>
       </td>
       </tr>
     @empty
       <tr>
-                    <td colspan="7" class="text-center py-4">
+                    <td colspan="8" class="text-center py-4">
                       @if(request('search') || request('customer_id') || request('status') || request('prioritas'))
                         <div class="text-muted">
                           <i data-feather="search" class="icon-sm mb-2"></i>
