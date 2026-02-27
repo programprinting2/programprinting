@@ -109,7 +109,7 @@
                   <div class="col-3 p-3">Nama Item</div>
                   <div class="col-2 p-3">Jumlah</div>
                   <div class="col-2 p-3">Satuan</div>
-                  <div class="col-2 p-3">Bahan Baku</div>
+                  <div class="col-2 p-3">Ukuran</div>
                   <div class="col-2 p-3">Keterangan</div>
                   <div class="col-1 p-3 text-center">Aksi</div>
                 </div>

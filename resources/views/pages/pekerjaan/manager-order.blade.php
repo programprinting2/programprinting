@@ -110,8 +110,11 @@
                   <th>Otorisasi</th>
       </tr>
       </thead>
-      <tbody>
+      <tbody id="accordionSpk">
       @forelse($spk as $item)
+        @php
+          $collapseId = 'detail-spk-'.$item->id;
+        @endphp
       <tr>
                     <td>
                       @if($item->status === 'proses_bayar')
@@ -120,7 +123,16 @@
                               value="{{ $item->id }}">
                       @endif
                     </td>
-                    <td class="fw-semibold">{{ $item->nomor_spk }}</td>
+                    <td class="fw-semibold">
+                        <button type="button"
+                            class="btn btn-sm btn-link text-decoration-none p-0 toggle-collapse"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#{{ $collapseId }}"
+                            aria-expanded="false"
+                            aria-controls="{{ $collapseId }}">
+                            {{ $item->nomor_spk }}
+                        </button>
+                    </td>
                     <td>
                       {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
                     </td>
@@ -192,13 +204,7 @@
                         <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
                     </td>
                     <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                    <!-- <td>
-                      <ul class="mb-0 list-unstyled">
-                        @foreach($item->items as $pekerjaan)
-                          <li><b>{{ $pekerjaan->nama_produk }}</b> ({{ $pekerjaan->jumlah }} {{ $pekerjaan->satuan }})</li>
-      @endforeach
-      </ul>
-      </td> -->
+
       <td>
                       <div class="btn-group gap-1" role="group">
                         <a href="{{ route('spk.show', $item->id) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">
@@ -232,6 +238,99 @@
                         @endif
       </td>
       </tr>
+      <!-- Collapse Row -->
+            <tr>
+                <td colspan="8" class="p-0 border-0">
+                    <div id="{{ $collapseId }}" class="collapse spk-collapse" data-bs-parent="#accordionSpk">
+                        <div class="bg-light border-top px-4 py-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge bg-light text-dark border">
+                                        <i class="fa fa-list me-1"></i> Detail Item 
+                                    </span>
+                                    <small class="text-muted">
+                                        {{ $item->items->count() }} item • Total: Rp {{ number_format($item->total_biaya, 0, ',', '.') }}
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Nama Item</th>
+                                            <th class="text-end">Jumlah</th>
+                                            <th>Satuan</th>
+                                            <th>Ukuran / Luas</th>
+                                            <th>Keterangan</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($item->items as $spkItem)
+                                            @php
+                                                $produk = $spkItem->produk;
+                                                $isMetric = $produk && ($produk->is_metric === true);
+                                                $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+
+                                                $panjang = (float) ($spkItem->panjang ?? 0);
+                                                $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                                                if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                                    $luas = $panjang * $lebar;
+                                                    $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                                    $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                                                } elseif ($isMetric) {
+                                                    $dimensiText = 'Metric ('.$metricUnit.')';
+                                                    $luasText = 'Ukuran belum lengkap';
+                                                } else {
+                                                    $dimensiText = 'Non-metric';
+                                                    $luasText = '';
+                                                }
+                                            @endphp
+                                            <tr>
+                                                <td>
+                                                    <div class="fw-semibold text-truncate" title="{{ $spkItem->nama_produk }}">
+                                                        {{ $spkItem->nama_produk }}
+                                                    </div>
+                                                    @if($produk && $produk->kode_produk)
+                                                        <small class="text-muted">Kode: {{ $produk->kode_produk }}</small>
+                                                    @endif
+                                                </td>
+                                                <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                                <td>{{ $spkItem->satuan }}</td>
+                                                <td>
+                                                    <div class="d-flex flex-column">
+                                                        <div class="fw-semibold">
+                                                          {{ $dimensiText }}
+                                                        </div>
+                                                        @if($luasText)
+                                                            <small class="text-muted">{{ $luasText }}</small>
+                                                        @endif
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    @if($spkItem->keterangan)
+                                                        <div class="text-wrap">{{ $spkItem->keterangan }}</div>
+                                                    @else
+                                                        <span class="text-muted">-</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="5" class="text-center text-muted py-3">
+                                                    <i class="fa fa-info-circle me-1"></i>
+                                                    Tidak ada item untuk SPK ini.
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+            </tr>
     @empty
       <tr>
                     <td colspan="8" class="text-center py-4">

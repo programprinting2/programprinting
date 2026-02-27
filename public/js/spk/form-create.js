@@ -1208,11 +1208,32 @@
             return;
         }
         itemsData.forEach((item, idx) => {
-            const collapseId = `itemTugasCollapse${idx}`;
-            const tugasCount =
-                item.tugasProduksi && item.tugasProduksi.length
-                    ? item.tugasProduksi.length
-                    : 0;
+            const raw = item.raw_produk || {};
+            const isMetric = raw.is_metric === true || raw.is_metric === "true";
+            const unit = (raw.metric_unit || "cm").toLowerCase();
+
+            let dimensiText = "Non-metric";
+            let luasText = "";
+
+            if (isMetric) {
+                const panjang = parseFloat(item.panjang) || 0;
+                const lebar = parseFloat(item.lebar) || 0;
+
+                if (panjang > 0 && lebar > 0) {
+                    const luas = panjang * lebar;
+
+                    const formattedLuas = luas.toLocaleString("id-ID", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    });
+
+                    dimensiText = `${lebar} × ${panjang} ${unit}`;
+                    luasText = `<small class="text-muted">Luas: ${formattedLuas} ${unit}²</small>`;
+                } else {
+                    dimensiText = `Metric (${unit})`;
+                    luasText = `<small class="text-warning">Ukuran belum lengkap</small>`;
+                }
+            }
             container.innerHTML += `
               <div class="row g-0 border-bottom align-items-center item-card">
                 <div class="col-3 p-3 fw-semibold">
@@ -1220,13 +1241,12 @@
                 </div>
                 <div class="col-2 p-3">${item.jumlah}</div>
                 <div class="col-2 p-3">${item.satuan}</div>
-                <div class="col-2 p-3">${item.nama_bahan || "-"}</div>
+                <div class="col-2 p-3">
+                    <div class="fw-semibold">${dimensiText}</div>
+                    ${luasText}
+                </div>
                 <div class="col-2 p-3">
                   ${item.keterangan || "-"}
-                  <div class="small text-muted mt-1">
-                    ${item.previewFileName ? `<i class='fa fa-file-image-o me-1'></i>${item.previewFileName}` : ""}
-                    <-- ${item.previewFinishing && item.previewFinishing.length > 0 ? `<span class='ms-2'><i class='fa fa-cogs me-1'></i>${item.previewFinishing.join(", ")}</span>` : ""} -->
-                  </div>
                 </div>
                 <div class="col-1 p-3 text-center">
                   <div class="d-flex gap-1 justify-content-center">
