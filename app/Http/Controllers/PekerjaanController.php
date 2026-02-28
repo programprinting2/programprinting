@@ -17,6 +17,7 @@ class PekerjaanController extends Controller
     {
         $filters = $request->only(['search', 'customer_id']);
         $filters['exclude_status'] = 'selesai';
+        $filters['sort_status'] = 'proses_bayar';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $customers = Pelanggan::where('status', true)->get();
@@ -28,6 +29,7 @@ class PekerjaanController extends Controller
     {
         $filters = $request->only(['search', 'customer_id']);
         $filters['exclude_status'] = 'selesai';
+        $filters['sort_status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $customers = Pelanggan::where('status', true)->get();

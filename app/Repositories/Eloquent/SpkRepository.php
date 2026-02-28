@@ -23,8 +23,7 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = $this->model->with(['pelanggan', 'items.produk'])
-            ->orderBy('created_at', 'desc');
+        $query = $this->model->with(['pelanggan', 'items.produk']);
 
         // FILTER STATUS
         if (!empty($filters['status'])) {
@@ -67,6 +66,13 @@ class SpkRepository implements SpkRepositoryInterface
                 });
             });
         }
+
+        if (!empty($filters['sort_status'])) {
+            $query->orderByRaw("status = ? DESC, created_at DESC", [$filters['sort_status']]);
+        } else {
+            $query->orderBy('created_at', 'desc');
+        }
+    
 
         return $query->paginate($perPage);
     }

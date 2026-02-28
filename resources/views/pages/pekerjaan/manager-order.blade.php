@@ -195,7 +195,7 @@
                                     $pembayaran = $item->status_pembayaran ?? null;
 
                                     if ($pembayaran === 'belum_bayar') {
-                                        $colorClass = 'text-danger';  
+                                        $colorClass = 'text-secondary';  
                                         $style = '';                  
                                     } elseif ($pembayaran === 'kurang_bayar') {
                                         $colorClass = 'text-warning';  
@@ -264,7 +264,7 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-sm align-middle mb-0">
+                                <table class="table table-sm table-bordered align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Nama Item</th>
@@ -274,67 +274,125 @@
                                             <th>Keterangan</th>
                                         </tr>
                                     </thead>
-                                    <tbody>
-                                        @forelse($item->items as $spkItem)
-                                            @php
-                                                $produk = $spkItem->produk;
-                                                $isMetric = $produk && ($produk->is_metric === true);
-                                                $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                                    <tbody style="background-color: #ffffff;">
+                                      @php
+                                        $sortedItems = $item->items->sortBy(function ($it) {
+                                            return optional($it->produk)->kode_produk ?? $it->nama_produk ?? '';
+                                        });
+                                      @endphp
 
-                                                $panjang = (float) ($spkItem->panjang ?? 0);
-                                                $lebar   = (float) ($spkItem->lebar ?? 0);
+                                      @forelse($sortedItems as $spkItem)
+                                        @php
+                                          $produk = $spkItem->produk;
+                                          $isMetric = $produk && ($produk->is_metric === true);
+                                          $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
 
-                                                if ($isMetric && $panjang > 0 && $lebar > 0) {
-                                                    $luas = $panjang * $lebar;
-                                                    $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
-                                                    $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
-                                                } elseif ($isMetric) {
-                                                    $dimensiText = 'Metric ('.$metricUnit.')';
-                                                    $luasText = 'Ukuran belum lengkap';
-                                                } else {
-                                                    $dimensiText = 'Non-metric';
-                                                    $luasText = '';
-                                                }
-                                            @endphp
-                                            <tr>
-                                                <td>
-                                                    <div class="fw-semibold text-truncate" title="{{ $spkItem->nama_produk }}">
-                                                        {{ $spkItem->nama_produk }}
-                                                    </div>
-                                                    @if($produk && $produk->kode_produk)
-                                                        <small class="text-muted">Kode: {{ $produk->kode_produk }}</small>
-                                                    @endif
-                                                </td>
-                                                <td class="text-end">{{ $spkItem->jumlah }}</td>
-                                                <td>{{ $spkItem->satuan }}</td>
-                                                <td>
-                                                    <div class="d-flex flex-column">
-                                                        <div class="fw-semibold">
-                                                          {{ $dimensiText }}
-                                                        </div>
-                                                        @if($luasText)
-                                                            <small class="text-muted">{{ $luasText }}</small>
-                                                        @endif
-                                                    </div>
-                                                </td>
-                                                <td>
-                                                    @if($spkItem->keterangan)
-                                                        <div class="text-wrap">{{ $spkItem->keterangan }}</div>
-                                                    @else
-                                                        <span class="text-muted">-</span>
-                                                    @endif
-                                                </td>
-                                            </tr>
-                                        @empty
-                                            <tr>
-                                                <td colspan="5" class="text-center text-muted py-3">
-                                                    <i class="fa fa-info-circle me-1"></i>
-                                                    Tidak ada item untuk SPK ini.
-                                                </td>
-                                            </tr>
-                                        @endforelse
+                                          $panjang = (float) ($spkItem->panjang ?? 0);
+                                          $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                                          if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                              $luas = $panjang * $lebar;
+                                              $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                              $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                                          } elseif ($isMetric) {
+                                              $dimensiText = 'Metric ('.$metricUnit.')';
+                                              $luasText = 'Ukuran belum lengkap';
+                                          } else {
+                                              $dimensiText = 'Non-metric';
+                                              $luasText = '';
+                                          }
+                                        @endphp
+                                        <tr>
+                                          <td>{{ $spkItem->nama_produk }}</td>
+                                          <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                          <td>{{ $spkItem->satuan }}</td>
+                                          <td>
+                                            <div class="fw-semibold">{{ $dimensiText }}</div>
+                                            @if($luasText)
+                                              <div class="text-muted small">{{ $luasText }}</div>
+                                            @endif
+                                          </td>
+                                          <td>{{ $spkItem->keterangan ?? '-' }}</td>
+                                        </tr>
+                                      @empty
+                                        <tr>
+                                          <td colspan="5" class="text-center text-muted">Tidak ada item untuk SPK ini.</td>
+                                        </tr>
+                                      @endforelse
                                     </tbody>
                                 </table>
+                            </div>
+                            <hr class="my-3"> {{-- Divider antara tabel detail & rekap --}}
+
+                            @php
+                              $grouped = $item->items->groupBy(function ($it) {
+                                  return $it->produk_id ?: $it->nama_produk;
+                              });
+                            @endphp
+
+                            <div class="fw-semibold mb-2">Rekap Produk</div>
+                            <div class="table-responsive">
+                              <table class="table table-sm table-bordered align-middle mb-0">
+                                <thead class="table-light">
+                                  <tr>
+                                    <th>Produk</th>
+                                    <th>Kode</th>
+                                    <th class="text-end">Total Qty</th>
+                                    <th>Satuan</th>
+                                    <th class="text-end">Total Metric</th>
+                                    <th>Unit Metric</th>
+                                  </tr>
+                                </thead>
+                                <tbody style="background-color: #ffffff;">
+                                  @forelse($grouped as $group)
+                                    @php
+                                      $first   = $group->first();
+                                      $produk  = $first->produk;
+                                      $nama    = $first->nama_produk;
+                                      $kode    = $produk->kode_produk ?? '-';
+                                      $satuan  = $first->satuan ?? '-';
+                                      $isMetric   = $produk && ($produk->is_metric === true);
+                                      $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+
+                                      $totalQty = $group->sum('jumlah');
+
+                                      $totalMetric = 0;
+                                      if ($isMetric) {
+                                          $totalMetric = $group->sum(function ($it) {
+                                              $p = (float) ($it->panjang ?? 0);
+                                              $l = (float) ($it->lebar ?? 0);
+                                              $q = (float) ($it->jumlah ?? 0);
+                                              return ($p > 0 && $l > 0 && $q > 0) ? ($p * $l * $q) : 0;
+                                          });
+                                      }
+                                    @endphp
+                                    <tr>
+                                      <td>{{ $nama }}</td>
+                                      <td>{{ $kode }}</td>
+                                      <td class="text-end">{{ number_format($totalQty, 2, ',', '.') }}</td>
+                                      <td>{{ $satuan }}</td>
+                                      <td class="text-end">
+                                        @if($isMetric)
+                                          {{ number_format($totalMetric, 2, ',', '.') }}
+                                        @else
+                                          -
+                                        @endif
+                                      </td>
+                                      <td>
+                                        @if($isMetric)
+                                          {{ strtolower($metricUnit) }}²
+                                        @else
+                                          -
+                                        @endif
+                                      </td>
+                                    </tr>
+                                  @empty
+                                    <tr>
+                                      <td colspan="6" class="text-center text-muted">Belum ada data rekap.</td>
+                                    </tr>
+                                  @endforelse
+                                </tbody>
+                              </table>
                             </div>
                         </div>
                     </div>
