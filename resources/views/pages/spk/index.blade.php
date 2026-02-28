@@ -156,11 +156,33 @@
                         @endphp
 
                         <div class="d-flex align-items-center gap-1">
-                            @foreach($statusSteps as $status => $step)
-                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }}
-                                          {{ $step <= $currentStep ? 'text-primary' : 'text-muted' }}"
-                                  style="font-size: 0.8rem;"></i>
-                            @endforeach
+                          @foreach($statusSteps as $status => $step)
+                              @php
+                                  $colorClass = 'text-muted';
+                                  $style = '';
+
+                                  if ($step <= $currentStep) {
+                                      $colorClass = 'text-primary';
+                                  }
+
+                                  if ($status === 'proses_bayar') {
+                                      $pembayaran = $item->status_pembayaran ?? null;
+
+                                      if ($pembayaran === 'belum_bayar') {
+                                          $colorClass = 'text-secondary';  
+                                          $style = '';                  
+                                      } elseif ($pembayaran === 'kurang_bayar') {
+                                          $colorClass = 'text-warning';  
+                                          $style = '';
+                                      } elseif ($pembayaran === 'lunas') {
+                                          $colorClass = 'text-primary';  
+                                          $style = '';
+                                      }
+                                  }
+                              @endphp
+                              <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}"
+                                style="{{ $style }} font-size: 0.8rem;"></i>
+                          @endforeach
                         </div>
                         <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
                     </td>

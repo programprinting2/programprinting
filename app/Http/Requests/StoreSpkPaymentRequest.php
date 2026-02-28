@@ -33,8 +33,8 @@ class StoreSpkPaymentRequest extends FormRequest
                 return;
             }
 
-            if ($spk->status !== 'proses_bayar') {
-                $validator->errors()->add('jumlah', 'SPK tidak dalam status proses bayar.');
+            if ($spk->status_pembayaran == 'lunas') {
+                $validator->errors()->add('jumlah', 'SPK sudah lunas.');
                 return;
             }
 

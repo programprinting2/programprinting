@@ -21,6 +21,8 @@ class SPK extends Model
         'status',
         'catatan',
         'total_biaya',
+        'total_dibayar',
+        'status_pembayaran',
         'created_by',
         'updated_by',
     ];
@@ -30,6 +32,7 @@ class SPK extends Model
         return [
             'tanggal_spk' => 'date',
             'total_biaya' => 'decimal:2',
+            'total_dibayar' => 'decimal:2',
         ];
     }
 

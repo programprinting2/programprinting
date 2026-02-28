@@ -14,10 +14,10 @@
       <div class="card p-4">
         <h5 class="fw-bold mb-1">Form Pembayaran</h5>
         <p class="text-muted mb-4">
-          Masukkan detail pembayaran untuk SPK {{ $spk->nomor_spk }}
+          Masukkan detail pembayaran untuk {{ $spk->nomor_spk }}
         </p>
 
-        <form action="{{ route('kasir.spk.payment.store', ['spk' => $spk->id]) }}" method="POST">
+        <form id="form-payment-spk" action="{{ route('kasir.spk.payment.store', ['spk' => $spk->id]) }}" method="POST">
           @csrf
 
           <div class="mb-3">
@@ -32,7 +32,7 @@
                 min="0.01"
                 step="0.01"
                 placeholder="0"
-                value="{{ old('jumlah', $spk->sisa_pembayaran) }}"
+                value="{{ old('jumlah', number_format($spk->sisa_pembayaran, 2, ',', '.')) }}"
               >
             </div>
             <div class="form-text">Masukkan jumlah pembayaran tanpa titik atau koma</div>
@@ -106,9 +106,11 @@
           </div>
 
           <div class="d-flex justify-content-end gap-2 mt-4">
-            {{-- Jika belum ada halaman detail SPK khusus kasir, bisa arahkan ke spk.show --}}
-            <a href="{{ route('spk.show', $spk) }}" class="btn btn-outline-secondary">Batal</a>
-            <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
+            <a href="{{ route('spk.show', $spk) }}" class="btn btn-outline-secondary" id="btn-batal-payment">Batal</a>
+            <button type="submit" class="btn btn-primary" id="btn-submit-payment">
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="payment-spinner"></span>
+              <span id="payment-btn-text">Simpan Pembayaran</span>
+            </button>
           </div>
         </form>
       </div>
@@ -208,4 +210,25 @@
     </div>
   </div>
 </div>
+
+<script>
+  (function () {
+    var form = document.getElementById('form-payment-spk');
+    if (!form) return;
+    form.addEventListener('submit', function () {
+      var btn = document.getElementById('btn-submit-payment');
+      var text = document.getElementById('payment-btn-text');
+      var spinner = document.getElementById('payment-spinner');
+      var batal = document.getElementById('btn-batal-payment');
+      if (btn) btn.disabled = true;
+      if (batal) {
+        batal.classList.add('disabled');
+        batal.style.pointerEvents = 'none';
+      }
+      if (text) text.textContent = 'Menyimpan...';
+      if (spinner) spinner.classList.remove('d-none');
+    });
+  })();
+</script>
+
 @endsection

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Services\KasirService;
 use App\Models\SPK;
+use App\Http\Requests\StoreSpkPaymentRequest;
 class KasirController extends Controller
 {
     public function __construct(
@@ -126,7 +127,7 @@ class KasirController extends Controller
         $this->kasirService->storePayment($spk, $request->validated());
 
         return redirect()
-            ->route('kasir.spk.payment', $spk)
-            ->with('success', 'Pembayaran berhasil disimpan.');
+           ->route('kasir.spk.payment', ['spk' => $spk->id])
+           ->with('success', 'Pembayaran berhasil disimpan.');
     }
 } 

@@ -5,6 +5,9 @@ use App\Repositories\Interfaces\SpkRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Models\SPK;
+use App\Models\SpkPembayaran;
+use Illuminate\Support\Facades\DB;
+use App\Services\ActivityLogService;
 
 
 class KasirService
@@ -22,19 +25,18 @@ class KasirService
         return $this->spkRepository->paginate(10, $filters);
     }
 
-    public function getSpkForPayment(int $spkId): SPK
-    {
-        $spk = SPK::with(['pelanggan', 'pembayaran'])->findOrFail($spkId);
-        if ($spk->status !== 'proses_bayar') {
-            throw new \InvalidArgumentException('SPK bukan status proses bayar');
-        }
-        return $spk;
-    }
+    // public function getSpkForPayment(int $spkId): SPK
+    // {
+    //     $spk = SPK::with(['pelanggan', 'pembayaran'])->findOrFail($spkId);
+    //     if ($spk->status !== 'proses_bayar') {
+    //         throw new \InvalidArgumentException('SPK bukan status proses bayar');
+    //     }
+    //     return $spk;
+    // }
 
     public function storePayment(SPK $spk, array $data): SpkPembayaran
     {
         return DB::transaction(function () use ($spk, $data) {
-            /** @var SPK $locked */
             $locked = SPK::query()->whereKey($spk->id)->lockForUpdate()->firstOrFail();
 
             $payment = SpkPembayaran::create([
