@@ -61,6 +61,11 @@ class SPK extends Model
         return $this->morphMany(ActivityLog::class, 'loggable');
     }
 
+    public function getRouteKeyName(): string
+    {
+        return 'nomor_spk';
+    }
+
     // public static function statusList(): array
     // {
     //     return [

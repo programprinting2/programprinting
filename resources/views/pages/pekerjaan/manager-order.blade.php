@@ -193,13 +193,13 @@
                             <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
                             <td>
                                 <div class="btn-group gap-1" role="group">
-                                    <a href="{{ route('spk.show', $item->id) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">
+                                    <a href="{{ route('spk.show', $item) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">
                                         <i class="link-icon icon-sm" data-feather="eye"></i>
                                     </a>
-                                    <a href="{{ route('spk.edit', $item->id) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
+                                    <a href="{{ route('spk.edit', $item) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                                         <i class="link-icon icon-sm" data-feather="edit"></i>
                                     </a>
-                                    <form action="{{ route('spk.destroy', $item->id) }}" method="POST" class="d-inline-block form-hapus-spk">
+                                    <form action="{{ route('spk.destroy', $item) }}" method="POST" class="d-inline-block form-hapus-spk">
                                         @csrf
                                         @method('DELETE')
                                         <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-spk" title="Hapus">
@@ -210,7 +210,7 @@
                             </td>
                             <td>
                                 @if($item->status === 'proses_bayar')
-                                    <form action="{{ route('spk.update-status', $item->id) }}" method="POST" class="d-inline-block form-status-spk">
+                                    <form action="{{ route('spk.update-status', $item) }}" method="POST" class="d-inline-block form-status-spk">
                                         @csrf
                                         @method('PATCH')
                                         <input type="hidden" name="action" value="">
