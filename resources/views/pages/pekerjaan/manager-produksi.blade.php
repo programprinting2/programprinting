@@ -34,7 +34,7 @@
                 <input type="text" class="form-control" name="search" placeholder="Cari nomor SPK, pelanggan, atau status..." value="{{ request('search') }}">
               </div>
             </div>
-            <div class="col-md-4">
+            <!-- <div class="col-md-4">
               <label class="form-label small">&nbsp;</label>
               <select class="form-select" name="customer_id">
                 <option value="">Semua Pelanggan</option>
@@ -44,8 +44,8 @@
                   </option>
                 @endforeach
               </select>
-            </div>
-            <!-- <div class="col-md-4">
+            </div> -->
+            <div class="col-md-4">
               <label class="form-label small">Status</label>
               <select class="form-select" name="status">
                   <option value="">Semua Status</option>
@@ -58,7 +58,7 @@
                   <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
                   <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
               </select>
-            </div> -->
+            </div>
             <!-- <div class="col-md-2">
               <label class="form-label small">Prioritas</label>
               <select class="form-select" name="prioritas">
@@ -247,7 +247,7 @@
       <tr>
                 <td colspan="8" class="p-0 border-0">
                     <div id="{{ $collapseId }}" class="collapse spk-collapse" data-bs-parent="#accordionSpk">
-                        <div class="bg-light border-top px-4 py-3">
+                        <div class="border border-2 px-4 py-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="badge bg-light text-dark border">
@@ -260,14 +260,14 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-sm align-middle mb-0">
+                                <table class="table table-sm table-bordered align-middle mb-0">
                                     <thead class="table-light">
                                         <tr>
+                                            <th>Keterangan</th>
                                             <th>Nama Item</th>
+                                            <th>Ukuran / Luas</th>
                                             <th class="text-end">Jumlah</th>
                                             <th>Satuan</th>
-                                            <th>Ukuran / Luas</th>
-                                            <th>Keterangan</th>
                                         </tr>
                                     </thead>
                                     <tbody style="background-color: #ffffff;">
@@ -299,16 +299,16 @@
                                           }
                                         @endphp
                                         <tr>
+                                          <td>{{ !empty(trim($spkItem->keterangan)) ? $spkItem->keterangan : '-' }}</td>
                                           <td>{{ $spkItem->nama_produk }}</td>
-                                          <td class="text-end">{{ $spkItem->jumlah }}</td>
-                                          <td>{{ $spkItem->satuan }}</td>
                                           <td>
                                             <div class="fw-semibold">{{ $dimensiText }}</div>
                                             @if($luasText)
                                               <div class="text-muted small">{{ $luasText }}</div>
                                             @endif
                                           </td>
-                                          <td>{{ $spkItem->keterangan ?? '-' }}</td>
+                                          <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                          <td>{{ $spkItem->satuan }}</td>
                                         </tr>
                                       @empty
                                         <tr>
@@ -318,78 +318,66 @@
                                     </tbody>
                                 </table>
                             </div>
-                            <hr class="my-3"> {{-- Divider antara tabel detail & rekap --}}
+                            <hr class="my-3"> 
 
+                            {{-- Rekap Produk --}}
                             @php
-                              $grouped = $item->items->groupBy(function ($it) {
-                                  return $it->produk_id ?: $it->nama_produk;
-                              });
+                              $grouped = $item->items->groupBy(fn($it) => $it->produk_id ?: $it->nama_produk)->sortBy(fn($group) => optional($group->first()->produk)->kode_produk ?? $group->first()->nama_produk ?? '');
                             @endphp
-
                             <div class="fw-semibold mb-2">Rekap Produk</div>
                             <div class="table-responsive">
                               <table class="table table-sm table-bordered align-middle mb-0">
                                 <thead class="table-light">
-                                  <tr>
-                                    <th>Produk</th>
-                                    <th>Kode</th>
-                                    <th class="text-end">Total Qty</th>
-                                    <th>Satuan</th>
-                                    <th class="text-end">Total Metric</th>
-                                    <th>Unit Metric</th>
-                                  </tr>
+                                    <tr>
+                                        <th>Produk</th>
+                                        <th>Kode</th>
+                                        <th class="text-end">Total Qty</th>
+                                        <th>Satuan</th>
+                                        <th class="text-end">Total Metric</th>
+                                        <th>Unit Metric</th>
+                                    </tr>
                                 </thead>
                                 <tbody style="background-color: #ffffff;">
-                                  @forelse($grouped as $group)
-                                    @php
-                                      $first   = $group->first();
-                                      $produk  = $first->produk;
-                                      $nama    = $first->nama_produk;
-                                      $kode    = $produk->kode_produk ?? '-';
-                                      $satuan  = $first->satuan ?? '-';
-                                      $isMetric   = $produk && ($produk->is_metric === true);
-                                      $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
-
-                                      $totalQty = $group->sum('jumlah');
-
-                                      $totalMetric = 0;
-                                      if ($isMetric) {
-                                          $totalMetric = $group->sum(function ($it) {
-                                              $p = (float) ($it->panjang ?? 0);
-                                              $l = (float) ($it->lebar ?? 0);
-                                              $q = (float) ($it->jumlah ?? 0);
-                                              return ($p > 0 && $l > 0 && $q > 0) ? ($p * $l * $q) : 0;
-                                          });
-                                      }
-                                    @endphp
-                                    <tr>
-                                      <td>{{ $nama }}</td>
-                                      <td>{{ $kode }}</td>
-                                      <td class="text-end">{{ number_format($totalQty, 2, ',', '.') }}</td>
-                                      <td>{{ $satuan }}</td>
-                                      <td class="text-end">
-                                        @if($isMetric)
-                                          {{ number_format($totalMetric, 2, ',', '.') }}
-                                        @else
-                                          -
-                                        @endif
-                                      </td>
-                                      <td>
-                                        @if($isMetric)
-                                          {{ strtolower($metricUnit) }}²
-                                        @else
-                                          -
-                                        @endif
-                                      </td>
-                                    </tr>
-                                  @empty
-                                    <tr>
-                                      <td colspan="6" class="text-center text-muted">Belum ada data rekap.</td>
-                                    </tr>
-                                  @endforelse
+                                    @forelse($grouped as $group)
+                                        @php
+                                             $first   = $group->first();
+                                            $produk  = $first->produk;
+                                            $nama    = $first->nama_produk;
+                                             $kode    = $produk->kode_produk ?? '-';
+                                            $satuan  = $first->satuan ?? '-';
+                                             $isMetric   = $produk && ($produk->is_metric === true);
+                                            $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                                             $totalQty = $group->sum('jumlah');
+                                            $totalMetric = $isMetric ? $group->sum(fn($it) => ((float)($it->panjang ?? 0) * (float)($it->lebar ?? 0) * (float)($it->jumlah ?? 0))) : 0;
+                                         @endphp
+                                        <tr>
+                                             <td>{{ $nama }}</td>
+                                            <td>{{ $kode }}</td>
+                                            <td class="text-end">{{ number_format($totalQty, 2, ',', '.') }}</td>
+                                            <td>{{ $satuan }}</td>
+                                            <td class="text-end">
+                                                @if($isMetric)
+                                                    {{ number_format($totalMetric, 2, ',', '.') }}
+                                                @else
+                                                    -
+                                                @endif
+                                            </td>
+                                            <td>
+                                                 @if($isMetric)
+                                                    {{ strtolower($metricUnit) }}²
+                                                 @else
+                                                     -
+                                                 @endif
+                                            </td>
+                                        </tr>
+                                    @empty
+                                        <tr>
+                                            <td colspan="6" class="text-center text-muted">Belum ada data rekap.</td>
+                                        </tr>
+                                    @endforelse
                                 </tbody>
-                              </table>
-                            </div>
+                        </table>
+                        </div>
                         </div>
                     </div>
                 </td>

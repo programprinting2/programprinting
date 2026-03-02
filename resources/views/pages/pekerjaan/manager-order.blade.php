@@ -60,6 +60,20 @@
                 </div>
             </div>
             <div class="col-md-4">
+              <label class="form-label small">Status</label>
+              <select class="form-select" name="status">
+                  <option value="">Semua Status</option>
+                  <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
+                  <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
+                  <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
+                  <option value="manager_approval_produksi" {{ request('status') == 'manager_approval_produksi' ? 'selected' : '' }}>Manager Approval Produksi</option>
+                  <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
+                  <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
+                  <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
+                  <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
+              </select>
+            </div>
+            <!-- <div class="col-md-4">
                 <label class="form-label small">&nbsp;</label>
                 <select class="form-select" name="customer_id">
                     <option value="">Semua Pelanggan</option>
@@ -69,7 +83,7 @@
                         </option>
                     @endforeach
                 </select>
-            </div>
+            </div> -->
             <!-- Reset Button -->
             <div class="col-md-1">
                 <label class="form-label small">&nbsp;</label>
@@ -243,11 +257,11 @@
                                             <table class="table table-sm table-bordered align-middle mb-0">
                                                 <thead class="table-light">
                                                     <tr>
+                                                        <th>Keterangan</th>
                                                         <th>Nama Item</th>
+                                                        <th>Ukuran / Luas</th>
                                                         <th class="text-end">Jumlah</th>
                                                         <th>Satuan</th>
-                                                        <th>Ukuran / Luas</th>
-                                                        <th>Keterangan</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody style="background-color: #ffffff;">
@@ -274,16 +288,16 @@
                                                             }
                                                         @endphp
                                                         <tr>
+                                                            <td>{{ !empty(trim($spkItem->keterangan)) ? $spkItem->keterangan : '-' }}</td>
                                                             <td>{{ $spkItem->nama_produk }}</td>
-                                                            <td class="text-end">{{ $spkItem->jumlah }}</td>
-                                                            <td>{{ $spkItem->satuan }}</td>
                                                             <td>
                                                                 <div class="fw-semibold">{{ $dimensiText }}</div>
                                                                 @if($luasText)
                                                                     <div class="text-muted small">{{ $luasText }}</div>
                                                                 @endif
                                                             </td>
-                                                            <td>{{ $spkItem->keterangan ?? '-' }}</td>
+                                                            <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                                            <td>{{ $spkItem->satuan }}</td>
                                                         </tr>
                                                     @empty
                                                         <tr>
@@ -419,7 +433,7 @@
                     @endif
                   </div>
                   <div class="text-end">
-                    <div class="badge bg-secondary text-dark mb-1">
+                    <div class="badge bg-secondary text-white mb-1">
                       {{ count($bahan['spk']) }} SPK
                     </div>
                   </div>

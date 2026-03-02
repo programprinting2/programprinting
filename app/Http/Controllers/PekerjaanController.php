@@ -16,13 +16,14 @@ class PekerjaanController extends Controller
 
     public function managerOrder(Request $request): View
     {
-        $filters = $request->only(['search', 'customer_id']);
+        // $filters = $request->only(['search', 'customer_id']);
+        $filters = $request->only(['search', 'status']);
         $filters['exclude_status'] = 'selesai';
         $filters['sort_status'] = 'proses_bayar';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $spk->load('items.produk.bahanBakus');
-        $customers = Pelanggan::where('status', true)->get();
+        // $customers = Pelanggan::where('status', true)->get();
 
         foreach ($spk as $spkRow) {
             foreach ($spkRow->items as $spkItem) {
@@ -76,7 +77,7 @@ class PekerjaanController extends Controller
 
         return view('pages.pekerjaan.manager-order', [
             'spk'             => $spk,
-            'customers'       => $customers,
+            // 'customers'       => $customers,
             'bahanBakuGroups' => $bahanBakuGroups,
             'mesinGroups'     => $mesinGroups,
         ]);
@@ -84,14 +85,15 @@ class PekerjaanController extends Controller
 
     public function managerProduksi(Request $request): View
     {
-        $filters = $request->only(['search', 'customer_id']);
+        // $filters = $request->only(['search', 'customer_id']);
+        $filters = $request->only(['search', 'status']);
         $filters['exclude_status'] = 'selesai';
         $filters['sort_status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
-        $customers = Pelanggan::where('status', true)->get();
+        // $customers = Pelanggan::where('status', true)->get();
 
-        return view('pages.pekerjaan.manager-produksi', compact('spk', 'customers'));
+        return view('pages.pekerjaan.manager-produksi', compact('spk'));
     }
 
     public function operatorCetak(Request $request): View
