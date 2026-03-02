@@ -117,6 +117,7 @@ class SpkService
             $spk = $this->spkRepository->findWithRelations($id);
             if ($spk) {
                 $spk->updateTotalBiaya();
+                $spk->refreshPembayaranSummary();
             }
 
             DB::commit();

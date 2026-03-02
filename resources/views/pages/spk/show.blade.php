@@ -203,11 +203,11 @@
                         </a>
 
                         @if($spk->status === 'draft')
-                            <a href="{{ route('spk.edit', $spk->id) }}" class="btn btn-warning">
+                            <a href="{{ route('spk.edit', $spk) }}" class="btn btn-warning">
                                 <i class="link-icon icon-sm" data-feather="edit"></i> Edit
                             </a>
 
-                            <form action="{{ route('spk.acc', $spk->id) }}" method="POST" class="d-inline-block form-acc-spk">
+                            <form action="{{ route('spk.acc', $spk) }}" method="POST" class="d-inline-block form-acc-spk">
                                 @csrf
                                 @method('PATCH')
                                 <button type="button" class="btn btn-success btn-acc-spk">

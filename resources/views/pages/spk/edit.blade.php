@@ -33,7 +33,7 @@
   <h4 class="fw-bold">Edit SPK</h4>
   <p class="text-muted mb-4">Ubah Surat Perintah Kerja untuk pelanggan.</p>
 
-  <form id="formTambahSPK" action="{{ route('spk.update', $spk->id) }}" method="POST">
+  <form id="formTambahSPK" action="{{ route('spk.update', $spk) }}" method="POST">
     @csrf
     @method('PUT')
     <input type="hidden" name="items" id="itemsInput">
