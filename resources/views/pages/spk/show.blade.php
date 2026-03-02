@@ -38,19 +38,35 @@
                                 <tr>
                                     <td class="fw-semibold">Status</td>
                                     <td>:
-                                        @if($spk->status == 'draft')
-                                            <span class="badge bg-secondary">Draft</span>
-                                        @elseif($spk->status == 'proses_bayar')
-                                            <span class="badge bg-warning text-dark">Proses Pembayaran</span>
-                                        @elseif($spk->status == 'proses_produksi')
-                                            <span class="badge bg-primary">Proses Produksi</span>
-                                        @elseif($spk->status == 'sudah_cetak')
-                                            <span class="badge bg-info">Sudah Cetak</span>
-                                        @elseif($spk->status == 'siap_antar')
-                                            <span class="badge bg-success">Siap Antar</span>
-                                        @else
-                                            <span class="badge bg-light text-dark">{{ $spk->status }}</span>
-                                        @endif
+                                        @php
+                                            $statusLabels = [
+                                                'draft' => 'Draft',
+                                                'proses_bayar' => 'Proses Pembayaran',
+                                                'manager_approval_order' => 'Manager Approval Order',
+                                                'manager_approval_produksi' => 'Manager Approval Produksi',
+                                                'operator_cetak' => 'Operator Cetak',
+                                                'finishing_qc' => 'Finishing / QC',
+                                                'siap_diambil' => 'Siap Diambil',
+                                                'selesai' => 'Selesai',
+                                            ];
+
+                                            $statusBadges = [
+                                                'draft' => 'badge bg-secondary',
+                                                'proses_bayar' => 'badge bg-warning text-dark',
+                                                'manager_approval_order' => 'badge bg-primary',
+                                                'manager_approval_produksi' => 'badge bg-primary',
+                                                'operator_cetak' => 'badge bg-info text-dark',
+                                                'finishing_qc' => 'badge bg-info',
+                                                'siap_diambil' => 'badge bg-success',
+                                                'selesai' => 'badge bg-success',
+                                            ];
+
+                                            $currentStatus = $spk->status;
+                                            $label = $statusLabels[$currentStatus] ?? ($currentStatus ?? '-');
+                                            $badgeClass = $statusBadges[$currentStatus] ?? 'badge bg-light text-dark';
+                                        @endphp
+
+                                        <span class="{{ $badgeClass }}">{{ $label }}</span>
                                     </td>
                                 </tr>
                             </table>
@@ -81,48 +97,107 @@
                 <div class="card-body">
                     <h6 class="card-title mb-4">Track Status SPK</h6>
                     @php
-                        $getStatusDate = function ($spk, $activityCode) {
-                            $log = $spk->activityLogs->where('aktivitas', $activityCode)->sortBy('created_at')->first();
-                            return $log ? \Carbon\Carbon::parse($log->created_at)->locale('id')->translatedFormat('d M Y H:i') : 'Pending';
+                        $statusFlow = [
+                            'draft',
+                            'proses_bayar',
+                            'manager_approval_order',
+                            'manager_approval_produksi',
+                            'operator_cetak',
+                            'finishing_qc',
+                            'siap_diambil',
+                            'selesai',
+                        ];
+
+                        $statusLabels = [
+                            'draft' => 'Draft',
+                            'proses_bayar' => 'Proses Pembayaran',
+                            'manager_approval_order' => 'Manager Approval Order',
+                            'manager_approval_produksi' => 'Manager Approval Produksi',
+                            'operator_cetak' => 'Operator Cetak',
+                            'finishing_qc' => 'Finishing / QC',
+                            'siap_diambil' => 'Siap Diambil',
+                            'selesai' => 'Selesai',
+                        ];
+
+                        $statusDescriptions = [
+                            'draft' => 'SPK dalam tahap draft dan belum di-ACC.',
+                            'proses_bayar' => 'SPK sudah di-ACC dan menunggu proses pembayaran.',
+                            'manager_approval_order' => 'SPK telah disetujui oleh Manager Order.',
+                            'manager_approval_produksi' => 'SPK telah disetujui oleh Manager Produksi.',
+                            'operator_cetak' => 'SPK sedang/ sudah diproses oleh Operator Cetak.',
+                            'finishing_qc' => 'SPK sedang dalam proses Finishing / QC.',
+                            'siap_diambil' => 'Pesanan siap diambil oleh pelanggan.',
+                            'selesai' => 'SPK/pekerjaan telah selesai sepenuhnya.',
+                        ];
+
+                        $statusActivityCodes = [
+                            'proses_bayar' => 'spk_acc_proses_bayar',
+                            'manager_approval_order' => 'spk_manager_approval_order',
+                            'manager_approval_produksi' => 'spk_manager_approval_produksi',
+                            'operator_cetak' => 'spk_operator_cetak',
+                            'finishing_qc' => 'spk_finishing_qc',
+                            'siap_diambil' => 'spk_siap_diambil',
+                            'selesai' => 'spk_selesai',
+                        ];
+
+                        $getStatusDate = function ($spk, ?string $activityCode) {
+                            if (!$activityCode) {
+                                return 'Pending';
+                            }
+
+                            $log = $spk->activityLogs
+                                ->where('aktivitas', $activityCode)
+                                ->sortBy('created_at')
+                                ->first();
+
+                            return $log
+                                ? \Carbon\Carbon::parse($log->created_at)->locale('id')->translatedFormat('d M Y H:i')
+                                : 'Pending';
                         };
+
+                        $currentIndex = array_search($spk->status, $statusFlow, true);
                     @endphp
 
                     <div id="statusTimeline">
                         <ul class="timeline">
-                            <!-- Draft -->
-                            <li class="event {{ in_array($spk->status, ['draft', 'proses_bayar', 'proses_produksi', 'sudah_cetak', 'siap_antar']) ? 'active' : '' }}"
-                                data-date="{{ $spk->created_at ? \Carbon\Carbon::parse($spk->created_at)->locale('id')->translatedFormat('d M Y H:i') : 'Pending' }}">
-                                <h3 class="title">Draft</h3>
-                                <p>SPK dalam tahap draft dan belum disetujui.</p>
-                            </li>
+                            @foreach($statusFlow as $index => $statusKey)
+                                @php
+                                    $isActive = ($currentIndex !== false && $index <= $currentIndex);
+                                    $label = $statusLabels[$statusKey] ?? $statusKey;
+                                    $desc = $statusDescriptions[$statusKey] ?? '';
+                                    if ($isActive) {
+                                        if ($statusKey === 'draft') {
+                                            $date = $spk->created_at
+                                                ? \Carbon\Carbon::parse($spk->created_at)
+                                                    ->locale('id')
+                                                    ->translatedFormat('d M Y H:i')
+                                                : 'Pending';
+                                        } else {
+                                            $activityCode = $statusActivityCodes[$statusKey] ?? null;
 
-                            <!-- Proses Pembayaran -->
-                            <li class="event {{ in_array($spk->status, ['proses_bayar', 'proses_produksi', 'sudah_cetak', 'siap_antar']) ? 'active' : '' }}"
-                                data-date="{{ $getStatusDate($spk, 'spk_acc_proses_bayar') }}">
-                                <h3 class="title">Proses Pembayaran</h3>
-                                <p>SPK sudah disetujui dan menunggu proses pembayaran dari pelanggan.</p>
-                            </li>
+                                            $log = $activityCode
+                                                ? $spk->activityLogs
+                                                    ->where('aktivitas', $activityCode)
+                                                    ->sortBy('created_at')
+                                                    ->first()
+                                                : null;
 
-                            <!-- Proses Produksi -->
-                            <li class="event {{ in_array($spk->status, ['proses_produksi', 'sudah_cetak', 'siap_antar']) ? 'active' : '' }}"
-                                data-date="{{ $getStatusDate($spk, 'spk_proses_produksi') }}">
-                                <h3 class="title">Proses Produksi</h3>
-                                <p>Pembayaran sudah diterima, produksi dimulai sekarang.</p>
-                            </li>
+                                            $date = $log
+                                                ? \Carbon\Carbon::parse($log->created_at)
+                                                    ->locale('id')
+                                                    ->translatedFormat('d M Y H:i')
+                                                : 'Pending';
+                                        }
+                                    } else {
+                                        $date = 'Pending';
+                                    }
+                                @endphp
 
-                            <!-- Sudah Cetak -->
-                            <li class="event {{ in_array($spk->status, ['sudah_cetak', 'siap_antar']) ? 'active' : '' }}"
-                                data-date="{{ $getStatusDate($spk, 'spk_sudah_cetak') }}">
-                                <h3 class="title">Sudah Cetak</h3>
-                                <p>Produksi selesai, hasil cetak sudah siap.</p>
-                            </li>
-
-                            <!-- Siap Antar -->
-                            <li class="event {{ $spk->status == 'siap_antar' ? 'active' : '' }}"
-                                data-date="{{ $getStatusDate($spk, 'spk_siap_antar') }}">
-                                <h3 class="title">Siap Antar</h3>
-                                <p>Pesanan siap untuk dikirim kepada pelanggan.</p>
-                            </li>
+                                <li class="event {{ $isActive ? 'active' : '' }}" data-date="{{ $date }}">
+                                    <h3 class="title">{{ $label }}</h3>
+                                    <p>{{ $desc }}</p>
+                                </li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>
@@ -140,8 +215,10 @@
                                     <th>Nama Produk</th>
                                     <th>Jumlah</th>
                                     <th>Satuan</th>
-                                    <th>Harga Satuan</th>
-                                    <th>Subtotal</th>
+                                    <th class="text-end">Harga Satuan</th>
+                                    <th class="text-end">Biaya Produk</th>
+                                    <th class="text-end">Biaya Finishing</th>
+                                    <th class="text-end">Total Biaya</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -151,9 +228,11 @@
                                         <td>{{ $item->nama_produk }}</td>
                                         <td class="text-center">{{ $item->jumlah }}</td>
                                         <td>{{ $item->satuan }}</td>
-                                        <td class="text-end">Rp {{ number_format($item->harga_satuan, 0, ',', '.') }}</td>
+                                        <td class="text-end">Rp {{ number_format($item->biaya_produk / $item->jumlah, 0, ',', '.') }}</td>
+                                        <td class="text-end">Rp {{ number_format($item->biaya_produk, 0, ',', '.') }}</td>
+                                        <td class="text-end">Rp {{ number_format($item->biaya_finishing, 0, ',', '.') ?? "-" }}</td>
                                         <td class="text-end fw-semibold">Rp
-                                            {{ number_format($item->harga_satuan * $item->jumlah, 0, ',', '.') }}
+                                            {{ number_format($item->total_biaya, 0, ',', '.') }}
                                         </td>
                                     </tr>
                                 @empty
