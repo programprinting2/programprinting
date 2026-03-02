@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Services\SpkService;
 use App\Models\Pelanggan;
+use App\Models\MasterMesin;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -20,9 +21,65 @@ class PekerjaanController extends Controller
         $filters['sort_status'] = 'proses_bayar';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $spk->load('items.produk.bahanBakus');
         $customers = Pelanggan::where('status', true)->get();
 
-        return view('pages.pekerjaan.manager-order', compact('spk', 'customers'));
+        foreach ($spk as $spkRow) {
+            foreach ($spkRow->items as $spkItem) {
+                $produk = $spkItem->produk;
+                if (!$produk || !$produk->relationLoaded('bahanBakus')) continue;
+        
+                foreach ($produk->bahanBakus as $bahan) {
+                    $key = $bahan->id;
+        
+                    if (!isset($bahanBakuGroups[$key])) {
+                        $bahanBakuGroups[$key] = [
+                            'id'    => $bahan->id,
+                            'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
+                            'kode'  => $bahan->kode ?? '',
+                            'spk'   => [],
+                        ];
+                    }
+        
+                    if (!isset($bahanBakuGroups[$key]['spk'][$spkRow->id])) {
+                        $bahanBakuGroups[$key]['spk'][$spkRow->id] = $spkRow;
+                    }
+                }
+            }
+        }
+        
+        foreach ($spk as $spkRow) {
+            foreach ($spkRow->items as $spkItem) {
+                $produk = $spkItem->produk;
+                if (!$produk) continue;
+        
+                foreach ($produk->mesin_ids as $mesinId) {
+                    $mesin = MasterMesin::find($mesinId);
+                    if (!$mesin) continue;
+        
+                    $key = $mesin->id;
+                    if (!isset($mesinGroups[$key])) {
+                        $mesinGroups[$key] = [
+                            'id'    => $mesin->id,
+                            'nama'  => $mesin->nama_mesin ?? ('Mesin #'.$mesin->id),
+                            'kode'  => $mesin->kode_mesin ?? '',
+                            'spk'   => [],
+                        ];
+                    }
+        
+                    if (!isset($mesinGroups[$key]['spk'][$spkRow->id])) {
+                        $mesinGroups[$key]['spk'][$spkRow->id] = $spkRow;
+                    }
+                }
+            }
+        }
+
+        return view('pages.pekerjaan.manager-order', [
+            'spk'             => $spk,
+            'customers'       => $customers,
+            'bahanBakuGroups' => $bahanBakuGroups,
+            'mesinGroups'     => $mesinGroups,
+        ]);
     }
 
     public function managerProduksi(Request $request): View
