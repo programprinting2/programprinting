@@ -19,7 +19,7 @@
             <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Manager Order.</p>
     </div>
           </div>
-          <ul class="nav nav-tabs" id="managerOrderTabs" role="tablist">
+          <!-- <ul class="nav nav-tabs" id="managerOrderTabs" role="tablist">
             <li class="nav-item" role="presentation">
               <button class="nav-link active" id="tab-spk-list" data-bs-toggle="tab"
                       data-bs-target="#tabSpkList" type="button" role="tab">
@@ -38,10 +38,87 @@
                 Group Per Mesin
               </button>
             </li>
-          </ul>
+          </ul> -->
+          <div class="row g-3 mb-4" id="managerOrderTabs" role="tablist">
+            <div class="col-md-3">
+              <button class="card tab-card active w-100 text-start"
+                      id="tab-spk-list"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabSpkList"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-primary-subtle text-primary">
+                    <i class="fa fa-file-alt"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-semibold">Daftar SPK</h6>
+                    <small class="text-muted">List semua SPK</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="col-md-3">
+              <button class="card tab-card w-100 text-start"
+                      id="tab-bahan"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabBahan"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-warning-subtle text-warning">
+                    <i class="fa fa-box"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-semibold">Group Per Bahan</h6>
+                    <small class="text-muted">Rekap bahan baku</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="col-md-3">
+              <button class="card tab-card w-100 text-start"
+                      id="tab-mesin"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabMesin"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-success-subtle text-success">
+                    <i class="fa fa-cogs"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-semibold">Group Per Mesin</h6>
+                    <small class="text-muted">Rekap per mesin</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div class="col-md-3">
+              <button class="card tab-card w-100 text-start"
+                      id="tab-pelanggan"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabPelanggan"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-info-subtle text-info">
+                    <i class="fa fa-users"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-semibold">Group Pelanggan</h6>
+                    <small class="text-muted">Rekap pelanggan</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
 
           <!-- Divider -->
-          <!-- <hr class="my-4"> -->
+          <hr class="my-4">
 
           
     
@@ -765,11 +842,206 @@
         @endforelse
       </div>
     </div>
+
+    {{-- TAB 4: Group per Pelanggan --}}
+    <div class="tab-pane fade" id="tabPelanggan" role="tabpanel" aria-labelledby="tab-pelanggan">
+      <div class="accordion" id="pelangganAccordion">
+        @forelse($pelangganGroups as $pel)
+          @php
+            $pelId = $pel['id'] ?? 'none';
+          @endphp
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="pelanggan-heading{{ $pelId }}">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#pelanggan-collapse{{ $pelId }}"
+                      aria-expanded="false"
+                      aria-controls="pelanggan-collapse{{ $pelId }}">
+                <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                  <div class="flex-grow-1">
+                    @php
+                      $totalMetric = 0;
+                      $metricUnitLabel = 'm';
+
+                      foreach ($pel['spk'] as $spkRow) {
+                          foreach ($spkRow->items as $spkItem) {
+                              $produk = $spkItem->produk;
+                              if (!$produk || $produk->is_metric !== true) {
+                                  continue;
+                              }
+
+                              $metricUnit = $produk->metric_unit ?: 'cm';
+                              $panjang = (float) ($spkItem->panjang ?? 0);
+                              $lebar   = (float) ($spkItem->lebar ?? 0);
+                              $jumlah  = (float) ($spkItem->jumlah ?? 0);
+                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
+                                  continue;
+                              }
+
+                              switch (strtolower($metricUnit)) {
+                                  case 'mm':
+                                      $panjang /= 1000;
+                                      $lebar   /= 1000;
+                                      break;
+                                  case 'cm':
+                                      $panjang /= 100;
+                                      $lebar   /= 100;
+                                      break;
+                                  case 'm':
+                                  default:
+                                      break;
+                              }
+
+                              $totalMetric += $panjang * $lebar * $jumlah;
+                          }
+                      }
+                    @endphp
+
+                    <h6 class="mb-1 text-dark fw-bold">
+                      {{ $pel['nama'] }}
+                    </h6>
+                    @if(!empty($pel['email']))
+                      <small class="text-muted">{{ $pel['email'] }}</small>
+                    @endif
+                  </div>
+                  <div class="text-end">
+                    <div class="badge bg-secondary mb-1">
+                      {{ count($pel['spk']) }} SPK
+                    </div>
+                    @if($totalMetric > 0)
+                      <div class="small text-muted">
+                        Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
+                      </div>
+                    @endif
+                  </div>
+                </div>
+              </button>
+            </h2>
+
+            <div id="pelanggan-collapse{{ $pelId }}" class="accordion-collapse collapse"
+                aria-labelledby="pelanggan-heading{{ $pelId }}"
+                data-bs-parent="#pelangganAccordion">
+              <div class="accordion-body">
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Nomor SPK</th>
+                        <th>Tanggal</th>
+                        <th>Pelanggan</th>
+                        <th>Nama Item</th>
+                        <th>Ukuran / Luas</th>
+                        <th class="text-end">Jumlah</th>
+                        <th>Satuan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach($pel['spk'] as $spkRow)
+                        @php
+                          $itemsForPelanggan = $spkRow->items; // semua item SPK pelanggan ini
+                          $rowspan = $itemsForPelanggan->count();
+                          $firstRow = true;
+                        @endphp
+
+                        @forelse($itemsForPelanggan as $spkItem)
+                          @php
+                            $produk = $spkItem->produk;
+                            $isMetric   = $produk && ($produk->is_metric === true);
+                            $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                            $panjang = (float) ($spkItem->panjang ?? 0);
+                            $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                            if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                $luas = $panjang * $lebar;
+                                $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                            } elseif ($isMetric) {
+                                $dimensiText = 'Metric ('.$metricUnit.')';
+                                $luasText = 'Ukuran belum lengkap';
+                            } else {
+                                $dimensiText = '-';
+                                $luasText = '';
+                            }
+                          @endphp
+
+                          <tr>
+                            @if($firstRow)
+                              <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                {{ $spkRow->nomor_spk }}
+                              </td>
+                              <td rowspan="{{ $rowspan }}" class="align-top">
+                                {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                              </td>
+                              <td rowspan="{{ $rowspan }}" class="align-top">
+                                {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                              </td>
+                              @php $firstRow = false; @endphp
+                            @endif
+
+                            <td>{{ $spkItem->nama_produk }}</td>
+                            <td>
+                              <div class="fw-semibold">{{ $dimensiText }}</div>
+                              @if($luasText)
+                                <div class="text-muted small">{{ $luasText }}</div>
+                              @endif
+                            </td>
+                            <td class="text-end">{{ $spkItem->jumlah }}</td>
+                            <td>{{ $spkItem->satuan }}</td>
+                          </tr>
+                        @empty
+                          <tr>
+                            <td colspan="7" class="text-center text-muted">
+                              Tidak ada item untuk pelanggan ini pada SPK ini.
+                            </td>
+                          </tr>
+                        @endforelse
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        @empty
+          <div class="text-center py-4 text-muted">
+            Tidak ada data SPK terkait pelanggan.
+          </div>
+        @endforelse
+      </div>
+    </div>
   </div>
 
 @endsection
 
 @push('custom-scripts')
+  <style>
+  .tab-card {
+    transition: all 0.25s ease;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .tab-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+
+  .tab-card.active {
+      border: 2px solid #0d6efd;
+      background: linear-gradient(145deg, #f8fbff, #eef5ff);
+  }
+  
+  .tab-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  </style>
+
   <script>
     // Initialize Feather Icons
     feather.replace();
@@ -964,5 +1236,18 @@
     if (btnReject) btnReject.addEventListener('click', () => bulkUpdateStatus('reject'));
 
     updateBulkButtons();
+  </script>
+
+  <script>
+  document.querySelectorAll('#managerOrderTabs button').forEach(btn => {
+      btn.addEventListener('shown.bs.tab', function () {
+
+          document.querySelectorAll('.tab-card').forEach(el => {
+              el.classList.remove('active');
+          });
+
+          this.classList.add('active');
+      });
+  });
   </script>
 @endpush

@@ -25,6 +25,10 @@ class PekerjaanController extends Controller
         $spk->load('items.produk.bahanBakus');
         // $customers = Pelanggan::where('status', true)->get();
 
+        $bahanBakuGroups = [];
+        $mesinGroups     = [];
+        $pelangganGroups = [];
+
         foreach ($spk as $spkRow) {
             foreach ($spkRow->items as $spkItem) {
                 $produk = $spkItem->produk;
@@ -77,9 +81,28 @@ class PekerjaanController extends Controller
             }
         }
 
+        foreach ($spk as $spkRow) {
+            $pelanggan = $spkRow->pelanggan;
+            $key = $pelanggan?->id ?? 'tanpa_pelanggan';
+    
+            if (!isset($pelangganGroups[$key])) {
+                $pelangganGroups[$key] = [
+                    'id'    => $pelanggan?->id,
+                    'nama'  => $pelanggan?->nama ?? 'Tanpa Pelanggan',
+                    'email' => $pelanggan?->email ?? null,
+                    'spk'   => [],
+                ];
+            }
+    
+            if (!isset($pelangganGroups[$key]['spk'][$spkRow->id])) {
+                $pelangganGroups[$key]['spk'][$spkRow->id] = $spkRow;
+            }
+        }
+
         return view('pages.pekerjaan.manager-order', [
             'spk'             => $spk,
             // 'customers'       => $customers,
+            'pelangganGroups' => $pelangganGroups,
             'bahanBakuGroups' => $bahanBakuGroups,
             'mesinGroups'     => $mesinGroups,
         ]);
