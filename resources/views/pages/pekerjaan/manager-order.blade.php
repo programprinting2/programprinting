@@ -109,7 +109,7 @@
                     <i class="fa fa-users"></i>
                   </div>
                   <div>
-                    <h6 class="mb-1 fw-semibold">Group Pelanggan</h6>
+                    <h6 class="mb-1 fw-semibold">Group Per Pelanggan</h6>
                     <small class="text-muted">Rekap pelanggan</small>
                   </div>
                 </div>
@@ -622,14 +622,17 @@
                     <tbody>
                       @foreach($bahan['spk'] as $spkRow)
                         @php
-                          $itemsForBahan = $spkRow->items->filter(function($spkItem) use ($bahan) {
+                        $itemsForBahan = $spkRow->items
+                          ->filter(function($spkItem) use ($bahan) {
                               $produk = $spkItem->produk;
-                              if (!$produk) {
-                                  return false;
-                              }
+                              if (!$produk) return false;
 
                               return $produk->bahanBakus->contains('id', $bahan['id']);
-                          });
+                          })
+                          ->sortBy(function($spkItem) {
+                              return strtolower($spkItem->nama_produk ?? '');
+                          })
+                          ->values();
                           $rowspan = $itemsForBahan->count();
                           $firstRow = true;
                         @endphp
@@ -798,15 +801,21 @@
                     <tbody>
                       @foreach($mesin['spk'] as $spkRow)
                         @php
-                          $itemsForMesin = $spkRow->items->filter(function($spkItem) use ($mesin) {
-                              $produk = $spkItem->produk;
-                              if (!$produk) {
-                                  return false;
-                              }
-                              $mesinIds = is_array($produk->mesin_ids) ? $produk->mesin_ids : (array) $produk->mesin_ids;
-                              return in_array($mesin['id'], $mesinIds);
-                          });
+                          $itemsForMesin = $spkRow->items
+                            ->filter(function($spkItem) use ($mesin) {
+                                $produk = $spkItem->produk;
+                                if (!$produk) return false;
 
+                                $mesinIds = is_array($produk->mesin_ids)
+                                    ? $produk->mesin_ids
+                                    : (array) $produk->mesin_ids;
+
+                                return in_array($mesin['id'], $mesinIds);
+                            })
+                            ->sortBy(function($spkItem) {
+                                return strtolower($spkItem->nama_produk ?? '');
+                            })
+                            ->values();
                           $rowspan = $itemsForMesin->count();
                           $firstRow = true;
                         @endphp
@@ -977,7 +986,11 @@
                     <tbody>
                       @foreach($pel['spk'] as $spkRow)
                         @php
-                          $itemsForPelanggan = $spkRow->items; // semua item SPK pelanggan ini
+                          $itemsForPelanggan = $spkRow->items
+                            ->sortBy(function($spkItem) {
+                                return strtolower($spkItem->nama_produk ?? '');
+                            })
+                            ->values();
                           $rowspan = $itemsForPelanggan->count();
                           $firstRow = true;
                         @endphp
