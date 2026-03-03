@@ -427,36 +427,44 @@
                       aria-controls="bahan-collapse{{ $bahan['id'] }}">
                 <div class="d-flex justify-content-between align-items-center w-100 me-3">
                   <div class="flex-grow-1">
-                  @php
+                    @php
                       $totalMetric = 0;
-                      $metricUnitLabel = null;
+                      $metricUnitLabel = 'm';
 
                       foreach ($bahan['spk'] as $spkRow) {
                           foreach ($spkRow->items as $spkItem) {
                               $produk = $spkItem->produk;
-                              if (!$produk) {
-                                  continue;
-                              }
+                              if (!$produk) continue;
 
-                              if (!$produk->bahanBakus->contains('id', $bahan['id'])) {
-                                  continue;
-                              }
+                              if (!$produk->bahanBakus->contains('id', $bahan['id'])) continue;
 
-                              $isMetric   = $produk->is_metric === true;
+                              if ($produk->is_metric !== true) continue;
+
                               $metricUnit = $produk->metric_unit ?: 'cm';
-                              if (!$isMetric) {
-                                  continue;
-                              }
 
                               $panjang = (float) ($spkItem->panjang ?? 0);
                               $lebar   = (float) ($spkItem->lebar ?? 0);
                               $jumlah  = (float) ($spkItem->jumlah ?? 0);
-                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
-                                  continue;
+
+                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
+
+                              switch ($metricUnit) {
+                                  case 'cm':
+                                      $panjang /= 100;
+                                      $lebar   /= 100;
+                                      break;
+
+                                  case 'mm':
+                                      $panjang /= 1000;
+                                      $lebar   /= 1000;
+                                      break;
+
+                                  case 'm':
+                                  default:
+                                      break;
                               }
 
                               $totalMetric += $panjang * $lebar * $jumlah;
-                              $metricUnitLabel = $metricUnit;
                           }
                       }
                   @endphp
@@ -506,6 +514,8 @@
 
                               return $produk->bahanBakus->contains('id', $bahan['id']);
                           });
+                          $rowspan = $itemsForBahan->count();
+                          $firstRow = true;
                         @endphp
 
                         @forelse($itemsForBahan as $spkItem)
@@ -530,15 +540,25 @@
                           @endphp
 
                           <tr>
-                            <td class="fw-bold">{{ $spkRow->nomor_spk }}</td>
-                            <td>{{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}</td>
-                            <td>{{ optional($spkRow->pelanggan)->nama ?? '-' }}</td>
+                            @if($firstRow)
+                                <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                    {{ $spkRow->nomor_spk }}
+                                </td>
+                                <td rowspan="{{ $rowspan }}" class="align-top">
+                                    {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                </td>
+                                <td rowspan="{{ $rowspan }}" class="align-top">
+                                    {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                                </td>
+
+                                @php $firstRow = false; @endphp
+                            @endif
                             <td>{{ $spkItem->nama_produk }}</td>
                             <td>
-                              <div class="fw-semibold">{{ $dimensiText }}</div>
-                              @if($luasText)
-                                <div class="text-muted small">{{ $luasText }}</div>
-                              @endif
+                                <div class="fw-semibold">{{ $dimensiText }}</div>
+                                @if($luasText)
+                                    <div class="text-muted small">{{ $luasText }}</div>
+                                @endif
                             </td>
                             <td class="text-end">{{ $spkItem->jumlah }}</td>
                             <td>{{ $spkItem->satuan }}</td>
@@ -579,38 +599,49 @@
                 <div class="d-flex justify-content-between align-items-center w-100 me-3">
                   <div class="flex-grow-1">
                     @php
-                        $totalMetric = 0;
-                        $metricUnitLabel = null;
+                      $totalMetric = 0;
+                      $metricUnitLabel = 'm'; 
 
-                        foreach ($mesin['spk'] as $spkRow) {
-                            foreach ($spkRow->items as $spkItem) {
-                                $produk = $spkItem->produk;
-                                if (!$produk) {
-                                    continue;
-                                }
+                      foreach ($mesin['spk'] as $spkRow) {
+                          foreach ($spkRow->items as $spkItem) {
 
-                                $mesinIds = is_array($produk->mesin_ids) ? $produk->mesin_ids : (array) $produk->mesin_ids;
-                                if (!in_array($mesin['id'], $mesinIds)) {
-                                    continue;
-                                }
+                              $produk = $spkItem->produk;
+                              if (!$produk) continue;
 
-                                $isMetric   = $produk->is_metric === true;
-                                $metricUnit = $produk->metric_unit ?: 'cm';
-                                if (!$isMetric) {
-                                    continue;
-                                }
+                              $mesinIds = is_array($produk->mesin_ids)
+                                  ? $produk->mesin_ids
+                                  : (array) $produk->mesin_ids;
 
-                                $panjang = (float) ($spkItem->panjang ?? 0);
-                                $lebar   = (float) ($spkItem->lebar ?? 0);
-                                $jumlah  = (float) ($spkItem->jumlah ?? 0);
-                                if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
-                                    continue;
-                                }
+                              if (!in_array($mesin['id'], $mesinIds)) continue;
 
-                                $totalMetric += $panjang * $lebar * $jumlah;
-                                $metricUnitLabel = $metricUnit;
-                            }
-                        }
+                              if ($produk->is_metric !== true) continue;
+
+                              $metricUnit = $produk->metric_unit ?: 'cm';
+
+                              $panjang = (float) ($spkItem->panjang ?? 0);
+                              $lebar   = (float) ($spkItem->lebar ?? 0);
+                              $jumlah  = (float) ($spkItem->jumlah ?? 0);
+
+                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
+                              switch (strtolower($metricUnit)) {
+                                  case 'mm':
+                                      $panjang /= 1000;
+                                      $lebar   /= 1000;
+                                      break;
+
+                                  case 'cm':
+                                      $panjang /= 100;
+                                      $lebar   /= 100;
+                                      break;
+
+                                  case 'm':
+                                  default:
+                                      break;
+                              }
+
+                              $totalMetric += $panjang * $lebar * $jumlah;
+                          }
+                      }
                     @endphp
                     <h6 class="mb-1 text-dark fw-bold">{{ $mesin['nama'] }}</h6>
                     @if(!empty($mesin['kode']))
@@ -659,6 +690,9 @@
                               $mesinIds = is_array($produk->mesin_ids) ? $produk->mesin_ids : (array) $produk->mesin_ids;
                               return in_array($mesin['id'], $mesinIds);
                           });
+
+                          $rowspan = $itemsForMesin->count();
+                          $firstRow = true;
                         @endphp
 
                         @forelse($itemsForMesin as $spkItem)
@@ -683,18 +717,32 @@
                           @endphp
 
                           <tr>
-                            <td class="fw-bold">{{ $spkRow->nomor_spk }}</td>
-                            <td>{{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}</td>
-                            <td>{{ optional($spkRow->pelanggan)->nama ?? '-' }}</td>
-                            <td>{{ $spkItem->nama_produk }}</td>
-                            <td>
-                              <div class="fw-semibold">{{ $dimensiText }}</div>
-                              @if($luasText)
-                                <div class="text-muted small">{{ $luasText }}</div>
+                              @if($firstRow)
+                                  <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                      {{ $spkRow->nomor_spk }}
+                                  </td>
+                                  <td rowspan="{{ $rowspan }}" class="align-top">
+                                      {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                  </td>
+                                  <td rowspan="{{ $rowspan }}" class="align-top">
+                                      {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                                  </td>
+
+                                  @php $firstRow = false; @endphp
                               @endif
-                            </td>
-                            <td class="text-end">{{ $spkItem->jumlah }}</td>
-                            <td>{{ $spkItem->satuan }}</td>
+
+                              <td>{{ $spkItem->nama_produk }}</td>
+
+                              <td>
+                                  <div class="fw-semibold">{{ $dimensiText }}</div>
+                                  @if($luasText)
+                                      <div class="text-muted small">{{ $luasText }}</div>
+                                  @endif
+                              </td>
+
+                              <td class="text-end">{{ $spkItem->jumlah }}</td>
+                              <td>{{ $spkItem->satuan }}</td>
+
                           </tr>
                         @empty
                           <tr>
