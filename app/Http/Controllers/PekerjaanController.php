@@ -28,7 +28,9 @@ class PekerjaanController extends Controller
         foreach ($spk as $spkRow) {
             foreach ($spkRow->items as $spkItem) {
                 $produk = $spkItem->produk;
-                if (!$produk || !$produk->relationLoaded('bahanBakus')) continue;
+                if (!$produk) {
+                    continue;
+                }
         
                 foreach ($produk->bahanBakus as $bahan) {
                     $key = $bahan->id;
@@ -37,7 +39,7 @@ class PekerjaanController extends Controller
                         $bahanBakuGroups[$key] = [
                             'id'    => $bahan->id,
                             'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
-                            'kode'  => $bahan->kode ?? '',
+                            'kode'  => $bahan->kode_bahan ?? '',
                             'spk'   => [],
                         ];
                     }
@@ -63,7 +65,7 @@ class PekerjaanController extends Controller
                         $mesinGroups[$key] = [
                             'id'    => $mesin->id,
                             'nama'  => $mesin->nama_mesin ?? ('Mesin #'.$mesin->id),
-                            'kode'  => $mesin->kode_mesin ?? '',
+                            'kode'  => $mesin->tipe_mesin ?? '',
                             'spk'   => [],
                         ];
                     }

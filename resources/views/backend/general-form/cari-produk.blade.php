@@ -176,7 +176,7 @@
       if ($(this).parent().hasClass('disabled') || $(this).parent().hasClass('active')) return;
       const page = $(this).data('page');
       const search = $('#' + inputId).val();
-      loadProdukKomponen(search, page);
+      loadProdukKomponen(page);
   });
 
   $(document).on('click', '.pilih-produk-komponen', function() {

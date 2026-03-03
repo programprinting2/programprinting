@@ -294,7 +294,7 @@
                                               $dimensiText = 'Metric ('.$metricUnit.')';
                                               $luasText = 'Ukuran belum lengkap';
                                           } else {
-                                              $dimensiText = 'Non-metric';
+                                              $dimensiText = '-';
                                               $luasText = '';
                                           }
                                         @endphp
@@ -333,8 +333,8 @@
                                         <th>Kode</th>
                                         <th class="text-end">Total Qty</th>
                                         <th>Satuan</th>
-                                        <th class="text-end">Total Metric</th>
-                                        <th>Unit Metric</th>
+                                        <th class="text-end">Total</th>
+                                        <th>Unit</th>
                                     </tr>
                                 </thead>
                                 <tbody style="background-color: #ffffff;">

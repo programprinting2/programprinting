@@ -139,8 +139,16 @@
                               <td>${produk.kode_produk ?? '-'}</td>
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>
-                                  <span class="badge bg-${produk.jenis_produk === 'produk' ? 'primary' : 'secondary'}">
-                                      ${produk.jenis_produk === 'produk' ? 'Produk' : 'Jasa'}
+                                  <span class="badge bg-${
+                                      produk.jenis_produk === 'produk' ? 'primary' :
+                                      produk.jenis_produk === 'rakitan' ? 'warning' :
+                                      'secondary'
+                                  }">
+                                      ${
+                                      produk.jenis_produk === 'produk' ? 'Produk' :
+                                      produk.jenis_produk === 'rakitan' ? 'Rakitan' :
+                                      'Jasa'
+                                      }
                                   </span>
                               </td>
                               <td>${produk.kategori_nama ?? '-'}</td>
