@@ -334,6 +334,7 @@
                                             <table class="table table-sm table-bordered align-middle mb-0">
                                                 <thead class="table-light">
                                                     <tr>
+                                                        <th>File</th>
                                                         <th>Keterangan</th>
                                                         <th>Nama Item</th>
                                                         <th>Ukuran / Luas</th>
@@ -364,7 +365,45 @@
                                                                 $luasText = '';
                                                             }
                                                         @endphp
+                                                        @php
+                                                            $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                                            if (is_string($filePendukungRaw)) {
+                                                                $filePendukung = json_decode($filePendukungRaw, true) ?: [];
+                                                            } else {
+                                                                $filePendukung = (array) $filePendukungRaw;
+                                                            }
+                                                            $defaultFile = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+
+                                                            $defaultFileType = $defaultFile['type'] ?? null;
+                                                            $isPdf = strtolower((string) $defaultFileType) === 'pdf';
+                                                        @endphp
                                                         <tr>
+                                                            <td class="text-center" style="width: 60px;">
+                                                                @if($defaultFile && !empty($defaultFile['path']))
+                                                                    @php
+                                                                        $filePath = $defaultFile['path'];
+                                                                        $isPdf = strtolower((string) ($defaultFile['type'] ?? '')) === 'pdf';
+                                                                        $previewUrl = route('backend.preview-file', ['path' => $filePath]);
+                                                                    @endphp
+
+                                                                    @if($isPdf)
+                                                                        <a href="{{ $previewUrl }}" target="_blank" title="Preview PDF">
+                                                                            <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                                                        </a>
+                                                                    @else
+                                                                        <a href="{{ $previewUrl }}" target="_blank" title="{{ $defaultFile['name'] ?? 'Preview' }}">
+                                                                            <img src="{{ $previewUrl }}"
+                                                                                alt="{{ $defaultFile['name'] ?? 'Preview' }}"
+                                                                                class="img-thumbnail"
+                                                                                style="max-width: 50px; max-height: 50px; object-fit: cover; border-radius:4px;"
+                                                                                loading="lazy">
+                                                                        </a>
+                                                                    @endif
+
+                                                                @else
+                                                                    <span class="text-muted">-</span>
+                                                                @endif
+                                                            </td>
                                                             <td>{{ !empty(trim($spkItem->keterangan)) ? $spkItem->keterangan : '-' }}</td>
                                                             <td>{{ $spkItem->nama_produk }}</td>
                                                             <td>
@@ -1247,6 +1286,24 @@
           });
 
           this.classList.add('active');
+      });
+  });
+  </script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.btn-preview-file').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+              const path = btn.getAttribute('data-path');
+              if (!path) return;
+
+              // Sesuaikan nama route di web.php
+              const baseUrl = "{{ route('backend.preview-file') }}";
+              const url = baseUrl + '?path=' + encodeURIComponent(path);
+
+              // Buka di tab baru saja, supaya tidak mengganggu halaman utama
+              window.open(url, '_blank', 'noopener');
+          });
       });
   });
   </script>
