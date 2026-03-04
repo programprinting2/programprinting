@@ -5,7 +5,7 @@
   <nav class="page-breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="#">Pekerjaan</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Operator Cetak</li>
+      <li class="breadcrumb-item active" aria-current="page">Manager Order</li>
     </ol>
   </nav>
 
@@ -19,238 +19,262 @@
             <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Operator Cetak.</p>
     </div>
           </div>
+          <div class="row g-3 mb-4" id="operatorTabs" role="tablist">
+            <!-- <div class="col-md-3">
+              <button class="card tab-card active w-100 text-start"
+                      id="tab-spk-list"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabSpkList"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-primary-subtle text-primary">
+                    <i class="fa fa-file-alt"></i>
+                  </div>
+                  <div>
+                    <h6 class="mb-1 fw-semibold">Daftar SPK</h6>
+                    <small class="text-muted">List semua SPK</small>
+                  </div>
+                </div>
+              </button>
+            </div> -->
+
+            @foreach($tipeMesinGroups as $tipe => $group)
+                @php
+                    $slug = \Illuminate\Support\Str::slug($tipe, '-');
+                    $label = $group['label'] ?? $tipe;
+                @endphp
+                <div class="col-md-3">
+                    <button class="card tab-card w-100 text-start {{ $loop->first ? 'active' : '' }}"
+                            id="tab-tipe-{{ $slug }}"
+                            data-bs-toggle="tab"
+                            data-bs-target="#tabTipe{{ $slug }}"
+                            type="button"
+                            role="tab">
+                        <div class="card-body d-flex align-items-center gap-3">
+                            <div class="tab-icon bg-success-subtle text-success">
+                                <i class="fa fa-cogs"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <h6 class="mb-0 fw-semibold">{{ $label }}</h6>
+                                    <span class="badge bg-success rounded-pill px-3">
+                                        {{ count($group['spk']) }}
+                                    </span>
+                                </div>
+                                <small class="text-muted">Rekap per bahan</small>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+            @endforeach
+          </div>
 
           <!-- Divider -->
           <hr class="my-4">
 
-          <!-- Form Pencarian dan Filter -->
-          <form id="searchForm" class="row g-3 mb-4">
-            <div class="col-md-7">
-              <label class="form-label small">&nbsp;</label>
-              <div class="input-group">
-                <span class="input-group-text bg-light">
-                  <i data-feather="search" class="icon-sm"></i>
-                </span>
-                <input type="text" class="form-control" name="search" placeholder="Cari nomor SPK, pelanggan, atau status..." value="{{ request('search') }}">
-              </div>
-            </div>
-            <div class="col-md-4">
-              <label class="form-label small">&nbsp;</label>
-              <select class="form-select" name="customer_id">
-                <option value="">Semua Pelanggan</option>
-                @foreach($customers ?? [] as $customer)
-                  <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
-                    {{ $customer->nama }}
-                  </option>
-                @endforeach
-              </select>
-            </div>
-            <!-- <div class="col-md-4">
-              <label class="form-label small">Status</label>
-              <select class="form-select" name="status">
-                  <option value="">Semua Status</option>
-                  <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                  <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
-                  <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
-                  <option value="manager_approval_produksi" {{ request('status') == 'manager_approval_produksi' ? 'selected' : '' }}>Manager Approval Produksi</option>
-                  <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
-                  <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
-                  <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
-                  <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-              </select>
-            </div> -->
-            <!-- <div class="col-md-2">
-              <label class="form-label small">Prioritas</label>
-              <select class="form-select" name="prioritas">
-                <option value="">Semua Prioritas</option>
-                <option value="rendah" {{ request('prioritas') == 'rendah' ? 'selected' : '' }}>Rendah</option>
-                <option value="normal" {{ request('prioritas') == 'normal' ? 'selected' : '' }}>Normal</option>
-                <option value="tinggi" {{ request('prioritas') == 'tinggi' ? 'selected' : '' }}>Tinggi</option>
-                <option value="mendesak" {{ request('prioritas') == 'mendesak' ? 'selected' : '' }}>Mendesak</option>
-              </select>
-            </div> -->
-            <div class="col-md-1">
-              <label class="form-label small">&nbsp;</label>
-              <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter" title="Reset Filter">
-                <i data-feather="refresh-cw" class="icon-sm"></i> Reset
-              </button>
-            </div>
-          </form>
+          
+    
+    <div class="tab-content mt-3" id="operatorTabContent">
+        {{-- TAB 2: Per Tipe Mesin --}}
+        @foreach($tipeMesinGroups as $tipe => $group)
+          @php
+            $slug = \Illuminate\Support\Str::slug($tipe, '-');
+            $accordionIdBase = 'accordionTipe'.$slug;
+          @endphp
+          <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="tabTipe{{ $slug }}"
+              role="tabpanel"
+              aria-labelledby="tab-tipe-{{ $slug }}">
+            <div class="accordion" id="{{ $accordionIdBase }}">
+              @php
+                  /** @var array $group */
+                  $bahanGroups = $group['bahanGroups'] ?? [];
+              @endphp
 
-          <!-- Loading Spinner -->
-          <div id="loadingSpinner" class="text-center py-4 d-none">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-    </div>
+              @forelse($bahanGroups as $bahan)
+                @php
+                  $accordionId = ($accordionIdBase ?? 'operatorTipe').'-bahan-'.$bahan['id'];
+                  $items = array_values($bahan['items'] ?? []);
+                @endphp
 
-    <div class="table-responsive">
-    <table class="table align-middle">
-      <thead>
-      <tr>
-        <th>Nomor SPK</th>
-                  <th>Tanggal SPK</th>
-        <th>Pelanggan</th>
-        <th>Status</th>
-        <!-- <th>Prioritas</th> -->
-                  <th>Total Biaya</th>
-        <!-- <th>Item Pekerjaan</th> -->
-                  <th>Aksi</th>
-      </tr>
-      </thead>
-      <tbody>
-      @forelse($spk as $item)
-      <tr>
-                    <td class="fw-semibold">{{ $item->nomor_spk }}</td>
-                    <td>
-                      {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
-                    </td>
-                    <td>
-                      {{ $item->pelanggan->nama ?? '-' }}
-                      @if($item->pelanggan && $item->pelanggan->email)
-                        <br><small class="text-muted">{{ $item->pelanggan->email ?? '-'}}</small>
-                      @endif
-                    </td>
-                    <td>
-                        @php
-                            $statusSteps = [
-                                'draft'                     => 1,
-                                'proses_bayar'              => 2,
-                                'manager_approval_order'    => 3,
-                                'manager_approval_produksi' => 4,
-                                'operator_cetak'            => 5,
-                                'finishing_qc'              => 6,
-                                'siap_diambil'              => 7,
-                                'selesai'                   => 8,
-                            ];
+                <div class="accordion-item">
+                  <h2 class="accordion-header" id="heading-{{ $accordionId }}">
+                    <button class="accordion-button collapsed" type="button"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#collapse-{{ $accordionId }}"
+                            aria-expanded="false"
+                            aria-controls="collapse-{{ $accordionId }}">
+                      <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                        <div class="flex-grow-1">
+                          @php
+                            // Hitung total metric untuk bahan ini (di semua item yang tercatat)
+                            $totalMetric = 0;
+                            $metricUnitLabel = 'm';
 
-                            $statusLabels = [
-                                'draft'                     => 'Draft',
-                                'proses_bayar'              => 'Proses Pembayaran',
-                                'manager_approval_order'    => 'Manager Approval Order',
-                                'manager_approval_produksi' => 'Manager Approval Produksi',
-                                'operator_cetak'            => 'Operator Cetak',
-                                'finishing_qc'              => 'Finishing / QC',
-                                'siap_diambil'              => 'Siap Diambil',
-                                'selesai'                   => 'Selesai',
-                            ];
+                            foreach ($items as $rec) {
+                                /** @var \App\Models\SPK $spkRow */
+                                /** @var \App\Models\SPKItem $spkItem */
+                                $spkRow = $rec['spk'];
+                                $spkItem = $rec['item'];
 
-                            $statusIcons = [
-                                'draft'                     => 'fa-file-alt',
-                                'proses_bayar'              => 'fas fa-cash-register',
-                                'manager_approval_order'    => 'fas fa-chalkboard-teacher',
-                                'manager_approval_produksi' => 'fas fa-person-booth',
-                                'operator_cetak'            => 'fa-print',
-                                'finishing_qc'              => 'fas fa-people-carry',
-                                'siap_diambil'              => 'fas fa-shopping-cart',
-                                'selesai'                   => 'fa-check-double',
-                            ];
+                                $produk = $spkItem->produk;
+                                if (!$produk || $produk->is_metric !== true) {
+                                    continue;
+                                }
 
-                            $currentStep  = $statusSteps[$item->status] ?? 0;
-                            $currentLabel = $statusLabels[$item->status] ?? ($item->status ?? '-');
-                        @endphp
+                                $metricUnit = $produk->metric_unit ?: 'cm';
+                                $panjang = (float) ($spkItem->panjang ?? 0);
+                                $lebar   = (float) ($spkItem->lebar ?? 0);
+                                $jumlah  = (float) ($spkItem->jumlah ?? 0);
+                                if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
+                                    continue;
+                                }
 
-                        <div class="d-flex align-items-center gap-1">
-                            @foreach($statusSteps as $status => $step)
-                                @php
-                                    if ($step < $currentStep) {
-                                        $colorClass = 'text-primary'; // sudah lewat
-                                    } elseif ($step === $currentStep) {
-                                        $colorClass = ''; // warna custom kuning
-                                        $style = 'color: #FFC107;';
-                                    } else {
-                                        $colorClass = 'text-muted'; // belum
-                                        $style = '';
-                                    }
-                                @endphp
-                                <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}"
-                                  style="{{ $style ?? '' }} font-size: 0.8rem;"></i>
-                            @endforeach
+                                switch (strtolower($metricUnit)) {
+                                    case 'mm':
+                                        $panjang /= 1000; $lebar /= 1000; break;
+                                    case 'cm':
+                                        $panjang /= 100;  $lebar /= 100;  break;
+                                    case 'm':
+                                    default:
+                                        break;
+                                }
+
+                                $totalMetric += $panjang * $lebar * $jumlah;
+                            }
+                          @endphp
+
+                          <h6 class="mb-1 text-dark fw-bold">{{ $bahan['nama'] }}</h6>
+                          @if(!empty($bahan['kode']))
+                            <small class="text-muted">{{ $bahan['kode'] }}</small>
+                          @endif
                         </div>
-                        <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
-                    </td>
-                    <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
-                    <!-- <td>
-                      <ul class="mb-0 list-unstyled">
-                        @foreach($item->items as $pekerjaan)
-                          <li><b>{{ $pekerjaan->nama_produk }}</b> ({{ $pekerjaan->jumlah }} {{ $pekerjaan->satuan }})</li>
-      @endforeach
-      </ul>
-      </td> -->
-      <td>
-                      <div class="btn-group gap-1" role="group">
-                        <a href="{{ route('spk.show', $item) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">
-                          <i class="link-icon icon-sm" data-feather="eye"></i>
-                        </a>
-                        <a href="{{ route('spk.edit', $item) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
-                          <i class="link-icon icon-sm" data-feather="edit"></i>
-                        </a>
-                        @if($item->status === 'manager_approval_produksi')
-                        <form action="{{ route('spk.update-status', $item) }}" method="POST"
-                                class="d-inline-block form-status-spk">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="action" value="">
-                            <button type="button"
-                                    class="btn btn-success btn-xs btn-icon rounded btn-status-manager"
-                                    title="Setujui / Tolak SPK">
-                            <i class="link-icon icon-sm" data-feather="check-circle"></i>
-                            </button>
-                        </form>
-                        @endif
-                        <form action="{{ route('spk.destroy', $item) }}" method="POST" class="d-inline-block form-hapus-spk">
-                          @csrf
-                          @method('DELETE')
-                          <button type="button" class="btn btn-danger btn-xs btn-icon rounded btn-hapus-spk" title="Hapus">
-                            <i class="link-icon icon-sm" data-feather="trash"></i>
-                          </button>
-                        </form>
+                        <div class="text-end">
+                          <div class="badge bg-secondary text-white mb-1">
+                            {{ count($items) }} item
+                          </div>
+                          @if($totalMetric > 0)
+                            <div class="small text-muted">
+                              Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
+                            </div>
+                          @endif
+                        </div>
                       </div>
-      </td>
-      </tr>
-    @empty
-      <tr>
-                    <td colspan="8" class="text-center py-4">
-                      @if(request('search') || request('customer_id') || request('status') || request('prioritas'))
-                        <div class="text-muted">
-                          <i data-feather="search" class="icon-sm mb-2"></i>
-                          <p class="mb-0">Tidak ditemukan data SPK yang sesuai dengan kriteria pencarian.</p>
-                          <button type="button" class="btn btn-link btn-sm p-0 mt-2" id="clearSearch">
-                            <i data-feather="x" class="icon-sm"></i> Hapus filter
-                          </button>
-                        </div>
-                      @else
-                        <div class="text-muted">
-                          <i data-feather="file-text" class="icon-sm mb-2"></i>
-                          <p class="mb-0">Belum ada data SPK.</p>
-                        </div>
-                      @endif
-                    </td>
-      </tr>
-    @endforelse
-      </tbody>
-    </table>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-              <div class="text-muted">
-                @if($spk->total() > 0)
-                  Menampilkan {{ $spk->firstItem() ?? 0 }} - {{ $spk->lastItem() ?? 0 }} dari {{ $spk->total() }} data SPK
-                @else
-                  Tidak ada data SPK
-                @endif
-              </div>
-              <div>
-                {{ $spk->appends(request()->query())->links('pagination::bootstrap-4') }}
-              </div>
+                    </button>
+                  </h2>
+
+                  <div id="collapse-{{ $accordionId }}" class="accordion-collapse collapse"
+                      aria-labelledby="heading-{{ $accordionId }}"
+                      data-bs-parent="#{{ $accordionIdBase ?? 'operatorTipe' }}">
+                    <div class="accordion-body">
+                      <div class="table-responsive">
+                        <table class="table table-sm align-middle mb-0">
+                          <thead class="table-light">
+                            <tr>
+                              <th>Nomor SPK</th>
+                              <th>Tanggal</th>
+                              <th>Pelanggan</th>
+                              <th>Nama Item</th>
+                              <th>Ukuran</th>
+                              <th class="text-end">Jumlah</th>
+                              <th>Satuan</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            @forelse($items as $rec)
+                              @php
+                                /** @var \App\Models\SPK $spkRow */
+                                /** @var \App\Models\SPKItem $spkItem */
+                                $spkRow  = $rec['spk'];
+                                $spkItem = $rec['item'];
+
+                                $produk = $spkItem->produk;
+                                $isMetric   = $produk && ($produk->is_metric === true);
+                                $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                                $panjang = (float) ($spkItem->panjang ?? 0);
+                                $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                                if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                    $luas = $panjang * $lebar;
+                                    $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                    $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                                } elseif ($isMetric) {
+                                    $dimensiText = 'Metric ('.$metricUnit.')';
+                                    $luasText = 'Ukuran belum lengkap';
+                                } else {
+                                    $dimensiText = '-';
+                                    $luasText = '';
+                                }
+                              @endphp
+
+                              <tr>
+                                <td class="fw-bold">{{ $spkRow->nomor_spk }}</td>
+                                <td>{{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}</td>
+                                <td>{{ optional($spkRow->pelanggan)->nama ?? '-' }}</td>
+                                <td>{{ $spkItem->nama_produk }}</td>
+                                <td>
+                                  <div class="fw-semibold">{{ $dimensiText }}</div>
+                                  @if($luasText)
+                                    <div class="text-muted small">{{ $luasText }}</div>
+                                  @endif
+                                </td>
+                                <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                <td>{{ $spkItem->satuan }}</td>
+                              </tr>
+                            @empty
+                              <tr>
+                                <td colspan="7" class="text-center text-muted">
+                                  Tidak ada item untuk bahan ini pada tipe mesin ini.
+                                </td>
+                              </tr>
+                            @endforelse
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @empty
+                <div class="text-center py-4 text-muted">
+                  Tidak ada data bahan untuk tipe mesin ini.
+                </div>
+              @endforelse
             </div>
           </div>
-        </div>
-      </div>
-    </div>
+        @endforeach
   </div>
 
 @endsection
 
 @push('custom-scripts')
+  <style>
+  .tab-card {
+    transition: all 0.25s ease;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .tab-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+
+  .tab-card.active {
+      border: 2px solid #0d6efd;
+      background: linear-gradient(145deg, #f8fbff, #eef5ff);
+  }
+  
+  .tab-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  </style>
+
   <script>
     // Initialize Feather Icons
     feather.replace();
@@ -286,16 +310,6 @@
       window.location.href = url;
     });
 
-    // Reset filter
-    $('#resetFilter').click(function() {
-        window.location.href = '{{ route("spk.index") }}';
-    });
-
-    // Clear search
-    $('#clearSearch').click(function() {
-        window.location.href = '{{ route("spk.index") }}';
-    });
-
     // Show loading spinner when page is loading
     $(window).on('beforeunload', function() {
       loadingSpinner.removeClass('d-none');
@@ -317,56 +331,35 @@
         showConfirmButton: false
       });
     @endif
+  </script>
 
-    document.querySelectorAll('.btn-status-manager').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        const form = btn.closest('form');
-        if (!form) return;
-        const actionInput = form.querySelector('input[name="action"]');
+  <script>
+  document.querySelectorAll('#managerOrderTabs button').forEach(btn => {
+      btn.addEventListener('shown.bs.tab', function () {
 
-        Swal.fire({
-            title: 'Proses SPK ini?',
-            text: 'Pilih Setuju untuk lanjut ke Finishing/QC, atau Tolak untuk kembali ke Manager Produksi.',
-            icon: 'question',
-            showCancelButton: true,
-            showDenyButton: true,
-            confirmButtonColor: '#198754',
-            denyButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Setuju',
-            denyButtonText: 'Tolak',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-            if (actionInput) actionInput.value = 'approve';
-            form.submit();
-            } else if (result.isDenied) {
-            if (actionInput) actionInput.value = 'reject';
-            form.submit();
-            }
-        });
-        });
-    });
+          document.querySelectorAll('.tab-card').forEach(el => {
+              el.classList.remove('active');
+          });
 
-    document.querySelectorAll('.btn-hapus-spk').forEach(function(btn) {
-      btn.addEventListener('click', function(e) {
-        e.preventDefault();
-        Swal.fire({
-          title: 'Hapus SPK?',
-          text: 'Data SPK yang dihapus tidak dapat dikembalikan!',
-          icon: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#d33',
-          cancelButtonColor: '#3085d6',
-          confirmButtonText: 'Ya, hapus!',
-          cancelButtonText: 'Batal'
-        }).then((result) => {
-          if (result.isConfirmed) {
-            btn.closest('form').submit();
-          }
-        });
+          this.classList.add('active');
       });
-    });
+  });
+  </script>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.btn-preview-file').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+              const path = btn.getAttribute('data-path');
+              if (!path) return;
+
+              // Sesuaikan nama route di web.php
+              const baseUrl = "{{ route('backend.preview-file') }}";
+              const url = baseUrl + '?path=' + encodeURIComponent(path);
+
+              window.open(url, '_blank', 'noopener');
+          });
+      });
+  });
   </script>
 @endpush

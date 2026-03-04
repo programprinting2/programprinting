@@ -186,6 +186,14 @@ class SpkService
     }
 
     /**
+     * Get SPK list without pagination
+     */
+    public function getAllSpk(array $filters = [])
+    {
+        return $this->spkRepository->all($filters); 
+    }
+
+    /**
      * Create SPK Item
      */
     private function createSpkItem(int $spkId, array $itemData): SPKItem
