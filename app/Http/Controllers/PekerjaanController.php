@@ -28,6 +28,7 @@ class PekerjaanController extends Controller
         $bahanBakuGroups = [];
         $mesinGroups     = [];
         $pelangganGroups = [];
+        $produkGroups = [];
 
         foreach ($spk as $spkRow) {
             foreach ($spkRow->items as $spkItem) {
@@ -58,19 +59,35 @@ class PekerjaanController extends Controller
         foreach ($spk as $spkRow) {
             foreach ($spkRow->items as $spkItem) {
                 $produk = $spkItem->produk;
-                if (!$produk) continue;
+                if (!$produk) {
+                    continue;
+                }
         
-                foreach ($produk->mesin_ids as $mesinId) {
-                    $mesin = MasterMesin::find($mesinId);
-                    if (!$mesin) continue;
+                $alur = $produk->alur_produksi_json ?? [];
+                if (!is_array($alur)) {
+                    continue;
+                }
         
-                    $key = $mesin->id;
+                foreach ($alur as $step) {
+                    if (!is_array($step)) {
+                        continue;
+                    }
+        
+                    $divisiMesinId = $step['divisi_mesin_id'] ?? null;
+                    $divisiMesin   = $step['divisi_mesin'] ?? null;
+                    $ketDivisi     = $step['keterangan_divisi'] ?? '';
+        
+                    if (!$divisiMesinId && (!$divisiMesin || trim((string) $divisiMesin) === '')) {
+                        continue;
+                    }
+                    $key = $divisiMesinId ?: trim((string) $divisiMesin);
+        
                     if (!isset($mesinGroups[$key])) {
                         $mesinGroups[$key] = [
-                            'id'    => $mesin->id,
-                            'nama'  => $mesin->nama_mesin ?? ('Mesin #'.$mesin->id),
-                            'kode'  => $mesin->tipe_mesin ?? '',
-                            'spk'   => [],
+                            'id'   => $divisiMesinId,
+                            'nama' => $divisiMesin ?? ('Mesin #'.$key),
+                            'kode' => $ketDivisi ?? '',
+                            'spk'  => [],
                         ];
                     }
         
@@ -99,11 +116,34 @@ class PekerjaanController extends Controller
             }
         }
 
+        foreach ($spk as $spkRow) {
+            foreach ($spkRow->items as $spkItem) {
+                $produk = $spkItem->produk;
+        
+                $produkId = $spkItem->produk_id ?? null;
+                $key = $produkId ?: ($spkItem->nama_produk ?? 'tanpa_produk');
+        
+                if (!isset($produkGroups[$key])) {
+                    $produkGroups[$key] = [
+                        'id'   => $produkId,
+                        'nama' => $produk?->nama_produk ?? ($spkItem->nama_produk ?? 'Tanpa Produk'),
+                        'kode' => $produk?->kode_produk ?? '',
+                        'spk'  => [],
+                    ];
+                }
+        
+                if (!isset($produkGroups[$key]['spk'][$spkRow->id])) {
+                    $produkGroups[$key]['spk'][$spkRow->id] = $spkRow;
+                }
+            }
+        }
+
         return view('pages.pekerjaan.manager-order', [
             'spk'             => $spk,
             // 'customers'       => $customers,
             'pelangganGroups' => $pelangganGroups,
             'bahanBakuGroups' => $bahanBakuGroups,
+            'produkGroups' => $produkGroups,
             'mesinGroups'     => $mesinGroups,
         ]);
     }

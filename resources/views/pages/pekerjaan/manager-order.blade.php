@@ -40,7 +40,7 @@
             </li>
           </ul> -->
           <div class="row g-3 mb-4" id="managerOrderTabs" role="tablist">
-            <div class="col-md-3">
+            <div class="col">
               <button class="card tab-card active w-100 text-start"
                       id="tab-spk-list"
                       data-bs-toggle="tab"
@@ -48,18 +48,26 @@
                       type="button"
                       role="tab">
                 <div class="card-body d-flex align-items-center gap-3">
+
                   <div class="tab-icon bg-primary-subtle text-primary">
                     <i class="fa fa-file-alt"></i>
                   </div>
-                  <div>
-                    <h6 class="mb-1 fw-semibold">Daftar SPK</h6>
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Daftar SPK</h6>
+                      <!-- <span class="badge bg-primary rounded-pill px-3">
+                        {{ $spk->count() }}
+                      </span> -->
+                    </div>
                     <small class="text-muted">List semua SPK</small>
                   </div>
+
                 </div>
               </button>
             </div>
 
-            <div class="col-md-3">
+            <div class="col">
               <button class="card tab-card w-100 text-start"
                       id="tab-bahan"
                       data-bs-toggle="tab"
@@ -67,18 +75,26 @@
                       type="button"
                       role="tab">
                 <div class="card-body d-flex align-items-center gap-3">
+
                   <div class="tab-icon bg-warning-subtle text-warning">
                     <i class="fa fa-box"></i>
                   </div>
-                  <div>
-                    <h6 class="mb-1 fw-semibold">Group Per Bahan</h6>
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Group Per Bahan</h6>
+                      <span class="badge bg-warning text-dark rounded-pill px-3">
+                        {{ count($bahanBakuGroups) }}
+                      </span>
+                    </div>
                     <small class="text-muted">Rekap bahan baku</small>
                   </div>
+
                 </div>
               </button>
             </div>
 
-            <div class="col-md-3">
+            <div class="col">
               <button class="card tab-card w-100 text-start"
                       id="tab-mesin"
                       data-bs-toggle="tab"
@@ -86,18 +102,25 @@
                       type="button"
                       role="tab">
                 <div class="card-body d-flex align-items-center gap-3">
+
                   <div class="tab-icon bg-success-subtle text-success">
                     <i class="fa fa-cogs"></i>
                   </div>
-                  <div>
-                    <h6 class="mb-1 fw-semibold">Group Per Mesin</h6>
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Group Per Mesin</h6>
+                      <span class="badge bg-success rounded-pill px-3">
+                        {{ count($mesinGroups) }}
+                      </span>
+                    </div>
                     <small class="text-muted">Rekap per mesin</small>
                   </div>
                 </div>
               </button>
             </div>
 
-            <div class="col-md-3">
+            <div class="col">
               <button class="card tab-card w-100 text-start"
                       id="tab-pelanggan"
                       data-bs-toggle="tab"
@@ -105,13 +128,48 @@
                       type="button"
                       role="tab">
                 <div class="card-body d-flex align-items-center gap-3">
+
                   <div class="tab-icon bg-info-subtle text-info">
                     <i class="fa fa-users"></i>
                   </div>
-                  <div>
-                    <h6 class="mb-1 fw-semibold">Group Per Pelanggan</h6>
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Group Per Pelanggan</h6>
+                      <span class="badge bg-info text-dark rounded-pill px-3">
+                        {{ count($pelangganGroups) }}
+                      </span>
+                    </div>
                     <small class="text-muted">Rekap pelanggan</small>
                   </div>
+
+                </div>
+              </button>
+            </div>
+
+            <div class="col">
+              <button class="card tab-card w-100 text-start"
+                      id="tab-produk"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabProduk"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+
+                  <div class="tab-icon bg-danger-subtle text-danger">
+                    <i class="fa fa-tags"></i>
+                  </div>
+
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Group Per Produk</h6>
+                      <span class="badge bg-danger rounded-pill px-3">
+                        {{ count($produkGroups) }}
+                      </span>
+                    </div>
+                    <small class="text-muted">Rekap per produk</small>
+                  </div>
+
                 </div>
               </button>
             </div>
@@ -719,40 +777,48 @@
                   <div class="flex-grow-1">
                     @php
                       $totalMetric = 0;
-                      $metricUnitLabel = 'm'; 
+                      $metricUnitLabel = 'm';
+
+                      $targetId = $mesin['id'] ?? null;
 
                       foreach ($mesin['spk'] as $spkRow) {
                           foreach ($spkRow->items as $spkItem) {
-
                               $produk = $spkItem->produk;
-                              if (!$produk) continue;
+                              if (!$produk || $produk->is_metric !== true || !$targetId) {
+                                  continue;
+                              }
 
-                              $mesinIds = is_array($produk->mesin_ids)
-                                  ? $produk->mesin_ids
-                                  : (array) $produk->mesin_ids;
+                              $alur = $produk->alur_produksi_json ?? [];
+                              if (!is_array($alur) || empty($alur)) {
+                                  continue;
+                              }
 
-                              if (!in_array($mesin['id'], $mesinIds)) continue;
-
-                              if ($produk->is_metric !== true) continue;
+                              $matched = false;
+                              foreach ($alur as $step) {
+                                  if (!is_array($step)) continue;
+                                  if ((int)($step['divisi_mesin_id'] ?? 0) === (int)$targetId) {
+                                      $matched = true;
+                                      break;
+                                  }
+                              }
+                              if (!$matched) {
+                                  continue;
+                              }
 
                               $metricUnit = $produk->metric_unit ?: 'cm';
-
                               $panjang = (float) ($spkItem->panjang ?? 0);
                               $lebar   = (float) ($spkItem->lebar ?? 0);
                               $jumlah  = (float) ($spkItem->jumlah ?? 0);
 
-                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
+                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
+                                  continue;
+                              }
+
                               switch (strtolower($metricUnit)) {
                                   case 'mm':
-                                      $panjang /= 1000;
-                                      $lebar   /= 1000;
-                                      break;
-
+                                      $panjang /= 1000; $lebar /= 1000; break;
                                   case 'cm':
-                                      $panjang /= 100;
-                                      $lebar   /= 100;
-                                      break;
-
+                                      $panjang /= 100;  $lebar /= 100;  break;
                                   case 'm':
                                   default:
                                       break;
@@ -801,21 +867,34 @@
                     <tbody>
                       @foreach($mesin['spk'] as $spkRow)
                         @php
-                          $itemsForMesin = $spkRow->items
-                            ->filter(function($spkItem) use ($mesin) {
-                                $produk = $spkItem->produk;
-                                if (!$produk) return false;
+                          $itemsForMesin = $spkRow->items->filter(function ($spkItem) use ($mesin) {
+                              $produk = $spkItem->produk;
+                              if (!$produk) {
+                                  return false;
+                              }
 
-                                $mesinIds = is_array($produk->mesin_ids)
-                                    ? $produk->mesin_ids
-                                    : (array) $produk->mesin_ids;
+                              $alur = $produk->alur_produksi_json ?? [];
+                              if (!is_array($alur) || empty($alur)) {
+                                  return false;
+                              }
 
-                                return in_array($mesin['id'], $mesinIds);
-                            })
-                            ->sortBy(function($spkItem) {
-                                return strtolower($spkItem->nama_produk ?? '');
-                            })
-                            ->values();
+                              $targetId = $mesin['id'] ?? null;
+                              if (!$targetId) {
+                                  return false;
+                              }
+
+                              foreach ($alur as $step) {
+                                  if (!is_array($step)) {
+                                      continue;
+                                  }
+                                  if ((int)($step['divisi_mesin_id'] ?? 0) === (int)$targetId) {
+                                      return true;
+                                  }
+                              }
+
+                              return false;
+                          });
+
                           $rowspan = $itemsForMesin->count();
                           $firstRow = true;
                         @endphp
@@ -1057,6 +1136,193 @@
         @empty
           <div class="text-center py-4 text-muted">
             Tidak ada data SPK terkait pelanggan.
+          </div>
+        @endforelse
+      </div>
+    </div>
+
+    {{-- TAB 5: Group per Produk --}}
+    <div class="tab-pane fade" id="tabProduk" role="tabpanel" aria-labelledby="tab-produk">
+      <div class="accordion" id="produkAccordion">
+        @forelse($produkGroups as $produk)
+          @php
+            $produkIdSafe = $produk['id'] ?? md5(($produk['nama'] ?? 'produk').($produk['kode'] ?? ''));
+          @endphp
+
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="produk-heading{{ $produkIdSafe }}">
+              <button class="accordion-button collapsed" type="button"
+                      data-bs-toggle="collapse"
+                      data-bs-target="#produk-collapse{{ $produkIdSafe }}"
+                      aria-expanded="false"
+                      aria-controls="produk-collapse{{ $produkIdSafe }}">
+
+                <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                  <div class="flex-grow-1">
+                    @php
+                      // Total metric agregat untuk produk ini (mengikuti rumus tab lain: panjang x lebar x jumlah)
+                      $totalMetric = 0;
+                      $metricUnitLabel = 'm';
+
+                      foreach ($produk['spk'] as $spkRow) {
+                          foreach ($spkRow->items as $spkItem) {
+                              $p = $spkItem->produk;
+                              if (!$p) continue;
+
+                              // filter item milik produk ini
+                              $match = false;
+                              if (!empty($produk['id'])) {
+                                  $match = ((int) ($spkItem->produk_id ?? 0) === (int) $produk['id']);
+                              } else {
+                                  $match = (($spkItem->nama_produk ?? '') === ($produk['nama'] ?? ''));
+                              }
+                              if (!$match) continue;
+
+                              if ($p->is_metric !== true) continue;
+
+                              $metricUnit = $p->metric_unit ?: 'cm';
+                              $panjang = (float) ($spkItem->panjang ?? 0);
+                              $lebar   = (float) ($spkItem->lebar ?? 0);
+                              $jumlah  = (float) ($spkItem->jumlah ?? 0);
+
+                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
+
+                              switch (strtolower($metricUnit)) {
+                                  case 'cm':
+                                      $panjang /= 100;
+                                      $lebar   /= 100;
+                                      break;
+                                  case 'mm':
+                                      $panjang /= 1000;
+                                      $lebar   /= 1000;
+                                      break;
+                                  case 'm':
+                                  default:
+                                      break;
+                              }
+
+                              $totalMetric += $panjang * $lebar * $jumlah;
+                          }
+                      }
+                    @endphp
+
+                    <h6 class="mb-1 text-dark fw-bold">
+                      {{ $produk['nama'] }}
+                    </h6>
+                    @if(!empty($produk['kode']))
+                      <small class="text-muted">{{ $produk['kode'] }}</small>
+                    @endif
+                  </div>
+
+                  <div class="text-end">
+                    <div class="badge bg-secondary mb-1">
+                      {{ count($produk['spk']) }} SPK
+                    </div>
+                    @if($totalMetric > 0)
+                      <div class="small text-muted">
+                        Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
+                      </div>
+                    @endif
+                  </div>
+                </div>
+
+              </button>
+            </h2>
+
+            <div id="produk-collapse{{ $produkIdSafe }}" class="accordion-collapse collapse"
+                aria-labelledby="produk-heading{{ $produkIdSafe }}"
+                data-bs-parent="#produkAccordion">
+              <div class="accordion-body">
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-0">
+                    <thead class="table-light">
+                      <tr>
+                        <th>Nomor SPK</th>
+                        <th>Tanggal</th>
+                        <th>Pelanggan</th>
+                        <th>Nama Item</th>
+                        <th>Ukuran / Luas</th>
+                        <th class="text-end">Jumlah</th>
+                        <th>Satuan</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @foreach($produk['spk'] as $spkRow)
+                        @php
+                          $itemsForProduk = $spkRow->items->filter(function($spkItem) use ($produk) {
+                              if (!empty($produk['id'])) {
+                                  return ((int) ($spkItem->produk_id ?? 0) === (int) $produk['id']);
+                              }
+                              return (($spkItem->nama_produk ?? '') === ($produk['nama'] ?? ''));
+                          });
+
+                          $rowspan = $itemsForProduk->count();
+                          $firstRow = true;
+                        @endphp
+
+                        @forelse($itemsForProduk as $spkItem)
+                          @php
+                            $p = $spkItem->produk;
+                            $isMetric   = $p && ($p->is_metric === true);
+                            $metricUnit = $p && $p->metric_unit ? $p->metric_unit : 'cm';
+
+                            $panjang = (float) ($spkItem->panjang ?? 0);
+                            $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                            if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                $luas = $panjang * $lebar;
+                                $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                            } elseif ($isMetric) {
+                                $dimensiText = 'Metric ('.$metricUnit.')';
+                                $luasText = 'Ukuran belum lengkap';
+                            } else {
+                                $dimensiText = '-';
+                                $luasText = '';
+                            }
+                          @endphp
+
+                          <tr>
+                            @if($firstRow)
+                              <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                {{ $spkRow->nomor_spk }}
+                              </td>
+                              <td rowspan="{{ $rowspan }}" class="align-top">
+                                {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                              </td>
+                              <td rowspan="{{ $rowspan }}" class="align-top">
+                                {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                              </td>
+                              @php $firstRow = false; @endphp
+                            @endif
+
+                            <td>{{ $spkItem->nama_produk }}</td>
+                            <td>
+                              <div class="fw-semibold">{{ $dimensiText }}</div>
+                              @if($luasText)
+                                <div class="text-muted small">{{ $luasText }}</div>
+                              @endif
+                            </td>
+                            <td class="text-end">{{ $spkItem->jumlah }}</td>
+                            <td>{{ $spkItem->satuan }}</td>
+                          </tr>
+                        @empty
+                          <tr>
+                            <td colspan="7" class="text-center text-muted">
+                              Tidak ada item untuk produk ini pada SPK ini.
+                            </td>
+                          </tr>
+                        @endforelse
+                      @endforeach
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        @empty
+          <div class="text-center py-4 text-muted">
+            Tidak ada data SPK terkait produk.
           </div>
         @endforelse
       </div>
