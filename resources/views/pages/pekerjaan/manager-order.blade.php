@@ -392,12 +392,21 @@
                                             <table class="table table-sm table-bordered align-middle mb-0">
                                                 <thead class="table-light">
                                                     <tr>
-                                                        <th>File</th>
-                                                        <th>Keterangan</th>
-                                                        <th>Nama Item</th>
-                                                        <th>Ukuran / Luas</th>
-                                                        <th class="text-end">Jumlah</th>
-                                                        <th>Satuan</th>
+                                                      <th class="text-center align-middle p-1" style="width: 50px;">
+                                                        <button type="button"
+                                                                class="btn btn-sm btn-light p-1 d-inline-flex align-items-center justify-content-center"
+                                                                style="width: 32px; height: 32px;"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#modalPreviewFilesSpk{{ $item->id }}"
+                                                                title="Lihat semua file SPK">
+                                                            <i class="fa fa-eye"></i>
+                                                        </button>
+                                                      </th>
+                                                      <th class="align-middle">Keterangan</th>
+                                                      <th class="align-middle">Nama Item</th>
+                                                      <th class="align-middle">Ukuran / Luas</th>
+                                                      <th class="text-end align-middle">Jumlah</th>
+                                                      <th class="align-middle">Satuan</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody style="background-color: #ffffff;">
@@ -483,6 +492,71 @@
                                         </div>
 
                                         <hr class="my-3">
+
+                                        <div class="modal fade" id="modalPreviewFilesSpk{{ $item->id }}" tabindex="-1" aria-hidden="true">
+                                          <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+                                            <div class="modal-content">
+                                              <div class="modal-header">
+                                                <h5 class="modal-title">Preview File SPK {{ $item->nomor_spk }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                              </div>
+
+                                              @php
+                                                $allFiles = [];
+                                                foreach ($item->items as $it) {
+                                                    $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                                    $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array)$raw;
+
+                                                    foreach ($files as $f) {
+                                                        $path = $f['path'] ?? null;
+                                                        if (!$path) continue;
+                                                        $allFiles[$path] = $f; 
+                                                    }
+                                                }
+                                                $allFiles = array_values($allFiles);
+                                              @endphp
+
+                                              <div class="modal-body">
+                                                @if(empty($allFiles))
+                                                  <div class="text-center text-muted py-4">Tidak ada file pendukung.</div>
+                                                @else
+                                                  <div class="row g-3">
+                                                    @foreach($allFiles as $f)
+                                                      @php
+                                                        $path = $f['path'];
+                                                        $name = $f['name'] ?? basename($path);
+                                                        $type = strtolower((string)($f['type'] ?? ''));
+                                                        $isPdf = ($type === 'pdf');
+                                                        $previewUrl = route('backend.preview-file', ['path' => $path]);
+                                                      @endphp
+
+                                                      <div class="col-md-4">
+                                                        <div class="border rounded p-2 h-100">
+                                                          <div class="small fw-semibold text-truncate" title="{{ $name }}">{{ $name }}</div>
+                                                          <div class="mt-2">
+                                                            @if($isPdf)
+                                                              <a href="{{ $previewUrl }}" target="_blank" class="btn btn-sm btn-outline-danger w-100">
+                                                                <i class="fa fa-file-pdf"></i> Buka PDF
+                                                              </a>
+                                                            @else
+                                                              <a href="{{ $previewUrl }}" target="_blank" class="d-block">
+                                                                <img src="{{ $previewUrl }}"
+                                                                    alt="{{ $name }}"
+                                                                    class="img-fluid rounded"
+                                                                    loading="lazy"
+                                                                    style="max-height: 180px; object-fit: cover; width:100%;">
+                                                              </a>
+                                                            @endif
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    @endforeach
+                                                  </div>
+                                                @endif
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
 
                                         {{-- Rekap Produk --}}
                                         @php
@@ -867,7 +941,10 @@
                     <tbody>
                       @foreach($mesin['spk'] as $spkRow)
                         @php
-                          $itemsForMesin = $spkRow->items->filter(function ($spkItem) use ($mesin) {
+                          $targetId = $mesin['id'] ?? null;
+                          $targetNama = trim((string)($mesin['nama'] ?? ''));
+
+                          $itemsForMesin = $spkRow->items->filter(function ($spkItem) use ($targetId, $targetNama) {
                               $produk = $spkItem->produk;
                               if (!$produk) {
                                   return false;
@@ -878,22 +955,25 @@
                                   return false;
                               }
 
-                              $targetId = $mesin['id'] ?? null;
-                              if (!$targetId) {
-                                  return false;
-                              }
-
                               foreach ($alur as $step) {
                                   if (!is_array($step)) {
                                       continue;
                                   }
-                                  if ((int)($step['divisi_mesin_id'] ?? 0) === (int)$targetId) {
+
+                                  $stepId = $step['divisi_mesin_id'] ?? null;
+                                  $stepNama = trim((string)($step['divisi_mesin'] ?? ''));
+
+                                  if ($targetId && (int)$stepId === (int)$targetId) {
+                                      return true;
+                                  }
+
+                                  if (!$targetId && $targetNama !== '' && strcasecmp($stepNama, $targetNama) === 0) {
                                       return true;
                                   }
                               }
 
                               return false;
-                          });
+                          })->values();
 
                           $rowspan = $itemsForMesin->count();
                           $firstRow = true;
