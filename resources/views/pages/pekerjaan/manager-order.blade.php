@@ -276,7 +276,24 @@
                                     {{ $item->nomor_spk }}
                                 </button>
                             </td>
-                            <td>{{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}</td>
+                            <td>
+                              {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
+                                @php
+                                    $spkDate = \Carbon\Carbon::parse($item->tanggal_spk);
+                                    $now = \Carbon\Carbon::now();
+                                    $diff = $spkDate->diff($now);
+                                @endphp
+
+                                @if($spkDate->isPast()) 
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ $diff->days }} hari 
+                                        @if($diff->h > 0) 
+                                            {{ $diff->h }} jam
+                                        @endif
+                                    </small>
+                                @endif
+                            </td>
                             <td>
                                 {{ $item->pelanggan->nama ?? '-' }}
                                 @if($item->pelanggan && $item->pelanggan->email)
@@ -797,6 +814,21 @@
                                 </td>
                                 <td rowspan="{{ $rowspan }}" class="align-top">
                                     {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                    @php
+                                        $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                        $now = \Carbon\Carbon::now();
+                                        $diff = $spkDate->diff($now);
+                                    @endphp
+
+                                    @if($spkDate->isPast()) 
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ $diff->days }} hari 
+                                            @if($diff->h > 0) 
+                                                {{ $diff->h }} jam
+                                            @endif
+                                        </small>
+                                    @endif
                                 </td>
                                 <td rowspan="{{ $rowspan }}" class="align-top">
                                     {{ optional($spkRow->pelanggan)->nama ?? '-' }}
@@ -1007,6 +1039,21 @@
                                   </td>
                                   <td rowspan="{{ $rowspan }}" class="align-top">
                                       {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                      @php
+                                          $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                          $now = \Carbon\Carbon::now();
+                                          $diff = $spkDate->diff($now);
+                                      @endphp
+
+                                      @if($spkDate->isPast()) 
+                                          <br>
+                                          <small class="text-muted">
+                                              {{ $diff->days }} hari 
+                                              @if($diff->h > 0) 
+                                                  {{ $diff->h }} jam
+                                              @endif
+                                          </small>
+                                      @endif
                                   </td>
                                   <td rowspan="{{ $rowspan }}" class="align-top">
                                       {{ optional($spkRow->pelanggan)->nama ?? '-' }}
@@ -1182,6 +1229,21 @@
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
                                 {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                @php
+                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                    $now = \Carbon\Carbon::now();
+                                    $diff = $spkDate->diff($now);
+                                @endphp
+
+                                @if($spkDate->isPast()) 
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ $diff->days }} hari 
+                                        @if($diff->h > 0) 
+                                            {{ $diff->h }} jam
+                                        @endif
+                                    </small>
+                                @endif
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
                                 {{ optional($spkRow->pelanggan)->nama ?? '-' }}
@@ -1369,6 +1431,21 @@
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
                                 {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                @php
+                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                    $now = \Carbon\Carbon::now();
+                                    $diff = $spkDate->diff($now);
+                                @endphp
+
+                                @if($spkDate->isPast()) 
+                                    <br>
+                                    <small class="text-muted">
+                                        {{ $diff->days }} hari 
+                                        @if($diff->h > 0) 
+                                            {{ $diff->h }} jam
+                                        @endif
+                                    </small>
+                                @endif
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
                                 {{ optional($spkRow->pelanggan)->nama ?? '-' }}

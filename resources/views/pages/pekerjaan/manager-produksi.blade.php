@@ -133,6 +133,21 @@
                     </td>
                     <td>
                       {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
+                      @php
+                          $spkDate = \Carbon\Carbon::parse($item->tanggal_spk);
+                          $now = \Carbon\Carbon::now();
+                          $diff = $spkDate->diff($now);
+                      @endphp
+
+                      @if($spkDate->isPast()) 
+                          <br>
+                          <small class="text-muted">
+                              {{ $diff->days }} hari 
+                              @if($diff->h > 0) 
+                                  {{ $diff->h }} jam
+                              @endif
+                          </small>
+                      @endif
                     </td>
                     <td>
                       {{ $item->pelanggan->nama ?? '-' }}

@@ -5,7 +5,7 @@
   <nav class="page-breadcrumb">
     <ol class="breadcrumb">
       <li class="breadcrumb-item"><a href="#">Pekerjaan</a></li>
-      <li class="breadcrumb-item active" aria-current="page">Manager Order</li>
+      <li class="breadcrumb-item active" aria-current="page">Operator Cetak</li>
     </ol>
   </nav>
 
@@ -209,7 +209,24 @@
 
                               <tr>
                                 <td class="fw-bold">{{ $spkRow->nomor_spk }}</td>
-                                <td>{{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}</td>
+                                <td>
+                                  {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                  @php
+                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                    $now = \Carbon\Carbon::now();
+                                    $diff = $spkDate->diff($now);
+                                  @endphp
+
+                                  @if($spkDate->isPast()) 
+                                      <br>
+                                      <small class="text-muted">
+                                          {{ $diff->days }} hari 
+                                          @if($diff->h > 0) 
+                                              {{ $diff->h }} jam
+                                          @endif
+                                      </small>
+                                  @endif
+                                </td>
                                 <td>{{ optional($spkRow->pelanggan)->nama ?? '-' }}</td>
                                 <td>{{ $spkItem->nama_produk }}</td>
                                 <td>
@@ -334,7 +351,7 @@
   </script>
 
   <script>
-  document.querySelectorAll('#managerOrderTabs button').forEach(btn => {
+  document.querySelectorAll('#operatorTabs button').forEach(btn => {
       btn.addEventListener('shown.bs.tab', function () {
 
           document.querySelectorAll('.tab-card').forEach(el => {
