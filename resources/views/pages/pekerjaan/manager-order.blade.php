@@ -760,7 +760,6 @@
                     <thead class="table-light">
                       <tr>
                         <th>Nomor SPK</th>
-                        <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
@@ -811,17 +810,17 @@
                             @if($firstRow)
                                 <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                     {{ $spkRow->nomor_spk }}
-                                </td>
-                                <td rowspan="{{ $rowspan }}" class="align-top">
-                                    {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
                                     @php
                                         $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
                                         $now = \Carbon\Carbon::now();
                                         $diff = $spkDate->diff($now);
+                                        $isPast = $spkDate->isPast();
                                     @endphp
+                                    <small class="text-muted d-block">
+                                        {{ $spkDate->format('d/m/Y') }}
+                                    </small>
 
                                     @if($spkDate->isPast()) 
-                                        <br>
                                         <small class="text-muted">
                                             {{ $diff->days }} hari 
                                             @if($diff->h > 0) 
@@ -962,7 +961,6 @@
                     <thead class="table-light">
                       <tr>
                         <th>Nomor SPK</th>
-                        <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
@@ -1036,17 +1034,17 @@
                               @if($firstRow)
                                   <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                       {{ $spkRow->nomor_spk }}
-                                  </td>
-                                  <td rowspan="{{ $rowspan }}" class="align-top">
-                                      {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
                                       @php
                                           $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
                                           $now = \Carbon\Carbon::now();
                                           $diff = $spkDate->diff($now);
+                                          $isPast = $spkDate->isPast();
                                       @endphp
+                                      <small class="text-muted d-block">
+                                          {{ $spkDate->format('d/m/Y') }}
+                                      </small>
 
                                       @if($spkDate->isPast()) 
-                                          <br>
                                           <small class="text-muted">
                                               {{ $diff->days }} hari 
                                               @if($diff->h > 0) 
@@ -1181,7 +1179,6 @@
                     <thead class="table-light">
                       <tr>
                         <th>Nomor SPK</th>
-                        <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
@@ -1226,20 +1223,20 @@
                             @if($firstRow)
                               <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                 {{ $spkRow->nomor_spk }}
-                              </td>
-                              <td rowspan="{{ $rowspan }}" class="align-top">
-                                {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
                                 @php
                                     $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
                                     $now = \Carbon\Carbon::now();
                                     $diff = $spkDate->diff($now);
+                                    $isPast = $spkDate->isPast();
                                 @endphp
+                                <small class="text-muted d-block">
+                                    {{ $spkDate->format('d/m/Y') }}
+                                </small>
 
-                                @if($spkDate->isPast()) 
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ $diff->days }} hari 
-                                        @if($diff->h > 0) 
+                                @if($isPast)
+                                    <small class="text-muted d-block">
+                                        {{ $diff->days }} hari
+                                        @if($diff->h > 0)
                                             {{ $diff->h }} jam
                                         @endif
                                     </small>
@@ -1380,7 +1377,6 @@
                     <thead class="table-light">
                       <tr>
                         <th>Nomor SPK</th>
-                        <th>Tanggal</th>
                         <th>Pelanggan</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
@@ -1428,20 +1424,20 @@
                             @if($firstRow)
                               <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                 {{ $spkRow->nomor_spk }}
-                              </td>
-                              <td rowspan="{{ $rowspan }}" class="align-top">
-                                {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
                                 @php
                                     $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
                                     $now = \Carbon\Carbon::now();
                                     $diff = $spkDate->diff($now);
+                                    $isPast = $spkDate->isPast();
                                 @endphp
+                                <small class="text-muted d-block">
+                                    {{ $spkDate->format('d/m/Y') }}
+                                </small>
 
-                                @if($spkDate->isPast()) 
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ $diff->days }} hari 
-                                        @if($diff->h > 0) 
+                                @if($isPast)
+                                    <small class="text-muted d-block">
+                                        {{ $diff->days }} hari
+                                        @if($diff->h > 0)
                                             {{ $diff->h }} jam
                                         @endif
                                     </small>
