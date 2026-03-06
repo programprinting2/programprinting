@@ -30,9 +30,19 @@ class SpkRepository implements SpkRepositoryInterface
             $query->where('status', $filters['status']);
         }
 
+        if (!empty($filters['exclude_status'])) {
+            $query->where('status', '!=', $filters['exclude_status']);
+        }
+
         // Terapkan filter customer_id jika ada
         if (!empty($filters['customer_id'])) {
             $query->where('pelanggan_id', $filters['customer_id']);
+        }
+
+        if (!empty($filters['sort_status'])) {
+            $query->orderByRaw("status = ? DESC, created_at DESC", [$filters['sort_status']]);
+        } else {
+            $query->orderBy('created_at', 'desc');
         }
 
         // Terapkan filter search (nomor SPK, status, pelanggan) jika ada

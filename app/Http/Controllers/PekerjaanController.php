@@ -22,7 +22,8 @@ class PekerjaanController extends Controller
         $filters['exclude_status'] = 'selesai';
         $filters['sort_status'] = 'proses_bayar';
 
-        $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        // $spk = $this->spkService->getPaginatedSpk(10, $filters);
+        $spk = $this->spkService->getAllSpk($filters);
         $spk->load('items.produk.bahanBakus');
         // $customers = Pelanggan::where('status', true)->get();
 

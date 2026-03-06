@@ -56,9 +56,9 @@
                   <div class="flex-grow-1">
                     <div class="d-flex align-items-center justify-content-between">
                       <h6 class="mb-0 fw-semibold">Daftar SPK</h6>
-                      <!-- <span class="badge bg-primary rounded-pill px-3">
+                      <span class="badge bg-primary rounded-pill px-3">
                         {{ $spk->count() }}
-                      </span> -->
+                      </span>
                     </div>
                     <small class="text-muted">List semua SPK</small>
                   </div>
@@ -680,20 +680,6 @@
                     @endforelse
                 </tbody>
             </table>
-
-            {{-- Pagination --}}
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted">
-                    @if($spk->total() > 0)
-                        Menampilkan {{ $spk->firstItem() ?? 0 }} - {{ $spk->lastItem() ?? 0 }} dari {{ $spk->total() }} data SPK
-                    @else
-                        Tidak ada data SPK
-                    @endif
-                </div>
-                <div>
-                    {{ $spk->appends(request()->query())->links('pagination::bootstrap-4') }}
-                </div>
-            </div>
           </div> 
         </div>
     {{-- TAB 2: Group per Bahan Baku --}}
