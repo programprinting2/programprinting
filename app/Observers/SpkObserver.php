@@ -28,10 +28,10 @@ class SpkObserver
                     $activity = 'spk_manager_approval_order';
                     $keterangan = 'SPK di-ACC oleh Manager untuk Order';
                     break;
-                case 'manager_approval_produksi':
-                    $activity = 'spk_manager_approval_produksi';
-                    $keterangan = 'SPK di-ACC oleh Manager untuk Produksi';
-                    break;
+                // case 'manager_approval_produksi':
+                //     $activity = 'spk_manager_approval_produksi';
+                //     $keterangan = 'SPK di-ACC oleh Manager untuk Produksi';
+                //     break;
                 case 'operator_cetak':
                     $activity = 'spk_operator_cetak';
                     $keterangan = 'SPK sedang dicetak oleh Operator';

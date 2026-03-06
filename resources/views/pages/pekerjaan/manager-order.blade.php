@@ -201,24 +201,12 @@
                   <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                   <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
                   <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
-                  <option value="manager_approval_produksi" {{ request('status') == 'manager_approval_produksi' ? 'selected' : '' }}>Manager Approval Produksi</option>
                   <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
                   <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
                   <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
                   <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
               </select>
             </div>
-            <!-- <div class="col-md-4">
-                <label class="form-label small">&nbsp;</label>
-                <select class="form-select" name="customer_id">
-                    <option value="">Semua Pelanggan</option>
-                    @foreach($customers ?? [] as $customer)
-                        <option value="{{ $customer->id }}" {{ request('customer_id') == $customer->id ? 'selected' : '' }}>
-                            {{ $customer->nama }}
-                        </option>
-                    @endforeach
-                </select>
-            </div> -->
             <!-- Reset Button -->
             <div class="col-md-1">
                 <label class="form-label small">&nbsp;</label>
@@ -306,17 +294,15 @@
                                         'draft' => 1,
                                         'proses_bayar' => 2,
                                         'manager_approval_order' => 3,
-                                        'manager_approval_produksi' => 4,
-                                        'operator_cetak' => 5,
-                                        'finishing_qc' => 6,
-                                        'siap_diambil' => 7,
-                                        'selesai' => 8,
+                                        'operator_cetak' => 4,
+                                        'finishing_qc' => 5,
+                                        'siap_diambil' => 6,
+                                        'selesai' => 7,
                                     ];
                                     $statusLabels = [
                                         'draft' => 'Draft',
                                         'proses_bayar' => 'Proses Pembayaran',
                                         'manager_approval_order' => 'Manager Approval Order',
-                                        'manager_approval_produksi' => 'Manager Approval Produksi',
                                         'operator_cetak' => 'Operator Cetak',
                                         'finishing_qc' => 'Finishing / QC',
                                         'siap_diambil' => 'Siap Diambil',
@@ -326,7 +312,6 @@
                                         'draft' => 'fa-file-alt',
                                         'proses_bayar' => 'fas fa-cash-register',
                                         'manager_approval_order' => 'fas fa-chalkboard-teacher',
-                                        'manager_approval_produksi' => 'fas fa-person-booth',
                                         'operator_cetak' => 'fa-print',
                                         'finishing_qc' => 'fas fa-people-carry',
                                         'siap_diambil' => 'fas fa-shopping-cart',
@@ -1890,7 +1875,7 @@
 
       Swal.fire({
         title: 'Proses SPK ini?',
-        text: 'Pilih Setuju untuk lanjut ke Manager Produksi, atau Tolak untuk kembali ke Draft.',
+        text: 'Pilih Setuju untuk lanjut ke Operator Cetak, atau Tolak untuk kembali ke Draft.',
         icon: 'question',
         showCancelButton: true,
         showDenyButton: true,

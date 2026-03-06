@@ -52,7 +52,6 @@
                   <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                   <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
                   <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
-                  <option value="manager_approval_produksi" {{ request('status') == 'manager_approval_produksi' ? 'selected' : '' }}>Manager Approval Produksi</option>
                   <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
                   <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
                   <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
@@ -84,28 +83,15 @@
             </div>
     </div>
 
-    <div class="d-flex gap-2 mb-2 justify-content-end">
-      <button type="button" class="btn btn-success btn-sm" id="btnApproveSelected" disabled>
-        Setuju Terpilih
-      </button>
-      <button type="button" class="btn btn-danger btn-sm" id="btnRejectSelected" disabled>
-        Tolak Terpilih
-      </button>
-    </div>
-
     <div class="table-responsive">
     <table class="table align-middle">
       <thead>
       <tr>
-        <th style="width: 32px;">
-          <input type="checkbox" id="checkAllSpk">
-        </th>
         <th>Nomor SPK</th>
                   <th>Tanggal SPK</th>
         <th>Pelanggan</th>
         <th>Status</th>
                   <th>Aksi</th>
-                  <th>Otorisasi</th>
       </tr>
       </thead>
       <tbody id="accordionSpk">
@@ -114,13 +100,6 @@
             $collapseId = 'detail-spk-'.$item->id;
         @endphp
       <tr>
-      <td>
-                      @if($item->status === 'manager_approval_order')
-                        <input type="checkbox"
-                              class="checkSpkRow"
-                              value="{{ $item->id }}">
-                      @endif
-                    </td>
                     <td class="fw-semibold">
                         <button type="button"
                             class="btn btn-sm btn-link text-decoration-none p-0 toggle-collapse"
@@ -161,18 +140,16 @@
                                 'draft'                     => 1,
                                 'proses_bayar'              => 2,
                                 'manager_approval_order'    => 3,
-                                'manager_approval_produksi' => 4,
-                                'operator_cetak'            => 5,
-                                'finishing_qc'              => 6,
-                                'siap_diambil'              => 7,
-                                'selesai'                   => 8,
+                                'operator_cetak'            => 4,
+                                'finishing_qc'              => 5,
+                                'siap_diambil'              => 6,
+                                'selesai'                   => 7,
                             ];
 
                             $statusLabels = [
                                 'draft'                     => 'Draft',
                                 'proses_bayar'              => 'Proses Pembayaran',
                                 'manager_approval_order'    => 'Manager Approval Order',
-                                'manager_approval_produksi' => 'Manager Approval Produksi',
                                 'operator_cetak'            => 'Operator Cetak',
                                 'finishing_qc'              => 'Finishing / QC',
                                 'siap_diambil'              => 'Siap Diambil',
@@ -183,7 +160,6 @@
                                 'draft'                     => 'fa-file-alt',
                                 'proses_bayar'              => 'fas fa-cash-register',
                                 'manager_approval_order'    => 'fas fa-chalkboard-teacher',
-                                'manager_approval_produksi' => 'fas fa-person-booth',
                                 'operator_cetak'            => 'fa-print',
                                 'finishing_qc'              => 'fas fa-people-carry',
                                 'siap_diambil'              => 'fas fa-shopping-cart',
@@ -241,21 +217,6 @@
                           </button>
                         </form>
                       </div>
-      </td>
-      <td>
-      @if($item->status === 'manager_approval_order')
-                        <form action="{{ route('spk.update-status', $item) }}" method="POST"
-                                class="d-inline-block form-status-spk">
-                            @csrf
-                            @method('PATCH')
-                            <input type="hidden" name="action" value="">
-                            <button type="button"
-                                    class="btn btn-success btn-xs btn-icon rounded btn-status-manager"
-                                    title="Setujui / Tolak SPK">
-                            <i class="link-icon icon-sm" data-feather="check-circle"></i>
-                            </button>
-                        </form>
-                        @endif
       </td>
       </tr>
       <!-- Collapse Row -->
@@ -545,37 +506,6 @@
       });
     @endif
 
-    document.querySelectorAll('.btn-status-manager').forEach(function (btn) {
-        btn.addEventListener('click', function (e) {
-        e.preventDefault();
-        const form = btn.closest('form');
-        if (!form) return;
-        const actionInput = form.querySelector('input[name="action"]');
-
-        Swal.fire({
-            title: 'Proses SPK ini?',
-            text: 'Pilih Setuju untuk lanjut ke Operator Cetak, atau Tolak untuk kembali ke Manager Order.',
-            icon: 'question',
-            showCancelButton: true,
-            showDenyButton: true,
-            confirmButtonColor: '#198754',
-            denyButtonColor: '#d33',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Setuju',
-            denyButtonText: 'Tolak',
-            cancelButtonText: 'Batal'
-        }).then((result) => {
-            if (result.isConfirmed) {
-            if (actionInput) actionInput.value = 'approve';
-            form.submit();
-            } else if (result.isDenied) {
-            if (actionInput) actionInput.value = 'reject';
-            form.submit();
-            }
-        });
-        });
-    });
-
     document.querySelectorAll('.btn-hapus-spk').forEach(function(btn) {
       btn.addEventListener('click', function(e) {
         e.preventDefault();
@@ -595,81 +525,5 @@
         });
       });
     });
-
-    const checkAll = document.getElementById('checkAllSpk');
-    const btnApprove = document.getElementById('btnApproveSelected');
-    const btnReject = document.getElementById('btnRejectSelected');
-
-    const rowChecks = () => Array.from(document.querySelectorAll('.checkSpkRow'));
-    const getSelectedIds = () => rowChecks().filter(cb => cb.checked).map(cb => cb.value);
-
-    function updateBulkButtons() {
-      const anyChecked = getSelectedIds().length > 0;
-      if (btnApprove) btnApprove.disabled = !anyChecked;
-      if (btnReject) btnReject.disabled = !anyChecked;
-    }
-
-    if (checkAll) {
-      checkAll.addEventListener('change', function() {
-        rowChecks().forEach(cb => { cb.checked = checkAll.checked; });
-        updateBulkButtons();
-      });
-    }
-
-    document.addEventListener('change', function(e) {
-      if (e.target.classList && e.target.classList.contains('checkSpkRow')) {
-        const all = rowChecks();
-        if (checkAll) {
-          checkAll.checked = all.length > 0 && all.every(cb => cb.checked);
-          checkAll.indeterminate = all.some(cb => cb.checked) && !checkAll.checked;
-        }
-        updateBulkButtons();
-      }
-    });
-
-    async function bulkUpdateStatus(action) {
-      const ids = getSelectedIds();
-      if (ids.length === 0) return;
-
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute("content") || "";
-
-      const result = await Swal.fire({
-        title: action === 'approve' ? 'Setujui semua terpilih?' : 'Tolak semua terpilih?',
-        text: `Jumlah SPK terpilih: ${ids.length}`,
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Ya',
-        cancelButtonText: 'Batal'
-      });
-
-      if (!result.isConfirmed) return;
-
-      for (const id of ids) {
-        const res = await fetch(`/spk/${encodeURIComponent(id)}/status`, {
-          method: 'PATCH',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: JSON.stringify({ action })
-        });
-
-        if (!res.ok) {
-          const text = await res.text();
-          console.error('Bulk update gagal untuk SPK:', id, text);
-          await Swal.fire('Gagal', `Gagal update status SPK ID ${id}`, 'error');
-          return;
-        }
-      }
-
-      await Swal.fire('Berhasil', 'Status SPK terpilih berhasil diproses.', 'success');
-      window.location.reload();
-    }
-
-    if (btnApprove) btnApprove.addEventListener('click', () => bulkUpdateStatus('approve'));
-    if (btnReject) btnReject.addEventListener('click', () => bulkUpdateStatus('reject'));
-
-    updateBulkButtons();
   </script>
 @endpush

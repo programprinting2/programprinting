@@ -251,7 +251,6 @@ class SPKController extends Controller
             'draft',
             'proses_bayar',
             'manager_approval_order',
-            'manager_approval_produksi',
             'operator_cetak',
             'finishing_qc',
             'siap_diambil',

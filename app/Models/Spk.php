@@ -66,17 +66,6 @@ class SPK extends Model
         return 'nomor_spk';
     }
 
-    // public static function statusList(): array
-    // {
-    //     return [
-    //         'draft'       => 'Draft',
-    //         'proses_bayar'      => 'Proses Pembayaran',
-    //         'proses_produksi'  => 'Proses Produksi',
-    //         'sudah_cetak'      => 'Sudah Cetak',
-    //         'siap_antar'       => 'Siap Antar',
-    //     ];
-    // }
-
     public function updateTotalBiaya(): void
     {
         $total = $this->items()->sum('total_biaya');

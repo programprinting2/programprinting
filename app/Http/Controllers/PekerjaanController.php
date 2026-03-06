@@ -166,7 +166,7 @@ class PekerjaanController extends Controller
     public function operatorCetak(Request $request): View
     {
         // $filters = $request->only(['search', 'customer_id']);
-        $filters['status'] = 'manager_approval_produksi';
+        $filters['status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getAllSpk($filters);
         $spk->load('items.produk.bahanBakus', 'pelanggan');

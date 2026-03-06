@@ -57,7 +57,6 @@
                   <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
                   <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
                   <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
-                  <option value="manager_approval_produksi" {{ request('status') == 'manager_approval_produksi' ? 'selected' : '' }}>Manager Approval Produksi</option>
                   <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
                   <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
                   <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
@@ -122,18 +121,16 @@
                                 'draft'                     => 1,
                                 'proses_bayar'              => 2,
                                 'manager_approval_order'    => 3,
-                                'manager_approval_produksi' => 4,
-                                'operator_cetak'            => 5,
-                                'finishing_qc'              => 6,
-                                'siap_diambil'              => 7,
-                                'selesai'                   => 8,
+                                'operator_cetak'            => 4,
+                                'finishing_qc'              => 5,
+                                'siap_diambil'              => 6,
+                                'selesai'                   => 7,
                             ];
 
                             $statusLabels = [
                                 'draft'                     => 'Draft',
                                 'proses_bayar'              => 'Proses Pembayaran',
                                 'manager_approval_order'    => 'Manager Approval Order',
-                                'manager_approval_produksi' => 'Manager Approval Produksi',
                                 'operator_cetak'            => 'Operator Cetak',
                                 'finishing_qc'              => 'Finishing / QC',
                                 'siap_diambil'              => 'Siap Diambil',
@@ -144,7 +141,6 @@
                                 'draft'                     => 'fa-file-alt',
                                 'proses_bayar'              => 'fas fa-cash-register',
                                 'manager_approval_order'    => 'fas fa-chalkboard-teacher',
-                                'manager_approval_produksi' => 'fas fa-person-booth',
                                 'operator_cetak'            => 'fa-print',
                                 'finishing_qc'              => 'fas fa-people-carry',
                                 'siap_diambil'              => 'fas fa-shopping-cart',
