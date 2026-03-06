@@ -863,26 +863,25 @@
                                         </div>
 
                                         @php
-                                            $allFiles = [];
-                                            foreach ($spkRow->items as $it) {
+                                            $groupDefaultFiles = [];
+                                            foreach ($itemsForBahan as $it) {
                                                 $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
                                                 $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
-
-                                                foreach ($files as $f) {
-                                                    $path = $f['path'] ?? null;
-                                                    if (!$path) continue;
-                                                    $allFiles[$path] = $f;
+                                                $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                                $path = $default['path'] ?? null;
+                                                if (!$path) {
+                                                    continue;
                                                 }
+                                                $groupDefaultFiles[$path] = $default;
                                             }
-                                            $allFiles = array_values($allFiles);
+                                            $groupDefaultFiles = array_values($groupDefaultFiles);
                                         @endphp
-
                                         <button type="button"
                                                 class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
                                                 data-spk-id="{{ $spkRow->id }}"
                                                 data-spk-nomor="{{ $spkRow->nomor_spk }}"
-                                                data-files='@json($allFiles)'
-                                                title="Lihat semua file SPK">
+                                                data-files='@json($groupDefaultFiles)'
+                                                title="Lihat file default item (group ini)">
                                             <i class="fa fa-eye"></i>
                                         </button>
                                     </div>
@@ -1061,6 +1060,7 @@
                       <tr>
                         <th>Nomor SPK</th>
                         <th>Pelanggan</th>
+                        <th class="text-center" style="width:50px;">File</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
@@ -1132,25 +1132,58 @@
                           <tr>
                               @if($firstRow)
                                   <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
-                                      {{ $spkRow->nomor_spk }}
-                                      @php
-                                          $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
-                                          $now = \Carbon\Carbon::now();
-                                          $diff = $spkDate->diff($now);
-                                          $isPast = $spkDate->isPast();
-                                      @endphp
-                                      <small class="text-muted d-block">
-                                          {{ $spkDate->format('d/m/Y') }}
-                                      </small>
+                                    <div class="d-flex align-items-start gap-2">
+                                      <div>
+                                        {{ $spkRow->nomor_spk }}
+                                        @php
+                                            $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                            $now = \Carbon\Carbon::now();
+                                            $diff = $spkDate->diff($now);
+                                            $isPast = $spkDate->isPast();
+                                        @endphp
+                                        <small class="text-muted d-block">
+                                            {{ $spkDate->format('d/m/Y') }}
+                                        </small>
 
-                                      @if($spkDate->isPast()) 
-                                          <small class="text-muted">
-                                              {{ $diff->days }} hari 
-                                              @if($diff->h > 0) 
-                                                  {{ $diff->h }} jam
-                                              @endif
-                                          </small>
-                                      @endif
+                                        @if($spkDate->isPast()) 
+                                            <small class="text-muted">
+                                                {{ $diff->days }} hari 
+                                                @if($diff->h > 0) 
+                                                    {{ $diff->h }} jam
+                                                @endif
+                                            </small>
+                                        @endif
+                                      </div>
+
+                                      @php
+                                          $groupDefaultFiles = [];
+
+                                          foreach ($itemsForMesin as $it) {
+                                              $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                              $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+
+                                              $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                              $path = $default['path'] ?? null;
+
+                                              if (!$path) {
+                                                  continue;
+                                              }
+
+                                              $groupDefaultFiles[$path] = $default;
+                                          }
+
+                                          $groupDefaultFiles = array_values($groupDefaultFiles);
+                                      @endphp
+
+                                      <button type="button"
+                                              class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                              data-spk-id="{{ $spkRow->id }}"
+                                              data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                              data-files='@json($groupDefaultFiles)'
+                                              title="Lihat file default item (group ini)">
+                                          <i class="fa fa-eye"></i>
+                                      </button>
+                                    </div>
                                   </td>
                                   <td rowspan="{{ $rowspan }}" class="align-top">
                                       {{ optional($spkRow->pelanggan)->nama ?? '-' }}
@@ -1159,8 +1192,47 @@
                                   @php $firstRow = false; @endphp
                               @endif
 
-                              <td>{{ $spkItem->nama_produk }}</td>
+                                @php
+                                  $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                  if (is_string($filePendukungRaw)) {
+                                      $filePendukung = json_decode($filePendukungRaw, true) ?: [];
+                                  } else {
+                                      $filePendukung = (array) $filePendukungRaw;
+                                  }
 
+                                  $firstFile   = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+                                  $thumbUrl    = null;
+                                  $isPdfFirst  = false;
+
+                                  if ($firstFile && !empty($firstFile['path'])) {
+                                      $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
+                                      $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
+                                  }
+                              @endphp
+
+                              <td class="text-center align-middle" style="width: 60px;">
+                                  @if($firstFile && $thumbUrl)
+                                      <button type="button"
+                                              class="btn btn-sm btn-light p-1 btn-preview-item-file"
+                                              data-file-path="{{ $firstFile['path'] }}"
+                                              data-file-name="{{ $firstFile['name'] ?? '' }}"
+                                              data-file-type="{{ $firstFile['type'] ?? '' }}"
+                                              title="Preview file item">
+                                          @if($isPdfFirst)
+                                              <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                          @else
+                                              <img src="{{ $thumbUrl }}"
+                                                  alt="{{ $firstFile['name'] ?? 'Preview' }}"
+                                                  class="img-thumbnail"
+                                                  style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
+                                                  loading="lazy">
+                                          @endif
+                                      </button>
+                                  @else
+                                      <span class="text-muted">-</span>
+                                  @endif
+                              </td>
+                              <td>{{ $spkItem->nama_produk }}</td>
                               <td>
                                   <div class="fw-semibold">{{ $dimensiText }}</div>
                                   @if($luasText)
@@ -1279,6 +1351,7 @@
                       <tr>
                         <th>Nomor SPK</th>
                         <th>Pelanggan</th>
+                        <th class="text-center" style="width:50px;">File</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
@@ -1321,25 +1394,56 @@
                           <tr>
                             @if($firstRow)
                               <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
-                                {{ $spkRow->nomor_spk }}
-                                @php
-                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
-                                    $now = \Carbon\Carbon::now();
-                                    $diff = $spkDate->diff($now);
-                                    $isPast = $spkDate->isPast();
-                                @endphp
-                                <small class="text-muted d-block">
-                                    {{ $spkDate->format('d/m/Y') }}
-                                </small>
-
-                                @if($isPast)
+                                <div class="d-flex align-items-start gap-2">
+                                  <div>
+                                    {{ $spkRow->nomor_spk }}
+                                    @php
+                                        $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                        $now = \Carbon\Carbon::now();
+                                        $diff = $spkDate->diff($now);
+                                        $isPast = $spkDate->isPast();
+                                    @endphp
                                     <small class="text-muted d-block">
-                                        {{ $diff->days }} hari
-                                        @if($diff->h > 0)
-                                            {{ $diff->h }} jam
-                                        @endif
+                                        {{ $spkDate->format('d/m/Y') }}
                                     </small>
-                                @endif
+    
+                                    @if($isPast)
+                                        <small class="text-muted d-block">
+                                            {{ $diff->days }} hari
+                                            @if($diff->h > 0)
+                                                {{ $diff->h }} jam
+                                            @endif
+                                        </small>
+                                    @endif
+                                  </div>
+                                  @php
+                                      $groupDefaultFiles = [];
+
+                                      foreach ($itemsForPelanggan as $it) {
+                                          $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                          $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+
+                                          $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                          $path = $default['path'] ?? null;
+
+                                          if (!$path) {
+                                              continue;
+                                          }
+                                          $groupDefaultFiles[$path] = $default;
+                                      }
+
+                                      $groupDefaultFiles = array_values($groupDefaultFiles);
+                                  @endphp
+
+                                  <button type="button"
+                                          class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                          data-spk-id="{{ $spkRow->id }}"
+                                          data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                          data-files='@json($groupDefaultFiles)'
+                                          title="Lihat file default item (group ini)">
+                                      <i class="fa fa-eye"></i>
+                                  </button>
+                                </div>
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
                                 {{ optional($spkRow->pelanggan)->nama ?? '-' }}
@@ -1347,6 +1451,46 @@
                               @php $firstRow = false; @endphp
                             @endif
 
+                            @php
+                                $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                if (is_string($filePendukungRaw)) {
+                                    $filePendukung = json_decode($filePendukungRaw, true) ?: [];
+                                } else {
+                                    $filePendukung = (array) $filePendukungRaw;
+                                }
+
+                                $firstFile   = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+                                $thumbUrl    = null;
+                                $isPdfFirst  = false;
+
+                                if ($firstFile && !empty($firstFile['path'])) {
+                                    $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
+                                    $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
+                                }
+                            @endphp
+
+                            <td class="text-center align-middle" style="width: 60px;">
+                                @if($firstFile && $thumbUrl)
+                                    <button type="button"
+                                            class="btn btn-sm btn-light p-1 btn-preview-item-file"
+                                            data-file-path="{{ $firstFile['path'] }}"
+                                            data-file-name="{{ $firstFile['name'] ?? '' }}"
+                                            data-file-type="{{ $firstFile['type'] ?? '' }}"
+                                            title="Preview file item">
+                                        @if($isPdfFirst)
+                                            <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                        @else
+                                            <img src="{{ $thumbUrl }}"
+                                                alt="{{ $firstFile['name'] ?? 'Preview' }}"
+                                                class="img-thumbnail"
+                                                style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
+                                                loading="lazy">
+                                        @endif
+                                    </button>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td>{{ $spkItem->nama_produk }}</td>
                             <td>
                               <div class="fw-semibold">{{ $dimensiText }}</div>
@@ -1477,6 +1621,7 @@
                       <tr>
                         <th>Nomor SPK</th>
                         <th>Pelanggan</th>
+                        <th class="text-center" style="width:50px;">File</th>
                         <th>Nama Item</th>
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
@@ -1522,25 +1667,57 @@
                           <tr>
                             @if($firstRow)
                               <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
-                                {{ $spkRow->nomor_spk }}
-                                @php
-                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
-                                    $now = \Carbon\Carbon::now();
-                                    $diff = $spkDate->diff($now);
-                                    $isPast = $spkDate->isPast();
-                                @endphp
-                                <small class="text-muted d-block">
-                                    {{ $spkDate->format('d/m/Y') }}
-                                </small>
-
-                                @if($isPast)
+                                <div class="d-flex align-items-start gap-2">
+                                  <div>
+                                    {{ $spkRow->nomor_spk }}
+                                    @php
+                                        $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                        $now = \Carbon\Carbon::now();
+                                        $diff = $spkDate->diff($now);
+                                        $isPast = $spkDate->isPast();
+                                    @endphp
                                     <small class="text-muted d-block">
-                                        {{ $diff->days }} hari
-                                        @if($diff->h > 0)
-                                            {{ $diff->h }} jam
-                                        @endif
+                                        {{ $spkDate->format('d/m/Y') }}
                                     </small>
-                                @endif
+    
+                                    @if($isPast)
+                                        <small class="text-muted d-block">
+                                            {{ $diff->days }} hari
+                                            @if($diff->h > 0)
+                                                {{ $diff->h }} jam
+                                            @endif
+                                        </small>
+                                    @endif
+                                  </div>
+                                  @php
+                                      $groupDefaultFiles = [];
+
+                                      foreach ($itemsForProduk as $it) {
+                                          $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                          $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+
+                                          $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                          $path = $default['path'] ?? null;
+
+                                          if (!$path) {
+                                              continue;
+                                          }
+
+                                          $groupDefaultFiles[$path] = $default;
+                                      }
+
+                                      $groupDefaultFiles = array_values($groupDefaultFiles);
+                                  @endphp
+
+                                  <button type="button"
+                                          class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                          data-spk-id="{{ $spkRow->id }}"
+                                          data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                          data-files='@json($groupDefaultFiles)'
+                                          title="Lihat file default item (group ini)">
+                                      <i class="fa fa-eye"></i>
+                                  </button>
+                                </div>
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
                                 {{ optional($spkRow->pelanggan)->nama ?? '-' }}
@@ -1548,6 +1725,46 @@
                               @php $firstRow = false; @endphp
                             @endif
 
+                            @php
+                                $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                if (is_string($filePendukungRaw)) {
+                                    $filePendukung = json_decode($filePendukungRaw, true) ?: [];
+                                } else {
+                                    $filePendukung = (array) $filePendukungRaw;
+                                }
+
+                                $firstFile   = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+                                $thumbUrl    = null;
+                                $isPdfFirst  = false;
+
+                                if ($firstFile && !empty($firstFile['path'])) {
+                                    $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
+                                    $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
+                                }
+                            @endphp
+
+                            <td class="text-center align-middle" style="width: 60px;">
+                                @if($firstFile && $thumbUrl)
+                                    <button type="button"
+                                            class="btn btn-sm btn-light p-1 btn-preview-item-file"
+                                            data-file-path="{{ $firstFile['path'] }}"
+                                            data-file-name="{{ $firstFile['name'] ?? '' }}"
+                                            data-file-type="{{ $firstFile['type'] ?? '' }}"
+                                            title="Preview file item">
+                                        @if($isPdfFirst)
+                                            <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                        @else
+                                            <img src="{{ $thumbUrl }}"
+                                                alt="{{ $firstFile['name'] ?? 'Preview' }}"
+                                                class="img-thumbnail"
+                                                style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
+                                                loading="lazy">
+                                        @endif
+                                    </button>
+                                @else
+                                    <span class="text-muted">-</span>
+                                @endif
+                            </td>
                             <td>{{ $spkItem->nama_produk }}</td>
                             <td>
                               <div class="fw-semibold">{{ $dimensiText }}</div>
@@ -1894,7 +2111,7 @@
             modalTitle.textContent = 'Preview File Item: ' + name;
 
             if (type === 'pdf') {
-                modalBody.innerHTML = `<iframe src="${url}" style="width:100%;height:400px;border:0;" title="Preview PDF"></iframe>`;
+                modalBody.innerHTML = `<iframe src="${url}#toolbar=0" style="width:100%;height:400px;border:0;" title="Preview PDF"></iframe>`;
             } else {
                 modalBody.innerHTML = `<img src="${url}" alt="${name.replace(/"/g, '&quot;')}" class="img-fluid rounded" style="max-height:400px;object-fit:contain;" loading="lazy">`;
             }
