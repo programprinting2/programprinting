@@ -185,7 +185,7 @@
         {{-- TAB 1: list SPK --}}
         <!-- Form Pencarian dan Filter -->
         <form id="searchForm" class="row g-3 mb-4">
-            <div class="col-md-7">
+            <div class="col-md-11">
                 <label class="form-label small">&nbsp;</label>
                 <div class="input-group">
                     <span class="input-group-text bg-light">
@@ -194,25 +194,50 @@
                     <input type="text" class="form-control" name="search" placeholder="Cari nomor SPK, pelanggan, atau status..." value="{{ request('search') }}">
                 </div>
             </div>
-            <div class="col-md-4">
-              <label class="form-label small">Status</label>
-              <select class="form-select" name="status">
-                  <option value="">Semua Status</option>
-                  <option value="draft" {{ request('status') == 'draft' ? 'selected' : '' }}>Draft</option>
-                  <option value="proses_bayar" {{ request('status') == 'proses_bayar' ? 'selected' : '' }}>Proses Pembayaran</option>
-                  <option value="manager_approval_order" {{ request('status') == 'manager_approval_order' ? 'selected' : '' }}>Manager Approval Order</option>
-                  <option value="operator_cetak" {{ request('status') == 'operator_cetak' ? 'selected' : '' }}>Operator Cetak</option>
-                  <option value="finishing_qc" {{ request('status') == 'finishing_qc' ? 'selected' : '' }}>Finishing / QC</option>
-                  <option value="siap_diambil" {{ request('status') == 'siap_diambil' ? 'selected' : '' }}>Siap Diambil</option>
-                  <option value="selesai" {{ request('status') == 'selesai' ? 'selected' : '' }}>Selesai</option>
-              </select>
-            </div>
             <!-- Reset Button -->
             <div class="col-md-1">
                 <label class="form-label small">&nbsp;</label>
                 <button type="button" class="btn btn-outline-secondary w-100" id="resetFilter" title="Reset Filter">
                     <i data-feather="refresh-cw" class="icon-sm"></i> Reset
                 </button>
+            </div>
+            @php
+                $statusOptions = [
+                    ''                       => 'Semua Status',
+                    'draft'                  => 'Draft',
+                    'proses_bayar'           => 'Proses Pembayaran',
+                    'manager_approval_order' => 'Manager Approval Order',
+                    'operator_cetak'         => 'Operator Cetak',
+                    'finishing_qc'           => 'Finishing / QC',
+                    'siap_diambil'           => 'Siap Diambil',
+                    'selesai'                => 'Selesai',
+                ];
+
+                $currentStatus = request('status', '');
+            @endphp
+
+            <input type="hidden" name="status" id="statusFilterInput" value="{{ $currentStatus }}">
+
+            <div class="col-md-12">
+              <label class="form-label small d-block mb-1">Filter Status</label>
+              <div class="row g-2">
+                @foreach($statusOptions as $value => $label)
+                  @php
+                    $isActive = ($currentStatus === $value) || ($value === '' && ($currentStatus === '' || $currentStatus === null));
+                  @endphp
+                  <div class="col-6 col-md-4 col-lg-3">
+                    <button type="button"
+                            class="card status-card w-100 text-start filter-status-card {{ $isActive ? 'status-active' : '' }}"
+                            data-status-value="{{ $value }}">
+                      <div class="card-body py-2 px-3">
+                        <h6 class="mb-0 fw-semibold" style="font-size: 0.8rem;">
+                          {{ $label }}
+                        </h6>
+                      </div>
+                    </button>
+                  </div>
+                @endforeach
+              </div>
             </div>
         </form>
 
@@ -1797,6 +1822,12 @@
     justify-content: center;
     font-size: 20px;
   }
+
+  .status-card.status-active {
+    border-color: #0d6efd;
+    background-color: rgba(13, 110, 253, 0.08); 
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.4);
+  }
   </style>
 
   <script>
@@ -2090,6 +2121,27 @@
             globalModal.show();
         });
       });
+
+    const statusInput = document.getElementById('statusFilterInput');
+    const searchForm  = document.getElementById('searchForm');
+
+    if (!statusInput || !searchForm) {
+        return; 
+    }
+
+    document.querySelectorAll('.filter-status-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+            const value = this.getAttribute('data-status-value') || '';
+
+            document.querySelectorAll('.filter-status-card').forEach(function (c) {
+                c.classList.remove('status-active');
+            });
+            this.classList.add('status-active');
+
+            statusInput.value = value;
+            searchForm.submit();
+        });
+    });
   });
   </script>
 
