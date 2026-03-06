@@ -174,73 +174,159 @@
                               <th>Nomor SPK</th>
                               <th>Tanggal</th>
                               <th>Pelanggan</th>
+                              <th class="text-center" style="width:50px;">File</th>
                               <th>Nama Item</th>
-                              <th>Ukuran</th>
+                              <th>Ukuran / Luas</th>
                               <th class="text-end">Jumlah</th>
                               <th>Satuan</th>
                             </tr>
                           </thead>
                           <tbody>
-                            @forelse($items as $rec)
+                            @php
+                              $groupedBySpk = collect($items ?? [])->groupBy(function ($rec) {
+                                  return $rec['spk']->id;
+                              });
+                            @endphp
+
+                            @forelse($groupedBySpk as $spkId => $rows)
                               @php
-                                /** @var \App\Models\SPK $spkRow */
-                                /** @var \App\Models\SPKItem $spkItem */
-                                $spkRow  = $rec['spk'];
-                                $spkItem = $rec['item'];
+                                $spkRow = $rows->first()['spk'];
+                                $rowspan = $rows->count();
+                                $firstRow = true;
 
-                                $produk = $spkItem->produk;
-                                $isMetric   = $produk && ($produk->is_metric === true);
-                                $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
-                                $panjang = (float) ($spkItem->panjang ?? 0);
-                                $lebar   = (float) ($spkItem->lebar ?? 0);
-
-                                if ($isMetric && $panjang > 0 && $lebar > 0) {
-                                    $luas = $panjang * $lebar;
-                                    $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
-                                    $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
-                                } elseif ($isMetric) {
-                                    $dimensiText = 'Metric ('.$metricUnit.')';
-                                    $luasText = 'Ukuran belum lengkap';
-                                } else {
-                                    $dimensiText = '-';
-                                    $luasText = '';
+                                $groupDefaultFiles = [];
+                                foreach ($rows as $rec) {
+                                    /** @var \App\Models\SPKItem $it */
+                                    $it = $rec['item'];
+                                    $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                    $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+                                    $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                    $path = $default['path'] ?? null;
+                                    if (!$path) continue;
+                                    $groupDefaultFiles[$path] = $default;
                                 }
+                                $groupDefaultFiles = array_values($groupDefaultFiles);
                               @endphp
 
-                              <tr>
-                                <td class="fw-bold">{{ $spkRow->nomor_spk }}</td>
-                                <td>
-                                  {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
-                                  @php
-                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
-                                    $now = \Carbon\Carbon::now();
-                                    $diff = $spkDate->diff($now);
-                                  @endphp
+                              @foreach($rows as $rec)
+                                @php
+                                  $spkItem = $rec['item'];
 
-                                  @if($spkDate->isPast()) 
-                                      <br>
-                                      <small class="text-muted">
-                                          {{ $diff->days }} hari 
-                                          @if($diff->h > 0) 
-                                              {{ $diff->h }} jam
+                                  $produk = $spkItem->produk;
+                                  $isMetric   = $produk && ($produk->is_metric === true);
+                                  $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                                  $panjang = (float) ($spkItem->panjang ?? 0);
+                                  $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                                  if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                      $luas = $panjang * $lebar;
+                                      $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                      $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                                  } elseif ($isMetric) {
+                                      $dimensiText = 'Metric ('.$metricUnit.')';
+                                      $luasText = 'Ukuran belum lengkap';
+                                  } else {
+                                      $dimensiText = '-';
+                                      $luasText = '';
+                                  }
+
+                                  $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                  if (is_string($filePendukungRaw)) {
+                                      $filePendukung = json_decode($filePendukungRaw, true) ?: [];
+                                  } else {
+                                      $filePendukung = (array) $filePendukungRaw;
+                                  }
+                                  $firstFile  = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+                                  $thumbUrl   = null;
+                                  $isPdfFirst = false;
+                                  if ($firstFile && !empty($firstFile['path'])) {
+                                      $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
+                                      $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
+                                  }
+                                @endphp
+
+                                <tr>
+                                  @if($firstRow)
+                                    <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                      <div class="d-flex align-items-start gap-2">
+                                        <div>
+                                          {{ $spkRow->nomor_spk }}
+                                          @php
+                                            $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                            $now = \Carbon\Carbon::now();
+                                            $diff = $spkDate->diff($now);
+                                          @endphp
+                                          <small class="text-muted d-block">
+                                            {{ $spkDate->format('d/m/Y') }}
+                                          </small>
+                                          @if($spkDate->isPast())
+                                            <small class="text-muted">
+                                              {{ $diff->days }} hari
+                                              @if($diff->h > 0)
+                                                {{ $diff->h }} jam
+                                              @endif
+                                            </small>
                                           @endif
-                                      </small>
+                                        </div>
+
+                                        @if(count($groupDefaultFiles))
+                                          <button type="button"
+                                                  class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                                  data-spk-id="{{ $spkRow->id }}"
+                                                  data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                                  data-files='@json($groupDefaultFiles)'
+                                                  title="Lihat file default item (group ini)">
+                                            <i class="fa fa-eye"></i>
+                                          </button>
+                                        @endif
+                                      </div>
+                                    </td>
+                                    <td rowspan="{{ $rowspan }}" class="align-top">
+                                      {{ \Carbon\Carbon::parse($spkRow->tanggal_spk)->format('d/m/Y') }}
+                                    </td>
+                                    <td rowspan="{{ $rowspan }}" class="align-top">
+                                      {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                                    </td>
+                                    @php $firstRow = false; @endphp
                                   @endif
-                                </td>
-                                <td>{{ optional($spkRow->pelanggan)->nama ?? '-' }}</td>
-                                <td>{{ $spkItem->nama_produk }}</td>
-                                <td>
-                                  <div class="fw-semibold">{{ $dimensiText }}</div>
-                                  @if($luasText)
-                                    <div class="text-muted small">{{ $luasText }}</div>
-                                  @endif
-                                </td>
-                                <td class="text-end">{{ $spkItem->jumlah }}</td>
-                                <td>{{ $spkItem->satuan }}</td>
-                              </tr>
+
+                                  <td class="text-center align-middle" style="width: 60px;">
+                                    @if($firstFile && $thumbUrl)
+                                      <button type="button"
+                                              class="btn btn-sm btn-light p-1 btn-preview-item-file"
+                                              data-file-path="{{ $firstFile['path'] }}"
+                                              data-file-name="{{ $firstFile['name'] ?? '' }}"
+                                              data-file-type="{{ $firstFile['type'] ?? '' }}"
+                                              title="Preview file item">
+                                        @if($isPdfFirst)
+                                          <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                        @else
+                                          <img src="{{ $thumbUrl }}"
+                                              alt="{{ $firstFile['name'] ?? 'Preview' }}"
+                                              class="img-thumbnail"
+                                              style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
+                                              loading="lazy">
+                                        @endif
+                                      </button>
+                                    @else
+                                      <span class="text-muted">-</span>
+                                    @endif
+                                  </td>
+
+                                  <td>{{ $spkItem->nama_produk }}</td>
+                                  <td>
+                                    <div class="fw-semibold">{{ $dimensiText }}</div>
+                                    @if($luasText)
+                                      <div class="text-muted small">{{ $luasText }}</div>
+                                    @endif
+                                  </td>
+                                  <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                  <td>{{ $spkItem->satuan }}</td>
+                                </tr>
+                              @endforeach
                             @empty
                               <tr>
-                                <td colspan="7" class="text-center text-muted">
+                                <td colspan="8" class="text-center text-muted">
                                   Tidak ada item untuk bahan ini pada tipe mesin ini.
                                 </td>
                               </tr>
@@ -364,19 +450,101 @@
   </script>
 
   <script>
-  document.addEventListener('DOMContentLoaded', function () {
-      document.querySelectorAll('.btn-preview-file').forEach(function (btn) {
+    document.addEventListener('DOMContentLoaded', function () {
+        const modalEl   = document.getElementById('globalPreviewModal');
+        const modalTitle = document.getElementById('globalPreviewModalTitle');
+        const modalBody  = document.getElementById('globalPreviewModalBody');
+        const globalModal = new bootstrap.Modal(modalEl);
+
+        document.querySelectorAll('.btn-preview-spk-files').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const spkNomor = btn.getAttribute('data-spk-nomor') || '';
+                const filesJson = btn.getAttribute('data-files') || '[]';
+                let files = [];
+
+                try {
+                    files = JSON.parse(filesJson);
+                } catch (e) {
+                    files = [];
+                }
+
+                modalTitle.textContent = 'Preview File SPK ' + spkNomor;
+
+                if (!files.length) {
+                    modalBody.innerHTML = '<div class="text-center text-muted py-4">Tidak ada file pendukung.</div>';
+                    globalModal.show();
+                    return;
+                }
+
+                let html = '<div class="row g-3">';
+                files.forEach(function (f) {
+                    const path = f.path || '';
+                    if (!path) return;
+                    const name = f.name || path.split(/[\\/]/).pop();
+                    const type = (f.type || '').toLowerCase();
+                    const isPdf = (type === 'pdf');
+                    const url = "{{ route('backend.preview-file') }}" + '?path=' + encodeURIComponent(path);
+
+                    html += '<div class="col-md-4">';
+                    html += '  <div class="border rounded p-2 h-100">';
+                    html += '    <div class="small fw-semibold text-truncate" title="' + name.replace(/"/g, '&quot;') + '">' + name + '</div>';
+                    html += '    <div class="mt-2">';
+                    if (isPdf) {
+                        html += '      <a href="' + url + '" target="_blank" class="btn btn-sm btn-outline-danger w-100">';
+                        html += '        <i class="fa fa-file-pdf"></i> Buka PDF';
+                        html += '      </a>';
+                    } else {
+                        html += '      <a href="' + url + '" target="_blank" class="d-block">';
+                        html += '        <img src="' + url + '" alt="' + name.replace(/"/g, '&quot;') + '"';
+                        html += '             class="img-fluid rounded" loading="lazy"';
+                        html += '             style="max-height:180px;object-fit:cover;width:100%;">';
+                        html += '      </a>';
+                    }
+                    html += '    </div>';
+                    html += '  </div>';
+                    html += '</div>';
+                });
+                html += '</div>';
+
+                modalBody.innerHTML = html;
+                globalModal.show();
+            });
+        });
+
+        document.querySelectorAll('.btn-preview-item-file').forEach(function (btn) {
           btn.addEventListener('click', function () {
-              const path = btn.getAttribute('data-path');
+              const path = btn.getAttribute('data-file-path') || '';
               if (!path) return;
 
-              // Sesuaikan nama route di web.php
-              const baseUrl = "{{ route('backend.preview-file') }}";
-              const url = baseUrl + '?path=' + encodeURIComponent(path);
+              const name = btn.getAttribute('data-file-name') || 'Preview';
+              const type = (btn.getAttribute('data-file-type') || '').toLowerCase();
+              const url  = "{{ route('backend.preview-file') }}" + '?path=' + encodeURIComponent(path);
 
-              window.open(url, '_blank', 'noopener');
+              modalTitle.textContent = 'Preview File Item: ' + name;
+
+              if (type === 'pdf') {
+                  modalBody.innerHTML = `<iframe src="${url}#toolbar=0" style="width:100%;height:400px;border:0;" title="Preview PDF"></iframe>`;
+              } else {
+                  modalBody.innerHTML = `<img src="${url}" alt="${name.replace(/"/g, '&quot;')}" class="img-fluid rounded" style="max-height:400px;object-fit:contain;" loading="lazy">`;
+              }
+
+              globalModal.show();
           });
-      });
-  });
+        });
+    });
   </script>
+
+<div class="modal fade" id="globalPreviewModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header py-2">
+        <h6 class="modal-title mb-0" id="globalPreviewModalTitle">Preview File</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="globalPreviewModalBody">
+        {{-- diisi via JS --}}
+      </div>
+    </div>
+  </div>
+</div>
 @endpush

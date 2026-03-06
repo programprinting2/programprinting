@@ -872,14 +872,17 @@
                                             }
                                             $groupDefaultFiles = array_values($groupDefaultFiles);
                                         @endphp
-                                        <button type="button"
-                                                class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
-                                                data-spk-id="{{ $spkRow->id }}"
-                                                data-spk-nomor="{{ $spkRow->nomor_spk }}"
-                                                data-files='@json($groupDefaultFiles)'
-                                                title="Lihat file default item (group ini)">
-                                            <i class="fa fa-eye"></i>
-                                        </button>
+                                        
+                                        @if(count($groupDefaultFiles))
+                                          <button type="button"
+                                                  class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                                  data-spk-id="{{ $spkRow->id }}"
+                                                  data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                                  data-files='@json($groupDefaultFiles)'
+                                                  title="Lihat file default item (group ini)">
+                                              <i class="fa fa-eye"></i>
+                                          </button>
+                                        @endif
                                     </div>
                                 </td>
                                 <td rowspan="{{ $rowspan }}" class="align-top">
@@ -1170,15 +1173,17 @@
 
                                           $groupDefaultFiles = array_values($groupDefaultFiles);
                                       @endphp
-
-                                      <button type="button"
-                                              class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
-                                              data-spk-id="{{ $spkRow->id }}"
-                                              data-spk-nomor="{{ $spkRow->nomor_spk }}"
-                                              data-files='@json($groupDefaultFiles)'
-                                              title="Lihat file default item (group ini)">
-                                          <i class="fa fa-eye"></i>
-                                      </button>
+                                      
+                                      @if(count($groupDefaultFiles))
+                                        <button type="button"
+                                                class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                                data-spk-id="{{ $spkRow->id }}"
+                                                data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                                data-files='@json($groupDefaultFiles)'
+                                                title="Lihat file default item (group ini)">
+                                            <i class="fa fa-eye"></i>
+                                        </button>
+                                      @endif
                                     </div>
                                   </td>
                                   <td rowspan="{{ $rowspan }}" class="align-top">
@@ -1430,15 +1435,17 @@
 
                                       $groupDefaultFiles = array_values($groupDefaultFiles);
                                   @endphp
-
-                                  <button type="button"
-                                          class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
-                                          data-spk-id="{{ $spkRow->id }}"
-                                          data-spk-nomor="{{ $spkRow->nomor_spk }}"
-                                          data-files='@json($groupDefaultFiles)'
-                                          title="Lihat file default item (group ini)">
-                                      <i class="fa fa-eye"></i>
-                                  </button>
+                                  
+                                  @if(count($groupDefaultFiles))
+                                    <button type="button"
+                                            class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                            data-spk-id="{{ $spkRow->id }}"
+                                            data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                            data-files='@json($groupDefaultFiles)'
+                                            title="Lihat file default item (group ini)">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                  @endif
                                 </div>
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
@@ -1705,14 +1712,16 @@
                                       $groupDefaultFiles = array_values($groupDefaultFiles);
                                   @endphp
 
-                                  <button type="button"
-                                          class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
-                                          data-spk-id="{{ $spkRow->id }}"
-                                          data-spk-nomor="{{ $spkRow->nomor_spk }}"
-                                          data-files='@json($groupDefaultFiles)'
-                                          title="Lihat file default item (group ini)">
-                                      <i class="fa fa-eye"></i>
-                                  </button>
+                                  @if(count($groupDefaultFiles))
+                                    <button type="button"
+                                            class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                            data-spk-id="{{ $spkRow->id }}"
+                                            data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                            data-files='@json($groupDefaultFiles)'
+                                            title="Lihat file default item (group ini)">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
+                                  @endif
                                 </div>
                               </td>
                               <td rowspan="{{ $rowspan }}" class="align-top">
