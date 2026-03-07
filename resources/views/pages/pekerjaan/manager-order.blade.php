@@ -278,7 +278,7 @@
                 <tbody id="accordionSpk">
                     @forelse($spk as $item)
                         @php $collapseId = 'detail-spk-'.$item->id; @endphp
-                        <tr>
+                        <tr class="spk-row" data-status="{{ $item->status }}">
                             <td>
                                 @if($item->status === 'proses_bayar')
                                     <input type="checkbox" class="checkSpkRow" value="{{ $item->id }}">
@@ -399,7 +399,7 @@
                         </tr>
 
                         <!-- Collapse Row -->
-                        <tr>
+                        <tr class="spk-row" data-status="{{ $item->status }}">
                             <td colspan="8" class="p-0 border-0">
                                 <div id="{{ $collapseId }}" class="collapse spk-collapse" data-bs-parent="#accordionSpk">
                                     <div class="border border-2 px-4 py-3">
@@ -671,7 +671,7 @@
                     @empty
                         <tr>
                             <td colspan="8" class="text-center py-4">
-                                @if(request('search') || request('customer_id') || request('status') || request('prioritas'))
+                                @if(request('search'))
                                     <div class="text-muted">
                                         <i data-feather="search" class="icon-sm mb-2"></i>
                                         <p class="mb-0">Tidak ditemukan data SPK yang sesuai dengan kriteria pencarian.</p>
@@ -688,6 +688,15 @@
                             </td>
                         </tr>
                     @endforelse
+                    <tr id="clientFilterEmptyRow" class="d-none" aria-live="polite">
+                        <td colspan="8" class="text-center py-4 text-muted">
+                            <i data-feather="filter" class="icon-sm mb-2"></i>
+                            <p class="mb-0">Tidak ada SPK dengan status yang dipilih.</p>
+                            <button type="button" class="btn btn-link btn-sm p-0 mt-2" id="clearStatusFilter">
+                                <i data-feather="x" class="icon-sm"></i> Tampilkan semua status
+                            </button>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
           </div> 
@@ -1848,11 +1857,6 @@
     const loadingSpinner = $('#loadingSpinner');
     const tableContainer = $('.table-responsive');
 
-    // Auto-submit form when dropdown changes
-    $('select[name="customer_id"], select[name="status"], select[name="prioritas"]').on('change', function() {
-      searchForm.submit();
-    });
-
     // Manual submit for search input
     $('input[name="search"]').on('keypress', function(e) {
       if (e.which === 13) { // Enter key
@@ -1876,12 +1880,12 @@
 
     // Reset filter
     $('#resetFilter').click(function() {
-        window.location.href = '{{ route("spk.index") }}';
+        window.location.href = '{{ route("pekerjaan.manager-order") }}';
     });
 
     // Clear search
     $('#clearSearch').click(function() {
-        window.location.href = '{{ route("spk.index") }}';
+        window.location.href = '{{ route("pekerjaan.manager-order") }}';
     });
 
     // Show loading spinner when page is loading
@@ -2131,26 +2135,42 @@
         });
       });
 
-    const statusInput = document.getElementById('statusFilterInput');
-    const searchForm  = document.getElementById('searchForm');
-
-    if (!statusInput || !searchForm) {
-        return; 
-    }
-
-    document.querySelectorAll('.filter-status-card').forEach(function (card) {
-        card.addEventListener('click', function () {
-            const value = this.getAttribute('data-status-value') || '';
-
-            document.querySelectorAll('.filter-status-card').forEach(function (c) {
-                c.classList.remove('status-active');
-            });
-            this.classList.add('status-active');
-
-            statusInput.value = value;
-            searchForm.submit();
+      function applyStatusFilter(statusValue) {
+        document.querySelectorAll('.filter-status-card').forEach(function (c) {
+          c.classList.toggle('status-active', (c.getAttribute('data-status-value') || '') === statusValue);
         });
-    });
+        document.querySelectorAll('#accordionSpk .spk-row').forEach(function (tr) {
+          var rowStatus = tr.getAttribute('data-status') || '';
+          tr.style.display = (statusValue === '' || rowStatus === statusValue) ? '' : 'none';
+        });
+        var visibleCount = 0;
+        document.querySelectorAll('#accordionSpk .spk-row').forEach(function (tr) {
+          if (tr.style.display !== 'none') visibleCount++;
+        });
+        var emptyRow = document.getElementById('clientFilterEmptyRow');
+        if (emptyRow) emptyRow.classList.toggle('d-none', visibleCount > 0);
+
+        var clearStatusBtn = document.getElementById('clearStatusFilter');
+        if (clearStatusBtn) clearStatusBtn.addEventListener('click', function () {
+          applyStatusFilter('');
+        });
+
+        var statusInput = document.getElementById('statusFilterInput');
+        if (statusInput) statusInput.value = statusValue;
+        var params = new URLSearchParams(window.location.search);
+        if (statusValue) params.set('status', statusValue); else params.delete('status');
+        window.history.replaceState({}, '', window.location.pathname + (params.toString() ? '?' + params.toString() : ''));
+      }
+
+      document.querySelectorAll('.filter-status-card').forEach(function (card) {
+        card.addEventListener('click', function () {
+          var statusValue = this.getAttribute('data-status-value') || '';
+          applyStatusFilter(statusValue);
+        });
+      });
+
+      var initialStatus = (new URLSearchParams(window.location.search)).get('status') || '';
+      applyStatusFilter(initialStatus);
   });
   </script>
 

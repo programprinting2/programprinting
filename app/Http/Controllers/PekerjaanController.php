@@ -18,7 +18,7 @@ class PekerjaanController extends Controller
     public function managerOrder(Request $request): View
     {
         // $filters = $request->only(['search', 'customer_id']);
-        $filters = $request->only(['search', 'status']);
+        $filters = $request->only(['search']);
         $filters['exclude_status'] = 'selesai';
         $filters['sort_status'] = 'proses_bayar';
 
