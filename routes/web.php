@@ -230,6 +230,15 @@ Route::group(['prefix' => 'pekerjaan'], function () {
 
     Route::get('/operator-cetak', [PekerjaanController::class, 'operatorCetak'])
         ->name('pekerjaan.operator-cetak');
+    
+    Route::get('/operator-cetak/items/{spkItem}/progress', [PekerjaanController::class, 'getCetakProgress'])
+        ->name('pekerjaan.operator-cetak.item-progress');
+    
+    Route::post('/operator-cetak/progress', [PekerjaanController::class, 'storeCetakProgress'])
+        ->name('pekerjaan.operator-cetak.progress');
+
+    Route::post('/operator-cetak/bulk-complete', [PekerjaanController::class, 'bulkCompleteCetak'])
+        ->name('pekerjaan.operator-cetak.bulk-complete');
 
     Route::get('/finishing-qc', [PekerjaanController::class, 'finishingQc'])
         ->name('pekerjaan.finishing-qc');

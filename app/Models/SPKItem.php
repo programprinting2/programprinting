@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class SPKItem extends Model
@@ -84,5 +86,47 @@ class SPKItem extends Model
         ]);
 
         $this->spk->refresh()->updateTotalBiaya();
+    }
+
+    public function cetakLogs(): HasMany
+    {
+        return $this->hasMany(SpkItemCetakLog::class, 'spk_item_id');
+    }
+
+    public function getJumlahSudahCetakAttribute(): int
+    {
+        $sum = $this->relationLoaded('cetakLogs')
+            ? (int) $this->cetakLogs->sum('jumlah')
+            : (int) $this->cetakLogs()->sum('jumlah');
+
+        return max(0, $sum);
+    }
+
+    public function getProgressCetakPersenAttribute(): float
+    {
+        $qty = (int) ($this->jumlah ?? 0);
+        if ($qty <= 0) {
+            return 0.0;
+        }
+
+        $pct = ($this->jumlah_sudah_cetak / $qty) * 100;
+
+        return (float) min(100, round($pct, 1));
+    }
+
+    public function getSisaBelumCetakAttribute(): int
+    {
+        $qty = (int) ($this->jumlah ?? 0);
+        return max(0, $qty - $this->jumlah_sudah_cetak);
+    }
+
+    public function getIsCetakSelesaiAttribute(): bool
+    {
+        $qty = (int) ($this->jumlah ?? 0);
+        if ($qty <= 0) {
+            return false;
+        }
+
+        return $this->sisa_belum_cetak <= 0;
     }
 }

@@ -5,6 +5,14 @@ namespace App\Http\Controllers;
 use App\Services\SpkService;
 use App\Models\Pelanggan;
 use App\Models\MasterMesin;
+use App\Http\Requests\StoreSpkItemCetakProgressRequest;
+use App\Http\Requests\BulkCompleteSpkItemCetakRequest;
+use App\Models\SPKItem;
+use App\Models\SpkItemCetakLog;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log; 
@@ -169,7 +177,7 @@ class PekerjaanController extends Controller
         $filters['status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getAllSpk($filters);
-        $spk->load('items.produk.bahanBakus', 'pelanggan');
+        $spk->load('items.produk.bahanBakus', 'pelanggan', 'items.cetakLogs.user');
 
         // $customers = Pelanggan::where('status', true)->get();
 
@@ -321,5 +329,131 @@ class PekerjaanController extends Controller
         $customers = Pelanggan::where('status', true)->get();
 
         return view('pages.pekerjaan.tandai-selesai', compact('spk', 'customers'));
+    }
+
+    public function getCetakProgress(SPKItem $spkItem): JsonResponse
+    {
+        $spkItem->load(['cetakLogs.user', 'spk.pelanggan']);
+
+        $qty = (int) ($spkItem->jumlah ?? 0);
+        $sudah = (int) $spkItem->cetakLogs->sum('jumlah');
+        $sisa = max(0, $qty - $sudah);
+        $pct = $qty > 0 ? min(100, round(($sudah / $qty) * 100, 1)) : 0;
+
+        return response()->json([
+            'item' => [
+                'id' => $spkItem->id,
+                'nama_produk' => $spkItem->nama_produk,
+                'qty' => $qty,
+                'sudah' => $sudah,
+                'sisa' => $sisa,
+                'progress_persen' => $pct,
+            ],
+            'spk' => [
+                'nomor_spk' => $spkItem->spk->nomor_spk ?? '',
+                'pelanggan' => $spkItem->spk->pelanggan->nama ?? '-',
+            ],
+            'logs' => $spkItem->cetakLogs
+                ->sortBy('created_at')
+                ->values()
+                ->map(fn ($l) => [
+                    'jumlah' => (int) $l->jumlah,
+                    'operator' => $l->user->name ?? ('User #'.$l->user_id),
+                    'waktu' => optional($l->created_at)->format('H:i') ?? '',
+                    'tanggal' => optional($l->created_at)->format('d/m/Y') ?? '',
+                ]),
+        ]);
+    }
+
+    public function storeCetakProgress(StoreSpkItemCetakProgressRequest $request): RedirectResponse
+    {
+        $spkItemId = (int) $request->input('spk_item_id');
+        $jumlah = (int) $request->input('jumlah');
+
+        try {
+            DB::transaction(function () use ($spkItemId, $jumlah) {
+                $item = SPKItem::query()
+                    ->lockForUpdate()
+                    ->findOrFail($spkItemId);
+
+                $qtyPesanan = (int) ($item->jumlah ?? 0);
+                if ($qtyPesanan <= 0) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => 'Quantity pesanan tidak valid.',
+                    ]);
+                }
+
+                $lockedLogs = SpkItemCetakLog::query()
+                    ->where('spk_item_id', $item->id)
+                    ->lockForUpdate()
+                    ->get(['jumlah']);
+
+                $sudahCetak = (int) $lockedLogs->sum('jumlah');
+                $akanTotal = $sudahCetak + $jumlah;
+
+                if ($akanTotal > $qtyPesanan) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => 'Jumlah melebihi qty pesanan (overprint).',
+                    ]);
+                }
+
+                SpkItemCetakLog::query()->create([
+                    'spk_item_id' => $item->id,
+                    'user_id' => 1, //(int) auth()->id(),
+                    'jumlah' => $jumlah,
+                ]);
+            });
+        } catch (ValidationException $e) {
+            return back()->withErrors($e->errors())->withInput();
+        }
+
+        return back()->with('success', 'Progress cetak berhasil ditambahkan.');
+    }
+
+    public function bulkCompleteCetak(BulkCompleteSpkItemCetakRequest $request): RedirectResponse
+    {
+        $ids = collect($request->input('spk_item_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->values();
+
+        DB::transaction(function () use ($ids) {
+            $items = SPKItem::query()
+                ->whereIn('id', $ids->all())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($ids as $id) {
+                $item = $items->get($id);
+                if (!$item) {
+                    continue;
+                }
+
+                $qtyPesanan = (int) ($item->jumlah ?? 0);
+                if ($qtyPesanan <= 0) {
+                    continue;
+                }
+
+                $lockedLogs = SpkItemCetakLog::query()
+                    ->where('spk_item_id', $item->id)
+                    ->lockForUpdate()
+                    ->get(['jumlah']);
+
+                $sudahCetak = (int) $lockedLogs->sum('jumlah');
+
+                $sisa = $qtyPesanan - $sudahCetak;
+                if ($sisa <= 0) {
+                    continue;
+                }
+
+                SpkItemCetakLog::query()->create([
+                    'spk_item_id' => $item->id,
+                    'user_id' => 1, //(int) auth()->id(),
+                    'jumlah' => $sisa,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Bulk print berhasil: item ditandai 100% selesai.');
     }
 }

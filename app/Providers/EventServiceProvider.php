@@ -8,6 +8,8 @@ use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvi
 use Illuminate\Support\Facades\Event;
 use App\Models\SPK;
 use App\Observers\SpkObserver;
+use App\Models\SpkItemCetakLog;
+use App\Observers\SpkItemCetakLogObserver;
 
 class EventServiceProvider extends ServiceProvider
 {
@@ -29,6 +31,7 @@ class EventServiceProvider extends ServiceProvider
      */
     protected $observers = [
         SPK::class => [SpkObserver::class],
+        SpkItemCetakLog::class => [SpkItemCetakLogObserver::class],
     ];
 
     /**

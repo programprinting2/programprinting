@@ -119,7 +119,7 @@
                             'draft' => 'SPK dalam tahap draft dan belum di-ACC.',
                             'proses_bayar' => 'SPK sudah di-ACC dan menunggu proses pembayaran.',
                             'manager_approval_order' => 'SPK telah disetujui oleh Manager Order.',
-                            'operator_cetak' => 'SPK sedang/ sudah diproses oleh Operator Cetak.',
+                            'operator_cetak' => 'SPK sedang / sudah diproses oleh Operator Cetak.',
                             'finishing_qc' => 'SPK sedang dalam proses Finishing / QC.',
                             'siap_diambil' => 'Pesanan siap diambil oleh pelanggan.',
                             'selesai' => 'SPK/pekerjaan telah selesai sepenuhnya.',

@@ -220,22 +220,21 @@
 
             <div class="col-md-12">
               <label class="form-label small d-block mb-1">Filter Status</label>
-              <div class="row g-2">
+              <div class="d-flex flex-nowrap gap-2 overflow-auto">
                 @foreach($statusOptions as $value => $label)
                   @php
                     $isActive = ($currentStatus === $value) || ($value === '' && ($currentStatus === '' || $currentStatus === null));
                   @endphp
-                  <div class="col-6 col-md-4 col-lg-3">
-                    <button type="button"
-                            class="card status-card w-100 text-start filter-status-card {{ $isActive ? 'status-active' : '' }}"
-                            data-status-value="{{ $value }}">
-                      <div class="card-body py-2 px-3">
-                        <h6 class="mb-0 fw-semibold" style="font-size: 0.8rem;">
-                          {{ $label }}
-                        </h6>
-                      </div>
-                    </button>
-                  </div>
+
+                  <button type="button"
+                          class="card status-card text-start flex-fill filter-status-card {{ $isActive ? 'status-active' : '' }}"
+                          data-status-value="{{ $value }}">
+                    <div class="card-body py-2 px-3">
+                      <h6 class="mb-0 fw-semibold" style="font-size:0.8rem;">
+                        {{ $label }}
+                      </h6>
+                    </div>
+                  </button>
                 @endforeach
               </div>
             </div>
