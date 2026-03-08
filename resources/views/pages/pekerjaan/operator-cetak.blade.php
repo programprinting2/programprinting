@@ -396,7 +396,8 @@
                                   </td>
                                   <td class="text-center">
                                       <button type="button"
-                                              class="btn btn-sm btn-primary btn-open-cetak-modal"
+                                              class="btn btn-sm {{ $sisa <= 0 ? 'btn-secondary disabled' : 'btn-primary' }} btn-primary btn-open-cetak-modal"
+                                              {{ $sisa <= 0 ? 'disabled' : '' }}
                                               data-spk-item-id="{{ $spkItem->id }}"
                                               data-nomor-spk="{{ $spkRow->nomor_spk }}"
                                               data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
@@ -753,6 +754,16 @@
           input.value = cb.value;
           bulkInputs.appendChild(input);
         });
+
+        if (checked.length === 0) {
+          bulkBtn.disabled = true;
+          bulkBtn.classList.remove("btn-success");
+          bulkBtn.classList.add("btn-secondary");
+        } else {
+          bulkBtn.disabled = false;
+          bulkBtn.classList.remove("btn-secondary");
+          bulkBtn.classList.add("btn-success");
+        }
       }
 
 
@@ -1056,6 +1067,7 @@ fetch(url, {
       // ================================
       // UPDATE SISA OTOMATIS
       // ================================
+      const checkboxMax = document.getElementById("cetak_semua");
       const jumlahInput = document.getElementById('cetak_jumlah');
       const sisaLabel = document.getElementById('cetak_sisa_label');
       const sisaSetelah = document.getElementById('cetak_sisa_setelah');
@@ -1092,6 +1104,31 @@ fetch(url, {
               </span>`;
           }
 
+        });
+      }
+
+      if(checkboxMax){
+        checkboxMax.addEventListener("change", function(){
+          const sisaText = document
+            .getElementById('cetak_sisa')
+            .textContent
+            .replace(/\./g,'')
+            .replace(/,/g,'');
+
+          const sisa = parseInt(sisaText) || 0;
+          if(this.checked){
+            jumlahInput.value = sisa;
+            jumlahInput.readOnly = true;
+            sisaSetelah.innerHTML =
+              `Sisa setelah cetak: 
+              <span class="text-success fw-bold">
+                0
+              </span>`;
+          }else{
+            jumlahInput.readOnly = false;
+            jumlahInput.value = "";
+            sisaSetelah.innerHTML = "Sisa setelah cetak: -";
+          }
         });
       }
 
@@ -1198,6 +1235,13 @@ fetch(url, {
                 <span class="input-group-text bg-white">
                   / <span id="cetak_sisa_label" class="fw-bold text-danger ms-1">0</span>
                 </span>
+              </div>
+
+              <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" id="cetak_semua">
+                <label class="form-check-label small" for="cetak_semua">
+                  Cetak semua
+                </label>
               </div>
 
               <div class="d-flex justify-content-between mt-2 small">
