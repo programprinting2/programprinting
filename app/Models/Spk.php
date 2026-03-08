@@ -20,6 +20,7 @@ class SPK extends Model
         'pelanggan_id',
         'status',
         'catatan',
+        'invoice_groups',
         'total_biaya',
         'total_dibayar',
         'status_pembayaran',
@@ -33,6 +34,7 @@ class SPK extends Model
             'tanggal_spk' => 'date',
             'total_biaya' => 'decimal:2',
             'total_dibayar' => 'decimal:2',
+            'invoice_groups' => 'array',
         ];
     }
 

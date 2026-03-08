@@ -40,6 +40,7 @@ class SpkService
                 'pelanggan_id' => $data['pelanggan_id'],
                 'status' => $data['status'] ?? 'draft',
                 'catatan' => $data['catatan'] ?? null,
+                'invoice_groups' => $data['invoice_groups'] ?? null,
                 'created_by' => '1' //auth()->id(),
             ];
 
@@ -91,35 +92,52 @@ class SpkService
 
         try {
             DB::beginTransaction();
+            $spk = $this->spkRepository->findWithRelations($id);
+            // 1. Siapkan data update SPK (tanpa menyentuh item dulu)
+            $invoiceGroups = $data['invoice_groups'] ?? $spk->invoice_groups;
+            // 2. Update / create / delete items jika ada items di request
+            if (!empty($data['items']) && is_array($data['items'])) {
+                // Ambil item existing lalu keyBy id untuk lookup cepat
+                $existingItems = $this->spkItemRepository->getBySpk($id)->keyBy('id');
+                 
+                $clientIdToNewId = [];
+                foreach ($data['items'] as $itemData) {
+                    $itemId = $itemData['id'] ?? null;
+                    if ($itemId && $existingItems->has($itemId)) {
+                        $this->spkItemRepository->update($itemId, $itemData);
+                        $existingItems->forget($itemId);
+                    } else {
+                        $newItem = $this->createSpkItem($id, $itemData);
+                        
+                        if (!empty($itemData['client_id'])) {
+                            $clientIdToNewId[(string) $itemData['client_id']] = $newItem->id;
+                        }
+                    }
+                }
+                foreach ($existingItems as $oldItem) {
+                    $this->spkItemRepository->delete($oldItem->id);
+                }
+                
+                if (!empty($invoiceGroups) && is_array($invoiceGroups) && !empty($clientIdToNewId)) {
+                    $invoiceGroups = $this->rewriteInvoiceGroupsItemIds($invoiceGroups, $clientIdToNewId);
+                }
+            }
 
             $updateData = [
                 'tanggal_spk' => $data['tanggal_spk'],
                 'pelanggan_id' => $data['pelanggan_id'],
                 'catatan' => $data['catatan'] ?? null,
                 'status' => $data['status'] ?? $spk->status,
+                'invoice_groups' => $invoiceGroups,
                 'updated_by' => auth()->id(),
             ];
-
             $this->spkRepository->update($id, $updateData);
 
-            if (!empty($data['items']) && is_array($data['items'])) {
-
-                // Hapus semua item lama
-                $oldItems = $this->spkItemRepository->getBySpk($id);
-                foreach ($oldItems as $oldItem) {
-                    $this->spkItemRepository->delete($oldItem->id);
-                }
-
-                foreach ($data['items'] as $itemData) {
-                    $this->createSpkItem($id, $itemData);
-                }
-            }
             $spk = $this->spkRepository->findWithRelations($id);
             if ($spk) {
                 $spk->updateTotalBiaya();
                 $spk->refreshPembayaranSummary();
             }
-
             DB::commit();
 
             Log::info('SPK updated successfully', [

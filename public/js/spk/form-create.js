@@ -37,8 +37,98 @@
 
     let editItemIndex = null;
 
-    // Preview item state
+    // --- Invoice Grouping ---
+    let invoiceGroups = [];
+    let isGroupingMode = false;
+    let selectedItemIdsForGroup = new Set();
+    function recalcGroupTotal(group) {
+        const qty = parseFloat(group.qty) || 0;
+        const price = parseFloat(group.price) || 0;
+        group.total = qty * price;
+    }
+    function getGroupedItemIdsSet() {
+        const s = new Set();
+        invoiceGroups.forEach(g => {
+            (g.itemIds || []).forEach(id => {
+                s.add(id);
+                s.add(String(id));
+                if (typeof id === "string") s.add(Number(id));
+            });
+        });
+        return s;
+    }
+    function findGroupByItemId(itemId) {
+        return invoiceGroups.find(g => (g.itemIds || []).includes(itemId)) || null;
+    }
 
+    function updateGroupItemsButtonState() {
+        const btn = document.getElementById("btnGroupItemsMode");
+        if (!btn) return;
+        if (!isGroupingMode) {
+            btn.textContent = "Group Items";
+            btn.classList.remove("btn-danger", "btn-success");
+            btn.classList.add("btn-outline-info");
+            return;
+        }
+        const n = selectedItemIdsForGroup.size;
+        if (n === 0) {
+            btn.textContent = "Batal";
+            btn.classList.remove("btn-outline-info", "btn-success");
+            btn.classList.add("btn-danger");
+        } else {
+            btn.textContent = "Simpan Group" + (n > 0 ? " (" + n + ")" : "");
+            btn.classList.remove("btn-outline-info", "btn-danger");
+            btn.classList.add("btn-success");
+        }
+    }
+
+    function openInvoiceGroupModal() {
+        const countEl = document.getElementById("invoiceGroupItemCount");
+        const infoEl = document.getElementById("invoiceGroupItemInfo");
+        const nameEl = document.getElementById("invoiceGroupName");
+        const descEl = document.getElementById("invoiceGroupDescription");
+        const qtyEl = document.getElementById("invoiceGroupQty");
+        const priceEl = document.getElementById("invoiceGroupPrice");
+        const totalEl = document.getElementById("invoiceGroupTotal");
+        const itemById = {};
+        itemsData.forEach((item) => {
+            if (item.id) itemById[item.id] = item;
+        });
+
+        let defaultQty = 0;
+        selectedItemIdsForGroup.forEach((id) => {
+            const it = itemById[id];
+            if (!it) return;
+            defaultQty += parseFloat(it.jumlah || 0) || 0;
+        });
+        if (countEl) countEl.textContent = selectedItemIdsForGroup.size.toString();
+        if (infoEl) {
+            infoEl.classList.toggle("d-none", selectedItemIdsForGroup.size === 0);
+        }
+        if (nameEl) nameEl.value = "";
+        if (descEl) descEl.value = "";
+        if (qtyEl) qtyEl.value = defaultQty > 0 ? defaultQty : "";
+        if (priceEl) priceEl.value = "";
+        if (totalEl) totalEl.value = "";
+        const modalEl = document.getElementById("modalInvoiceGroup");
+        if (!modalEl) return;
+        const modal = new bootstrap.Modal(modalEl);
+        modal.show();
+    }
+    function updateInvoiceGroupModalTotal() {
+        const qtyEl = document.getElementById("invoiceGroupQty");
+        const priceEl = document.getElementById("invoiceGroupPrice");
+        const totalEl = document.getElementById("invoiceGroupTotal");
+        if (!qtyEl || !priceEl || !totalEl) return;
+        const qty = parseFloat(qtyEl.value || "0") || 0;
+        const price = parseFloat(priceEl.value || "0") || 0;
+        const total = qty * price;
+        totalEl.value = total > 0
+            ? "Rp " + total.toLocaleString("id-ID")
+            : "Rp 0";
+    }
+
+    // Preview item state
     let modalFinishingData = [];
     let orderanPreviewObjectUrl = null;
     let currentFileImageInfo = null;
@@ -346,22 +436,37 @@
 
             if (Array.isArray(initial.items) && initial.items.length) {
                 itemsData = initial.items.map((item) => {
+                    const cloned = { ...item }
+                    if (!cloned.id) {
+                        cloned.id = SPKHelper.generateUniqueId();
+                    }
                     return {
-                        ...item,
+                        ...cloned,
                         tugasProduksi:
-                            item.tugasProduksi || item.tugas_produksi || [],
+                            cloned.tugasProduksi || cloned.tugas_produksi || [],
                         filePendukung:
-                            item.filePendukung ||
-                            item.file_pendukung ||
-                            item.files ||
+                            cloned.filePendukung ||
+                            cloned.file_pendukung ||
+                            cloned.files ||
                             [],
                         files:
-                            item.files ||
-                            item.file_pendukung ||
-                            item.filePendukung ||
+                            cloned.files ||
+                            cloned.file_pendukung ||
+                            cloned.filePendukung ||
                             [],
-                        tipe_finishing: item.tipe_finishing || [],
+                        tipe_finishing: cloned.tipe_finishing || [],
                     };
+                });
+            }
+
+            if (Array.isArray(initial.invoiceGroups) && initial.invoiceGroups.length) {
+                invoiceGroups = initial.invoiceGroups.map((g) => {
+                    const group = { ...g };
+                    group.itemIds = (group.itemIds || []).map((id) =>
+                        typeof id === "number" ? id : (parseInt(id, 10) || id)
+                    );
+                    recalcGroupTotal(group);
+                    return group;
                 });
             }
 
@@ -392,6 +497,15 @@
         updateRingkasanBiaya();
         initModalTambahItem();
         updateRekapTab();
+
+        const groupQtyEl = document.getElementById("invoiceGroupQty");
+        const groupPriceEl = document.getElementById("invoiceGroupPrice");
+        if (groupQtyEl) {
+            groupQtyEl.addEventListener("input", updateInvoiceGroupModalTotal);
+        }
+        if (groupPriceEl) {
+            groupPriceEl.addEventListener("input", updateInvoiceGroupModalTotal);
+        }
     });
 
     // --- Event Delegation ---
@@ -445,55 +559,61 @@
             return;
         }
 
-        // Tugas Produksi - Tab
-        // if (
-        //     e.target.closest("#btnTambahTugasTab") ||
-        //     e.target.closest("#btnTambahTugasPertama")
-        // ) {
-        //     editTugasTabIndex = null;
-        //     if (el.formTugas()) el.formTugas().reset();
-        //     if (el.modalTugasLabel())
-        //         el.modalTugasLabel().textContent = "Tambah Tugas Produksi";
-        //     const btnSimpan = document.getElementById("btnSimpanTugas");
-        //     if (btnSimpan) btnSimpan.textContent = "Tambah Tugas";
-        //     new bootstrap.Modal(el.modalTugas()).show();
-        //     return;
-        // }
+        if (e.target.closest("#btnGroupItemsMode")) {
+            e.preventDefault();
+            if (!isGroupingMode) {
+                isGroupingMode = true;
+                selectedItemIdsForGroup.clear();
+                SafeHelper.notify(
+                    "info",
+                    "Grouping",
+                    "Mode grouping aktif. Centang item yang ingin digroup, lalu klik 'Simpan Group' atau 'Batal' untuk membatalkan."
+                );
+                renderItemCards();
+                updateGroupItemsButtonState();
+                return;
+            }
 
-        // // Edit tugas di tab
-        // if (e.target.closest(".btn-edit-tugas-tab")) {
-        //     const idx = parseInt(
-        //         e.target
-        //             .closest(".btn-edit-tugas-tab")
-        //             .getAttribute("data-idx"),
-        //     );
-        //     editTugasTabIndex = idx;
-        //     const tugas = tugasProduksiTabData[idx];
-        //     if (!tugas) return;
-        //     el.inputNamaTugas().value = tugas.nama;
-        //     el.inputDitugaskan().value = tugas.ditugaskan;
-        //     el.inputMesin().value = tugas.mesin || "";
-        //     el.inputWaktu().value = tugas.waktu;
-        //     el.inputHarga().value = tugas.harga;
-        //     el.inputDeskripsi().value = tugas.deskripsi || "";
-        //     el.modalTugasLabel().textContent = "Edit Tugas Produksi";
-        //     const btnSimpan = document.getElementById("btnSimpanTugas");
-        //     if (btnSimpan) btnSimpan.textContent = "Simpan Perubahan";
-        //     new bootstrap.Modal(el.modalTugas()).show();
-        //     return;
-        // }
+            if (selectedItemIdsForGroup.size === 0) {
+                isGroupingMode = false;
+                selectedItemIdsForGroup.clear();
+                renderItemCards();
+                updateGroupItemsButtonState();
+                SafeHelper.notify("info", "Grouping", "Mode grouping dibatalkan.");
+                return;
+            }
 
-        // // Hapus tugas di tab
-        // if (e.target.closest(".btn-delete-tugas-tab")) {
-        //     const idx = parseInt(
-        //         e.target
-        //             .closest(".btn-delete-tugas-tab")
-        //             .getAttribute("data-idx"),
-        //     );
-        //     tugasProduksiTabData.splice(idx, 1);
-        //     updateTugasTabTable();
-        //     return;
-        // }
+            openInvoiceGroupModal();
+            return;
+        }
+        
+        if (e.target.classList.contains("item-select-checkbox")) {
+            const itemId = e.target.getAttribute("data-item-id");
+            if (!itemId) return;
+            if (e.target.checked) {
+                selectedItemIdsForGroup.add(itemId);
+            } else {
+                selectedItemIdsForGroup.delete(itemId);
+            }
+            updateGroupItemsButtonState();
+            return;
+        }
+        
+        if (e.target.closest(".btn-ungroup-group")) {
+            e.preventDefault();
+            const groupId = e.target
+                .closest(".btn-ungroup-group")
+                .getAttribute("data-group-id");
+            if (!groupId) return;
+            invoiceGroups = invoiceGroups.filter((g) => g.id !== groupId);
+            renderItemCards();
+            SafeHelper.notify(
+                "success",
+                "Grouping",
+                "Item berhasil di-ungroup (kembali ke tampilan biasa)."
+            );
+            return;
+        }
 
         // File pendukung - browse
         if (
@@ -815,62 +935,65 @@
     }
 
     function handleGlobalSubmit(e) {
-        // Form modal tugas produksi (selalu prevent default)
-        // if (e.target.id === "formTugasProduksi") {
-        //     e.preventDefault();
-        //     const tugas = {
-        //         nama: el.inputNamaTugas().value,
-        //         ditugaskan: el.inputDitugaskan().value,
-        //         ditugaskan_id:
-        //             document.getElementById("inputDitugaskanId")?.value || "",
-        //         mesin: el.inputMesin().value,
-        //         waktu: el.inputWaktu().value,
-        //         harga: el.inputHarga().value,
-        //         deskripsi: el.inputDeskripsi().value,
-        //     };
-        //     // Validasi minimal
-        //     if (!tugas.nama || !tugas.ditugaskan || !tugas.waktu) {
-        //         SafeHelper.notify(
-        //             "error",
-        //             "Error",
-        //             "Nama/ditugaskan/waktu wajib diisi",
-        //         );
-        //         return;
-        //     }
-
-        //     // Jika form item aktif, simpan ke item tertentu
-        //     const itemTabActive = document
-        //         .getElementById("itemPekerjaan")
-        //         ?.classList.contains("active");
-        //     if (itemTabActive && itemTugasEditIndex !== null) {
-        //         if (!Array.isArray(itemsData[itemTugasEditIndex].tugasProduksi))
-        //             itemsData[itemTugasEditIndex].tugasProduksi = [];
-        //         if (itemTugasEditTaskIndex !== null) {
-        //             itemsData[itemTugasEditIndex].tugasProduksi[
-        //                 itemTugasEditTaskIndex
-        //             ] = tugas;
-        //         } else {
-        //             itemsData[itemTugasEditIndex].tugasProduksi.push(tugas);
-        //         }
-        //         renderItemCards();
-        //         bootstrap.Modal.getOrCreateInstance(el.modalTugas()).hide();
-        //         itemTugasEditIndex = null;
-        //         itemTugasEditTaskIndex = null;
-        //         return;
-        //     }
-        //     // Jika di tab tugas global
-        //     if (el.tabTugasPane()?.classList.contains("active")) {
-        //         if (editTugasTabIndex !== null) {
-        //             tugasProduksiTabData[editTugasTabIndex] = tugas;
-        //         } else {
-        //             tugasProduksiTabData.push(tugas);
-        //         }
-        //         // updateTugasTabTable();
-        //         bootstrap.Modal.getOrCreateInstance(el.modalTugas()).hide();
-        //         editTugasTabIndex = null;
-        //     }
-        //     return;
-        // }
+        if (e.target.id === "formInvoiceGroup") {
+            e.preventDefault();
+            if (selectedItemIdsForGroup.size === 0) {
+                SafeHelper.notify(
+                    "warning",
+                    "Grouping",
+                    "Tidak ada item yang dipilih untuk group."
+                );
+                return;
+            }
+            const nameEl = document.getElementById("invoiceGroupName");
+            const descEl = document.getElementById("invoiceGroupDescription");
+            const qtyEl = document.getElementById("invoiceGroupQty");
+            const priceEl = document.getElementById("invoiceGroupPrice");
+            const name = (nameEl?.value || "").trim();
+            const description = (descEl?.value || "").trim();
+            const qty = parseFloat(qtyEl?.value || "0") || 0;
+            const price = parseFloat(priceEl?.value || "0") || 0;
+            if (!name) {
+                SafeHelper.notify("error", "Grouping", "Nama group wajib diisi.");
+                return;
+            }
+            if (qty <= 0) {
+                SafeHelper.notify("error", "Grouping", "Qty group harus lebih dari 0.");
+                return;
+            }
+            if (price < 0) {
+                SafeHelper.notify("error", "Grouping", "Harga group tidak valid.");
+                return;
+            }
+            const group = {
+                id: SPKHelper.generateUniqueId(),
+                name,
+                description,
+                qty,
+                price,
+                total: 0,
+                itemIds: Array.from(selectedItemIdsForGroup),
+            };
+            recalcGroupTotal(group);
+            invoiceGroups.push(group);
+            // Tutup modal
+            const modalEl = document.getElementById("modalInvoiceGroup");
+            if (modalEl) {
+                const modalInstance = bootstrap.Modal.getInstance(modalEl);
+                modalInstance?.hide();
+            }
+            // Keluar dari mode grouping
+            isGroupingMode = false;
+            selectedItemIdsForGroup.clear();
+            renderItemCards();
+            updateGroupItemsButtonState();
+            SafeHelper.notify(
+                "success",
+                "Grouping",
+                "Group item invoice berhasil disimpan."
+            );
+            return;
+        }
 
         // Form utama SPK: siapkan hidden inputs lalu biarkan submit normal
         if (e.target.id === "formTambahSPK") {
@@ -893,8 +1016,12 @@
 
             if (el.itemsHidden())
                 el.itemsHidden().value = JSON.stringify(itemsData);
-            // if (el.tugasHidden())
-            //     el.tugasHidden().value = JSON.stringify(tugasProduksiTabData);
+            
+            const invoiceGroupsHidden = document.getElementById("invoiceGroupsInput");
+            if (invoiceGroupsHidden) {
+                invoiceGroupsHidden.value = JSON.stringify(invoiceGroups);
+            }
+
             if (el.filePendukungHidden()) {
                 el.filePendukungHidden().value = JSON.stringify(
                     filePendukungData.map((f) => ({
@@ -921,6 +1048,11 @@
         const item = getItemFormData();
         if (!validateItem(item)) return;
         if (editItemIndex !== null) {
+            const existingId = itemsData[editItemIndex]?.id;
+            if (existingId) {
+                item.id = existingId;
+            }
+
             itemsData[editItemIndex] = item;
             keluarModeEdit();
             editItemIndex = null;
@@ -995,7 +1127,7 @@
             }
         }
 
-        return {
+        const baseItem = {
             produk_id: modalProdukId?.value || "",
             nama_produk: modalProdukSelect?.value || "",
             jumlah: modalJumlah?.value || 0,
@@ -1017,6 +1149,12 @@
             filePendukung: deepClone(modalUploadedFiles),
             tipe_finishing: deepClone(modalFinishingData),
         };
+
+        if (!baseItem.id) {
+            baseItem.id = SPKHelper.generateUniqueId();
+        }
+
+        return baseItem;
     }
 
     function validateItem(item) {
@@ -1196,37 +1334,73 @@
         // resetModalTambahItem() sudah menangani reset modal
     }
 
+    let groupCollapseState = {};
+    let activeGroupId = null;
+
+    function toggleGroupCollapse(groupId) {
+        if (activeGroupId === groupId) {
+            activeGroupId = null;
+        } else {
+            activeGroupId = groupId;
+        }
+        renderItemCards();
+    }
+
+    document.addEventListener("click", function (e) {
+        const toggleBtn = e.target.closest(".btn-toggle-group");
+        if (toggleBtn) {
+            const groupId = toggleBtn.dataset.groupId;
+            toggleGroupCollapse(groupId);
+        }
+    });
+
     function renderItemCards() {
         const container = el.itemCardsContainer();
         if (!container) return;
+    
         container.innerHTML = "";
+    
         if (itemsData.length === 0) {
-            container.innerHTML = `<div class="text-center text-muted py-4" id="noItemsMessage">
-                <i class="fa fa-list-alt fa-2x mb-2"></i>
+            container.innerHTML = `
+            <div class="text-center text-muted py-5" id="noItemsMessage">
+                <i class="fa fa-box-open fa-2x mb-2"></i>
                 <p class="mb-0">Belum ada item yang ditambahkan</p>
             </div>`;
             return;
         }
+    
+        const groupedItemIds = getGroupedItemIdsSet();
+        const itemById = {};
+        itemsData.forEach(item => {
+            if (item.id != null && item.id !== "") {
+                const id = item.id;
+                itemById[id] = item;
+                itemById[String(id)] = item;
+                if (typeof id === "string") itemById[Number(id)] = item;
+            }
+        });
+    
+        /* ================================
+           RENDER NORMAL ITEMS
+        ================================ */
         itemsData.forEach((item, idx) => {
             const raw = item.raw_produk || {};
             const isMetric = raw.is_metric === true || raw.is_metric === "true";
             const unit = (raw.metric_unit || "cm").toLowerCase();
-
+    
             let dimensiText = "Non-metric";
             let luasText = "";
-
+    
             if (isMetric) {
                 const panjang = parseFloat(item.panjang) || 0;
                 const lebar = parseFloat(item.lebar) || 0;
-
+    
                 if (panjang > 0 && lebar > 0) {
                     const luas = panjang * lebar;
-
                     const formattedLuas = luas.toLocaleString("id-ID", {
                         minimumFractionDigits: 2,
                         maximumFractionDigits: 2
                     });
-
                     dimensiText = `${lebar} × ${panjang} ${unit}`;
                     luasText = `<small class="text-muted">Luas: ${formattedLuas} ${unit}²</small>`;
                 } else {
@@ -1234,10 +1408,22 @@
                     luasText = `<small class="text-warning">Ukuran belum lengkap</small>`;
                 }
             }
+    
+            const inGroup = item.id && groupedItemIds.has(item.id);
+            const checkboxHtml = isGroupingMode && !inGroup
+                ? `<input type="checkbox" class="form-check-input me-2 item-select-checkbox" data-item-id="${item.id}">`
+                : "";
+            const groupBadge = inGroup ? `<span class="badge bg-secondary ms-1">Grouped</span>` : "";
+            const rowClass = inGroup ? "opacity-75 bg-light" : "";
+    
             container.innerHTML += `
-              <div class="row g-0 border-bottom align-items-center item-card">
+            <div class="row g-0 border-bottom align-items-center item-card ${rowClass}">
                 <div class="col-3 p-3 fw-semibold">
-                  ${item.nama_produk}
+                    <div class="d-flex align-items-center">
+                        ${checkboxHtml}
+                        <span>${item.nama_produk || "-"}</span>
+                        ${groupBadge}
+                    </div>
                 </div>
                 <div class="col-2 p-3">${item.jumlah}</div>
                 <div class="col-2 p-3">${item.satuan}</div>
@@ -1245,17 +1431,99 @@
                     <div class="fw-semibold">${dimensiText}</div>
                     ${luasText}
                 </div>
-                <div class="col-2 p-3">
-                  ${item.keterangan || "-"}
-                </div>
+                <div class="col-2 p-3">${item.keterangan || "-"}</div>
                 <div class="col-1 p-3 text-center">
-                  <div class="d-flex gap-1 justify-content-center">
-                    <button type="button" class="btn btn-sm btn-light btn-edit-item" data-idx="${idx}"><i class="fa fa-edit"></i></button>
-                    <button type="button" class="btn btn-sm btn-light text-danger btn-delete-item" data-idx="${idx}"><i class="fa fa-trash"></i></button>
-                  </div>
+                    <div class="d-flex gap-1 justify-content-center">
+                        <button type="button" class="btn btn-sm btn-light btn-edit-item" data-idx="${idx}">
+                            <i class="fa fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-light text-danger btn-delete-item" data-idx="${idx}">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-              </div>
-            `;
+            </div>`;
+        });
+    
+        /* ================================
+           HEADER GROUP SECTION
+        ================================ */
+        if (invoiceGroups.length > 0) {
+            container.innerHTML += `
+            <div class="mt-4 mb-2 px-2">
+                <div class="fw-bold text-muted small border-top pt-3">
+                    <i class="fa fa-layer-group me-1"></i>Group Items
+                </div>
+            </div>`;
+        }
+    
+        /* ================================
+           RENDER GROUP
+        ================================ */
+        invoiceGroups.forEach(group => {
+            const collapsed = activeGroupId !== group.id; 
+            const isActive = !collapsed;
+            const icon = collapsed ? "fa-chevron-down" : "fa-chevron-up";
+            const headerClass = isActive
+                ? "card-header bg-primary bg-opacity-10" 
+                : "card-header"; 
+            const groupItems = (group.itemIds || [])
+                .map(id => itemById[id] || itemById[String(id)] || itemById[Number(id)])
+                .filter(Boolean);
+            const itemCount = groupItems.length;
+            const childListHtml = groupItems.map(it => {
+                const qty = parseFloat(it.jumlah || 0) || 0;
+                const satuan = it.satuan || "";
+                return `
+                <div class="border rounded p-2 mb-1 bg-white">
+                    <div class="d-flex justify-content-between">
+                        <span class="fw-semibold">
+                            <i class="fa fa-cube text-secondary me-1"></i>
+                            ${it.nama_produk || "-"}
+                        </span>
+                        <span class="text-muted small">${qty} ${satuan}</span>
+                    </div>
+                </div>`;
+            }).join("");
+    
+            container.innerHTML += `
+            <div class="card mb-3 border-primary shadow-sm">
+                <div class="${headerClass}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="fw-bold">
+                            <button class="btn btn-sm btn-light me-2 btn-toggle-group" data-group-id="${group.id}">
+                                <i class="fa ${icon}"></i>
+                            </button>
+                            ${group.name}
+                        </div>
+                        <span class="badge bg-primary">${itemCount} item</span>
+                    </div>
+                </div>
+                ${collapsed ? "" : `
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-4">
+                            <small class="text-muted">Qty</small>
+                            <div class="fw-semibold">${group.qty}</div>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Harga</small>
+                            <div class="fw-semibold">Rp ${group.price.toLocaleString("id-ID")}</div>
+                        </div>
+                        <div class="col-4">
+                            <small class="text-muted">Total</small>
+                            <div class="fw-bold text-success">Rp ${group.total.toLocaleString("id-ID")}</div>
+                        </div>
+                    </div>
+                    <div class="small text-muted mb-2">Item dalam group</div>
+                    ${childListHtml}
+                </div>
+                <div class="card-footer text-end bg-white">
+                    <button type="button" class="btn btn-sm btn-outline-danger btn-ungroup-group" data-group-id="${group.id}">
+                        <i class="fa fa-unlink me-1"></i> Ungroup
+                    </button>
+                </div>`}
+            </div>`;
         });
     }
 
@@ -1268,7 +1536,6 @@
         const totalBiaya = itemsData.reduce((sum, item) => {
             const biayaProduk = parseFloat(item.biaya_produk || 0) || 0;
 
-            // Finishing: sama seperti di model, ambil total dari tiap finishing
             const biayaFinishing = Array.isArray(item.tipe_finishing)
                 ? item.tipe_finishing.reduce(
                       (s, f) => s + parseFloat(f.total || 0) || 0,

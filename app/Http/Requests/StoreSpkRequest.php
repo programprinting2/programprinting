@@ -19,6 +19,7 @@ class StoreSpkRequest extends FormRequest
             'status' => 'nullable|string|in:draft,proses_bayar,proses_produksi,sudah_cetak,siap_antar',
             'catatan' => 'nullable|string|max:1000',
             'items' => 'required|array|min:1|max:50',
+            'items.*.id' => 'nullable|integer|exists:spk_items,id',
             'items.*.produk_id' => 'nullable|exists:produk,id',
             'items.*.nama_produk' => 'required|string|max:255',
             'items.*.jumlah' => 'required|numeric|min:0.01|max:999999',
@@ -33,6 +34,7 @@ class StoreSpkRequest extends FormRequest
             'items.*.tipe_finishing' => 'nullable|array',
             'items.*.tugas_produksi' => 'nullable|array',
             'items.*.file_pendukung' => 'nullable|array',
+            'invoice_groups' => 'nullable|array',
         ];
     }
 
@@ -74,9 +76,27 @@ class StoreSpkRequest extends FormRequest
             $items = [];
         }
 
+        if ($this->has('invoice_groups')) {
+            $groups = $this->input('invoice_groups');
+            if (is_string($groups)) {
+                $decoded = json_decode($groups, true);
+                $groups = (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) ? $decoded : [];
+            }
+            if (!is_array($groups)) {
+                $groups = [];
+            }
+            $this->merge(['invoice_groups' => $groups]);
+        }
+
         foreach ($items as $key => $item) {
             if (!is_array($item)) {
                 continue;
+            }
+
+            if (isset($item['id']) && $item['id'] !== '') {
+                $items[$key]['id'] = (int) $item['id'];
+            } else {
+                $items[$key]['id'] = null;
             }
 
             // Normalisasi dari camelCase (JS) ke snake_case

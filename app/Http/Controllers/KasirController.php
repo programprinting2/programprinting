@@ -19,101 +19,22 @@ class KasirController extends Controller
         return view('pages.kasir.index', compact('spkList', 'statusPembayaranList'));
     }
 
-    public function show($no)
+    public function show(SPK $spk)
     {
-        // Data dummy detail invoice
-        $invoice = [
-            'no' => 'INV-2023-001',
-            'status' => 'pending',
-            'tanggal' => '15 Juli 2023',
-            'jatuh_tempo' => '15 Agustus 2023',
-            'spk_no' => 'SPK-2023-001',
-            'customer' => [
-                'nama' => 'PT Maju Bersama Indonesia',
-                'email' => 'admin@majubersama.co.id',
-                'telp' => '021-5552890',
-                'catatan' => 'Pembayaran dapat dilakukan via transfer bank',
-            ],
-            'ringkasan' => [
-                'subtotal' => 800000,
-                'pajak' => 88000,
-                'diskon' => 50000,
-                'total' => 838000,
-                'dibayar' => 0,
-                'sisa' => 450000,
-            ],
-            'items' => [
-                [
-                    'deskripsi' => 'Cetak Spanduk Outdoor',
-                    'jumlah' => 2,
-                    'harga' => 150000,
-                    'pajak' => '11%',
-                    'diskon' => '0%',
-                    'total' => 300000,
-                ],
-                [
-                    'deskripsi' => 'Cetak Brosur A4 Full Color',
-                    'jumlah' => 500,
-                    'harga' => 1000,
-                    'pajak' => '11%',
-                    'diskon' => '10%',
-                    'total' => 500000,
-                ],
-            ],
-            'pembayaran' => [],
-        ];
-        return view('pages.kasir.detail', compact('invoice'));
+        $spk->load(['pelanggan', 'items', 'pembayaran']);
+        $invoice = $this->kasirService->buildInvoiceFromSpk($spk);
+
+        return view('pages.kasir.detail', compact('invoice', 'spk'));
     }
 
-    public function print($no)
+    public function print(SPK $spk)
     {
-        // Data dummy detail invoice (sama dengan show)
-        $invoice = [
-            'no' => 'INV-2023-001',
-            'status' => 'pending',
-            'tanggal' => '15 Juli 2023',
-            'jatuh_tempo' => '15 Agustus 2023',
-            'spk_no' => 'SPK-1',
-            'customer' => [
-                'nama' => 'PT Maju Bersama Indonesia',
-                'email' => 'admin@majubersama.co.id',
-                'telp' => '021-5552890',
-                'catatan' => 'Pembayaran dapat dilakukan via transfer bank',
-            ],
-            'ringkasan' => [
-                'subtotal' => 800000,
-                'pajak' => 88000,
-                'diskon' => 50000,
-                'total' => 838000,
-                'dibayar' => 0,
-                'sisa' => 450000,
-            ],
-            'items' => [
-                [
-                    'deskripsi' => 'Cetak Spanduk Outdoor',
-                    'jumlah' => 2,
-                    'harga' => 150000,
-                    'pajak' => '11%',
-                    'diskon' => '0%',
-                    'total' => 300000,
-                ],
-                [
-                    'deskripsi' => 'Cetak Brosur A4 Full Color',
-                    'jumlah' => 500,
-                    'harga' => 1000,
-                    'pajak' => '11%',
-                    'diskon' => '10%',
-                    'total' => 500000,
-                ],
-            ],
-            'pembayaran' => [],
-        ];
+        $spk->load(['pelanggan', 'items', 'pembayaran']);
+        $invoice = $this->kasirService->buildInvoiceFromSpk($spk);
 
-        // Load dompdf
         $pdf = \PDF::loadView('pages.kasir.cetak', compact('invoice'));
-        
-        // Render file PDF
-        return $pdf->stream("invoice-{$no}.pdf");
+
+        return $pdf->stream("invoice-{$spk->nomor_spk}.pdf");
     }
 
     public function payment(SPK $spk)

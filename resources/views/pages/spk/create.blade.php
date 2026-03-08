@@ -36,7 +36,8 @@
   <form id="formTambahSPK" action="{{ route('spk.store') }}" method="POST">
     @csrf
     <input type="hidden" name="items" id="itemsInput">
-    <!-- <input type="hidden" name="tugas_produksi" id="tugasProduksiInput"> -->
+    <input type="hidden" name="invoice_groups" id="invoiceGroupsInput">
+
     <div class="row">
       <!-- Sidebar kiri: informasi pelanggan -->
       <div class="col-md-3">
@@ -102,7 +103,14 @@
             <div class="card border-0 shadow-sm">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <h6 class="mb-0 fw-semibold"><i class="fa fa-list me-2"></i>Daftar Item Pekerjaan</h6>
-                <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem"><i class="fa fa-plus"></i> Tambah Item</button>
+                <div class="d-flex gap-2 align-items-center">
+                  <button type="button" class="btn btn-outline-info mb-3" id="btnGroupItemsMode">
+                    Group Items
+                  </button>
+                  <button type="button" class="btn btn-outline-primary mb-3" id="btnTambahItem">
+                    <i class="fa fa-plus"></i> Tambah Item
+                  </button>
+                </div>
               </div>
               <div class="card-body p-3">
                 <div class="row g-2 border-bottom bg-light fw-semibold small">
@@ -1362,6 +1370,63 @@
     </div>
   </div>
 
+  <!-- Modal Grouping Item  -->
+  <div class="modal fade" id="modalInvoiceGroup" tabindex="-1" aria-labelledby="modalInvoiceGroupLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form id="formInvoiceGroup">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalInvoiceGroupLabel">
+              <i class="fa fa-object-group me-1"></i> Buat Group Item Invoice
+            </h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+          </div>
+          <div class="modal-body">
+            <div class="alert alert-info py-2 small mb-3" id="invoiceGroupItemInfo">
+              <span class="fw-semibold" id="invoiceGroupItemCount">0</span> item akan dimasukkan ke group ini.
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Nama Group <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="invoiceGroupName" required>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Keterangan</label>
+              <textarea class="form-control" id="invoiceGroupDescription" rows="2" placeholder="Keterangan tambahan untuk invoice (opsional)"></textarea>
+            </div>
+
+            <div class="row g-2">
+              <div class="col-md-4">
+                <label class="form-label">Qty Group <span class="text-danger">*</span></label>
+                <input type="number" class="form-control text-end" id="invoiceGroupQty" min="0.01" step="0.01" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Harga Satuan Group <span class="text-danger">*</span></label>
+                <input type="number" class="form-control text-end" id="invoiceGroupPrice" min="0" step="0.01" required>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">Total Group</label>
+                <input type="text" class="form-control text-end bg-light" id="invoiceGroupTotal" readonly>
+              </div>
+            </div>
+
+            <small class="text-muted d-block mt-2">
+              Total group = Qty Group × Harga Satuan Group. Nilai ini yang akan dipakai di invoice kasir.
+              Stok & perhitungan produksi tetap mengikuti item asli di bawahnya.
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fa fa-save me-1"></i> Simpan Group
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
   <style>
     .explorer-item {
       display: flex;
@@ -1425,6 +1490,11 @@
       opacity: 0.8;
       cursor: not-allowed;
     }
+
+    .item-card:hover{
+      background:#fafafa;
+    }
+    
   </style>
 @endsection
 

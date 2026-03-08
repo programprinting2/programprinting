@@ -60,4 +60,94 @@ class KasirService
             return $payment;
         });
     }
+
+    public function buildInvoiceFromSpk(SPK $spk): array
+    {
+        $spk->loadMissing(['pelanggan', 'items']);
+
+        $groups = $spk->invoice_groups ?? [];
+        if (!is_array($groups)) {
+            $groups = [];
+        }
+
+        $items = [];
+        $subtotal = 0;
+
+        $itemsById = [];
+        foreach ($spk->items as $item) {
+            $itemsById[$item->id] = $item;
+        }
+
+        $groupedItemIds = [];
+        foreach ($groups as $group) {
+            $qty = (float) ($group['qty'] ?? 0);
+            $price = (float) ($group['price'] ?? 0);
+            $total = $qty * $price;
+
+            $items[] = [
+                'deskripsi' => '[Group] ' . ($group['name'] ?? 'Group'),
+                'jumlah' => $qty,
+                'harga' => $price,
+                'pajak' => '0%',
+                'diskon' => '0%',
+                'total' => $total,
+            ];
+
+            $subtotal += $total;
+
+            foreach ($group['itemIds'] ?? [] as $id) {
+                $groupedItemIds[] = $id;
+            }
+        }
+
+        $groupedItemIds = array_unique($groupedItemIds);
+        foreach ($spk->items as $item) {
+            if (in_array($item->id, $groupedItemIds, true)) {
+                continue;
+            }
+
+            $qty = (float) $item->jumlah;
+            $totalBiaya = (float) $item->total_biaya;
+            $price = $qty > 0 ? $totalBiaya / $qty : $totalBiaya;
+
+            $items[] = [
+                'deskripsi' => $item->nama_produk,
+                'jumlah' => $qty,
+                'harga' => $price,
+                'pajak' => '0%',
+                'diskon' => '0%',
+                'total' => $totalBiaya,
+            ];
+
+            $subtotal += $totalBiaya;
+        }
+
+        $pajak = 0;
+        $diskon = 0;
+        $total = $subtotal + $pajak - $diskon;
+
+        return [
+            'no' => 'INV-' . $spk->nomor_spk,
+            'status' => 'pending',
+            'tanggal' => now()->format('d M Y'),
+            'jatuh_tempo' => now()->addDays(14)->format('d M Y'),
+            'spk_no' => $spk->nomor_spk,
+            'customer' => [
+                'nama' => $spk->pelanggan->nama ?? '-',
+                'email' => $spk->pelanggan->email ?? '-',
+                'telp' => $spk->pelanggan->no_telp ?? '-',
+                'catatan' => $spk->catatan ?? '',
+            ],
+            'ringkasan' => [
+                'subtotal' => $subtotal,
+                'pajak' => $pajak,
+                'diskon' => $diskon,
+                'total' => $total,
+                'dibayar' => (float) $spk->total_dibayar,
+                'sisa' => max(0.0, $total - (float) $spk->total_dibayar),
+            ],
+            'items' => $items,
+            'pembayaran' => [], 
+        ];
+    }
 }
