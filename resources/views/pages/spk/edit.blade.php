@@ -1389,11 +1389,6 @@
                 <input type="text" class="form-control text-end bg-light" id="invoiceGroupTotal" readonly>
               </div>
             </div>
-
-            <small class="text-muted d-block mt-2">
-              Total group = Qty Group × Harga Satuan Group. Nilai ini yang akan dipakai di invoice kasir.
-              Stok & perhitungan produksi tetap mengikuti item asli di bawahnya.
-            </small>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>

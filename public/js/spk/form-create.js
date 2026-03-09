@@ -488,6 +488,21 @@
             }
         }
 
+        const modalInvoiceGroupEl = document.getElementById("modalInvoiceGroup");
+        if (modalInvoiceGroupEl) {
+            modalInvoiceGroupEl.addEventListener("hidden.bs.modal", () => {
+                if (isGroupingMode) {
+                    isGroupingMode = false;
+                    selectedItemIdsForGroup.clear();
+                    activeEditingGroupId = null;
+                    renderItemCards();
+                    if (typeof updateGroupItemsButtonState === "function") {
+                        updateGroupItemsButtonState();
+                    }
+                }
+            });
+        }
+
         wireGlobalDelegates();
         initFileUpload();
         initExternalModals();
@@ -612,6 +627,49 @@
                 "Grouping",
                 "Item berhasil di-ungroup (kembali ke tampilan biasa)."
             );
+            return;
+        }
+
+        if (e.target.closest(".btn-edit-group")) {
+            e.preventDefault();
+            const groupId = e.target.closest(".btn-edit-group").getAttribute("data-group-id");
+            const group = invoiceGroups.find(g => g.id === groupId);
+            if (!group) return;
+
+            activeEditingGroupId = group.id;
+
+            // Siapkan selection item group sekarang
+            selectedItemIdsForGroup = new Set((group.itemIds || []).map(id => String(id)));
+
+            // Prefill modal
+            const nameEl = document.getElementById("invoiceGroupName");
+            const descEl = document.getElementById("invoiceGroupDescription");
+            const qtyEl = document.getElementById("invoiceGroupQty");
+            const priceEl = document.getElementById("invoiceGroupPrice");
+
+            if (nameEl) nameEl.value = group.name || "";
+            if (descEl) descEl.value = group.description || "";
+            if (qtyEl) qtyEl.value = group.qty || "";
+            if (priceEl) priceEl.value = group.price || "";
+
+            isGroupingMode = true;
+            renderItemCards();
+            updateGroupItemsButtonState();
+
+            openInvoiceGroupModal();
+            return;
+        }
+
+        if (e.target.closest(".btn-remove-from-group")) {
+            e.preventDefault();
+            const btn = e.target.closest(".btn-remove-from-group");
+            const groupId = btn.getAttribute("data-group-id");
+            const itemId = btn.getAttribute("data-item-id");
+            const group = invoiceGroups.find(g => g.id === groupId);
+            if (!group) return;
+
+            group.itemIds = (group.itemIds || []).filter(id => String(id) !== String(itemId));
+            renderItemCards();
             return;
         }
 
@@ -937,6 +995,7 @@
     function handleGlobalSubmit(e) {
         if (e.target.id === "formInvoiceGroup") {
             e.preventDefault();
+
             if (selectedItemIdsForGroup.size === 0) {
                 SafeHelper.notify(
                     "warning",
@@ -945,14 +1004,17 @@
                 );
                 return;
             }
+
             const nameEl = document.getElementById("invoiceGroupName");
             const descEl = document.getElementById("invoiceGroupDescription");
             const qtyEl = document.getElementById("invoiceGroupQty");
             const priceEl = document.getElementById("invoiceGroupPrice");
+
             const name = (nameEl?.value || "").trim();
             const description = (descEl?.value || "").trim();
             const qty = parseFloat(qtyEl?.value || "0") || 0;
             const price = parseFloat(priceEl?.value || "0") || 0;
+
             if (!name) {
                 SafeHelper.notify("error", "Grouping", "Nama group wajib diisi.");
                 return;
@@ -965,8 +1027,8 @@
                 SafeHelper.notify("error", "Grouping", "Harga group tidak valid.");
                 return;
             }
-            const group = {
-                id: SPKHelper.generateUniqueId(),
+
+            const groupData = {
                 name,
                 description,
                 qty,
@@ -974,19 +1036,42 @@
                 total: 0,
                 itemIds: Array.from(selectedItemIdsForGroup),
             };
-            recalcGroupTotal(group);
-            invoiceGroups.push(group);
+
+            if (activeEditingGroupId) {
+                // EDIT GROUP
+                const idx = invoiceGroups.findIndex(g => g.id === activeEditingGroupId);
+                if (idx !== -1) {
+                    const updated = {
+                        ...invoiceGroups[idx],
+                        ...groupData,
+                    };
+                    recalcGroupTotal(updated);
+                    invoiceGroups[idx] = updated;
+                }
+            } else {
+                // CREATE GROUP
+                const group = {
+                    id: SPKHelper.generateUniqueId(),
+                    ...groupData,
+                };
+                recalcGroupTotal(group);
+                invoiceGroups.push(group);
+            }
+
             // Tutup modal
             const modalEl = document.getElementById("modalInvoiceGroup");
             if (modalEl) {
                 const modalInstance = bootstrap.Modal.getInstance(modalEl);
                 modalInstance?.hide();
             }
-            // Keluar dari mode grouping
+
+            // Reset state
+            activeEditingGroupId = null;
             isGroupingMode = false;
             selectedItemIdsForGroup.clear();
             renderItemCards();
             updateGroupItemsButtonState();
+
             SafeHelper.notify(
                 "success",
                 "Grouping",
@@ -1334,7 +1419,7 @@
         // resetModalTambahItem() sudah menangani reset modal
     }
 
-    let groupCollapseState = {};
+    let activeEditingGroupId = null;
     let activeGroupId = null;
 
     function toggleGroupCollapse(groupId) {
@@ -1371,17 +1456,18 @@
     
         const groupedItemIds = getGroupedItemIdsSet();
         const itemById = {};
-        itemsData.forEach(item => {
+        itemsData.forEach((item, idx) => {
             if (item.id != null && item.id !== "") {
                 const id = item.id;
-                itemById[id] = item;
-                itemById[String(id)] = item;
-                if (typeof id === "string") itemById[Number(id)] = item;
+                const entry = { item, idx };
+                itemById[id] = entry;
+                itemById[String(id)] = entry;
+                if (typeof id === "string") itemById[Number(id)] = entry;
             }
         });
     
         /* ================================
-           RENDER NORMAL ITEMS
+           RENDER NORMAL ITEMS (list utama)
         ================================ */
         itemsData.forEach((item, idx) => {
             const raw = item.raw_produk || {};
@@ -1410,11 +1496,21 @@
             }
     
             const inGroup = item.id && groupedItemIds.has(item.id);
-            const checkboxHtml = isGroupingMode && !inGroup
+    
+            // Normal mode: item yang sudah tergroup tidak tampil di list utama
+            if (!isGroupingMode && inGroup) {
+                return;
+            }
+    
+            const checkboxHtml = isGroupingMode
                 ? `<input type="checkbox" class="form-check-input me-2 item-select-checkbox" data-item-id="${item.id}">`
                 : "";
-            const groupBadge = inGroup ? `<span class="badge bg-secondary ms-1">Grouped</span>` : "";
-            const rowClass = inGroup ? "opacity-75 bg-light" : "";
+    
+            const groupBadge = isGroupingMode && inGroup
+                ? `<span class="badge bg-secondary ms-1">Dalam group</span>`
+                : "";
+    
+            const rowClass = isGroupingMode && inGroup ? "opacity-75 bg-light" : "";
     
             container.innerHTML += `
             <div class="row g-0 border-bottom align-items-center item-card ${rowClass}">
@@ -1458,30 +1554,50 @@
         }
     
         /* ================================
-           RENDER GROUP
+           RENDER GROUP (accordion)
         ================================ */
         invoiceGroups.forEach(group => {
-            const collapsed = activeGroupId !== group.id; 
+            const collapsed = activeGroupId !== group.id;
             const isActive = !collapsed;
             const icon = collapsed ? "fa-chevron-down" : "fa-chevron-up";
             const headerClass = isActive
-                ? "card-header bg-primary bg-opacity-10" 
-                : "card-header"; 
+                ? "card-header bg-primary bg-opacity-10"
+                : "card-header";
+    
             const groupItems = (group.itemIds || [])
                 .map(id => itemById[id] || itemById[String(id)] || itemById[Number(id)])
                 .filter(Boolean);
+    
             const itemCount = groupItems.length;
-            const childListHtml = groupItems.map(it => {
+    
+            const childListHtml = groupItems.map(entry => {
+                const it = entry.item;
+                const idx = entry.idx;
                 const qty = parseFloat(it.jumlah || 0) || 0;
                 const satuan = it.satuan || "";
                 return `
                 <div class="border rounded p-2 mb-1 bg-white">
-                    <div class="d-flex justify-content-between">
-                        <span class="fw-semibold">
-                            <i class="fa fa-cube text-secondary me-1"></i>
-                            ${it.nama_produk || "-"}
-                        </span>
-                        <span class="text-muted small">${qty} ${satuan}</span>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <span class="fw-semibold">
+                                <i class="fa fa-cube text-secondary me-1"></i>
+                                ${it.nama_produk || "-"}
+                            </span>
+                            <span class="text-muted small ms-2">${qty} ${satuan}</span>
+                        </div>
+                        <div class="btn-group btn-group-sm gap-2">
+                            <button type="button"
+                                    class="btn btn-light btn-edit-item"
+                                    data-idx="${idx}">
+                                <i class="fa fa-edit"></i>
+                            </button>
+                            <button type="button"
+                                    class="btn btn-light text-danger btn-remove-from-group"
+                                    data-group-id="${group.id}"
+                                    data-item-id="${it.id}">
+                                <i class="fa fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                 </div>`;
             }).join("");
@@ -1496,7 +1612,19 @@
                             </button>
                             ${group.name}
                         </div>
-                        <span class="badge bg-primary">${itemCount} item</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary">${itemCount} item</span>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-secondary btn-edit-group"
+                                    data-group-id="${group.id}">
+                                <i class="fa fa-edit me-1"></i>Edit Group
+                            </button>
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger btn-ungroup-group"
+                                    data-group-id="${group.id}">
+                                <i class="fa fa-unlink me-1"></i>Ungroup
+                            </button>
+                        </div>
                     </div>
                 </div>
                 ${collapsed ? "" : `
@@ -1517,11 +1645,6 @@
                     </div>
                     <div class="small text-muted mb-2">Item dalam group</div>
                     ${childListHtml}
-                </div>
-                <div class="card-footer text-end bg-white">
-                    <button type="button" class="btn btn-sm btn-outline-danger btn-ungroup-group" data-group-id="${group.id}">
-                        <i class="fa fa-unlink me-1"></i> Ungroup
-                    </button>
                 </div>`}
             </div>`;
         });
