@@ -270,6 +270,7 @@
                         <th>Pelanggan</th>
                         <th>Status</th>
                         <th>Total Biaya</th>
+                        <th>Progress</th>
                         <th>Aksi</th>
                         <th>Otorisasi</th>
                     </tr>
@@ -366,6 +367,39 @@
                                 <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
                             </td>
                             <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
+                            @php
+                                $items = $item->items ?? collect(); 
+
+                                $totalQty = $items->sum(function($it) {
+                                    return (float) ($it->jumlah ?? 0);
+                                });
+
+                                $weightedProgressSum = $items->sum(function($it) {
+                                    $qty   = (float) ($it->jumlah ?? 0);
+                                    $pct   = (float) ($it->progress_cetak_persen ?? 0);
+                                    return $qty * $pct;
+                                });
+
+                                $spkProgressPct = $totalQty > 0
+                                    ? round($weightedProgressSum / $totalQty)
+                                    : 0;
+
+                                $spkProgressColor = $spkProgressPct >= 100
+                                    ? 'bg-success'
+                                    : ($spkProgressPct >= 50 ? 'bg-warning' : 'bg-primary');
+                            @endphp
+
+                            <td class="text-end align-middle">
+                                <div class="progress" style="height:6px;">
+                                    <div class="progress-bar {{ $spkProgressColor }}"
+                                        role="progressbar"
+                                        style="width: {{ $spkProgressPct }}%;"
+                                        aria-valuenow="{{ $spkProgressPct }}"
+                                        aria-valuemin="0"
+                                        aria-valuemax="100"></div>
+                                </div>
+                                <div class="small mt-1">{{ $spkProgressPct }}%</div>
+                            </td>
                             <td>
                                 <div class="btn-group gap-1" role="group">
                                     <a href="{{ route('spk.show', $item) }}" class="btn btn-primary btn-xs btn-icon rounded" title="Detail">
@@ -399,7 +433,7 @@
 
                         <!-- Collapse Row -->
                         <tr class="spk-row" data-status="{{ $item->status }}">
-                            <td colspan="8" class="p-0 border-0">
+                            <td colspan="9" class="p-0 border-0">
                                 <div id="{{ $collapseId }}" class="collapse spk-collapse" data-bs-parent="#accordionSpk">
                                     <div class="border border-2 px-4 py-3">
                                         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -448,6 +482,7 @@
                                                       <th class="align-middle">Ukuran / Luas</th>
                                                       <th class="text-end align-middle">Jumlah</th>
                                                       <th class="align-middle">Satuan</th>
+                                                      <th class="text-end align-middle">Progress</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody style="background-color: #ffffff;">
@@ -524,6 +559,32 @@
                                                             </td>
                                                             <td class="text-end">{{ $spkItem->jumlah }}</td>
                                                             <td>{{ $spkItem->satuan }}</td>
+                                                            @php
+                                                                $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
+                                                                $sisa        = (int)  ($spkItem->sisa_belum_cetak ?? 0);
+                                                                $progressColor = $progressPct >= 100
+                                                                    ? 'bg-success'
+                                                                    : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
+                                                            @endphp
+
+                                                            <td class="text-end align-middle">
+                                                                @if($sisa <= 0)
+                                                                    <span class="badge bg-success mb-2">Selesai</span>
+                                                                @else
+                                                                    <div class="small text-danger fw-semibold mb-1">
+                                                                        Sisa: {{ number_format($sisa, 0, ',', '.') }} {{ $spkItem->satuan }}
+                                                                    </div>
+                                                                @endif
+                                                                <div class="progress" style="height:6px;">
+                                                                    <div class="progress-bar {{ $progressColor }}"
+                                                                        role="progressbar"
+                                                                        style="width: {{ $progressPct }}%;"
+                                                                        aria-valuenow="{{ $progressPct }}"
+                                                                        aria-valuemin="0"
+                                                                        aria-valuemax="100"></div>
+                                                                </div>
+                                                                <div class="small">{{ $progressPct }}%</div>
+                                                            </td>
                                                         </tr>
                                                     @empty
                                                         <tr>
