@@ -90,31 +90,54 @@
         const qtyEl = document.getElementById("invoiceGroupQty");
         const priceEl = document.getElementById("invoiceGroupPrice");
         const totalEl = document.getElementById("invoiceGroupTotal");
+    
+        const isEditMode = !!activeEditingGroupId;
+    
         const itemById = {};
         itemsData.forEach((item) => {
-            if (item.id) itemById[item.id] = item;
+            if (item.id) itemById[String(item.id)] = item;
         });
+    
+        if (isEditMode) {
+            const group = invoiceGroups.find(g => g.id === activeEditingGroupId);
+            const itemIds = group?.itemIds || [];
 
-        let defaultQty = 0;
-        selectedItemIdsForGroup.forEach((id) => {
-            const it = itemById[id];
-            if (!it) return;
-            defaultQty += parseFloat(it.jumlah || 0) || 0;
-        });
-        if (countEl) countEl.textContent = selectedItemIdsForGroup.size.toString();
-        if (infoEl) {
-            infoEl.classList.toggle("d-none", selectedItemIdsForGroup.size === 0);
+            if (nameEl) nameEl.value = group?.name || "";
+            if (descEl) descEl.value = group?.description || "";
+            if (qtyEl) qtyEl.value = group?.qty || "";
+            if (priceEl) priceEl.value = group?.price || "";
+    
+            if (countEl) countEl.textContent = itemIds.length.toString();
+            if (infoEl) infoEl.classList.toggle("d-none", itemIds.length === 0);
+
+            updateInvoiceGroupModalTotal();
+        } else {
+
+            let defaultQty = 0;
+            selectedItemIdsForGroup.forEach((id) => {
+                const it = itemById[String(id)];
+                if (!it) return;
+                defaultQty += parseFloat(it.jumlah || 0) || 0;
+            });
+    
+            if (countEl) countEl.textContent = selectedItemIdsForGroup.size.toString();
+            if (infoEl) {
+                infoEl.classList.toggle("d-none", selectedItemIdsForGroup.size === 0);
+            }
+    
+            if (nameEl) nameEl.value = "";
+            if (descEl) descEl.value = "";
+            if (qtyEl) qtyEl.value = defaultQty > 0 ? defaultQty : "";
+            if (priceEl) priceEl.value = "";
+            if (totalEl) totalEl.value = "";
         }
-        if (nameEl) nameEl.value = "";
-        if (descEl) descEl.value = "";
-        if (qtyEl) qtyEl.value = defaultQty > 0 ? defaultQty : "";
-        if (priceEl) priceEl.value = "";
-        if (totalEl) totalEl.value = "";
+    
         const modalEl = document.getElementById("modalInvoiceGroup");
         if (!modalEl) return;
         const modal = new bootstrap.Modal(modalEl);
         modal.show();
     }
+
     function updateInvoiceGroupModalTotal() {
         const qtyEl = document.getElementById("invoiceGroupQty");
         const priceEl = document.getElementById("invoiceGroupPrice");
@@ -635,31 +658,17 @@
             const groupId = e.target.closest(".btn-edit-group").getAttribute("data-group-id");
             const group = invoiceGroups.find(g => g.id === groupId);
             if (!group) return;
-
+        
             activeEditingGroupId = group.id;
-
-            // Siapkan selection item group sekarang
             selectedItemIdsForGroup = new Set((group.itemIds || []).map(id => String(id)));
-
-            // Prefill modal
-            const nameEl = document.getElementById("invoiceGroupName");
-            const descEl = document.getElementById("invoiceGroupDescription");
-            const qtyEl = document.getElementById("invoiceGroupQty");
-            const priceEl = document.getElementById("invoiceGroupPrice");
-
-            if (nameEl) nameEl.value = group.name || "";
-            if (descEl) descEl.value = group.description || "";
-            if (qtyEl) qtyEl.value = group.qty || "";
-            if (priceEl) priceEl.value = group.price || "";
-
+        
             isGroupingMode = true;
             renderItemCards();
             updateGroupItemsButtonState();
-
+        
             openInvoiceGroupModal();
             return;
         }
-
         if (e.target.closest(".btn-remove-from-group")) {
             e.preventDefault();
             const btn = e.target.closest(".btn-remove-from-group");
