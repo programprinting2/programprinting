@@ -13,11 +13,16 @@
     <div class="col-md-12 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-            <div class="row">
-            <h6 class="card-title mb-0">Data Pekerjaan Operator Cetak</h6>
-            <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Operator Cetak.</p>
-    </div>
+          <div class="d-flex justify-content-between align-items-center mb-3">
+              <div>
+                  <h6 class="card-title mb-0">Data Pekerjaan Operator Cetak</h6>
+                  <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Operator Cetak.</p>
+              </div>
+              <div>
+                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalGlobalCetakHistory">
+                      <i class="fa fa-history me-1"></i> History
+                  </button>
+              </div>
           </div>
           <div class="row g-3 mb-4" id="operatorTabs" role="tablist">
             <!-- <div class="col-md-3">
@@ -781,6 +786,123 @@
         }
       }
 
+      (function () {
+        const modalEl = document.getElementById('modalGlobalCetakHistory');
+        if (!modalEl) return;
+
+        const tbody = document.getElementById('globalHistoryBody');
+        const paginationEl = document.getElementById('globalHistoryPagination');
+        const rentangGroup = document.getElementById('rentangDateGroup');
+        const rentangToGroup = document.getElementById('rentangDateToGroup');
+
+        function toggleRentangInputs() {
+          const selected = document.querySelector('input[name="filterHistory"]:checked')?.value;
+          const show = selected === 'rentang';
+          rentangGroup.classList.toggle('d-none', !show);
+          rentangToGroup.classList.toggle('d-none', !show);
+        }
+
+        document.querySelectorAll('input[name="filterHistory"]').forEach(radio => {
+          radio.addEventListener('change', toggleRentangInputs);
+        });
+
+        function loadGlobalHistory(page = 1) {
+          const filter = document.querySelector('input[name="filterHistory"]:checked')?.value || 'bulan_ini';
+          const params = new URLSearchParams({ filter, page });
+
+          if (filter === 'rentang') {
+            const fromInput = document.getElementById('historyDateFrom');
+            const toInput = document.getElementById('historyDateTo');
+            const from = fromInput?.value?.trim();
+            const to = toInput?.value?.trim();
+            
+            if (!from || !to) {
+              Swal.fire({ icon: 'warning', text: 'Silakan pilih tanggal Dari dan Sampai!' });
+              return;
+            }
+
+            params.set('date_from', from);
+            params.set('date_to', to);
+          }
+
+          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span> Memuat...</td></tr>';
+
+          fetch('{{ route("pekerjaan.operator-cetak.history-logs") }}?' + params.toString(), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
+          })
+          .then(r => r.json())
+          .then(res => {
+            const data = res.data || [];
+            const meta = res.meta || {};
+            const links = res.links || [];
+
+            if (!data.length) {
+              tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data untuk filter ini.</td></tr>';
+            } else {
+              tbody.innerHTML = data.map((row, idx) => {
+                const no = (meta.from || 0) + idx;
+                const statusBadge = row.is_batalkan 
+                  ? '<span class="badge bg-danger">Dibatalkan</span>'
+                  : '<span class="badge bg-success">Selesai</span>';
+                return `<tr>
+                  <td class="text-center">${no}</td>
+                  <td>${
+                    new Date(row.tanggal_label.split(' ')[0].split('/').reverse().join('-') + 'T' + row.tanggal_label.split(' ')[1] + ':00')
+                      .toLocaleString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false })
+                  }</td>
+                  <td>${escapeHtml(row.nomor_spk || '-')}</td>
+                  <td>${escapeHtml(row.nama_produk || '-')}</td>
+                  <td class="text-end">${escapeHtml(row.jumlah_formatted || '0')}</td>
+                  <td>${escapeHtml(row.operator || '-')}</td>
+                  <td>${statusBadge}</td>
+                </tr>`;
+              }).join('');
+            }
+
+            // Pagination
+            const prevLink = links.find(l => l.label === '&laquo; Previous');
+            const nextLink = links.find(l => l.label === 'Next &raquo;');
+            const pageLinks = links.filter(l => l.label !== '&laquo; Previous' && l.label !== 'Next &raquo;' && l.label !== '...');
+
+            if (meta.last_page > 1) {
+              let pagHtml = '<ul class="pagination pagination-sm mb-0">';
+              if (prevLink?.url) pagHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${meta.current_page - 1}">Sebelumnya</a></li>`;
+              pageLinks.forEach(l => {
+                const isActive = l.active ? ' active' : '';
+                pagHtml += `<li class="page-item${isActive}"><a class="page-link" href="#" data-page="${l.label}">${l.label}</a></li>`;
+              });
+              if (nextLink?.url) pagHtml += `<li class="page-item"><a class="page-link" href="#" data-page="${meta.current_page + 1}">Selanjutnya</a></li>`;
+              pagHtml += '</ul>';
+              paginationEl.innerHTML = pagHtml;
+
+              paginationEl.querySelectorAll('.page-link').forEach(a => {
+                a.addEventListener('click', function(e) {
+                  e.preventDefault();
+                  const p = this.getAttribute('data-page');
+                  if (p) loadGlobalHistory(parseInt(p, 10));
+                });
+              });
+            } else {
+              paginationEl.innerHTML = '';
+            }
+          })
+          .catch(() => {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-3">Gagal memuat data.</td></tr>';
+            paginationEl.innerHTML = '';
+          });
+        }
+
+        function escapeHtml(s) {
+          const div = document.createElement('div');
+          div.textContent = s;
+          return div.innerHTML;
+        }
+
+        document.getElementById('btnApplyFilterHistory')?.addEventListener('click', () => loadGlobalHistory(1));
+        modalEl.addEventListener('shown.bs.modal', () => loadGlobalHistory(1));
+
+        modalEl.addEventListener('shown.bs.modal', toggleRentangInputs);
+      })();
 
       document.addEventListener("click", function(e){
         const el = e.target;
@@ -1492,6 +1614,80 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalGlobalCetakHistory" tabindex="-1" aria-labelledby="modalGlobalCetakHistoryLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalGlobalCetakHistoryLabel">
+          <i class="fa fa-history me-1"></i> History Cetak Semua Log
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-2 align-items-end mb-3">
+          <!-- Filter radio -->
+          <div class="col-auto">
+            <label class="form-label mb-0 small">Filter:</label>
+            <div class="btn-group" role="group" id="filterHistoryBtns">
+              <input type="radio" class="btn-check" name="filterHistory" id="filterHariIni" value="hari_ini">
+              <label class="btn btn-outline-secondary btn-sm" for="filterHariIni">Hari ini</label>
+
+              <input type="radio" class="btn-check" name="filterHistory" id="filterKemarin" value="kemarin">
+              <label class="btn btn-outline-secondary btn-sm" for="filterKemarin">Kemarin</label>
+
+              <input type="radio" class="btn-check" name="filterHistory" id="filterBulanIni" value="bulan_ini" checked>
+              <label class="btn btn-outline-secondary btn-sm" for="filterBulanIni">Bulan ini</label>
+
+              <input type="radio" class="btn-check" name="filterHistory" id="filterRentang" value="rentang">
+              <label class="btn btn-outline-secondary btn-sm" for="filterRentang">Rentang</label>
+            </div>
+          </div>
+
+          <!-- Input Rentang -->
+          <div class="col-auto d-none" id="rentangDateGroup">
+            <label class="form-label mb-0 small">Dari</label>
+            <input type="date" id="historyDateFrom" class="form-control form-control-sm" name="date_from">
+          </div>
+          <div class="col-auto d-none" id="rentangDateToGroup">
+            <label class="form-label mb-0 small">Sampai</label>
+            <input type="date" id="historyDateTo" class="form-control form-control-sm" name="date_to">
+          </div>
+
+          <!-- Tombol Terapkan -->
+          <div class="col-auto">
+            <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilterHistory">
+              <i class="fa fa-filter me-1"></i> Terapkan
+            </button>
+          </div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 50px;">#</th>
+                <th>Tanggal/Jam</th>
+                <th>No. SPK</th>
+                <th>Produk</th>
+                <th class="text-end">Jumlah</th>
+                <th>Operator</th>
+                <th style="width: 100px;">Status</th>
+              </tr>
+            </thead>
+            <tbody id="globalHistoryBody">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <nav aria-label="Pagination history" class="mt-3" id="globalHistoryPagination">
+          <!-- Pagination links diisi via JS -->
+        </nav>
+      </div>
     </div>
   </div>
 </div>

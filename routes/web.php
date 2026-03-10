@@ -240,6 +240,9 @@ Route::group(['prefix' => 'pekerjaan'], function () {
     Route::post('/operator-cetak/bulk-complete', [PekerjaanController::class, 'bulkCompleteCetak'])
         ->name('pekerjaan.operator-cetak.bulk-complete');
 
+    Route::get('/operator-cetak/history-logs', [PekerjaanController::class, 'historyLogs'])
+        ->name('pekerjaan.operator-cetak.history-logs');
+
     Route::get('/operator-cetak/spk-item/{spkItem}/history', [PekerjaanController::class, 'history'])
         ->name('pekerjaan.operator-cetak.history');
     

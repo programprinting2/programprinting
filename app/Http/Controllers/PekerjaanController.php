@@ -552,4 +552,71 @@ class PekerjaanController extends Controller
 
         return response()->json($response ?? ['success' => false]);
     }
+
+    public function historyLogs(Request $request): JsonResponse
+    {
+        $request->validate([
+            'filter'    => ['nullable', 'in:hari_ini,kemarin,bulan_ini,rentang'],
+            'date_from' => ['nullable', 'date', 'required_if:filter,rentang'],
+            'date_to'   => ['nullable', 'date', 'required_if:filter,rentang', 'after_or_equal:date_from'],
+            'page'      => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $filter = $request->input('filter', 'hari_ini');
+        $query = SpkItemCetakLog::query()
+            ->withTrashed()
+            ->with(['spkItem.spk.pelanggan', 'user'])
+            ->orderByDesc('created_at');
+
+        $now = now();
+        switch ($filter) {
+            case 'hari_ini':
+                $query->whereDate('created_at', $now->toDateString());
+                break;
+            case 'kemarin':
+                $query->whereDate('created_at', $now->subDay()->toDateString());
+                break;
+            case 'bulan_ini':
+                $query->whereYear('created_at', $now->year)
+                    ->whereMonth('created_at', $now->month);
+                break;
+            case 'rentang':
+                $dateFrom = $request->date('date_from');
+                $dateTo = $request->date('date_to');
+                if ($dateFrom && $dateTo) {
+                    $query->whereDate('created_at', '>=', $dateFrom)
+                        ->whereDate('created_at', '<=', $dateTo);
+                }
+                break;
+        }
+
+        $logs = $query->paginate(10)->withQueryString();
+
+        $data = $logs->getCollection()->map(function ($log) {
+            $spkItem = $log->spkItem;
+            $spk = $spkItem?->spk;
+            return [
+                'id'              => $log->id,
+                'tanggal_label'   => optional($log->created_at)->format('d/m/Y H:i'),
+                'nomor_spk'       => $spk?->nomor_spk ?? '-',
+                'nama_produk'     => $spkItem?->nama_produk ?? '-',
+                'jumlah_formatted' => number_format((int) $log->jumlah, 0, ',', '.'),
+                'operator'        => optional($log->user)->name ?? ('User #' . $log->user_id),
+                'is_batalkan'      => $log->trashed(),  
+            ];
+        })->values()->all();
+
+        return response()->json([
+            'data'  => $data,
+            'links' => $logs->linkCollection()->toArray(),
+            'meta'  => [
+                'current_page' => $logs->currentPage(),
+                'last_page'    => $logs->lastPage(),
+                'per_page'     => $logs->perPage(),
+                'total'        => $logs->total(),
+                'from'         => $logs->firstItem(),
+                'to'           => $logs->lastItem(),
+            ],
+        ]);
+    }
 }
