@@ -765,72 +765,107 @@
     <div class="tab-pane fade" id="tabBahan" role="tabpanel" aria-labelledby="tab-bahan">
       <div class="accordion" id="bahanAccordion">
         @forelse($bahanBakuGroups as $bahan)
+          @php
+            $totalQty = 0;
+            $weightedProgress = 0;
+
+            foreach ($bahan['spk'] as $spkRow) {
+                foreach ($spkRow->items as $spkItem) {
+
+                    $produk = $spkItem->produk;
+                    if (!$produk) continue;
+
+                    if (!$produk->bahanBakus->contains('id', $bahan['id'])) continue;
+
+                    $qty = (float) ($spkItem->jumlah ?? 0);
+                    $pct = (float) ($spkItem->progress_cetak_persen ?? 0);
+
+                    $totalQty += $qty;
+                    $weightedProgress += ($qty * $pct);
+                }
+            }
+
+            $bahanProgressPct = $totalQty > 0
+                ? round($weightedProgress / $totalQty)
+                : 0;
+
+            $bahanProgressColor = $bahanProgressPct >= 100
+                ? 'bg-success'
+                : ($bahanProgressPct >= 50 ? 'bg-warning' : 'bg-primary');
+          @endphp
+
           <div class="accordion-item">
             <h2 class="accordion-header" id="bahan-heading{{ $bahan['id'] }}">
-              <button class="accordion-button collapsed" type="button"
-                      data-bs-toggle="collapse"
-                      data-bs-target="#bahan-collapse{{ $bahan['id'] }}"
-                      aria-expanded="false"
-                      aria-controls="bahan-collapse{{ $bahan['id'] }}">
-                <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                  <div class="flex-grow-1">
-                    @php
-                      $totalMetric = 0;
-                      $metricUnitLabel = 'm';
-
-                      foreach ($bahan['spk'] as $spkRow) {
-                          foreach ($spkRow->items as $spkItem) {
-                              $produk = $spkItem->produk;
-                              if (!$produk) continue;
-
-                              if (!$produk->bahanBakus->contains('id', $bahan['id'])) continue;
-
-                              if ($produk->is_metric !== true) continue;
-
-                              $metricUnit = $produk->metric_unit ?: 'cm';
-
-                              $panjang = (float) ($spkItem->panjang ?? 0);
-                              $lebar   = (float) ($spkItem->lebar ?? 0);
-                              $jumlah  = (float) ($spkItem->jumlah ?? 0);
-
-                              if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
-
-                              switch ($metricUnit) {
-                                  case 'cm':
-                                      $panjang /= 100;
-                                      $lebar   /= 100;
-                                      break;
-
-                                  case 'mm':
-                                      $panjang /= 1000;
-                                      $lebar   /= 1000;
-                                      break;
-
-                                  case 'm':
-                                  default:
-                                      break;
-                              }
-
-                              $totalMetric += $panjang * $lebar * $jumlah;
-                          }
-                      }
-                  @endphp
-                    <h6 class="mb-1 text-dark fw-bold">{{ $bahan['nama'] }}</h6>
-                    @if(!empty($bahan['kode']))
-                      <small class="text-muted">{{ $bahan['kode'] }}</small>
-                    @endif
-                  </div>
-                  <div class="text-end">
-                    <div class="badge bg-secondary text-white mb-1">
-                      {{ count($bahan['spk']) }} SPK
+              <button class="accordion-button collapsed"
+                  type="button"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#bahan-collapse{{ $bahan['id'] }}"
+                  aria-expanded="false"
+                  aria-controls="bahan-collapse{{ $bahan['id'] }}">
+                  <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                    {{-- LEFT SECTION --}}
+                    <div>
+                        @php
+                        $totalMetric = 0;
+                        $metricUnitLabel = 'm';
+                        foreach ($bahan['spk'] as $spkRow) {
+                        foreach ($spkRow->items as $spkItem) {
+                        $produk = $spkItem->produk;
+                        if (!$produk) continue;
+                        if (!$produk->bahanBakus->contains('id', $bahan['id'])) continue;
+                        if ($produk->is_metric !== true) continue;
+                        $metricUnit = $produk->metric_unit ?: 'cm';
+                        $panjang = (float) ($spkItem->panjang ?? 0);
+                        $lebar   = (float) ($spkItem->lebar ?? 0);
+                        $jumlah  = (float) ($spkItem->jumlah ?? 0);
+                        if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
+                        switch ($metricUnit) {
+                        case 'cm':
+                        $panjang /= 100;
+                        $lebar   /= 100;
+                        break;
+                        case 'mm':
+                        $panjang /= 1000;
+                        $lebar   /= 1000;
+                        break;
+                        }
+                        $totalMetric += $panjang * $lebar * $jumlah;
+                        }
+                        }
+                        @endphp
+                        <h6 class="mb-1 fw-bold text-dark">
+                          {{ $bahan['nama'] }}
+                        </h6>
+                        @if(!empty($bahan['kode']))
+                        <small class="text-muted d-block">
+                        {{ $bahan['kode'] }}
+                        </small>
+                        @endif
+                        {{-- PROGRESS --}}
+                        <div class="d-flex align-items-center gap-2 mt-2" style="width:160px;">
+                          <div class="progress w-100" style="height:6px;">
+                              <div class="progress-bar {{ $bahanProgressColor }}"
+                                role="progressbar"
+                                style="width: {{ $bahanProgressPct }}%;">
+                              </div>
+                          </div>
+                          <span class="small fw-semibold text-muted">
+                          {{ $bahanProgressPct }}%
+                          </span>
+                        </div>
                     </div>
-                    @if($totalMetric > 0)
-                      <div class="small text-muted">
-                        Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
-                      </div>
-                    @endif
+                    {{-- RIGHT SECTION --}}
+                    <div class="text-end">
+                        <div class="badge bg-secondary mb-1">
+                          {{ count($bahan['spk']) }} SPK
+                        </div>
+                        @if($totalMetric > 0)
+                        <div class="small text-muted">
+                          Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel) }}²
+                        </div>
+                        @endif
+                    </div>
                   </div>
-                </div>
               </button>
             </h2>
             <div id="bahan-collapse{{ $bahan['id'] }}" class="accordion-collapse collapse"
@@ -848,6 +883,7 @@
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
                         <th>Satuan</th>
+                        <th>Progress</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -900,6 +936,14 @@
                                   $dimensiText = '-';
                                   $luasText = '';
                               }
+
+                          $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
+                          $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+
+                          $progressColor = $progressPct >= 100
+                          ? 'bg-success'
+                          : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
+
                           @endphp
 
                           <tr>
@@ -1010,6 +1054,27 @@
                             </td>
                             <td class="text-end">{{ $spkItem->jumlah }}</td>
                             <td>{{ $spkItem->satuan }}</td>
+                            <td class="text-end align-middle">
+                              @if($sisa <= 0)
+                                <span class="badge bg-success mb-2">
+                                Selesai
+                                </span>
+                              @else
+                              <div class="small text-danger fw-semibold mb-1">
+                                Sisa: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                              </div>
+                              @endif
+
+                              <div class="progress" style="height:6px;">
+                                <div class="progress-bar {{ $progressColor }}"
+                                    role="progressbar"
+                                    style="width: {{ $progressPct }}%;">
+                                </div>
+                              </div>
+                              <div class="small">
+                              {{ $progressPct }}%
+                              </div>
+                            </td>
                           </tr>
                         @empty
                           <tr>
@@ -1037,6 +1102,50 @@
     <div class="tab-pane fade" id="tabMesin" role="tabpanel" aria-labelledby="tab-mesin">
       <div class="accordion" id="mesinAccordion">
         @forelse($mesinGroups as $mesin)
+          @php
+            $totalQty = 0;
+            $weightedProgress = 0;
+
+            $targetId = $mesin['id'] ?? null;
+
+            foreach ($mesin['spk'] as $spkRow) {
+                foreach ($spkRow->items as $spkItem) {
+
+                    $produk = $spkItem->produk;
+                    if (!$produk || !$targetId) continue;
+
+                    $alur = $produk->alur_produksi_json ?? [];
+                    if (!is_array($alur) || empty($alur)) continue;
+
+                    $matched = false;
+
+                    foreach ($alur as $step) {
+                        if (!is_array($step)) continue;
+
+                        if ((int)($step['divisi_mesin_id'] ?? 0) === (int)$targetId) {
+                            $matched = true;
+                            break;
+                        }
+                    }
+
+                    if (!$matched) continue;
+
+                    $qty = (float) ($spkItem->jumlah ?? 0);
+                    $pct = (float) ($spkItem->progress_cetak_persen ?? 0);
+
+                    $totalQty += $qty;
+                    $weightedProgress += ($qty * $pct);
+                }
+            }
+
+            $mesinProgressPct = $totalQty > 0
+                ? round($weightedProgress / $totalQty)
+                : 0;
+
+            $mesinProgressColor = $mesinProgressPct >= 100
+                ? 'bg-success'
+                : ($mesinProgressPct >= 50 ? 'bg-warning' : 'bg-primary');
+            @endphp
           <div class="accordion-item">
             <h2 class="accordion-header" id="mesin-heading{{ $mesin['id'] }}">
               <button class="accordion-button collapsed" type="button"
@@ -1045,7 +1154,7 @@
                       aria-expanded="false"
                       aria-controls="mesin-collapse{{ $mesin['id'] }}">
                 <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                  <div class="flex-grow-1">
+                  <div>
                     @php
                       $totalMetric = 0;
                       $metricUnitLabel = 'm';
@@ -1103,6 +1212,17 @@
                     @if(!empty($mesin['kode']))
                       <small class="text-muted">{{ $mesin['kode'] }}</small>
                     @endif
+                    <div class="d-flex align-items-center gap-2 mt-2" style="width:160px;">
+                      <div class="progress w-100" style="height:6px;">
+                          <div class="progress-bar {{ $mesinProgressColor }}"
+                            role="progressbar"
+                            style="width: {{ $mesinProgressPct }}%;">
+                          </div>
+                      </div>
+                      <span class="small fw-semibold text-muted">
+                      {{ $mesinProgressPct }}%
+                      </span>
+                    </div>
                   </div>
                   <div class="text-end">
                     <div class="badge bg-secondary mb-1">
@@ -1133,6 +1253,7 @@
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
                         <th>Satuan</th>
+                        <th>Progress</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1195,6 +1316,12 @@
                                   $dimensiText = '-';
                                   $luasText = '';
                               }
+                              $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
+                              $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+
+                              $progressColor = $progressPct >= 100
+                              ? 'bg-success'
+                              : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
                           @endphp
 
                           <tr>
@@ -1312,6 +1439,27 @@
 
                               <td class="text-end">{{ $spkItem->jumlah }}</td>
                               <td>{{ $spkItem->satuan }}</td>
+                              <td class="text-end align-middle">
+                                @if($sisa <= 0)
+                                  <span class="badge bg-success mb-2">
+                                  Selesai
+                                  </span>
+                                @else
+                                <div class="small text-danger fw-semibold mb-1">
+                                  Sisa: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                                </div>
+                                @endif
+
+                                <div class="progress" style="height:6px;">
+                                  <div class="progress-bar {{ $progressColor }}"
+                                      role="progressbar"
+                                      style="width: {{ $progressPct }}%;">
+                                  </div>
+                                </div>
+                                <div class="small">
+                                {{ $progressPct }}%
+                                </div>
+                              </td>
 
                           </tr>
                         @empty
@@ -1351,8 +1499,29 @@
                       aria-expanded="false"
                       aria-controls="pelanggan-collapse{{ $pelId }}">
                 <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                  <div class="flex-grow-1">
+                  <div>
                     @php
+                      $totalQty = 0;
+                      $weightedProgress = 0;
+
+                      foreach ($pel['spk'] as $spkRow) {
+                          foreach ($spkRow->items as $spkItem) {
+
+                              $qty = (float) ($spkItem->jumlah ?? 0);
+                              $pct = (float) ($spkItem->progress_cetak_persen ?? 0);
+
+                              $totalQty += $qty;
+                              $weightedProgress += ($qty * $pct);
+                          }
+                      }
+
+                      $pelProgressPct = $totalQty > 0
+                          ? round($weightedProgress / $totalQty)
+                          : 0;
+
+                      $pelProgressColor = $pelProgressPct >= 100
+                          ? 'bg-success'
+                          : ($pelProgressPct >= 50 ? 'bg-warning' : 'bg-primary');
                       $totalMetric = 0;
                       $metricUnitLabel = 'm';
 
@@ -1396,6 +1565,17 @@
                     @if(!empty($pel['email']))
                       <small class="text-muted">{{ $pel['email'] }}</small>
                     @endif
+                    <div class="d-flex align-items-center gap-2 mt-2" style="width:160px;">
+                      <div class="progress w-100" style="height:6px;">
+                        <div class="progress-bar {{ $pelProgressColor }}"
+                            role="progressbar"
+                            style="width: {{ $pelProgressPct }}%;">
+                        </div>
+                      </div>
+                      <span class="small fw-semibold text-muted">
+                        {{ $pelProgressPct }}%
+                      </span>
+                    </div>
                   </div>
                   <div class="text-end">
                     <div class="badge bg-secondary mb-1">
@@ -1426,6 +1606,7 @@
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
                         <th>Satuan</th>
+                        <th>Progress</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1459,7 +1640,14 @@
                                 $dimensiText = '-';
                                 $luasText = '';
                             }
-                          @endphp
+
+                            $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
+                            $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+
+                            $progressColor = $progressPct >= 100
+                            ? 'bg-success'
+                            : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
+                            @endphp
 
                           <tr>
                             @if($firstRow)
@@ -1572,6 +1760,26 @@
                             </td>
                             <td class="text-end">{{ $spkItem->jumlah }}</td>
                             <td>{{ $spkItem->satuan }}</td>
+                            <td class="text-end align-middle">
+                              @if($sisa <= 0)
+                                <span class="badge bg-success mb-2">
+                                Selesai
+                                </span>
+                              @else
+                              <div class="small text-danger fw-semibold mb-1">
+                                Sisa: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                              </div>
+                              @endif
+                              <div class="progress" style="height:6px;">
+                                <div class="progress-bar {{ $progressColor }}"
+                                    role="progressbar"
+                                    style="width: {{ $progressPct }}%;">
+                                </div>
+                              </div>
+                              <div class="small">
+                                {{ $progressPct }}%
+                              </div>
+                            </td>
                           </tr>
                         @empty
                           <tr>
@@ -1601,6 +1809,35 @@
         @forelse($produkGroups as $produk)
           @php
             $produkIdSafe = $produk['id'] ?? md5(($produk['nama'] ?? 'produk').($produk['kode'] ?? ''));
+
+            $totalQty = 0;
+            $weightedProgress = 0;
+
+            foreach ($produk['spk'] as $spkRow) {
+                foreach ($spkRow->items as $spkItem) {
+                    $match = false;
+                    if (!empty($produk['id'])) {
+                        $match = ((int)($spkItem->produk_id ?? 0) === (int)$produk['id']);
+                    } else {
+                        $match = (($spkItem->nama_produk ?? '') === ($produk['nama'] ?? ''));
+                    }
+                    if (!$match) continue;
+
+                    $qty = (float) ($spkItem->jumlah ?? 0);
+                    $pct = (float) ($spkItem->progress_cetak_persen ?? 0);
+
+                    $totalQty += $qty;
+                    $weightedProgress += ($qty * $pct);
+                }
+            }
+
+            $produkProgressPct = $totalQty > 0
+            ? round($weightedProgress / $totalQty)
+            : 0;
+
+            $produkProgressColor = $produkProgressPct >= 100
+            ? 'bg-success'
+            : ($produkProgressPct >= 50 ? 'bg-warning' : 'bg-primary');
           @endphp
 
           <div class="accordion-item">
@@ -1612,7 +1849,7 @@
                       aria-controls="produk-collapse{{ $produkIdSafe }}">
 
                 <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                  <div class="flex-grow-1">
+                  <div>
                     @php
                       // Total metric agregat untuk produk ini (mengikuti rumus tab lain: panjang x lebar x jumlah)
                       $totalMetric = 0;
@@ -1666,7 +1903,19 @@
                     @if(!empty($produk['kode']))
                       <small class="text-muted">{{ $produk['kode'] }}</small>
                     @endif
-                  </div>
+                    <div class="d-flex align-items-center gap-2 mt-2" style="width:160px;">
+                      <div class="progress w-100" style="height:6px;">
+                        <div class="progress-bar {{ $produkProgressColor }}"
+                        role="progressbar"
+                        style="width: {{ $produkProgressPct }}%;">
+                        </div>
+                      </div>
+
+                      <span class="small fw-semibold text-muted">
+                      {{ $produkProgressPct }}%
+                      </span>
+                      </div>
+                    </div>
 
                   <div class="text-end">
                     <div class="badge bg-secondary mb-1">
@@ -1698,6 +1947,7 @@
                         <th>Ukuran / Luas</th>
                         <th class="text-end">Jumlah</th>
                         <th>Satuan</th>
+                        <th>Progress</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -1815,6 +2065,13 @@
                                     $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
                                     $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
                                 }
+
+                                $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
+                                $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+
+                                $progressColor = $progressPct >= 100
+                                ? 'bg-success'
+                                : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
                             @endphp
 
                             <td class="text-center align-middle" style="width: 60px;">
@@ -1848,6 +2105,27 @@
                             </td>
                             <td class="text-end">{{ $spkItem->jumlah }}</td>
                             <td>{{ $spkItem->satuan }}</td>
+                            <td class="text-end align-middle">
+                              @if($sisa <= 0)
+                                <span class="badge bg-success mb-2">
+                                Selesai
+                                </span>
+                              @else
+                              <div class="small text-danger fw-semibold mb-1">
+                                Sisa: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                              </div>
+                              @endif
+
+                              <div class="progress" style="height:6px;">
+                                <div class="progress-bar {{ $progressColor }}"
+                                    role="progressbar"
+                                    style="width: {{ $progressPct }}%;">
+                                </div>
+                              </div>
+                              <div class="small">
+                              {{ $progressPct }}%
+                              </div>
+                            </td>
                           </tr>
                         @empty
                           <tr>
