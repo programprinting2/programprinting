@@ -375,9 +375,24 @@
                                       </div>
                                     @endif
                                     <div class="progress" style="height:6px;">
-                                      <div class="progress-bar {{ $progressColor }}" role="progressbar" style="width: {{ $progressPct }}%;" aria-valuenow="{{ $progressPct }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                      <div class="progress-bar {{ $progressColor }}"
+                                          role="progressbar"
+                                          style="width: {{ $progressPct }}%;"
+                                          aria-valuenow="{{ $progressPct }}"
+                                          aria-valuemin="0"
+                                          aria-valuemax="100"></div>
                                     </div>
-                                    <div class="small">{{ $progressPct }}%</div>
+                                    <div class="d-flex justify-content-end align-items-center gap-2 small mt-1">
+                                      <span>{{ $progressPct }}%</span>
+                                      <button type="button"
+                                              class="btn btn-sm btn-outline-info p-1 btn-cetak-history"
+                                              title="Lihat riwayat cetak"
+                                              data-spk-item-id="{{ $spkItem->id }}"
+                                              data-item-nama="{{ $spkItem->nama_produk }}"
+                                              data-nomor-spk="{{ $spkRow->nomor_spk }}">
+                                        <i class="fa fa-info-circle"></i>
+                                      </button>
+                                    </div>
                                   </td>
                                   <td class="text-center">
                                     <input type="checkbox"
@@ -924,19 +939,6 @@
             }
           }
 
-          // const riwayatEl = document.getElementById('cetak_riwayat_container');
-          // if (!riwayat.length) {
-          //   riwayatEl.innerHTML = '<div class="text-muted small">Belum ada riwayat.</div>';
-          // } else {
-          //   riwayatEl.innerHTML = '<ul class="mb-0 ps-3">' + riwayat.map(r => {
-          //     const jumlah = (r.jumlah ?? 0).toLocaleString('id-ID');
-          //     const op = r.operator ?? '-';
-          //     const waktu = r.waktu ?? '';
-          //     const tanggal = r.tanggal ?? '';
-          //     return `<li>${jumlah} cetak - ${op} - ${waktu}${tanggal ? ' ('+tanggal+')' : ''}</li>`;
-          //   }).join('') + '</ul>';
-          // }
-
           /*
     ===============================
     LOAD RIWAYAT PROGRESS
@@ -945,103 +947,95 @@
 
     const riwayatEl = document.getElementById('cetak_riwayat_container');
 
-riwayatEl.innerHTML =
-  '<div class="text-muted small">Memuat riwayat...</div>';
+    riwayatEl.innerHTML =
+      '<div class="text-muted small">Memuat riwayat...</div>';
 
-const url = "{{ route('pekerjaan.operator-cetak.item-progress', ['spkItem' => '__ID__']) }}"
-  .replace('__ID__', spkItemId);
+    const url = "{{ route('pekerjaan.operator-cetak.item-progress', ['spkItem' => '__ID__']) }}"
+      .replace('__ID__', spkItemId);
 
-fetch(url, {
-  headers: {
-    'Accept': 'application/json'
-  }
-})
+    fetch(url, {
+      headers: {
+        'Accept': 'application/json'
+      }
+    })
 
-.then(async (r) => {
+    .then(async (r) => {
 
-  if (!r.ok) {
-    const msg = await r.text();
-    throw new Error(msg || 'Gagal memuat riwayat progress.');
-  }
+      if (!r.ok) {
+        const msg = await r.text();
+        throw new Error(msg || 'Gagal memuat riwayat progress.');
+      }
 
-  return r.json();
+      return r.json();
 
-})
+    })
 
-.then((data) => {
+    .then((data) => {
 
-  const logs = data.logs || [];
+      const logs = data.logs || [];
 
-  if (!logs.length) {
+      if (!logs.length) {
 
-    riwayatEl.innerHTML = `
-    <div class="text-center text-muted py-3">
-      <i class="fa fa-info-circle"></i><br>
-      Belum ada riwayat progress
-    </div>`;
+        riwayatEl.innerHTML = `
+        <div class="text-center text-muted py-3">
+          <i class="fa fa-info-circle"></i><br>
+          Belum ada riwayat progress
+        </div>`;
 
-    return;
-  }
+        return;
+      }
 
-  let html = `
-  <div style="max-height:220px;overflow-y:auto;">
-  <table class="table table-sm table-bordered align-middle mb-0">
+      let html = `
+      <div style="max-height:220px;overflow-y:auto;">
+      <table class="table table-sm table-bordered align-middle mb-0">
 
-  <thead class="table-light">
-  <tr>
-    <th style="width:40px;">No</th>
-    <th>Operator</th>
-    <th class="text-end">Jumlah</th>
-    <th>Waktu</th>
-  </tr>
-  </thead>
+      <thead class="table-light">
+      <tr>
+        <th style="width:40px;">No</th>
+        <th>Operator</th>
+        <th class="text-end">Jumlah</th>
+        <th>Waktu</th>
+      </tr>
+      </thead>
 
-  <tbody>
-  `;
+      <tbody>
+      `;
 
-  logs.forEach((r, i) => {
+      logs.forEach((r, i) => {
+        const jumlah = (r.jumlah ?? 0).toLocaleString('id-ID');
+        const operator = r.operator ?? '-';
+        const waktu = r.waktu ?? '';
+        const tanggal = r.tanggal ?? '';
+        const isBatalkan = r.is_batalkan === true;
+        const rowClass = isBatalkan ? 'table-secondary text-decoration-line-through' : '';
+        const jumlahText = isBatalkan ? 'Batalkan ' + jumlah : jumlah;
+        html += `
+          <tr class="${rowClass}">
+            <td class="text-center">${i + 1}</td>
+            <td>${operator}</td>
+            <td class="text-end fw-semibold ${isBatalkan ? 'text-danger' : 'text-primary'}">${jumlahText}</td>
+            <td><div>${waktu}</div><div class="text-muted small">${tanggal}</div></td>
+          </tr>`;
+      });
 
-    const jumlah = (r.jumlah ?? 0).toLocaleString('id-ID');
-    const operator = r.operator ?? '-';
-    const waktu = r.waktu ?? '';
-    const tanggal = r.tanggal ?? '';
+      html += `
+      </tbody>
+      </table>
+      </div>
+      `;
 
-    html += `
-    <tr>
-      <td class="text-center">${i + 1}</td>
+      riwayatEl.innerHTML = html;
 
-      <td>${operator}</td>
-      <td class="text-end fw-semibold text-primary">
-        ${jumlah}
-      </td>
+    })
 
+    .catch((err) => {
 
-      <td>
-        <div>${waktu}</div>
-        <div class="text-muted small">${tanggal}</div>
-      </td>
-    </tr>
-    `;
-  });
+      riwayatEl.innerHTML = `
+      <div class="text-danger small">
+        ${(err && err.message) ? err.message : 'Gagal memuat riwayat.'}
+      </div>`;
 
-  html += `
-  </tbody>
-  </table>
-  </div>
-  `;
-
-  riwayatEl.innerHTML = html;
-
-})
-
-.catch((err) => {
-
-  riwayatEl.innerHTML = `
-  <div class="text-danger small">
-    ${(err && err.message) ? err.message : 'Gagal memuat riwayat.'}
-  </div>`;
-
-});
+    });
 
 
           modal.show();
@@ -1141,6 +1135,221 @@ fetch(url, {
         btn.querySelector('.btn-text').classList.add('d-none');
         btn.querySelector('.btn-loading').classList.remove('d-none');
       });
+    });
+
+    document.addEventListener('click', function (e) {
+      const btnHistory = e.target.closest('.btn-cetak-history');
+        if (btnHistory) {
+          const spkItemId = btnHistory.getAttribute('data-spk-item-id');
+          const nomorSpk  = btnHistory.getAttribute('data-nomor-spk') || '-';
+          const namaItem  = btnHistory.getAttribute('data-item-nama') || '-';
+          document.getElementById('cetakHistoryNomorSpk').textContent = nomorSpk;
+          document.getElementById('cetakHistoryNamaItem').textContent = namaItem;
+          const tbody = document.getElementById('cetakHistoryBody');
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="6" class="text-center text-muted py-3">
+                <span class="spinner-border spinner-border-sm me-1"></span> Memuat data...
+              </td>
+            </tr>
+          `;
+          // Panggil endpoint untuk ambil riwayat cetak item
+          fetch(`{{ route('pekerjaan.operator-cetak.history', ['spkItem' => 'SPK_ITEM_ID_PLACEHOLDER']) }}`
+                .replace('SPK_ITEM_ID_PLACEHOLDER', spkItemId),
+                { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.json())
+            .then(data => {
+              if (!Array.isArray(data.logs) || data.logs.length === 0) {
+                tbody.innerHTML = `
+                  <tr>
+                    <td colspan="6" class="text-center text-muted py-3">
+                      Belum ada riwayat cetak untuk item ini.
+                    </td>
+                  </tr>
+                `;
+                return;
+              }
+              tbody.innerHTML = '';
+              data.logs.forEach((log, idx) => {
+                tbody.insertAdjacentHTML('beforeend', `
+                  <tr>
+                    <td class="text-center">${idx + 1}</td>
+                    <td>${log.tanggal_label}</td>
+                    <td class="text-end">${log.jumlah_formatted}</td>
+                    <td>${log.operator || '-'}</td>
+                    <td class="text-center">
+                      <button type="button"
+                              class="btn btn-sm btn-outline-danger btn-undo-cetak"
+                              data-log-id="${log.id}">
+                        <i class="fa fa-undo me-1"></i> Batalkan
+                      </button>
+                    </td>
+                  </tr>
+                `);
+              });
+            })
+            .catch(() => {
+              tbody.innerHTML = `
+                <tr>
+                  <td colspan="6" class="text-center text-danger py-3">
+                    Gagal memuat riwayat cetak.
+                  </td>
+                </tr>
+              `;
+            });
+          const modalEl = document.getElementById('modalCetakHistory');
+          const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+          modal.show();
+          return;
+      }
+      const btnUndo = e.target.closest('.btn-undo-cetak');
+      if (btnUndo) {
+        const logId = btnUndo.getAttribute('data-log-id');
+        if (!logId) return;
+
+        Swal.fire({
+            title: 'Batalkan cetakan?',
+            text: 'Progress cetak akan disesuaikan.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Batalkan',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d'
+        }).then((result) => {
+
+            if (!result.isConfirmed) return;
+
+            fetch(`{{ route('pekerjaan.operator-cetak.destroy-history', ['log' => 'LOG_ID_PLACEHOLDER']) }}`
+                    .replace('LOG_ID_PLACEHOLDER', logId),
+            {
+                method: 'DELETE',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+            })
+            .then(r => r.json())
+            .then(data => {
+
+                if (!data.success) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Gagal',
+                        text: data.message || 'Gagal membatalkan cetakan.'
+                    });
+                    return;
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil',
+                    text: 'Cetakan berhasil dibatalkan.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+
+                const sid = String(data.spk_item_id);
+                const sudah = data.jumlah_sudah_cetak ?? 0;
+                const sisa = data.sisa_belum_cetak ?? 0;
+                const pct = Math.round(data.progress_persen ?? 0);
+                const row = document.querySelector(
+                    `.btn-open-cetak-modal[data-spk-item-id="${sid}"]`
+                )?.closest('tr');
+                if (row) {
+                    const btnModal = row.querySelector(
+                        `.btn-open-cetak-modal[data-spk-item-id="${sid}"]`
+                    );
+                    if (btnModal) {
+                        btnModal.setAttribute('data-sudah', sudah);
+                        btnModal.setAttribute('data-sisa', sisa);
+                    }
+                    const checkbox = row.querySelector('.cetak-item-checkbox');
+                    if (checkbox) {
+                        checkbox.setAttribute('data-sisa', sisa);
+                        checkbox.setAttribute('data-locked', sisa <= 0 ? '1' : '0');
+                        checkbox.disabled = sisa <= 0;
+                        if (sisa <= 0) {
+                            checkbox.classList.add('checkbox-done');
+                        } else {
+                            checkbox.classList.remove('checkbox-done');
+                        }
+                    }
+                    const progressBar = row.querySelector('.progress-bar');
+                    if (progressBar) {
+                        progressBar.style.width = pct + '%';
+                        progressBar.setAttribute('aria-valuenow', pct);
+                        progressBar.classList.remove('bg-success', 'bg-warning', 'bg-primary');
+                        progressBar.classList.add(
+                            pct >= 100 ? 'bg-success' : pct >= 50 ? 'bg-warning' : 'bg-primary'
+                        );
+                    }
+                    const pctLabel = row.querySelector('.d-flex.justify-content-end span');
+                    if (pctLabel) pctLabel.textContent = pct + '%';
+                    const sisaText = row.querySelector('.small.text-danger.fw-semibold');
+                    if (sisaText) {
+                        if (sisa <= 0) {
+                            sisaText.outerHTML =
+                                '<span class="badge bg-success mb-2">Selesai</span>';
+                        } else {
+                            sisaText.textContent = 'Sisa: ' + sisa.toLocaleString('id-ID') + ' ' +
+                                (checkbox?.getAttribute('data-satuan') ?? '');
+                        }
+                    }
+                    const btnPrint = row.querySelector('.btn-open-cetak-modal');
+                    if (btnPrint) {
+                        btnPrint.setAttribute('data-sudah', sudah);
+                        btnPrint.setAttribute('data-sisa', sisa);
+                        if (sisa <= 0) {
+                            btnPrint.classList.remove('btn-primary');
+                            btnPrint.classList.add('btn-secondary', 'disabled');
+                            btnPrint.disabled = true;
+                            btnPrint.setAttribute('disabled', 'disabled');
+                        } else {
+                            btnPrint.classList.remove('btn-secondary', 'disabled');
+                            btnPrint.classList.add('btn-primary');
+                            btnPrint.disabled = false;
+                            btnPrint.removeAttribute('disabled');
+                        }
+                    }
+                }
+
+                const spkItemIdEl = document.getElementById('cetak_spk_item_id');
+                if (spkItemIdEl && spkItemIdEl.value === sid) {
+                    document.getElementById('cetak_sudah').textContent =
+                        sudah.toLocaleString('id-ID');
+                    document.getElementById('cetak_sisa').textContent =
+                        sisa.toLocaleString('id-ID');
+                    document.getElementById('cetak_sisa_label').textContent =
+                        sisa.toLocaleString('id-ID');
+                    document.getElementById('cetak_jumlah').max = String(Math.max(0, sisa));
+                    if (sisa <= 0) {
+                        document.getElementById('cetak_jumlah').value = '0';
+                        document.getElementById('cetak_jumlah').disabled = true;
+                    } else {
+                        document.getElementById('cetak_jumlah').disabled = false;
+                    }
+                }
+
+                const currentBtnHistory = document.querySelector(
+                    `.btn-cetak-history[data-spk-item-id="${data.spk_item_id}"]`
+                );
+
+                if (currentBtnHistory) {
+                    currentBtnHistory.click();
+                }
+            })
+            .catch(() => {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Terjadi kesalahan saat membatalkan cetakan.'
+                });
+            });
+
+        });
+        return;
+      }
     });
   </script>
 
@@ -1283,6 +1492,51 @@ fetch(url, {
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalCetakHistory" tabindex="-1" aria-labelledby="modalCetakHistoryLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalCetakHistoryLabel">
+          <i class="fa fa-history me-1"></i> Riwayat Cetak Item
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2 small text-muted">
+          <div><strong>No. SPK:</strong> <span id="cetakHistoryNomorSpk">-</span></div>
+          <div><strong>Nama Item:</strong> <span id="cetakHistoryNamaItem">-</span></div>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-bordered align-middle mb-0">
+            <thead class="table-light">
+              <tr>
+                <th style="width: 40px;">#</th>
+                <th>Tanggal/Jam</th>
+                <th class="text-end">Jumlah Cetak</th>
+                <th>Operator</th>
+                <th style="width: 120px;">Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="cetakHistoryBody">
+              <tr>
+                <td colspan="6" class="text-center text-muted py-3">
+                  Memuat data...
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <small class="text-muted d-block mt-2">
+          Menghapus entri riwayat akan <strong>membatalkan cetakan</strong> tersebut dan mengurangi progress cetak item.
+        </small>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+      </div>
     </div>
   </div>
 </div>

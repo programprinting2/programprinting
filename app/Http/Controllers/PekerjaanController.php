@@ -8,6 +8,7 @@ use App\Models\MasterMesin;
 use App\Http\Requests\StoreSpkItemCetakProgressRequest;
 use App\Http\Requests\BulkCompleteSpkItemCetakRequest;
 use App\Models\SPKItem;
+use App\Services\ActivityLogService;
 use App\Models\SpkItemCetakLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\ValidationException;
@@ -353,14 +354,18 @@ class PekerjaanController extends Controller
                 'nomor_spk' => $spkItem->spk->nomor_spk ?? '',
                 'pelanggan' => $spkItem->spk->pelanggan->nama ?? '-',
             ],
-            'logs' => $spkItem->cetakLogs
-                ->sortBy('created_at')
+            'logs' => $spkItem->cetakLogs()
+                ->withTrashed()
+                ->orderBy('created_at')
+                ->get()
                 ->values()
                 ->map(fn ($l) => [
+                    'id' => $l->id,
                     'jumlah' => (int) $l->jumlah,
                     'operator' => $l->user->name ?? ('User #'.$l->user_id),
                     'waktu' => optional($l->created_at)->format('H:i') ?? '',
                     'tanggal' => optional($l->created_at)->format('d/m/Y') ?? '',
+                    'is_batalkan' => $l->trashed(),
                 ]),
         ]);
     }
@@ -402,6 +407,21 @@ class PekerjaanController extends Controller
                     'user_id' => 1, //(int) auth()->id(),
                     'jumlah' => $jumlah,
                 ]);
+
+                if ($item->spk) {
+                    $keterangan = sprintf(
+                        'Cetak %d %s untuk item "%s".',
+                        $jumlah,
+                        $item->satuan,
+                        $item->nama_produk
+                    );
+                    ActivityLogService::log(
+                        $item->spk,
+                        'spk_item_cetak_tambah',
+                        $keterangan,
+                        'info'
+                    );
+                }
             });
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
@@ -451,9 +471,85 @@ class PekerjaanController extends Controller
                     'user_id' => 1, //(int) auth()->id(),
                     'jumlah' => $sisa,
                 ]);
+
+                if ($item->spk) {
+                    $keterangan = sprintf(
+                        'Bulk-complete cetak %d %s untuk item "%s".',
+                        $sisa,
+                        $item->satuan,
+                        $item->nama_produk
+                    );
+                    ActivityLogService::log(
+                        $item->spk,
+                        'spk_item_cetak_bulk_complete',
+                        $keterangan,
+                        'info'
+                    );
+                }
             }
         });
 
         return back()->with('success', 'Bulk print berhasil: item ditandai 100% selesai.');
+    }
+
+    public function history(SPKItem $spkItem)
+    {
+        $logs = $spkItem->cetakLogs() 
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function ($log) {
+                return [
+                    'id' => $log->id,
+                    'tanggal_label' => optional($log->created_at)->format('d M Y H:i'),
+                    'jumlah' => (int) $log->jumlah,
+                    'jumlah_formatted' => number_format((int) $log->jumlah, 0, ',', '.'),
+                    'operator' => optional($log->user)->name ?? null,
+                    // 'keterangan' => $log->keterangan,
+                ];
+            });
+
+        return response()->json(['logs' => $logs]);
+    }
+
+    public function destroyHistory(SpkItemCetakLog $log)
+    {
+        DB::transaction(function () use ($log, &$response) {
+            $spkItem = $log->spkItem;
+            $log->delete();
+
+            $qtyPesanan   = (int) ($spkItem->jumlah ?? 0);
+            $sudahCetak   = (int) $spkItem->cetakLogs()->sum('jumlah');
+            $sisa         = max(0, $qtyPesanan - $sudahCetak);
+
+            $progressPct  = 0;
+            if ($qtyPesanan > 0) {
+                $progressPct = min(100, round(($sudahCetak / $qtyPesanan) * 100));
+            }
+
+            if ($spkItem->spk) {
+                $keterangan = sprintf(
+                    'Batalkan cetak %d %s untuk item "%s".',
+                    (int) $log->jumlah,
+                    $spkItem->satuan,
+                    $spkItem->nama_produk
+                );
+                ActivityLogService::log(
+                    $spkItem->spk,
+                    'spk_item_cetak_batalkan',
+                    $keterangan,
+                    'warning'
+                );
+            }
+            
+            $response = [
+                'success'            => true,
+                'spk_item_id'        => $spkItem->id,
+                'jumlah_sudah_cetak' => $sudahCetak,
+                'sisa_belum_cetak'   => $sisa,
+                'progress_persen'    => $progressPct,
+            ];
+        });
+
+        return response()->json($response ?? ['success' => false]);
     }
 }

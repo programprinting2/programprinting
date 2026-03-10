@@ -240,6 +240,12 @@ Route::group(['prefix' => 'pekerjaan'], function () {
     Route::post('/operator-cetak/bulk-complete', [PekerjaanController::class, 'bulkCompleteCetak'])
         ->name('pekerjaan.operator-cetak.bulk-complete');
 
+    Route::get('/operator-cetak/spk-item/{spkItem}/history', [PekerjaanController::class, 'history'])
+        ->name('pekerjaan.operator-cetak.history');
+    
+    Route::delete('/operator-cetak/history/{log}', [PekerjaanController::class, 'destroyHistory'])
+        ->name('pekerjaan.operator-cetak.destroy-history');
+
     Route::get('/finishing-qc', [PekerjaanController::class, 'finishingQc'])
         ->name('pekerjaan.finishing-qc');
 
