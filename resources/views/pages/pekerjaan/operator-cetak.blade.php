@@ -50,12 +50,18 @@
                     $label = $group['label'] ?? $tipe;
                 @endphp
                 <div class="col-md-3">
-                    <button class="card tab-card w-100 text-start {{ $loop->first ? 'active' : '' }}"
-                            id="tab-tipe-{{ $slug }}"
-                            data-bs-toggle="tab"
-                            data-bs-target="#tabTipe{{ $slug }}"
-                            type="button"
-                            role="tab">
+                  @php
+                      $mesinListForTipe = array_values(array_map(function ($m) {
+                          return ['id' => $m->id, 'nama' => $m->nama_mesin ?? ''];
+                      }, $group['mesin_list'] ?? []));
+                  @endphp
+                  <button class="card tab-card w-100 text-start {{ $loop->first ? 'active' : '' }}"
+                          id="tab-tipe-{{ $slug }}"
+                          data-bs-toggle="tab"
+                          data-bs-target="#tabTipe{{ $slug }}"
+                          data-mesin-list="{{ json_encode($mesinListForTipe) }}"
+                          type="button"
+                          role="tab">
                         <div class="card-body d-flex align-items-center gap-3">
                             <div class="tab-icon bg-success-subtle text-success">
                                 <i class="fa fa-cogs"></i>
@@ -79,17 +85,34 @@
           <hr class="my-4">
 
           
-    <div class="d-flex justify-content-end mb-3">
-      <form method="POST" action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}" id="bulkCetakFormGlobal">
-        @csrf
-        <div id="bulkCetakInputs"></div>
-        <button type="submit" class="btn btn-sm btn-success" id="btnBulkCetak" disabled>
-          Multi Cetak
-        </button>
-      </form>
-    </div>
+          <div class="d-flex align-items-center justify-content-between mb-3 flex-nowrap">
+            <div id="mesinSubTabsContainer" class="d-flex align-items-center gap-2 d-none">
+              <span class="text-muted small">Mesin:</span>
+              <div id="mesinSubTabsInner"
+                  class="nav nav-pills d-flex align-items-center gap-1"
+                  role="tablist">
+              </div>
+            </div>
+
+            <form method="POST"
+                  action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}"
+                  id="bulkCetakFormGlobal"
+                  class="d-flex align-items-center gap-2 ms-auto">
+
+              @csrf
+              <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
+              <div id="bulkCetakInputs"></div>
+
+              <button type="submit"
+                      class="btn btn-sm btn-success"
+                      id="btnBulkCetak"
+                      disabled>
+                Multi Cetak
+              </button>
+            </form>
+          </div>
     <div class="tab-content mt-3" id="operatorTabContent">
-        {{-- TAB 2: Per Tipe Mesin --}}
+        {{-- TAB : Per Tipe Mesin --}}
         @foreach($tipeMesinGroups as $tipe => $group)
           @php
             $slug = \Illuminate\Support\Str::slug($tipe, '-');
@@ -785,6 +808,65 @@
           bulkBtn.classList.add("btn-success");
         }
       }
+
+      (function () {
+        const container = document.getElementById('mesinSubTabsContainer');
+        const inner = document.getElementById('mesinSubTabsInner');
+        const bulkMesinInput = document.getElementById('bulkCetakMesinId');
+        if (!container || !inner) return;
+
+        function renderMesinSubTabs(mesinList) {
+          inner.innerHTML = '';
+          if (!bulkMesinInput) return;
+          bulkMesinInput.value = '';
+
+          if (!mesinList || mesinList.length <= 1) {
+            container.classList.add('d-none');
+            return;
+          }
+
+          container.classList.remove('d-none');
+          mesinList.forEach(function (m, idx) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'nav-link btn btn-sm ' + (idx === 0 ? 'active' : '');
+            btn.setAttribute('role', 'tab');
+            btn.dataset.mesinId = m.id || '';
+            btn.textContent = m.nama || ('Mesin #' + (m.id || idx));
+            btn.addEventListener('click', function () {
+              inner.querySelectorAll('.nav-link').forEach(function (el) { el.classList.remove('active'); });
+              btn.classList.add('active');
+              if (bulkMesinInput) bulkMesinInput.value = btn.dataset.mesinId || '';
+            });
+            inner.appendChild(btn);
+          });
+
+          var first = inner.querySelector('.nav-link');
+          if (first && bulkMesinInput) bulkMesinInput.value = first.dataset.mesinId || '';
+        }
+
+        var tipeTabButtons = document.querySelectorAll('#operatorTabs [data-bs-toggle="tab"]');
+        tipeTabButtons.forEach(function (btn) {
+          btn.addEventListener('shown.bs.tab', function () {
+            var raw = btn.getAttribute('data-mesin-list');
+            var list = [];
+            try {
+              list = raw ? JSON.parse(raw) : [];
+            } catch (e) {}
+            renderMesinSubTabs(list);
+          });
+        });
+
+        var activeTipe = document.querySelector('#operatorTabs [data-bs-toggle="tab"].active');
+        if (activeTipe) {
+          var raw = activeTipe.getAttribute('data-mesin-list');
+          var list = [];
+          try {
+            list = raw ? JSON.parse(raw) : [];
+          } catch (e) {}
+          renderMesinSubTabs(list);
+        }
+      })();
 
       (function () {
         const modalEl = document.getElementById('modalGlobalCetakHistory');

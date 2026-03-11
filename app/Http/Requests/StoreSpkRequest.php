@@ -93,8 +93,9 @@ class StoreSpkRequest extends FormRequest
                 continue;
             }
 
-            if (isset($item['id']) && $item['id'] !== '') {
-                $items[$key]['id'] = (int) $item['id'];
+            $rawId = $item['id'] ?? null;
+            if ($rawId !== null && $rawId !== '' && is_numeric($rawId) && (int) $rawId > 0) {
+                $items[$key]['id'] = (int) $rawId;
             } else {
                 $items[$key]['id'] = null;
             }
