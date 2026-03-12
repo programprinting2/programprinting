@@ -230,6 +230,15 @@ Route::group(['prefix' => 'pekerjaan'], function () {
 
     Route::get('/operator-cetak', [PekerjaanController::class, 'operatorCetak'])
         ->name('pekerjaan.operator-cetak');
+
+    Route::post('/operator-cetak/ambil', [PekerjaanController::class, 'ambilQueue'])
+        ->name('pekerjaan.operator-cetak.ambil');
+    
+    Route::post('/operator-cetak/batal-ambil', [PekerjaanController::class, 'batalAmbilQueue'])
+        ->name('pekerjaan.operator-cetak.batal-ambil');
+    
+    Route::post('/operator-cetak/multi-ambil-semua', [PekerjaanController::class, 'ambilQueueAll'])
+        ->name('pekerjaan.operator-cetak.multi-ambil-semua');
     
     Route::get('/operator-cetak/items/{spkItem}/progress', [PekerjaanController::class, 'getCetakProgress'])
         ->name('pekerjaan.operator-cetak.item-progress');

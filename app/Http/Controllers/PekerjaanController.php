@@ -7,7 +7,11 @@ use App\Models\Pelanggan;
 use App\Models\MasterMesin;
 use App\Http\Requests\StoreSpkItemCetakProgressRequest;
 use App\Http\Requests\BulkCompleteSpkItemCetakRequest;
+use App\Http\Requests\AmbilPekerjaanRequest;
+use App\Http\Requests\MultiAmbilPekerjaanRequest;
+use App\Http\Requests\BatalAmbilPekerjaanRequest;
 use App\Models\SPKItem;
+use App\Models\SpkItemCetakQueue;
 use App\Services\ActivityLogService;
 use App\Models\SpkItemCetakLog;
 use Illuminate\Http\RedirectResponse;
@@ -292,10 +296,79 @@ class PekerjaanController extends Controller
         }
         unset($group);
 
+        $queueRows = SpkItemCetakQueue::query()
+            ->with([
+                'spkItem.spk.pelanggan',
+                'mesin',
+            ])
+            ->orderByDesc('created_at')
+            // ->where('user_id', auth()->id())
+            ->where('user_id', 1)
+            ->get();
+
+        $totalQtyDiambil = (int) $queueRows->sum('jumlah');
+        $totalQtyCetakDariAmbil = 0;
+        foreach ($queueRows as $q) {
+            $spkItem = $q->spkItem;
+            if (!$spkItem) {
+                continue;
+            }
+            $diambil = (int) $q->jumlah;
+            $sudahCetakItem = (int) $spkItem->jumlah_sudah_cetak; 
+            
+            $totalQtyCetakDariAmbil += min($diambil, $sudahCetakItem);
+        }
+        
+        // $progressPekerjaanSaya = 0.0;
+        // if ($totalQtyDiambil > 0) {
+        //     $progressPekerjaanSaya = min(100, round(($totalQtyCetakDariAmbil / $totalQtyDiambil) * 100, 1));
+        // }
+
+        $queueRowsFiltered = $queueRows->filter(function (SpkItemCetakQueue $q) {
+            $spkItem = $q->spkItem;
+            if (!$spkItem) {
+                return false;
+            }
+            $diambil = (int) ($q->jumlah ?? 0);
+            if ($diambil <= 0) {
+                return false;
+            }
+            $sudahCetakItem = (int) ($spkItem->jumlah_sudah_cetak ?? 0);
+           
+            $selesaiUntukQueue = $sudahCetakItem >= $diambil;
+            return !$selesaiUntukQueue;
+        })->values();
+
+        $pekerjaanSayaItems = $queueRowsFiltered->map(function ($q) {
+            $spkItem = $q->spkItem;
+            $spk = $spkItem?->spk;
+            return [
+                'queue' => $q,
+                'spk' => $spk,
+                'item' => $spkItem,
+                'mesin' => $q->mesin,
+                'mesin_nama' => $q->mesin->nama_mesin ?? '-',
+                'nomor_spk' => $spk?->nomor_spk ?? '-',
+                'pelanggan' => $spk?->pelanggan?->nama ?? '-',
+                'nama_item' => $spkItem?->nama_produk ?? '-',
+            ];
+        })->values();
+        $pekerjaanSayaCount = $queueRowsFiltered->count();
+
+        $itemIds = $spk->flatMap(fn ($spkRow) => $spkRow->items->pluck('id'))->unique()->values();
+        $queueTotalsByItemId = SpkItemCetakQueue::query()
+            ->selectRaw('spk_item_id, SUM(jumlah) as total_diambil')
+            ->whereIn('spk_item_id', $itemIds->all())
+            ->groupBy('spk_item_id')
+            ->pluck('total_diambil', 'spk_item_id');
+
         return view('pages.pekerjaan.operator-cetak', [
             'spk'             => $spk,
             // 'customers'       => $customers,
             'tipeMesinGroups' => $tipeMesinGroups,
+            'pekerjaanSayaItems' => $pekerjaanSayaItems,
+            'pekerjaanSayaCount' => $pekerjaanSayaCount,
+            // 'progressPekerjaanSaya' => $progressPekerjaanSaya,
         ]);
     }
 
@@ -618,5 +691,123 @@ class PekerjaanController extends Controller
                 'to'           => $logs->lastItem(),
             ],
         ]);
+    }
+
+    public function ambilQueue(AmbilPekerjaanRequest $request): RedirectResponse
+    {
+        $mesinId = (int) $request->input('mesin_id');
+        $ids = collect($request->input('spk_item_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->values();
+        $ambil = (int) $request->input('jumlah');
+        $userId = (int) (auth()->id() ?? 1);
+
+        DB::transaction(function () use ($ids, $mesinId, $ambil, $userId) {
+            $items = SPKItem::query()
+                ->whereIn('id', $ids->all())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($ids as $spkItemId) {
+                $item = $items->get($spkItemId);
+                if (!$item) {
+                    continue;
+                }
+
+                $qtyPesanan = (int) ($item->jumlah ?? 0);
+                if ($qtyPesanan <= 0) {
+                    continue;
+                }
+
+                $totalClaimedAll = (int) SpkItemCetakQueue::query()
+                    ->where('spk_item_id', $item->id)
+                    ->sum('jumlah');
+
+                if ($totalClaimedAll + $ambil > $qtyPesanan) {
+                    $sisaBolehDiambil = max(0, $qtyPesanan - $totalClaimedAll);
+                    throw ValidationException::withMessages([
+                        'jumlah' => "Jumlah melebihi sisa yang bisa diambil. Sisa yang tersedia: {$sisaBolehDiambil}.",
+                    ]);
+                }
+
+                SpkItemCetakQueue::query()->create([
+                    'spk_item_id' => $item->id,
+                    'mesin_id'    => $mesinId,
+                    'user_id'     => $userId,
+                    'jumlah'      => $ambil,
+                ]);
+            }
+        });
+
+        return back()->with('success', 'Pekerjaan berhasil diambil (planning) dan jumlah ditambahkan ke antrian mesin.');
+    }
+
+    public function batalAmbilQueue(BatalAmbilPekerjaanRequest $request): RedirectResponse
+    {
+        $mesinId = (int) $request->input('mesin_id');
+        $ids = collect($request->input('spk_item_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->values();
+        $userId = (int) (auth()->id() ?? 1);
+        DB::transaction(function () use ($ids, $mesinId, $userId) {
+            SpkItemCetakQueue::query()
+                ->where('mesin_id', $mesinId)
+                ->where('user_id', $userId)
+                ->whereIn('spk_item_id', $ids->all())
+                ->delete();
+        });
+        return back()->with('success', 'Pekerjaan berhasil dibatalkan dari antrian (ambil dibatalkan).');
+    }
+
+    public function ambilQueueAll(MultiAmbilPekerjaanRequest $request): RedirectResponse
+    {
+        $mesinId = (int) $request->input('mesin_id');
+        $ids = collect($request->input('spk_item_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->values();
+
+        $userId = (int) (auth()->id() ?? 1);
+
+        DB::transaction(function () use ($ids, $mesinId, $userId) {
+            $items = SPKItem::query()
+                ->whereIn('id', $ids->all())
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            foreach ($ids as $spkItemId) {
+                $item = $items->get($spkItemId);
+                if (!$item) {
+                    continue;
+                }
+
+                $qtyPesanan = (int) ($item->jumlah ?? 0);
+                if ($qtyPesanan <= 0) {
+                    continue;
+                }
+
+                $totalClaimedAll = (int) SpkItemCetakQueue::query()
+                    ->where('spk_item_id', $item->id)
+                    ->sum('jumlah');
+
+                $sisaBolehDiambil = max(0, $qtyPesanan - $totalClaimedAll);
+                if ($sisaBolehDiambil <= 0) {
+                    continue;
+                }
+
+                SpkItemCetakQueue::query()->create([
+                    'spk_item_id' => $item->id,
+                    'mesin_id'    => $mesinId,
+                    'user_id'     => $userId,
+                    'jumlah'      => $sisaBolehDiambil,
+                ]);    
+            }
+        });
+
+        return back()->with('success', 'Multi ambil berhasil: semua sisa qty yang bisa diambil sudah dimasukkan ke antrian.');
     }
 }

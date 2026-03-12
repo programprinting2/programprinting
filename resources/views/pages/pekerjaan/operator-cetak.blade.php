@@ -25,59 +25,80 @@
               </div>
           </div>
           <div class="row g-3 mb-4" id="operatorTabs" role="tablist">
-            <!-- <div class="col-md-3">
+            {{-- TAB BARU: Pekerjaan Saya --}}
+            <div class="col-md-3">
               <button class="card tab-card active w-100 text-start"
-                      id="tab-spk-list"
+                      id="tab-pekerjaan-saya"
                       data-bs-toggle="tab"
-                      data-bs-target="#tabSpkList"
+                      data-bs-target="#tabPekerjaanSaya"
                       type="button"
                       role="tab">
                 <div class="card-body d-flex align-items-center gap-3">
                   <div class="tab-icon bg-primary-subtle text-primary">
-                    <i class="fa fa-file-alt"></i>
+                    <i class="fa fa-user-check"></i>
                   </div>
-                  <div>
-                    <h6 class="mb-1 fw-semibold">Daftar SPK</h6>
-                    <small class="text-muted">List semua SPK</small>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Pekerjaan Saya</h6>
+                      <span class="badge bg-primary rounded-pill px-3">
+                        {{ (int) ($pekerjaanSayaCount ?? 0) }}
+                      </span>
+                    </div>
+                    <small class="text-muted">Item yang sudah diambil</small>
+                    <!-- @php
+                      $progressSaya = isset($progressPekerjaanSaya) ? (float) $progressPekerjaanSaya : 0.0;
+                    @endphp
+                    <div class="mt-1">
+                      <div class="progress" style="height:4px;">
+                        <div class="progress-bar bg-success"
+                            role="progressbar"
+                            style="width: {{ $progressSaya }}%;"
+                            aria-valuenow="{{ $progressSaya }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100"></div>
+                      </div>
+                      <small class="text-muted">Progress: {{ $progressSaya }}%</small>
+                    </div> -->
                   </div>
                 </div>
               </button>
-            </div> -->
+            </div>
 
+            {{-- TAB: Group per Tipe Mesin (untuk AMBIL) --}}
             @foreach($tipeMesinGroups as $tipe => $group)
-                @php
-                    $slug = \Illuminate\Support\Str::slug($tipe, '-');
-                    $label = $group['label'] ?? $tipe;
-                @endphp
-                <div class="col-md-3">
-                  @php
-                      $mesinListForTipe = array_values(array_map(function ($m) {
-                          return ['id' => $m->id, 'nama' => $m->nama_mesin ?? ''];
-                      }, $group['mesin_list'] ?? []));
-                  @endphp
-                  <button class="card tab-card w-100 text-start {{ $loop->first ? 'active' : '' }}"
-                          id="tab-tipe-{{ $slug }}"
-                          data-bs-toggle="tab"
-                          data-bs-target="#tabTipe{{ $slug }}"
-                          data-mesin-list="{{ json_encode($mesinListForTipe) }}"
-                          type="button"
-                          role="tab">
-                        <div class="card-body d-flex align-items-center gap-3">
-                            <div class="tab-icon bg-success-subtle text-success">
-                                <i class="fa fa-cogs"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex align-items-center justify-content-between">
-                                    <h6 class="mb-0 fw-semibold">{{ $label }}</h6>
-                                    <span class="badge bg-success rounded-pill px-3">
-                                        {{ count($group['spk']) }}
-                                    </span>
-                                </div>
-                                <small class="text-muted">Rekap per bahan</small>
-                            </div>
-                        </div>
-                    </button>
-                </div>
+              @php
+                $slug = \Illuminate\Support\Str::slug($tipe, '-');
+                $label = $group['label'] ?? $tipe;
+                $mesinListForTipe = array_values(array_map(function ($m) {
+                    return ['id' => $m->id, 'nama' => $m->nama_mesin ?? ''];
+                }, $group['mesin_list'] ?? []));
+              @endphp
+
+              <div class="col-md-3">
+                <button class="card tab-card w-100 text-start"
+                        id="tab-tipe-{{ $slug }}"
+                        data-bs-toggle="tab"
+                        data-bs-target="#tabTipe{{ $slug }}"
+                        data-mesin-list="{{ json_encode($mesinListForTipe) }}"
+                        data-slug="{{ $slug }}"
+                        type="button"
+                        role="tab">
+                  <div class="card-body d-flex align-items-center gap-3">
+                    <div class="tab-icon bg-success-subtle text-success">
+                      <i class="fa fa-cogs"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="mb-0 fw-semibold">{{ $label }}</h6>
+                        <span class="badge bg-success rounded-pill px-3">
+                          {{ count($group['spk']) }}
+                        </span>
+                      </div>
+                      <small class="text-muted">Ambil pekerjaan</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
             @endforeach
           </div>
 
@@ -85,42 +106,158 @@
           <hr class="my-4">
 
           
-          <div class="d-flex align-items-center justify-content-between mb-3 flex-nowrap">
-            <div id="mesinSubTabsContainer" class="d-flex align-items-center gap-2 d-none">
-              <span class="text-muted small">Mesin:</span>
-              <div id="mesinSubTabsInner"
-                  class="nav nav-pills d-flex align-items-center gap-1"
-                  role="tablist">
-              </div>
-            </div>
-
-            <form method="POST"
-                  action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}"
-                  id="bulkCetakFormGlobal"
-                  class="d-flex align-items-center gap-2 ms-auto">
-
+    <div class="tab-content mt-3" id="operatorTabContent">
+        {{-- TAB: PEKERJAAN SAYA --}}
+        <div class="tab-pane fade show active"
+            id="tabPekerjaanSaya"
+            role="tabpanel"
+            aria-labelledby="tab-pekerjaan-saya">
+          {{-- Multi Cetak pindah ke sini --}}
+          <div class="d-flex justify-content-end mb-3">
+            <form method="POST" action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}" id="bulkCetakFormGlobal">
               @csrf
               <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
               <div id="bulkCetakInputs"></div>
-
-              <button type="submit"
-                      class="btn btn-sm btn-success"
-                      id="btnBulkCetak"
-                      disabled>
+              <button type="submit" class="btn btn-sm btn-secondary" id="btnBulkCetak" disabled>
                 Multi Cetak
               </button>
             </form>
           </div>
-    <div class="tab-content mt-3" id="operatorTabContent">
+          <div class="table-responsive">
+            <table class="table table-sm align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>No SPK</th>
+                  <th>Pelanggan</th>
+                  <th>Item</th>
+                  <th class="text-end">Qty Diambil</th>
+                  <th>Mesin</th>
+                  <th class="text-end" style="width:180px;">Progress</th>
+                  <th class="text-center" style="width:40px;">Pilih</th>
+                  <th class="text-center" style="width:210px;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @forelse(($pekerjaanSayaItems ?? []) as $row)
+                  @php
+                    $spk = $row['spk'];
+                    $item = $row['item'];
+                    $queue = $row['queue'];
+                    $mesinNama = $row['mesin_nama'] ?? '-';
+
+                    $qtyTotal   = (int) ($item->jumlah ?? 0);
+                    $qtyDiambil = (int) ($queue->jumlah ?? 0);                     
+                    $sudahCetak = (int) ($item->jumlah_sudah_cetak ?? 0);
+                    $sisaCetak  = (int) ($item->sisa_belum_cetak ?? 0);
+                    $pctCetak   = (float) ($item->progress_cetak_persen ?? 0.0);
+                    $sudahDariAmbil = min($qtyDiambil, $sudahCetak);
+                    $sisaDariAmbil  = max(0, $qtyDiambil - $sudahDariAmbil);
+                    $pctAmbilItem   = $qtyDiambil > 0
+                        ? (float) min(100, round(($sudahDariAmbil / $qtyDiambil) * 100, 1))
+                        : 0.0;
+                  @endphp
+                  <tr>
+                    <td>{{ $row['nomor_spk'] ?? '-' }}</td>
+                    <td>{{ $row['pelanggan'] ?? '-' }}</td>
+                    <td>{{ $row['nama_item'] ?? '-' }}</td>
+                    <td class="text-end">{{ number_format((int) ($queue->jumlah ?? 0), 0, ',', '.') }}</td>
+                    <td>{{ $mesinNama }}</td>
+                    <td class="text-end">
+                      <div class="small fw-semibold mb-1">
+                        Progress: {{ $pctAmbilItem }}%
+                      </div>
+
+                      <div class="progress mb-1" style="height:6px;">
+                        <div class="progress-bar {{ $pctAmbilItem >= 100 ? 'bg-success' : ($pctAmbilItem >= 50 ? 'bg-warning' : 'bg-primary') }}"
+                            role="progressbar"
+                            style="width: {{ $pctAmbilItem }}%;"
+                            aria-valuenow="{{ $pctAmbilItem }}"
+                            aria-valuemin="0"
+                            aria-valuemax="100"></div>
+                      </div>
+
+                      <div class="small text-muted">
+                        Selesai: {{ number_format($sudahDariAmbil,0,',','.') }} /
+                        {{ number_format($qtyDiambil,0,',','.') }}
+                        (Sisa: {{ number_format($sisaDariAmbil,0,',','.') }})
+                      </div>
+                    </td>
+                    <td class="text-center">
+                      <input type="checkbox"
+                            class="form-check-input cetak-item-checkbox"
+                            value="{{ $item->id }}"
+                            data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
+                            data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
+                            data-item="{{ $item->nama_produk ?? '-' }}"
+                            data-qty="{{ (int) ($item->jumlah ?? 0) }}"
+                            data-sisa="{{ (int) ($item->sisa_belum_cetak ?? 0) }}">
+                    </td>
+                    <td class="text-center">
+                      {{-- CETAK hanya di Pekerjaan Saya --}}
+                      <button type="button"
+                              class="btn btn-xs btn-primary btn-open-cetak-modal"
+                              data-spk-item-id="{{ $item->id }}"
+                              data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
+                              data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
+                              data-nama-item="{{ $item->nama_produk ?? '-' }}"
+                              data-qty="{{ (int) ($item->jumlah ?? 0) }}"
+                              data-diambil="{{ (int) ($queue->jumlah ?? 0) }}"
+                              data-sudah="{{ (int) ($item->jumlah_sudah_cetak ?? 0) }}"
+                              data-sisa="{{ (int) ($item->sisa_belum_cetak ?? 0) }}">
+                        <i class="fa fa-print"></i>
+                      </button>
+                      {{-- BATAL AMBIL di Pekerjaan Saya --}}
+                      <form method="POST"
+                            action="{{ route('pekerjaan.operator-cetak.batal-ambil') }}"
+                            class="d-inline ms-1 form-batal-ambil">
+                        @csrf
+                        <input type="hidden" name="mesin_id" value="{{ (int) ($queue->mesin_id ?? 0) }}">
+                        <input type="hidden" name="spk_item_ids[]" value="{{ $item->id }}">
+                        <button type="submit" class="btn btn-xs btn-outline-danger">
+                          Batal ambil
+                        </button>
+                      </form>
+                    </td>
+                  </tr>
+                @empty
+                  <tr>
+                    <td colspan="7" class="text-center text-muted py-4">Belum ada pekerjaan yang diambil.</td>
+                  </tr>
+                @endforelse
+              </tbody>
+            </table>
+          </div>
+        </div>
+
         {{-- TAB : Per Tipe Mesin --}}
         @foreach($tipeMesinGroups as $tipe => $group)
           @php
             $slug = \Illuminate\Support\Str::slug($tipe, '-');
             $accordionIdBase = 'accordionTipe'.$slug;
           @endphp
-          <div class="tab-pane fade {{ $loop->first ? 'show active' : '' }}" id="tabTipe{{ $slug }}"
+          <div class="tab-pane fade" id="tabTipe{{ $slug }}"
               role="tabpanel"
               aria-labelledby="tab-tipe-{{ $slug }}">
+              <div class="d-flex align-items-center justify-content-between mb-3 flex-nowrap">
+                <div id="mesinSubTabsContainer-{{ $slug }}" class="d-flex align-items-center gap-2 d-none">
+                  <span class="text-muted small">Mesin:</span>
+                  <div id="mesinSubTabsInner-{{ $slug }}" class="nav nav-pills d-flex align-items-center gap-1" role="tablist">
+                  </div>
+                </div>
+
+                <form method="POST"
+                      action="{{ route('pekerjaan.operator-cetak.multi-ambil-semua') }}"
+                      class="d-flex justify-content-end gap-2 mb-2 bulkAmbilForm flex-grow-1"
+                      data-tipe-tab="{{ $slug }}">
+                  @csrf
+                  <input type="hidden" name="mesin_id" class="bulkAmbilMesinId" value="">
+                  <div class="bulkAmbilInputs"></div>
+
+                  <button type="button" class="btn btn-sm btn-secondary btnMultiAmbil" disabled>
+                    Multi Ambil
+                  </button>
+                </form>
+              </div>  
             <div class="accordion" id="{{ $accordionIdBase }}">
               @php
                   /** @var array $group */
@@ -211,7 +348,7 @@
                             @endphp
                             <input class="form-check-input cek-all-accordion" type="checkbox" data-accordion-id="{{ $accordionId }}" {{ $remainingAccordionItems === 0 ? 'disabled' : '' }}>
                             <label class="form-check-label" for="cekAll-{{ $accordionId }}">
-                              Pilih semua item pada tabel ini
+                              Pilih semua item pada tabel ini untuk <strong>diambil</strong>
                             </label>
                           </div>
                         </div>
@@ -293,8 +430,13 @@
                                       $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
                                   }
 
+                                  $qty = (int) ($spkItem->jumlah ?? 0);
+                                  $totalDiambil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
+                                  $sisaAmbil = max(0, $qty - $totalDiambil);
+                                  $pctAmbil = $qty > 0 ? min(100, round(($totalDiambil / $qty) * 100, 1)) : 0.0;
+
                                   $sudahCetak = (int) ($spkItem->jumlah_sudah_cetak ?? 0);
-                                  $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
+                                  $pctCetak = (float) ($spkItem->progress_cetak_persen ?? 0);
                                   $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
                                 @endphp
 
@@ -384,7 +526,7 @@
                                   <td class="text-end">{{ $spkItem->jumlah }}</td>
                                   <td>{{ $spkItem->satuan }}</td>
                                   @php
-                                    $progressColor = $progressPct >= 100 ? 'bg-success' : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
+                                    $progressColor = $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary');
 
                                     $firstFileForCetak = $firstFile;
                                     $filePath = $firstFileForCetak['path'] ?? null;
@@ -395,64 +537,57 @@
                                   <!-- <td class="text-end fw-semibold">{{ number_format($sudahCetak, 0, ',', '.') }}</td> -->
 
                                   <td class="text-end">
-                                    @if($sisa <= 0)
-                                      <span class="badge bg-success mb-2">Selesai</span>
-                                    @else
-                                      <div class="small text-danger fw-semibold mb-1">
-                                        Sisa: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
-                                      </div>
-                                    @endif
-                                    <div class="progress" style="height:6px;">
-                                      <div class="progress-bar {{ $progressColor }}"
+                                    <div class="small fw-semibold mb-1">Ambil: {{ $pctAmbil }}%</div>
+                                    <div class="progress mb-2" style="height:6px;">
+                                      <div class="progress-bar bg-success"
                                           role="progressbar"
-                                          style="width: {{ $progressPct }}%;"
-                                          aria-valuenow="{{ $progressPct }}"
+                                          style="width: {{ $pctAmbil }}%;"
+                                          aria-valuenow="{{ $pctAmbil }}"
                                           aria-valuemin="0"
                                           aria-valuemax="100"></div>
                                     </div>
-                                    <div class="d-flex justify-content-end align-items-center gap-2 small mt-1">
-                                      <span>{{ $progressPct }}%</span>
-                                      <button type="button"
-                                              class="btn btn-sm btn-outline-info p-1 btn-cetak-history"
-                                              title="Lihat riwayat cetak"
-                                              data-spk-item-id="{{ $spkItem->id }}"
-                                              data-item-nama="{{ $spkItem->nama_produk }}"
-                                              data-nomor-spk="{{ $spkRow->nomor_spk }}">
-                                        <i class="fa fa-info-circle"></i>
-                                      </button>
+                                    <div class="small text-muted mb-2">
+                                      Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($qty,0,',','.') }}
+                                      (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
+                                    </div>
+
+                                    <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
+                                    <div class="progress" style="height:6px;">
+                                      <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
+                                          role="progressbar"
+                                          style="width: {{ $pctCetak }}%;"
+                                          aria-valuenow="{{ $pctCetak }}"
+                                          aria-valuemin="0"
+                                          aria-valuemax="100"></div>
+                                    </div>
+                                    <div class="small text-muted mt-1">
+                                      Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
                                     </div>
                                   </td>
                                   <td class="text-center">
                                     <input type="checkbox"
-                                          class="form-check-input cetak-item-checkbox {{ $sisa <= 0 ? 'checkbox-done' : '' }}"
+                                          class="form-check-input ambil-item-checkbox"
                                           value="{{ $spkItem->id }}"
-                                          data-spk-id="{{ $spkRow->id }}"
                                           data-accordion-id="{{ $accordionId }}"
+                                          data-spk-id="{{ $spkRow->id }}"
                                           data-nomor-spk="{{ $spkRow->nomor_spk }}"
                                           data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
                                           data-item="{{ $spkItem->nama_produk }}"
-                                          data-qty="{{ $spkItem->jumlah }}"
-                                          data-sisa="{{ $sisa }}"
-                                          data-satuan="{{ $spkItem->satuan }}"
-                                          data-locked="{{ $sisa <= 0 ? '1' : '0' }}"
-                                          @disabled($sisa <= 0)>
+                                          data-qty="{{ $qty }}"
+                                          data-sisa-ambil="{{ $sisaAmbil }}"
+                                          @disabled($sisaAmbil <= 0)>
                                   </td>
                                   <td class="text-center">
-                                      <button type="button"
-                                              class="btn btn-sm {{ $sisa <= 0 ? 'btn-secondary disabled' : 'btn-primary' }} btn-primary btn-open-cetak-modal"
-                                              {{ $sisa <= 0 ? 'disabled' : '' }}
-                                              data-spk-item-id="{{ $spkItem->id }}"
-                                              data-nomor-spk="{{ $spkRow->nomor_spk }}"
-                                              data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
-                                              data-nama-item="{{ $spkItem->nama_produk }}"
-                                              data-qty="{{ (int) $spkItem->jumlah }}"
-                                              data-sudah="{{ $sudahCetak }}"
-                                              data-sisa="{{ $sisa }}"
-                                              data-file-path="{{ $filePath ?? '' }}"
-                                              data-file-name="{{ $fileName }}"
-                                              data-file-type="{{ $fileType }}">
-                                          <i class="fa fa-print"></i>
-                                      </button>
+                                    <button type="button"
+                                            class="btn btn-sm {{ $sisaAmbil <= 0 ? 'btn-secondary disabled' : 'btn-success' }} btn-open-ambil-modal"
+                                            {{ $sisaAmbil <= 0 ? 'disabled' : '' }}
+                                            data-spk-item-id="{{ $spkItem->id }}"
+                                            data-nomor-spk="{{ $spkRow->nomor_spk }}"
+                                            data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
+                                            data-nama-item="{{ $spkItem->nama_produk }}"
+                                            data-sisa-ambil="{{ $sisaAmbil }}">
+                                      Ambil
+                                    </button>
                                   </td>
                                 </tr>
                               @endforeach
@@ -602,6 +737,23 @@
   </script>
 
   <script>
+    function syncMultiAmbilButtons() {
+      const checked = document.querySelectorAll('.ambil-item-checkbox:checked');
+
+      document.querySelectorAll('.btnMultiAmbil').forEach(btn => {
+          const hasChecked = checked.length > 0;
+
+          btn.disabled = !hasChecked;
+
+          if (hasChecked) {
+              btn.classList.remove('btn-secondary');
+              btn.classList.add('btn-success');
+          } else {
+              btn.classList.remove('btn-success');
+              btn.classList.add('btn-secondary');
+          }
+      });
+    }
     document.addEventListener('DOMContentLoaded', function () {
         const modalEl   = document.getElementById('globalPreviewModal');
         const modalTitle = document.getElementById('globalPreviewModalTitle');
@@ -683,6 +835,245 @@
               globalModal.show();
           });
         });
+
+      const ambilModalEl = document.getElementById('ambilModal');
+      const ambilModal = ambilModalEl ? new bootstrap.Modal(ambilModalEl) : null;
+
+      const formAmbil = document.getElementById('formAmbil');
+      const ambilInputs = document.getElementById('ambil_inputs');
+      const ambilMesinId = document.getElementById('ambil_mesin_id');
+      const ambilJumlah = document.getElementById('ambil_jumlah');
+
+      function getActiveMesinId() {
+        // 1) Kalau ada sub-tab mesin yang sedang aktif, pakai itu (kasus >1 mesin)
+        const activeSub = document.querySelector('[id^="mesinSubTabsInner-"] .nav-link.active');
+        if (activeSub && activeSub.dataset && activeSub.dataset.mesinId) {
+          return String(activeSub.dataset.mesinId);
+        }
+
+        // 2) Tidak ada sub-tab aktif -> cek tab tipe mesin yang sedang aktif
+        const activeTabBtn = document.querySelector('#operatorTabs .tab-card.active[data-mesin-list]');
+        if (activeTabBtn) {
+          try {
+            const raw = activeTabBtn.getAttribute('data-mesin-list');
+            const list = raw ? JSON.parse(raw) : [];
+
+            // Jika hanya 1 mesin di group ini, auto-pilih mesin tersebut
+            if (Array.isArray(list) && list.length === 1 && list[0].id) {
+              return String(list[0].id);
+            }
+
+            // Kalau mesin >1 tapi belum pilih sub-tab -> paksa user pilih dulu
+            return '';
+          } catch (e) {
+            return '';
+          }
+        }
+
+        // 3) Tidak ada tab tipe mesin aktif (misal lagi di "Pekerjaan Saya")
+        return '';
+      }
+
+      function setAmbilHiddenIds(ids) {
+        ambilInputs.innerHTML = '';
+        ids.forEach(id => {
+          const input = document.createElement('input');
+          input.type = 'hidden';
+          input.name = 'spk_item_ids[]';
+          input.value = String(id);
+          ambilInputs.appendChild(input);
+        });
+      }
+
+      function openAmbilModalSingle(btn) {
+        const itemId = btn.getAttribute('data-spk-item-id');
+        const nomorSpk = btn.getAttribute('data-nomor-spk') || '-';
+        const pelanggan = btn.getAttribute('data-pelanggan') || '-';
+        const namaItem = btn.getAttribute('data-nama-item') || '-';
+        const sisaAmbil = parseInt(btn.getAttribute('data-sisa-ambil') || '0', 10) || 0;
+
+        const mesinId = getActiveMesinId();
+        if (!mesinId) {
+          Swal.fire({ icon: 'warning', title: 'Mesin belum dipilih', text: 'Silakan pilih mesin dulu.' });
+          return;
+        }
+
+        ambilMesinId.value = mesinId;
+        setAmbilHiddenIds([itemId]);
+
+        document.getElementById('ambil_nomor_spk').textContent = nomorSpk;
+        document.getElementById('ambil_pelanggan').textContent = pelanggan;
+        document.getElementById('ambil_nama_item').textContent = namaItem;
+        document.getElementById('ambil_sisa').textContent = sisaAmbil.toLocaleString('id-ID');
+
+        ambilJumlah.value = '';
+        ambilJumlah.max = String(Math.max(0, sisaAmbil));
+        ambilModal.show();
+      }
+
+      function openAmbilModalMulti(selectedCheckboxes) {
+        const mesinId = getActiveMesinId();
+        if (!mesinId) {
+          Swal.fire({ icon: 'warning', title: 'Mesin belum dipilih', text: 'Silakan pilih mesin dulu.' });
+          return;
+        }
+
+        const ids = Array.from(selectedCheckboxes).map(cb => cb.value);
+        ambilMesinId.value = mesinId;
+        setAmbilHiddenIds(ids);
+
+        document.getElementById('ambil_nomor_spk').textContent = 'Multi';
+        document.getElementById('ambil_pelanggan').textContent = '-';
+        document.getElementById('ambil_nama_item').textContent = `${ids.length} item`;
+        document.getElementById('ambil_sisa').textContent = '-';
+
+        ambilJumlah.value = '';
+        ambilJumlah.removeAttribute('max');
+        ambilModal.show();
+      }
+
+      document.addEventListener('click', function (e) {
+        const btnSingle = e.target.closest('.btn-open-ambil-modal');
+        if (btnSingle) {
+          openAmbilModalSingle(btnSingle);
+          return;
+        }
+
+        const btnMulti = e.target.closest('.btnMultiAmbil');
+        if (btnMulti) {
+          const checked = document.querySelectorAll('.ambil-item-checkbox:checked');
+          if (!checked.length) {
+            return;
+          }
+          const mesinId = getActiveMesinId();
+          if (!mesinId) {
+            Swal.fire({
+              icon: 'warning',
+              title: 'Mesin belum dipilih',
+              text: 'Silakan pilih mesin dulu.'
+            });
+            return;
+          }
+
+          let html = `
+            <div style="max-height:350px;overflow:auto">
+            <table class="table table-sm table-bordered align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>SPK</th>
+                  <th>Pelanggan</th>
+                  <th>Item</th>
+                  <th class="text-end">Qty Diambil (baru)</th>
+                </tr>
+              </thead>
+              <tbody>
+          `;
+          let totalItem = 0;
+          checked.forEach(cb => {
+            const spk    = cb.dataset.nomorSpk || '-';
+            const pelanggan = cb.dataset.pelanggan || '-';
+            const item   = cb.dataset.item || '-';
+            const sisaAmbil = parseInt(cb.dataset.sisaAmbil || '0', 10) || 0;
+            
+            if (sisaAmbil <= 0) {
+              return;
+            }
+            html += `
+              <tr>
+                <td>${spk}</td>
+                <td>${pelanggan}</td>
+                <td>${item}</td>
+                <td class="text-end">${sisaAmbil.toLocaleString('id-ID')}</td>
+              </tr>
+            `;
+            totalItem++;
+          });
+          html += `
+              </tbody>
+            </table>
+            </div>
+            <div class="mt-3 text-start">
+              <strong>Total item dipilih: ${totalItem}</strong>
+            </div>
+          `;
+          if (totalItem === 0) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Tidak ada qty yang bisa diambil',
+              text: 'Semua item yang dipilih sudah tidak punya sisa ambil.'
+            });
+            return;
+          }
+          Swal.fire({
+            title: 'Konfirmasi Multi Ambil (Semua Sisa)',
+            html: html,
+            icon: 'info',
+            width: 800,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, ambil semua',
+            cancelButtonText: 'Batal',
+            confirmButtonColor: '#198754'
+          }).then((result) => {
+            if (!result.isConfirmed) {
+              return;
+            }
+
+            const form = btnMulti.closest('.bulkAmbilForm');
+            if (!form) return;
+            const bulkInputs = form.querySelector('.bulkAmbilInputs');
+            const mesinInput = form.querySelector('.bulkAmbilMesinId');
+            if (!bulkInputs || !mesinInput) return;
+            bulkInputs.innerHTML = '';
+            checked.forEach(cb => {
+              const sisaAmbil = parseInt(cb.dataset.sisaAmbil || '0', 10) || 0;
+              if (sisaAmbil <= 0) {
+                return;
+              }
+              const input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = 'spk_item_ids[]';
+              input.value = cb.value;
+              bulkInputs.appendChild(input);
+            });
+            mesinInput.value = mesinId;
+            Swal.fire({
+              title: 'Memproses...',
+              text: 'Sedang memproses multi ambil',
+              allowOutsideClick: false,
+              didOpen: () => {
+                Swal.showLoading();
+              }
+            });
+            form.submit();
+          });
+          return;
+        }
+      });
+
+      document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('ambil-item-checkbox')) {
+          syncMultiAmbilButtons();
+        }
+      });
+
+     
+      if (formAmbil) {
+        formAmbil.addEventListener('submit', function (e) {
+          const val = parseInt(ambilJumlah.value || '0', 10) || 0;
+          if (val <= 0) {
+            e.preventDefault();
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Jumlah ambil minimal 1.' });
+            return;
+          }
+          const max = ambilJumlah.getAttribute('max');
+          if (max && val > parseInt(max, 10)) {
+            e.preventDefault();
+            Swal.fire({ icon: 'error', title: 'Gagal', text: 'Jumlah ambil melebihi sisa yang tersedia.' });
+          }
+        });
+      }
+
+      syncMultiAmbilButtons();
     });
   </script>
 
@@ -810,15 +1201,29 @@
       }
 
       (function () {
-        const container = document.getElementById('mesinSubTabsContainer');
-        const inner = document.getElementById('mesinSubTabsInner');
         const bulkMesinInput = document.getElementById('bulkCetakMesinId');
-        if (!container || !inner) return;
 
-        function renderMesinSubTabs(mesinList) {
+        function clearAllMesinSubTabs() {
+          document.querySelectorAll('[id^="mesinSubTabsContainer-"]').forEach(c => {
+            c.classList.add('d-none');
+          });
+          document.querySelectorAll('[id^="mesinSubTabsInner-"]').forEach(i => {
+            i.innerHTML = '';
+          });
+          if (bulkMesinInput) {
+            bulkMesinInput.value = '';
+          }
+        }
+
+        function renderMesinSubTabsForSlug(slug, mesinList) {
+          const container = document.getElementById('mesinSubTabsContainer-' + slug);
+          const inner = document.getElementById('mesinSubTabsInner-' + slug);
+          if (!container || !inner) return;
+
           inner.innerHTML = '';
-          if (!bulkMesinInput) return;
-          bulkMesinInput.value = '';
+          if (bulkMesinInput) {
+            bulkMesinInput.value = '';
+          }
 
           if (!mesinList || mesinList.length <= 1) {
             container.classList.add('d-none');
@@ -826,6 +1231,7 @@
           }
 
           container.classList.remove('d-none');
+
           mesinList.forEach(function (m, idx) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -834,37 +1240,61 @@
             btn.dataset.mesinId = m.id || '';
             btn.textContent = m.nama || ('Mesin #' + (m.id || idx));
             btn.addEventListener('click', function () {
-              inner.querySelectorAll('.nav-link').forEach(function (el) { el.classList.remove('active'); });
+              inner.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
               btn.classList.add('active');
-              if (bulkMesinInput) bulkMesinInput.value = btn.dataset.mesinId || '';
+              if (bulkMesinInput) {
+                bulkMesinInput.value = btn.dataset.mesinId || '';
+              }
             });
             inner.appendChild(btn);
           });
 
-          var first = inner.querySelector('.nav-link');
-          if (first && bulkMesinInput) bulkMesinInput.value = first.dataset.mesinId || '';
+          const first = inner.querySelector('.nav-link');
+          if (first && bulkMesinInput) {
+            bulkMesinInput.value = first.dataset.mesinId || '';
+          }
         }
 
-        var tipeTabButtons = document.querySelectorAll('#operatorTabs [data-bs-toggle="tab"]');
-        tipeTabButtons.forEach(function (btn) {
+        // Tab tipe mesin
+        document.querySelectorAll('#operatorTabs [data-mesin-list]').forEach(function (btn) {
+          const slug = btn.getAttribute('data-slug');
           btn.addEventListener('shown.bs.tab', function () {
-            var raw = btn.getAttribute('data-mesin-list');
-            var list = [];
+            let list = [];
             try {
+              const raw = btn.getAttribute('data-mesin-list');
               list = raw ? JSON.parse(raw) : [];
             } catch (e) {}
-            renderMesinSubTabs(list);
+            clearAllMesinSubTabs();
+            if (slug) {
+              renderMesinSubTabsForSlug(slug, list);
+            }
           });
         });
 
-        var activeTipe = document.querySelector('#operatorTabs [data-bs-toggle="tab"].active');
-        if (activeTipe) {
-          var raw = activeTipe.getAttribute('data-mesin-list');
-          var list = [];
+        // Tab "Pekerjaan Saya"
+        const pekerjaanSayaTab = document.getElementById('tab-pekerjaan-saya');
+        if (pekerjaanSayaTab) {
+          pekerjaanSayaTab.addEventListener('shown.bs.tab', function () {
+            clearAllMesinSubTabs();
+          });
+        }
+
+        // Inisialisasi pertama: jika pada load sudah ada tab tipe mesin aktif
+        const activeMesinTab = document.querySelector('#operatorTabs [data-mesin-list].active');
+        if (activeMesinTab) {
+          const slug = activeMesinTab.getAttribute('data-slug');
+          let list = [];
           try {
+            const raw = activeMesinTab.getAttribute('data-mesin-list');
             list = raw ? JSON.parse(raw) : [];
           } catch (e) {}
-          renderMesinSubTabs(list);
+          clearAllMesinSubTabs();
+          if (slug) {
+            renderMesinSubTabsForSlug(slug, list);
+          }
+        } else {
+          // default: Pekerjaan Saya aktif
+          clearAllMesinSubTabs();
         }
       })();
 
@@ -1035,60 +1465,144 @@
           syncBulk();
         }
 
+        if (el.classList.contains('ambil-item-checkbox')) {
+          const spkId = el.dataset.spkId;
+          const accordionId = el.dataset.accordionId;
+          const spkItems = document.querySelectorAll(
+            `.ambil-item-checkbox[data-spk-id="${spkId}"][data-accordion-id="${accordionId}"]`
+          );
+          const spkChecked = document.querySelectorAll(
+            `.ambil-item-checkbox[data-spk-id="${spkId}"][data-accordion-id="${accordionId}"]:checked`
+          );
+          const spkMaster = document.querySelector(
+            `.cek-spk[data-spk-id="${spkId}"][data-accordion-id="${accordionId}"]`
+          );
+          if (spkMaster) {
+            spkMaster.checked = spkItems.length === spkChecked.length;
+          }
+          const accItems = document.querySelectorAll(
+            `.ambil-item-checkbox[data-accordion-id="${accordionId}"]`
+          );
+          const accChecked = document.querySelectorAll(
+            `.ambil-item-checkbox[data-accordion-id="${accordionId}"]:checked`
+          );
+          const accMaster = document.querySelector(
+            `.cek-all-accordion[data-accordion-id="${accordionId}"]`
+          );
+          if (accMaster) {
+            accMaster.checked = accItems.length === accChecked.length;
+          }
+          syncMultiAmbilButtons();
+        }
+
 
         // =====================
         // SPK SELECT
         // =====================
-        if(el.classList.contains("cek-spk")){
+        // if(el.classList.contains("cek-spk")){
+        //   const spkId = el.dataset.spkId;
+        //   const accordionId = el.dataset.accordionId;
+
+        //   document
+        //     .querySelectorAll(`.cetak-item-checkbox[data-spk-id="${spkId}"][data-accordion-id="${accordionId}"]:not([data-locked="1"])`)
+        //     .forEach(cb => cb.checked = el.checked);
+
+        //   const accItems = document.querySelectorAll(
+        //     `.cetak-item-checkbox[data-accordion-id="${accordionId}"]:not([data-locked="1"])`
+        //   );
+
+        //   const accChecked = document.querySelectorAll(
+        //     `.cetak-item-checkbox[data-accordion-id="${accordionId}"]:checked`
+        //   );
+
+        //   const accMaster = document.querySelector(
+        //     `.cek-all-accordion[data-accordion-id="${accordionId}"]`
+        //   );
+
+        //   if(accMaster){
+        //     accMaster.checked = accItems.length === accChecked.length;
+        //   }
+
+        //   syncBulk();
+        // }
+        if (el.classList.contains('cek-spk')) {
           const spkId = el.dataset.spkId;
           const accordionId = el.dataset.accordionId;
-
           document
-            .querySelectorAll(`.cetak-item-checkbox[data-spk-id="${spkId}"][data-accordion-id="${accordionId}"]:not([data-locked="1"])`)
-            .forEach(cb => cb.checked = el.checked);
-
+            .querySelectorAll(`.ambil-item-checkbox[data-spk-id="${spkId}"][data-accordion-id="${accordionId}"]`)
+            .forEach(cb => { cb.checked = el.checked; });
           const accItems = document.querySelectorAll(
-            `.cetak-item-checkbox[data-accordion-id="${accordionId}"]:not([data-locked="1"])`
+            `.ambil-item-checkbox[data-accordion-id="${accordionId}"]`
           );
-
           const accChecked = document.querySelectorAll(
-            `.cetak-item-checkbox[data-accordion-id="${accordionId}"]:checked`
+            `.ambil-item-checkbox[data-accordion-id="${accordionId}"]:checked`
           );
-
           const accMaster = document.querySelector(
             `.cek-all-accordion[data-accordion-id="${accordionId}"]`
           );
-
-          if(accMaster){
+          if (accMaster) {
             accMaster.checked = accItems.length === accChecked.length;
           }
-
-          syncBulk();
+          syncMultiAmbilButtons();
         }
 
 
         // =====================
         // ACCORDION SELECT
         // =====================
-        if(el.classList.contains("cek-all-accordion")){
+        // if(el.classList.contains("cek-all-accordion")){
 
+        //   const accordionId = el.dataset.accordionId;
+
+        //   document
+        //     .querySelectorAll(`.cetak-item-checkbox[data-accordion-id="${accordionId}"]:not([data-locked="1"])`)
+        //     .forEach(cb => cb.checked = el.checked);
+
+        //   document
+        //     .querySelectorAll(`.cek-spk[data-accordion-id="${accordionId}"]`)
+        //     .forEach(spk => spk.checked = el.checked);
+
+        //   syncBulk();
+        // }
+
+        if (el.classList.contains('cek-all-accordion')) {
           const accordionId = el.dataset.accordionId;
-
           document
-            .querySelectorAll(`.cetak-item-checkbox[data-accordion-id="${accordionId}"]:not([data-locked="1"])`)
-            .forEach(cb => cb.checked = el.checked);
-
+            .querySelectorAll(`.ambil-item-checkbox[data-accordion-id="${accordionId}"]`)
+            .forEach(cb => { cb.checked = el.checked; });
           document
             .querySelectorAll(`.cek-spk[data-accordion-id="${accordionId}"]`)
-            .forEach(spk => spk.checked = el.checked);
-
-          syncBulk();
+            .forEach(spk => { spk.checked = el.checked; });
+          syncMultiAmbilButtons();
         }
 
       });
 
-      syncBulk();
+      syncMultiAmbilButtons();
 
+      document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (!form.classList.contains('form-batal-ambil')) {
+          return;
+        }
+
+        e.preventDefault();
+
+        Swal.fire({
+          title: 'Batalkan ambil pekerjaan?',
+          text: 'Item ini akan dihapus dari antrian pekerjaan Anda.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, batalkan',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#dc3545',
+          cancelButtonColor: '#6c757d'
+        }).then((result) => {
+          if (result.isConfirmed) {
+            form.submit();
+          }
+        });
+      });
 
       document.querySelectorAll('.btn-open-cetak-modal').forEach(btn => {
         btn.addEventListener('click', function () {
@@ -1096,9 +1610,13 @@
           const nomorSpk = btn.getAttribute('data-nomor-spk') || '';
           const pelanggan = btn.getAttribute('data-pelanggan') || '';
           const namaItem = btn.getAttribute('data-nama-item') || '';
-          const qty = parseInt(btn.getAttribute('data-qty') || '0', 10);
-          const sudah = parseInt(btn.getAttribute('data-sudah') || '0', 10);
-          const sisa = parseInt(btn.getAttribute('data-sisa') || '0', 10);
+          // const qty = parseInt(btn.getAttribute('data-qty') || '0', 10);
+          // const sudah = parseInt(btn.getAttribute('data-sudah') || '0', 10);
+          // const sisa = parseInt(btn.getAttribute('data-sisa') || '0', 10);
+          const qtyTotal   = parseInt(btn.getAttribute('data-qty') || '0', 10);        // total pesanan (opsional, kalau mau ditampilkan di tempat lain)
+          const qtyDiambil = parseInt(btn.getAttribute('data-diambil') || '0', 10);   // JUMLAH DIAMBIL
+          const sudah      = parseInt(btn.getAttribute('data-sudah') || '0', 10);
+          const sisaGlobal = parseInt(btn.getAttribute('data-sisa') || '0', 10);
 
           const filePath = btn.getAttribute('data-file-path') || '';
           const fileType = (btn.getAttribute('data-file-type') || '').toLowerCase();
@@ -1111,16 +1629,20 @@
           document.getElementById('cetak_nomor_spk').textContent = nomorSpk;
           document.getElementById('cetak_pelanggan').textContent = pelanggan;
           document.getElementById('cetak_nama_item').textContent = namaItem;
-          document.getElementById('cetak_qty').textContent = qty.toLocaleString('id-ID');
+          // document.getElementById('cetak_qty').textContent = qty.toLocaleString('id-ID');
+          // document.getElementById('cetak_sudah').textContent = sudah.toLocaleString('id-ID');
+          // document.getElementById('cetak_sisa').textContent = sisa.toLocaleString('id-ID');
+          document.getElementById('cetak_qty').textContent   = qtyDiambil.toLocaleString('id-ID');
           document.getElementById('cetak_sudah').textContent = sudah.toLocaleString('id-ID');
-          document.getElementById('cetak_sisa').textContent = sisa.toLocaleString('id-ID');
-          document.getElementById('cetak_sisa_label').textContent = sisa.toLocaleString('id-ID');
+          document.getElementById('cetak_sisa').textContent  = sisaGlobal.toLocaleString('id-ID');
+          document.getElementById('cetak_sisa_label').textContent = qtyDiambil.toLocaleString('id-ID');
           document.getElementById('cetak_sisa_setelah').innerHTML = "Sisa setelah cetak: -";
 
           const jumlahInput = document.getElementById('cetak_jumlah');
+          const maxCetak = Math.max(0, Math.min(qtyDiambil, sisaGlobal));
           jumlahInput.value = '';
-          jumlahInput.max = String(Math.max(0, sisa));
-          if (sisa <= 0) {
+          jumlahInput.max = String(maxCetak);
+          if (maxCetak <= 0) {
             jumlahInput.value = '0';
             jumlahInput.disabled = true;
           } else {
@@ -1308,7 +1830,7 @@
       if(checkboxMax){
         checkboxMax.addEventListener("change", function(){
           const sisaText = document
-            .getElementById('cetak_sisa')
+            .getElementById('cetak_qty')
             .textContent
             .replace(/\./g,'')
             .replace(/,/g,'');
@@ -1571,6 +2093,92 @@
   </div>
 </div>
 
+<div class="modal fade" id="ambilModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-md modal-dialog-centered">
+    <div class="modal-content border-0 shadow-sm">
+      <form method="POST" action="{{ route('pekerjaan.operator-cetak.ambil') }}" id="formAmbil">
+        @csrf
+
+        <div class="modal-header bg-light py-2">
+          <h6 class="modal-title mb-0 fw-semibold">
+            <i class="fa fa-hand-paper me-1 text-success"></i> Ambil Pekerjaan
+          </h6>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+
+          <input type="hidden" name="mesin_id" id="ambil_mesin_id">
+          <div id="ambil_inputs"></div>
+
+          <!-- Info pekerjaan -->
+          <div class="border rounded p-2 mb-3 bg-light small">
+            <div class="row g-2">
+
+              <div class="col-12">
+                <div class="text-muted">SPK</div>
+                <div class="fw-semibold" id="ambil_nomor_spk">-</div>
+              </div>
+
+              <div class="col-12">
+                <div class="text-muted">Pelanggan</div>
+                <div class="fw-semibold" id="ambil_pelanggan">-</div>
+              </div>
+
+              <div class="col-12">
+                <div class="text-muted">Item</div>
+                <div class="fw-semibold" id="ambil_nama_item">-</div>
+              </div>
+
+              <div class="col-12">
+                <div class="text-muted">Sisa yang bisa diambil</div>
+                <div class="fw-bold text-danger fs-6">
+                  <span id="ambil_sisa">0</span>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Input jumlah -->
+          <div>
+            <label class="form-label small fw-semibold">
+              Jumlah yang diambil
+            </label>
+
+            <div class="input-group">
+              <span class="input-group-text">
+                <i class="fa fa-sort-numeric-up"></i>
+              </span>
+              <input type="number"
+                     name="jumlah"
+                     id="ambil_jumlah"
+                     class="form-control text-end fw-bold"
+                     min="1"
+                     required>
+            </div>
+
+            <div class="form-text">
+              Masukkan jumlah item yang akan diambil untuk dicetak.
+            </div>
+          </div>
+
+        </div>
+
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">
+            Tutup
+          </button>
+
+          <button type="submit" class="btn btn-success px-4">
+            <i class="fa fa-check me-1"></i> Ambil
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+</div>
 
 <div class="modal fade" id="cetakProgressModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
