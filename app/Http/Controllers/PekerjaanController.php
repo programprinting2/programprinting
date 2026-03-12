@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Services\SpkService;
+use App\Models\SpkItemCetakQueue;
 use App\Models\Pelanggan;
 use App\Models\MasterMesin;
 use App\Http\Requests\StoreSpkItemCetakProgressRequest;
 use App\Http\Requests\BulkCompleteSpkItemCetakRequest;
+use App\Http\Requests\AmbilPekerjaanRequest;
+use App\Http\Requests\BatalAmbilPekerjaanRequest;
 use App\Models\SPKItem;
 use App\Services\ActivityLogService;
 use App\Models\SpkItemCetakLog;
@@ -292,10 +295,21 @@ class PekerjaanController extends Controller
         }
         unset($group);
 
+        $queueByMesin = [];
+        foreach ($tipeMesinGroups as $group) {
+            foreach ($group['mesin_list'] ?? [] as $mesin) {
+                $ids = SpkItemCetakQueue::where('mesin_id', $mesin->id)
+                    ->pluck('spk_item_id')
+                    ->toArray();
+                $queueByMesin[$mesin->id] = array_flip($ids);
+            }
+        }
+
         return view('pages.pekerjaan.operator-cetak', [
             'spk'             => $spk,
             // 'customers'       => $customers,
             'tipeMesinGroups' => $tipeMesinGroups,
+            'queueByMesin' => $queueByMesin,
         ]);
     }
 
@@ -405,6 +419,7 @@ class PekerjaanController extends Controller
                 SpkItemCetakLog::query()->create([
                     'spk_item_id' => $item->id,
                     'user_id' => 1, //(int) auth()->id(),
+                    'mesin_id' => $request->input('mesin_id'),
                     'jumlah' => $jumlah,
                 ]);
 
@@ -469,6 +484,7 @@ class PekerjaanController extends Controller
                 SpkItemCetakLog::query()->create([
                     'spk_item_id' => $item->id,
                     'user_id' => 1, //(int) auth()->id(),
+                    'mesin_id' => $request->input('mesin_id'),
                     'jumlah' => $sisa,
                 ]);
 
@@ -618,5 +634,89 @@ class PekerjaanController extends Controller
                 'to'           => $logs->lastItem(),
             ],
         ]);
+    }
+
+    public function ambilQueue(AmbilPekerjaanRequest $request): RedirectResponse
+    {
+        $mesinId = (int) $request->input('mesin_id');
+        $ids = collect($request->input('spk_item_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->values();
+        // Asumsi: untuk saat ini, qty hanya dikirim untuk single ambil
+        $requestedJumlah = (int) $request->input('jumlah', 0);
+        DB::beginTransaction();
+        try {
+            $inserted = 0;
+            foreach ($ids as $spkItemId) {
+                /** @var \App\Models\SPKItem $spkItem */
+                $spkItem = SPKItem::find($spkItemId);
+                if (!$spkItem) {
+                    continue;
+                }
+                $qtyPesanan = (int) ($spkItem->jumlah ?? 0);
+                if ($qtyPesanan <= 0) {
+                    continue;
+                }
+                // total yang sudah pernah diambil di SEMUA mesin
+                $totalClaimedAll = (int) SpkItemCetakQueue::where('spk_item_id', $spkItemId)->sum('jumlah');
+                // qty yang diminta untuk item ini
+                $ambil = $requestedJumlah > 0
+                    ? $requestedJumlah
+                    : max(0, $qtyPesanan - $totalClaimedAll);
+                if ($ambil <= 0) {
+                    continue;
+                }
+                if ($totalClaimedAll + $ambil > $qtyPesanan) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => sprintf(
+                            'Total qty yang diambil (%d) melebihi jumlah pesanan (%d) untuk item %s.',
+                            $totalClaimedAll + $ambil,
+                            $qtyPesanan,
+                            $spkItem->nama_produk
+                        ),
+                    ]);
+                }
+               
+                $queue = SpkItemCetakQueue::where('spk_item_id', $spkItemId)
+                    ->where('mesin_id', $mesinId)
+                    ->lockForUpdate()
+                    ->first();
+                if ($queue) {
+                    $queue->jumlah = (int) $queue->jumlah + $ambil;
+                    $queue->save();
+                } else {
+                    SpkItemCetakQueue::create([
+                        'spk_item_id' => $spkItemId,
+                        'mesin_id'    => $mesinId,
+                        'user_id'     => 1, // (int) auth()->id(),
+                        'jumlah'      => $ambil,
+                    ]);
+                }
+                $inserted++;
+            }
+            DB::commit();
+            $msg = $inserted > 0
+                ? "{$inserted} item berhasil ditambahkan/diupdate di antrian."
+                : 'Tidak ada item yang bisa ditambahkan ke antrian.';
+            return back()->with('success', $msg);
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            throw $e;
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            report($e);
+            return back()->withErrors(['queue' => 'Terjadi kesalahan saat menyimpan antrian.'])->withInput();
+        }
+    }
+
+    public function batalAmbilQueue(BatalAmbilPekerjaanRequest $request): RedirectResponse
+    {
+        $mesinId = (int) $request->input('mesin_id');
+        $ids = collect($request->input('spk_item_ids', []))->map(fn ($v) => (int) $v)->unique()->values();
+        $deleted = SpkItemCetakQueue::where('mesin_id', $mesinId)
+            ->whereIn('spk_item_id', $ids->all())
+            ->delete();
+        return back()->with('success', "{$deleted} item dikeluarkan dari antrian.");
     }
 }
