@@ -92,61 +92,24 @@
                   class="nav nav-pills d-flex align-items-center gap-1"
                   role="tablist">
               </div>
-              <button type="button"
-                      id="btnClearMesinFilter"
-                      class="btn btn-sm btn-outline-secondary ms-2 d-none"
-                      title="Kembali ke semua item">
-                &times;
-              </button>
             </div>
 
-            <div class="d-flex align-items-center gap-2 ms-auto">
-              {{-- Form bulk AMBIL --}}
-              <form method="POST"
-                    action="{{ route('pekerjaan.operator-cetak.ambil') }}"
-                    id="bulkAmbilForm"
-                    class="d-inline">
-                @csrf
-                <input type="hidden" name="mesin_id" id="bulkAmbilMesinId" value="">
-                <div id="bulkAmbilInputs"></div>
-                <button type="submit"
-                        class="btn btn-sm btn-outline-primary"
-                        id="btnBulkAmbil"
-                        disabled>
-                  Ambil yang dipilih
-                </button>
-              </form>
-              {{-- Form bulk BATAL AMBIL --}}
-              <form method="POST"
-                    action="{{ route('pekerjaan.operator-cetak.batal-ambil') }}"
-                    id="bulkBatalAmbilForm"
-                    class="d-inline ms-1">
-                @csrf
-                <input type="hidden" name="mesin_id" id="bulkBatalAmbilMesinId" value="">
-                <div id="bulkBatalAmbilInputs"></div>
-                <button type="submit"
-                        class="btn btn-sm btn-outline-danger"
-                        id="btnBulkBatalAmbil"
-                        disabled>
-                  Batal ambil
-                </button>
-              </form>
-              {{-- Form Multi Cetak yang sudah ada --}}
-              <form method="POST"
-                    action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}"
-                    id="bulkCetakFormGlobal"
-                    class="d-flex align-items-center gap-2">
-                @csrf
-                <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
-                <div id="bulkCetakInputs"></div>
-                <button type="submit"
-                        class="btn btn-sm btn-success"
-                        id="btnBulkCetak"
-                        disabled>
-                  Multi Cetak
-                </button>
-              </form>
-            </div>
+            <form method="POST"
+                  action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}"
+                  id="bulkCetakFormGlobal"
+                  class="d-flex align-items-center gap-2 ms-auto">
+
+              @csrf
+              <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
+              <div id="bulkCetakInputs"></div>
+
+              <button type="submit"
+                      class="btn btn-sm btn-success"
+                      id="btnBulkCetak"
+                      disabled>
+                Multi Cetak
+              </button>
+            </form>
           </div>
     <div class="tab-content mt-3" id="operatorTabContent">
         {{-- TAB : Per Tipe Mesin --}}
@@ -251,13 +214,6 @@
                               Pilih semua item pada tabel ini
                             </label>
                           </div>
-
-                          <!-- <div class="form-check ms-3">
-                            <input class="form-check-input" type="checkbox" id="filterQueueOnly">
-                            <label class="form-check-label small" for="filterQueueOnly">
-                              Hanya antrian mesin ini
-                            </label>
-                          </div> -->
                         </div>
                         <table class="table table-sm align-middle mb-0">
                           <thead class="table-light">
@@ -482,51 +438,21 @@
                                           @disabled($sisa <= 0)>
                                   </td>
                                   <td class="text-center">
-                                    {{-- Tombol single AMBIL --}}
-                                    <form method="POST"
-                                          action="{{ route('pekerjaan.operator-cetak.ambil') }}"
-                                          class="d-inline form-single-ambil">
-                                      @csrf
-                                      <input type="hidden" name="mesin_id" class="single-ambil-mesin-id" value="">
-                                      <input type="hidden" name="spk_item_ids[]" value="{{ $spkItem->id }}">
-                                      {{-- input jumlah akan di-inject via JS --}}
                                       <button type="button"
-                                              class="btn btn-xs btn-outline-primary btn-ambil-pekerjaan"
+                                              class="btn btn-sm {{ $sisa <= 0 ? 'btn-secondary disabled' : 'btn-primary' }} btn-primary btn-open-cetak-modal"
+                                              {{ $sisa <= 0 ? 'disabled' : '' }}
+                                              data-spk-item-id="{{ $spkItem->id }}"
+                                              data-nomor-spk="{{ $spkRow->nomor_spk }}"
+                                              data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
+                                              data-nama-item="{{ $spkItem->nama_produk }}"
+                                              data-qty="{{ (int) $spkItem->jumlah }}"
+                                              data-sudah="{{ $sudahCetak }}"
                                               data-sisa="{{ $sisa }}"
-                                              {{ $sisa <= 0 ? 'disabled' : '' }}>
-                                        Ambil
+                                              data-file-path="{{ $filePath ?? '' }}"
+                                              data-file-name="{{ $fileName }}"
+                                              data-file-type="{{ $fileType }}">
+                                          <i class="fa fa-print"></i>
                                       </button>
-                                    </form>
-
-                                    {{-- Tombol single BATAL AMBIL --}}
-                                    <form method="POST"
-                                          action="{{ route('pekerjaan.operator-cetak.batal-ambil') }}"
-                                          class="d-inline ms-1 form-single-batal">
-                                      @csrf
-                                      <input type="hidden" name="mesin_id" class="single-batal-mesin-id" value="">
-                                      <input type="hidden" name="spk_item_ids[]" value="{{ $spkItem->id }}">
-                                      <button type="submit"
-                                              class="btn btn-xs btn-outline-danger btn-batal-pekerjaan d-none">
-                                        Batal
-                                      </button>
-                                    </form>
-
-                                    {{-- Tombol CETAK yang sudah ada --}}
-                                    <button type="button"
-                                            class="btn btn-xs {{ $sisa <= 0 ? 'btn-secondary disabled' : 'btn-primary' }} btn-open-cetak-modal ms-1"
-                                            {{ $sisa <= 0 ? 'disabled' : '' }}
-                                            data-spk-item-id="{{ $spkItem->id }}"
-                                            data-nomor-spk="{{ $spkRow->nomor_spk }}"
-                                            data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
-                                            data-nama-item="{{ $spkItem->nama_produk }}"
-                                            data-qty="{{ (int) $spkItem->jumlah }}"
-                                            data-sudah="{{ $sudahCetak }}"
-                                            data-sisa="{{ $sisa }}"
-                                            data-file-path="{{ $filePath ?? '' }}"
-                                            data-file-name="{{ $fileName }}"
-                                            data-file-type="{{ $fileType }}">
-                                      <i class="fa fa-print"></i>
-                                    </button>
                                   </td>
                                 </tr>
                               @endforeach
@@ -737,67 +663,6 @@
             });
         });
 
-        document.querySelectorAll('.btn-ambil-pekerjaan').forEach(btn => {
-          btn.addEventListener('click', function (e) {
-            e.preventDefault();
-            const form = btn.closest('.form-single-ambil');
-            if (!form) return;
-
-            const sisaAttr = btn.getAttribute('data-sisa');
-            const sisa = parseInt(sisaAttr || '0', 10);
-            if (!sisa || sisa <= 0) {
-              Swal.fire({
-                icon: 'warning',
-                title: 'Tidak ada sisa',
-                text: 'Item ini sudah tidak memiliki sisa qty untuk diambil.'
-              });
-              return;
-            }
-
-            Swal.fire({
-              title: 'Ambil pekerjaan',
-              text: `Masukkan jumlah yang ingin diambil (maks. ${sisa}).`,
-              input: 'number',
-              inputAttributes: {
-                min: 1,
-                max: sisa,
-                step: 1
-              },
-              inputValue: sisa,
-              showCancelButton: true,
-              confirmButtonText: 'Ambil',
-              cancelButtonText: 'Batal',
-              preConfirm: (value) => {
-                const val = parseInt(value || '0', 10);
-                if (!val || val <= 0) {
-                  Swal.showValidationMessage('Jumlah harus lebih dari 0');
-                  return false;
-                }
-                if (val > sisa) {
-                  Swal.showValidationMessage(`Maksimal yang bisa diambil adalah ${sisa}`);
-                  return false;
-                }
-                return val;
-              }
-            }).then(result => {
-              if (!result.isConfirmed) return;
-
-              const jumlah = result.value;
-              // hapus input jumlah lama jika ada
-              const old = form.querySelector('input[name="jumlah"]');
-              if (old) old.remove();
-
-              const inputJumlah = document.createElement('input');
-              inputJumlah.type = 'hidden';
-              inputJumlah.name = 'jumlah';
-              inputJumlah.value = jumlah;
-              form.appendChild(inputJumlah);
-
-              form.submit();
-            });
-          });
-        });
-
         document.querySelectorAll('.btn-preview-item-file').forEach(function (btn) {
           btn.addEventListener('click', function () {
               const path = btn.getAttribute('data-file-path') || '';
@@ -918,121 +783,29 @@
 
       });
 
-      window.queueByMesin = @json($queueByMesin ?? []);
-
-      let activeMesinId = null;
-      let filterByMesinQueue = false;
-      const btnClearMesinFilter = document.getElementById('btnClearMesinFilter');
-
-      if (btnClearMesinFilter) {
-        btnClearMesinFilter.addEventListener('click', function () {
-          filterByMesinQueue = false;
-         
-          applyQueueFilter();
-          btnClearMesinFilter.classList.add('d-none');
-        });
-      }
-      
-      function applyQueueState(mesinId) {
-        activeMesinId = mesinId || null;
-        const queueMap = (window.queueByMesin || {})[mesinId] || {};
-        const rows = document.querySelectorAll('tr');
-
-        rows.forEach(row => {
-          const cb = row.querySelector('.cetak-item-checkbox');
-          if (!cb) return;
-
-          const id = cb.value;
-          const inQueue = !!queueMap[id];
-
-          row.classList.toggle('in-queue', inQueue);
-
-          const btnAmbil = row.querySelector('.btn-ambil-pekerjaan');
-          const btnBatal = row.querySelector('.btn-batal-pekerjaan');
-
-          if (btnAmbil && btnBatal) {
-            if (inQueue) {
-              btnAmbil.classList.add('d-none');
-              btnBatal.classList.remove('d-none');
-            } else {
-              btnAmbil.classList.remove('d-none');
-              btnBatal.classList.add('d-none');
-            }
-          }
-        });
-
-        applyQueueFilter();
-      }
-
-      function applyQueueFilter() {
-        const rows = document.querySelectorAll('tr');
-
-        rows.forEach(row => {
-          const cb = row.querySelector('.cetak-item-checkbox');
-          if (!cb) return; // bukan baris item
-
-          const isInQueue = row.classList.contains('in-queue');
-
-          if (filterByMesinQueue && !isInQueue) {
-            row.style.display = 'none';
-          } else {
-            row.style.display = '';
-          }
-        });
-      }
       const bulkBtn = document.getElementById("btnBulkCetak");
       const bulkInputs = document.getElementById("bulkCetakInputs");
-      const bulkAmbilForm = document.getElementById('bulkAmbilForm');
-      const bulkBatalAmbilForm = document.getElementById('bulkBatalAmbilForm');
-      const bulkAmbilInputs = document.getElementById('bulkAmbilInputs');
-      const bulkBatalAmbilInputs = document.getElementById('bulkBatalAmbilInputs');
-      const btnBulkAmbil = document.getElementById('btnBulkAmbil');
-      const btnBulkBatalAmbil = document.getElementById('btnBulkBatalAmbil');
-      const bulkAmbilMesinId = document.getElementById('bulkAmbilMesinId');
-      const bulkBatalAmbilMesinId = document.getElementById('bulkBatalAmbilMesinId');
 
       function syncBulk() {
         const checked = document.querySelectorAll('.cetak-item-checkbox:checked');
-        // Multi Cetak (sudah ada)
         bulkBtn.disabled = checked.length === 0;
         bulkInputs.innerHTML = "";
-        // Baru: bulk AMBIL & BATAL AMBIL
-        bulkAmbilInputs.innerHTML = "";
-        bulkBatalAmbilInputs.innerHTML = "";
         checked.forEach(cb => {
-          const id = cb.value;
-          // untuk bulk cetak
-          const inputCetak = document.createElement("input");
-          inputCetak.type = "hidden";
-          inputCetak.name = "spk_item_ids[]";
-          inputCetak.value = id;
-          bulkInputs.appendChild(inputCetak);
-          // untuk bulk ambil
-          const inputAmbil = document.createElement("input");
-          inputAmbil.type = "hidden";
-          inputAmbil.name = "spk_item_ids[]";
-          inputAmbil.value = id;
-          bulkAmbilInputs.appendChild(inputAmbil);
-          // untuk bulk batal ambil
-          const inputBatal = document.createElement("input");
-          inputBatal.type = "hidden";
-          inputBatal.name = "spk_item_ids[]";
-          inputBatal.value = id;
-          bulkBatalAmbilInputs.appendChild(inputBatal);
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "spk_item_ids[]";
+          input.value = cb.value;
+          bulkInputs.appendChild(input);
         });
-        const hasChecked = checked.length > 0;
-        if (!hasChecked) {
+
+        if (checked.length === 0) {
           bulkBtn.disabled = true;
           bulkBtn.classList.remove("btn-success");
           bulkBtn.classList.add("btn-secondary");
-          btnBulkAmbil.disabled = true;
-          btnBulkBatalAmbil.disabled = true;
         } else {
           bulkBtn.disabled = false;
           bulkBtn.classList.remove("btn-secondary");
           bulkBtn.classList.add("btn-success");
-          btnBulkAmbil.disabled = false;
-          btnBulkBatalAmbil.disabled = false;
         }
       }
 
@@ -1045,41 +818,14 @@
         function renderMesinSubTabs(mesinList) {
           inner.innerHTML = '';
           if (!bulkMesinInput) return;
-
-          // reset semua mesin_id
           bulkMesinInput.value = '';
-          if (bulkAmbilMesinId) bulkAmbilMesinId.value = '';
-          if (bulkBatalAmbilMesinId) bulkBatalAmbilMesinId.value = '';
 
-          if (!mesinList || mesinList.length === 0) {
+          if (!mesinList || mesinList.length <= 1) {
             container.classList.add('d-none');
-            if (btnClearMesinFilter) btnClearMesinFilter.classList.add('d-none');
-            activeMesinId = null;
-            filterByMesinQueue = false;
-            applyQueueFilter();
             return;
           }
 
-          // kasus 1 mesin: set mesin_id tetapi default tetap mode list (filter off)
-          if (mesinList.length === 1) {
-            const m = mesinList[0];
-            const mesinId = m.id || '';
-            if (bulkMesinInput) bulkMesinInput.value = mesinId;
-            if (bulkAmbilMesinId) bulkAmbilMesinId.value = mesinId;
-            if (bulkBatalAmbilMesinId) bulkBatalAmbilMesinId.value = mesinId;
-            document.querySelectorAll('.single-ambil-mesin-id, .single-batal-mesin-id')
-              .forEach(function (inp) { inp.value = mesinId; });
-            container.classList.add('d-none');
-            activeMesinId = null;
-            filterByMesinQueue = false;
-            applyQueueState(mesinId); // hanya untuk toggle Ambil/Batal
-            return;
-          }
-
-          // > 1 mesin: tampilkan sub-tabs
           container.classList.remove('d-none');
-          if (btnClearMesinFilter) btnClearMesinFilter.classList.add('d-none'); // awalnya list mode
-
           mesinList.forEach(function (m, idx) {
             const btn = document.createElement('button');
             btn.type = 'button';
@@ -1090,39 +836,13 @@
             btn.addEventListener('click', function () {
               inner.querySelectorAll('.nav-link').forEach(function (el) { el.classList.remove('active'); });
               btn.classList.add('active');
-
-              const mesinId = btn.dataset.mesinId || '';
-
-              // set ke semua form hidden
-              if (bulkMesinInput) bulkMesinInput.value = mesinId;
-              if (bulkAmbilMesinId) bulkAmbilMesinId.value = mesinId;
-              if (bulkBatalAmbilMesinId) bulkBatalAmbilMesinId.value = mesinId;
-              document.querySelectorAll('.single-ambil-mesin-id, .single-batal-mesin-id')
-                .forEach(function (inp) { inp.value = mesinId; });
-
-              // mode: hanya item yg sudah diambil di mesin ini
-              filterByMesinQueue = true;
-              if (btnClearMesinFilter) btnClearMesinFilter.classList.remove('d-none');
-              applyQueueState(mesinId);
+              if (bulkMesinInput) bulkMesinInput.value = btn.dataset.mesinId || '';
             });
             inner.appendChild(btn);
           });
 
-          // default: list mode (semua item), tapi tetap set mesin pertama ke form
           var first = inner.querySelector('.nav-link');
-          if (first) {
-            const mesinId = first.dataset.mesinId || '';
-            if (bulkMesinInput) bulkMesinInput.value = mesinId;
-            if (bulkAmbilMesinId) bulkAmbilMesinId.value = mesinId;
-            if (bulkBatalAmbilMesinId) bulkBatalAmbilMesinId.value = mesinId;
-            document.querySelectorAll('.single-ambil-mesin-id, .single-batal-mesin-id')
-              .forEach(function (inp) { inp.value = mesinId; });
-
-            // list mode: filter off, tapi state queue tetap diproses untuk toggle Ambil/Batal
-            filterByMesinQueue = false;
-            if (btnClearMesinFilter) btnClearMesinFilter.classList.add('d-none');
-            applyQueueState(mesinId);
-          }
+          if (first && bulkMesinInput) bulkMesinInput.value = first.dataset.mesinId || '';
         }
 
         var tipeTabButtons = document.querySelectorAll('#operatorTabs [data-bs-toggle="tab"]');
@@ -1265,9 +985,6 @@
 
         modalEl.addEventListener('shown.bs.modal', toggleRentangInputs);
       })();
-
-      
-
 
       document.addEventListener("click", function(e){
         const el = e.target;
@@ -1424,7 +1141,7 @@
                 <img src="${url}" class="img-fluid rounded" style="max-height:280px;object-fit:contain;" loading="lazy">
               </a>`;
             }
-      }
+          }
 
           /*
     ===============================
@@ -1839,7 +1556,6 @@
       }
     });
   </script>
-  
 
 <div class="modal fade" id="globalPreviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">

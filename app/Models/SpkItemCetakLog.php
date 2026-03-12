@@ -15,7 +15,6 @@ class SpkItemCetakLog extends Model
         'spk_item_id',
         'user_id',
         'jumlah',
-        'mesin_id',
     ];
 
     protected function casts(): array
@@ -33,10 +32,5 @@ class SpkItemCetakLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
-    }
-
-    public function mesin(): BelongsTo
-    {
-        return $this->belongsTo(MasterMesin::class, 'mesin_id');
     }
 }
