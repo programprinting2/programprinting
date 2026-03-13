@@ -69,9 +69,7 @@
               @php
                 $slug = \Illuminate\Support\Str::slug($tipe, '-');
                 $label = $group['label'] ?? $tipe;
-                $mesinListForTipe = array_values(array_map(function ($m) {
-                    return ['id' => $m->id, 'nama' => $m->nama_mesin ?? ''];
-                }, $group['mesin_list'] ?? []));
+                $mesinListForTipe = $group['mesin_list'] ?? [];
               @endphp
 
               <div class="col-md-3">
@@ -79,7 +77,7 @@
                         id="tab-tipe-{{ $slug }}"
                         data-bs-toggle="tab"
                         data-bs-target="#tabTipe{{ $slug }}"
-                        data-mesin-list="{{ json_encode($mesinListForTipe) }}"
+                        data-mesin-list='@json($mesinListForTipe)'
                         data-slug="{{ $slug }}"
                         type="button"
                         role="tab">
@@ -112,7 +110,7 @@
             id="tabPekerjaanSaya"
             role="tabpanel"
             aria-labelledby="tab-pekerjaan-saya">
-          {{-- Multi Cetak pindah ke sini --}}
+          {{-- Multi Cetak --}}
           <div class="d-flex justify-content-end mb-3">
             <form method="POST" action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}" id="bulkCetakFormGlobal">
               @csrf
@@ -140,21 +138,17 @@
               <tbody>
                 @forelse(($pekerjaanSayaItems ?? []) as $row)
                   @php
-                    $spk = $row['spk'];
-                    $item = $row['item'];
-                    $queue = $row['queue'];
-                    $mesinNama = $row['mesin_nama'] ?? '-';
+                  $spk = $row['spk'];
+                  $item = $row['item'];
+                  $queue = $row['queue'];
 
-                    $qtyTotal   = (int) ($item->jumlah ?? 0);
-                    $qtyDiambil = (int) ($queue->jumlah ?? 0);                     
-                    $sudahCetak = (int) ($item->jumlah_sudah_cetak ?? 0);
-                    $sisaCetak  = (int) ($item->sisa_belum_cetak ?? 0);
-                    $pctCetak   = (float) ($item->progress_cetak_persen ?? 0.0);
-                    $sudahDariAmbil = min($qtyDiambil, $sudahCetak);
-                    $sisaDariAmbil  = max(0, $qtyDiambil - $sudahDariAmbil);
-                    $pctAmbilItem   = $qtyDiambil > 0
-                        ? (float) min(100, round(($sudahDariAmbil / $qtyDiambil) * 100, 1))
-                        : 0.0;
+                  $mesinNama = $row['mesin_nama'] ?? '-';
+
+                  $qtyDiambil = (int) ($row['qty_diambil'] ?? 0);
+                  $printed    = (int) ($row['printed'] ?? 0);
+                  $progress   = (float) ($row['progress'] ?? 0);
+
+                  $sisa = max(0, $qtyDiambil - $printed);
                   @endphp
                   <tr>
                     <td>{{ $row['nomor_spk'] ?? '-' }}</td>
@@ -164,33 +158,34 @@
                     <td>{{ $mesinNama }}</td>
                     <td class="text-end">
                       <div class="small fw-semibold mb-1">
-                        Progress: {{ $pctAmbilItem }}%
+                        Progress: {{ $progress }}%
                       </div>
 
                       <div class="progress mb-1" style="height:6px;">
-                        <div class="progress-bar {{ $pctAmbilItem >= 100 ? 'bg-success' : ($pctAmbilItem >= 50 ? 'bg-warning' : 'bg-primary') }}"
+                        <div class="progress-bar {{ $progress >= 100 ? 'bg-success' : ($progress >= 50 ? 'bg-warning' : 'bg-primary') }}"
                             role="progressbar"
-                            style="width: {{ $pctAmbilItem }}%;"
-                            aria-valuenow="{{ $pctAmbilItem }}"
+                            style="width: {{ $progress }}%;"
+                            aria-valuenow="{{ $progress }}"
                             aria-valuemin="0"
                             aria-valuemax="100"></div>
                       </div>
 
                       <div class="small text-muted">
-                        Selesai: {{ number_format($sudahDariAmbil,0,',','.') }} /
+                        Selesai: {{ number_format($printed,0,',','.') }} /
                         {{ number_format($qtyDiambil,0,',','.') }}
-                        (Sisa: {{ number_format($sisaDariAmbil,0,',','.') }})
+                        (Sisa: {{ number_format($sisa,0,',','.') }})
                       </div>
                     </td>
                     <td class="text-center">
                       <input type="checkbox"
                             class="form-check-input cetak-item-checkbox"
                             value="{{ $item->id }}"
+                            data-mesin-id="{{ $queue->mesin_id }}"
                             data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
                             data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
                             data-item="{{ $item->nama_produk ?? '-' }}"
-                            data-qty="{{ (int) ($item->jumlah ?? 0) }}"
-                            data-sisa="{{ (int) ($item->sisa_belum_cetak ?? 0) }}">
+                            data-qty="{{ $qtyDiambil }}"
+                            data-sisa="{{ $sisa }}">
                     </td>
                     <td class="text-center">
                       {{-- CETAK hanya di Pekerjaan Saya --}}
@@ -200,10 +195,11 @@
                               data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
                               data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
                               data-nama-item="{{ $item->nama_produk ?? '-' }}"
-                              data-qty="{{ (int) ($item->jumlah ?? 0) }}"
+                              data-qty="{{ $qtyDiambil }}"
+                              data-mesin-id="{{ (int) ($queue->mesin_id ?? 0) }}"
                               data-diambil="{{ (int) ($queue->jumlah ?? 0) }}"
-                              data-sudah="{{ (int) ($item->jumlah_sudah_cetak ?? 0) }}"
-                              data-sisa="{{ (int) ($item->sisa_belum_cetak ?? 0) }}">
+                              data-sudah="{{ $printed }}" 
+                              data-sisa="{{ $sisa }}">
                         <i class="fa fa-print"></i>
                       </button>
                       {{-- BATAL AMBIL di Pekerjaan Saya --}}
@@ -344,7 +340,12 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                           <div class="form-check">
                             @php
-                              $remainingAccordionItems = collect($items)->filter(fn($rec) => ($rec['item']->sisa_belum_cetak ?? 0) > 0)->count();
+                              $remainingAccordionItems = collect($items)->filter(function ($rec) use ($queueTotalsByItemId) {
+                                $qty = (int) ($rec['item']->jumlah ?? 0);
+                                $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
+                                $sisaAmbil = max(0, $qty - $totalDiambil);
+                                return $sisaAmbil > 0;
+                              })->count();
                             @endphp
                             <input class="form-check-input cek-all-accordion" type="checkbox" data-accordion-id="{{ $accordionId }}" {{ $remainingAccordionItems === 0 ? 'disabled' : '' }}>
                             <label class="form-check-label" for="cekAll-{{ $accordionId }}">
@@ -440,13 +441,18 @@
                                   $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
                                 @endphp
 
-                                <tr class="{{ $sisa <= 0 ? 'item-selesai' : '' }}">
+                                <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
                                   @if($firstRow)
                                     <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                       <div class="d-flex align-items-start gap-2">
                                         <div class="form-check mt-1">
                                           @php
-                                            $remainingItems = collect($rows)->filter(fn($rec) => ($rec['item']->sisa_belum_cetak ?? 0) > 0)->count();
+                                            $remainingItems = collect($rows)->filter(function ($rec) use ($queueTotalsByItemId) {
+                                              $qty = (int) ($rec['item']->jumlah ?? 0);
+                                              $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
+                                              $sisaAmbil = max(0, $qty - $totalDiambil);
+                                              return $sisaAmbil > 0;
+                                            })->count();
                                           @endphp
                                           <input type="checkbox"
                                                 class="form-check-input cek-spk"
@@ -1157,6 +1163,9 @@
         }).then((result) => {
 
           if(result.isConfirmed){
+            const first = checked[0];
+            const mesinId = first.dataset.mesinId || '';
+            document.getElementById('bulkCetakMesinId').value = mesinId;
 
             Swal.fire({
               title: 'Memproses...',
@@ -1176,6 +1185,7 @@
 
       const bulkBtn = document.getElementById("btnBulkCetak");
       const bulkInputs = document.getElementById("bulkCetakInputs");
+      const bulkMesinInput= document.getElementById('bulkCetakMesinId');
 
       function syncBulk() {
         const checked = document.querySelectorAll('.cetak-item-checkbox:checked');
@@ -1188,6 +1198,24 @@
           input.value = cb.value;
           bulkInputs.appendChild(input);
         });
+
+        const mesinIds = Array.from(checked).map(cb => cb.dataset.mesinId || '').filter(Boolean);
+        const uniqueMesinIds = Array.from(new Set(mesinIds));
+
+        if (!uniqueMesinIds.length) {
+          bulkMesinInput.value = '';
+        } else if (uniqueMesinIds.length === 1) {
+          bulkMesinInput.value = uniqueMesinIds[0];
+        } else {
+          Swal.fire({
+            icon: 'warning',
+            title: 'Multi cetak dibatasi per mesin',
+            text: 'Pilih item dengan mesin yang sama untuk multi cetak.',
+          });
+          bulkBtn.disabled = true;
+          bulkMesinInput.value = '';
+          return;
+        }
 
         if (checked.length === 0) {
           bulkBtn.disabled = true;
@@ -1238,7 +1266,7 @@
             btn.className = 'nav-link btn btn-sm ' + (idx === 0 ? 'active' : '');
             btn.setAttribute('role', 'tab');
             btn.dataset.mesinId = m.id || '';
-            btn.textContent = m.nama || ('Mesin #' + (m.id || idx));
+            btn.textContent = m.nama_mesin || ('Mesin #' + (m.id || idx));
             btn.addEventListener('click', function () {
               inner.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
               btn.classList.add('active');
@@ -1606,6 +1634,8 @@
 
       document.querySelectorAll('.btn-open-cetak-modal').forEach(btn => {
         btn.addEventListener('click', function () {
+          const mesinId = btn.getAttribute('data-mesin-id') || '';
+          document.getElementById('cetak_mesin_id').value = mesinId;
           const spkItemId = btn.getAttribute('data-spk-item-id');
           const nomorSpk = btn.getAttribute('data-nomor-spk') || '';
           const pelanggan = btn.getAttribute('data-pelanggan') || '';
@@ -2192,6 +2222,7 @@
 
         <div class="modal-body">
           <input type="hidden" name="spk_item_id" id="cetak_spk_item_id">
+          <input type="hidden" name="mesin_id" id="cetak_mesin_id">
 
           <div class="row g-3">
             <div class="col-md-6">

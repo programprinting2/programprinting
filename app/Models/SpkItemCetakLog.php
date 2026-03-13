@@ -14,6 +14,7 @@ class SpkItemCetakLog extends Model
     protected $fillable = [
         'spk_item_id',
         'user_id',
+        'mesin_id',
         'jumlah',
     ];
 
@@ -32,5 +33,10 @@ class SpkItemCetakLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+    
+    public function mesin(): BelongsTo
+    {
+        return $this->belongsTo(MasterMesin::class, 'mesin_id');
     }
 }

@@ -40,19 +40,21 @@ class SpkRepository implements SpkRepositoryInterface
         }
 
         if (!empty($filters['sort_status'])) {
-            $query->orderByRaw("status = ? DESC, created_at DESC", [$filters['sort_status']]);
+            $query
+                ->orderByRaw("CASE WHEN status = ? THEN 0 ELSE 1 END", [$filters['sort_status']])
+                ->orderByDesc('created_at');
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderByDesc('created_at');
         }
 
         // Terapkan filter search (nomor SPK, status, pelanggan) jika ada
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('nomor_spk', 'ILIKE', "%{$search}%")
-                    ->orWhere('status', 'ILIKE', "%{$search}%")
+                $q->where('nomor_spk', 'ILIKE', "{$search}%")
+                    ->orWhere('status', 'ILIKE', "{$search}%")
                     ->orWhereHas('pelanggan', function ($sub) use ($search) {
-                        $sub->where('nama', 'ILIKE', "%{$search}%");
+                        $sub->where('nama', 'ILIKE', "{$search}%");
                     });
             });
         }
@@ -62,7 +64,15 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = $this->model->with(['pelanggan', 'items.produk']);
+        $query = $this->model->with([
+            'pelanggan:id,nama,email',
+        
+            'items:id,spk_id,produk_id,nama_produk',
+        
+            'items.produk:id,nama_produk,kode_produk,alur_produksi_json',
+        
+            'items.produk.bahanBakus:id,nama_bahan,kode_bahan'
+        ]);
 
         // FILTER STATUS
         if (!empty($filters['status'])) {
@@ -98,18 +108,20 @@ class SpkRepository implements SpkRepositoryInterface
         if (!empty($filters['search'])) {
             $search = $filters['search'];
             $query->where(function ($q) use ($search) {
-                $q->where('nomor_spk', 'ILIKE', "%{$search}%")
-                ->orWhere('status', 'ILIKE', "%{$search}%")
+                $q->where('nomor_spk', 'ILIKE', "{$search}%")
+                ->orWhere('status', 'ILIKE', "{$search}%")
                 ->orWhereHas('pelanggan', function ($sub) use ($search) {
-                    $sub->where('nama', 'ILIKE', "%{$search}%");
+                    $sub->where('nama', 'ILIKE', "{$search}%");
                 });
             });
         }
 
         if (!empty($filters['sort_status'])) {
-            $query->orderByRaw("status = ? DESC, created_at DESC", [$filters['sort_status']]);
+            $query
+                ->orderByRaw("CASE WHEN status = ? THEN 0 ELSE 1 END", [$filters['sort_status']])
+                ->orderByDesc('created_at');
         } else {
-            $query->orderBy('created_at', 'desc');
+            $query->orderByDesc('created_at');
         }
     
 

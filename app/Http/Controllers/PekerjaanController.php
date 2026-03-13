@@ -37,7 +37,12 @@ class PekerjaanController extends Controller
 
         // $spk = $this->spkService->getPaginatedSpk(10, $filters);
         $spk = $this->spkService->getAllSpk($filters);
-        $spk->load('items.produk.bahanBakus');
+        // $spk->load('items.produk.bahanBakus');
+        $spk->load([
+            'items.produk.bahanBakus',
+            'items.cetakLogs'
+        ]);
+        $allItems = $spk->pluck('items')->flatten();
         // $customers = Pelanggan::where('status', true)->get();
 
         $bahanBakuGroups = [];
@@ -45,113 +50,209 @@ class PekerjaanController extends Controller
         $pelangganGroups = [];
         $produkGroups = [];
 
-        foreach ($spk as $spkRow) {
-            foreach ($spkRow->items as $spkItem) {
-                $produk = $spkItem->produk;
-                if (!$produk) {
-                    continue;
-                }
+        // foreach ($spk as $spkRow) {
+        //     foreach ($spkRow->items as $spkItem) {
+        //         $produk = $spkItem->produk;
+        //         if (!$produk) {
+        //             continue;
+        //         }
         
-                foreach ($produk->bahanBakus as $bahan) {
-                    $key = $bahan->id;
+        //         foreach ($produk->bahanBakus as $bahan) {
+        //             $key = $bahan->id;
         
-                    if (!isset($bahanBakuGroups[$key])) {
-                        $bahanBakuGroups[$key] = [
-                            'id'    => $bahan->id,
-                            'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
-                            'kode'  => $bahan->kode_bahan ?? '',
-                            'spk'   => [],
-                        ];
-                    }
+        //             if (!isset($bahanBakuGroups[$key])) {
+        //                 $bahanBakuGroups[$key] = [
+        //                     'id'    => $bahan->id,
+        //                     'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
+        //                     'kode'  => $bahan->kode_bahan ?? '',
+        //                     'spk'   => [],
+        //                 ];
+        //             }
         
-                    if (!isset($bahanBakuGroups[$key]['spk'][$spkRow->id])) {
-                        $bahanBakuGroups[$key]['spk'][$spkRow->id] = $spkRow;
-                    }
-                }
-            }
-        }
-        
-        foreach ($spk as $spkRow) {
-            foreach ($spkRow->items as $spkItem) {
-                $produk = $spkItem->produk;
-                if (!$produk) {
-                    continue;
-                }
-        
-                $alur = $produk->alur_produksi_json ?? [];
-                if (!is_array($alur)) {
-                    continue;
-                }
-        
-                foreach ($alur as $step) {
-                    if (!is_array($step)) {
-                        continue;
-                    }
-        
-                    $divisiMesinId = $step['divisi_mesin_id'] ?? null;
-                    $divisiMesin   = $step['divisi_mesin'] ?? null;
-                    $ketDivisi     = $step['keterangan_divisi'] ?? '';
-        
-                    if (!$divisiMesinId && (!$divisiMesin || trim((string) $divisiMesin) === '')) {
-                        continue;
-                    }
-                    $key = $divisiMesinId ?: trim((string) $divisiMesin);
-        
-                    if (!isset($mesinGroups[$key])) {
-                        $mesinGroups[$key] = [
-                            'id'   => $divisiMesinId,
-                            'nama' => $divisiMesin ?? ('Mesin #'.$key),
-                            'kode' => $ketDivisi ?? '',
-                            'spk'  => [],
-                        ];
-                    }
-        
-                    if (!isset($mesinGroups[$key]['spk'][$spkRow->id])) {
-                        $mesinGroups[$key]['spk'][$spkRow->id] = $spkRow;
-                    }
-                }
-            }
-        }
+        //             if (!isset($bahanBakuGroups[$key]['spk'][$spkRow->id])) {
+        //                 $bahanBakuGroups[$key]['spk'][$spkRow->id] = $spkRow;
+        //             }
+        //         }
+        //     }
+        // }
+        foreach ($allItems as $item) {
 
-        foreach ($spk as $spkRow) {
-            $pelanggan = $spkRow->pelanggan;
-            $key = $pelanggan?->id ?? 'tanpa_pelanggan';
-    
-            if (!isset($pelangganGroups[$key])) {
-                $pelangganGroups[$key] = [
-                    'id'    => $pelanggan?->id,
-                    'nama'  => $pelanggan?->nama ?? 'Tanpa Pelanggan',
-                    'email' => $pelanggan?->email ?? null,
-                    'spk'   => [],
-                ];
-            }
-    
-            if (!isset($pelangganGroups[$key]['spk'][$spkRow->id])) {
-                $pelangganGroups[$key]['spk'][$spkRow->id] = $spkRow;
-            }
-        }
-
-        foreach ($spk as $spkRow) {
-            foreach ($spkRow->items as $spkItem) {
-                $produk = $spkItem->produk;
+            $produk = $item->produk;
+            if (!$produk) continue;
         
-                $produkId = $spkItem->produk_id ?? null;
-                $key = $produkId ?: ($spkItem->nama_produk ?? 'tanpa_produk');
+            foreach ($produk->bahanBakus as $bahan) {
         
-                if (!isset($produkGroups[$key])) {
-                    $produkGroups[$key] = [
-                        'id'   => $produkId,
-                        'nama' => $produk?->nama_produk ?? ($spkItem->nama_produk ?? 'Tanpa Produk'),
-                        'kode' => $produk?->kode_produk ?? '',
-                        'spk'  => [],
+                $key = $bahan->id;
+        
+                if (!isset($bahanBakuGroups[$key])) {
+                    $bahanBakuGroups[$key] = [
+                        'id' => $bahan->id,
+                        'nama' => $bahan->nama_bahan,
+                        'kode' => $bahan->kode_bahan,
+                        'spk' => []
                     ];
                 }
         
-                if (!isset($produkGroups[$key]['spk'][$spkRow->id])) {
-                    $produkGroups[$key]['spk'][$spkRow->id] = $spkRow;
+                $spkId = $item->spk_id;
+        
+                if (!isset($bahanBakuGroups[$key]['spk'][$spkId])) {
+                    $bahanBakuGroups[$key]['spk'][$spkId] = $spk->firstWhere('id',$spkId);
                 }
             }
         }
+        
+        // foreach ($spk as $spkRow) {
+        //     foreach ($spkRow->items as $spkItem) {
+        //         $produk = $spkItem->produk;
+        //         if (!$produk) {
+        //             continue;
+        //         }
+        
+        //         $alur = $produk->alur_produksi_json ?? [];
+        //         if (!is_array($alur)) {
+        //             continue;
+        //         }
+        
+        //         foreach ($alur as $step) {
+        //             if (!is_array($step)) {
+        //                 continue;
+        //             }
+        
+        //             $divisiMesinId = $step['divisi_mesin_id'] ?? null;
+        //             $divisiMesin   = $step['divisi_mesin'] ?? null;
+        //             $ketDivisi     = $step['keterangan_divisi'] ?? '';
+        
+        //             if (!$divisiMesinId && (!$divisiMesin || trim((string) $divisiMesin) === '')) {
+        //                 continue;
+        //             }
+        //             $key = $divisiMesinId ?: trim((string) $divisiMesin);
+        
+        //             if (!isset($mesinGroups[$key])) {
+        //                 $mesinGroups[$key] = [
+        //                     'id'   => $divisiMesinId,
+        //                     'nama' => $divisiMesin ?? ('Mesin #'.$key),
+        //                     'kode' => $ketDivisi ?? '',
+        //                     'spk'  => [],
+        //                 ];
+        //             }
+        
+        //             if (!isset($mesinGroups[$key]['spk'][$spkRow->id])) {
+        //                 $mesinGroups[$key]['spk'][$spkRow->id] = $spkRow;
+        //             }
+        //         }
+        //     }
+        // }
+
+        foreach ($allItems as $item) {
+
+            $produk = $item->produk;
+            if (!$produk) continue;
+
+            $alur = $produk->alur_produksi_json ?? [];
+
+            foreach ($alur as $step) {
+
+                $mesinId = $step['divisi_mesin_id'] ?? null;
+                $mesinNama = $step['divisi_mesin'] ?? null;
+
+                if (!$mesinId && !$mesinNama) continue;
+
+                $key = $mesinId ?: $mesinNama;
+
+                if (!isset($mesinGroups[$key])) {
+                    $mesinGroups[$key] = [
+                        'id' => $mesinId,
+                        'nama' => $mesinNama,
+                        'kode' => $step['keterangan_divisi'] ?? '',
+                        'spk' => []
+                    ];
+                }
+
+                $spkId = $item->spk_id;
+
+                if (!isset($mesinGroups[$key]['spk'][$spkId])) {
+                    $mesinGroups[$key]['spk'][$spkId] = $spk->firstWhere('id',$spkId);
+                }
+            }
+        }
+
+        // foreach ($spk as $spkRow) {
+        //     $pelanggan = $spkRow->pelanggan;
+        //     $key = $pelanggan?->id ?? 'tanpa_pelanggan';
+    
+        //     if (!isset($pelangganGroups[$key])) {
+        //         $pelangganGroups[$key] = [
+        //             'id'    => $pelanggan?->id,
+        //             'nama'  => $pelanggan?->nama ?? 'Tanpa Pelanggan',
+        //             'email' => $pelanggan?->email ?? null,
+        //             'spk'   => [],
+        //         ];
+        //     }
+    
+        //     if (!isset($pelangganGroups[$key]['spk'][$spkRow->id])) {
+        //         $pelangganGroups[$key]['spk'][$spkRow->id] = $spkRow;
+        //     }
+        // }
+        foreach ($spk as $row) {
+
+            $pel = $row->pelanggan;
+        
+            $key = $pel?->id ?? 'none';
+        
+            if (!isset($pelangganGroups[$key])) {
+                $pelangganGroups[$key] = [
+                    'id'=>$pel?->id,
+                    'nama'=>$pel?->nama ?? 'Tanpa Pelanggan',
+                    'email'=>$pel?->email,
+                    'spk'=>[]
+                ];
+            }
+        
+            $pelangganGroups[$key]['spk'][$row->id] = $row;
+        }
+
+        
+        foreach ($allItems as $item) {
+        
+            $key = $item->produk_id ?: $item->nama_produk;
+        
+            if (!isset($produkGroups[$key])) {
+        
+                $produk = $item->produk;
+        
+                $produkGroups[$key] = [
+                    'id'=>$item->produk_id,
+                    'nama'=>$produk->nama_produk ?? $item->nama_produk,
+                    'kode'=>$produk->kode_produk ?? '',
+                    'spk'=>[]
+                ];
+            }
+        
+            $produkGroups[$key]['spk'][$item->spk_id] = $spk->firstWhere('id',$item->spk_id);
+        }
+
+        // foreach ($spk as $spkRow) {
+        //     foreach ($spkRow->items as $spkItem) {
+        //         $produk = $spkItem->produk;
+        
+        //         $produkId = $spkItem->produk_id ?? null;
+        //         $key = $produkId ?: ($spkItem->nama_produk ?? 'tanpa_produk');
+        
+        //         if (!isset($produkGroups[$key])) {
+        //             $produkGroups[$key] = [
+        //                 'id'   => $produkId,
+        //                 'nama' => $produk?->nama_produk ?? ($spkItem->nama_produk ?? 'Tanpa Produk'),
+        //                 'kode' => $produk?->kode_produk ?? '',
+        //                 'spk'  => [],
+        //             ];
+        //         }
+        
+        //         if (!isset($produkGroups[$key]['spk'][$spkRow->id])) {
+        //             $produkGroups[$key]['spk'][$spkRow->id] = $spkRow;
+        //         }
+        //     }
+        // }
+
 
         return view('pages.pekerjaan.manager-order', [
             'spk'             => $spk,
@@ -178,122 +279,137 @@ class PekerjaanController extends Controller
 
     public function operatorCetak(Request $request): View
     {
-        // $filters = $request->only(['search', 'customer_id']);
         $filters['status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getAllSpk($filters);
-        $spk->load('items.produk.bahanBakus', 'pelanggan', 'items.cetakLogs.user');
 
-        // $customers = Pelanggan::where('status', true)->get();
+        $spk->load([
+            'items.produk.bahanBakus',
+            'pelanggan',
+            'items.cetakLogs.user'
+        ]);
+
+        $allItems = $spk->pluck('items')->flatten();
+        $itemIds = $allItems->pluck('id')->unique();
+
+        $queueTotalsByItemId = SpkItemCetakQueue::query()
+            ->selectRaw('spk_item_id, SUM(jumlah) as total_diambil')
+            ->whereIn('spk_item_id', $itemIds)
+            ->groupBy('spk_item_id')
+            ->pluck('total_diambil', 'spk_item_id');
+
+        $printTotalsByItemId = SpkItemCetakLog::query()
+            ->selectRaw('spk_item_id, SUM(jumlah) as total_cetak')
+            ->whereIn('spk_item_id', $itemIds)
+            ->groupBy('spk_item_id')
+            ->pluck('total_cetak', 'spk_item_id');
 
         $allMesin = MasterMesin::all();
+
+        $mesinByTipeId = $allMesin->groupBy('tipe_mesin_id');
+
+        $mesinByTipeNama = $allMesin->groupBy(function ($m) {
+            return trim((string) $m->tipe_mesin);
+        });
+
         $tipeMesinGroups = [];
 
-        $findMesinForDivisi = function (?int $divisiId, ?string $divisiNama) use ($allMesin) {
-            $divisiNama = $divisiNama ? trim($divisiNama) : null;
-        
-            return $allMesin->filter(function ($mesin) use ($divisiId, $divisiNama) {
-                if ($divisiId && isset($mesin->tipe_mesin_id) && (int) $mesin->tipe_mesin_id === (int) $divisiId) {
-                    return true;
-                }
-        
-                if ($divisiNama && isset($mesin->tipe_mesin) && trim((string) $mesin->tipe_mesin) === $divisiNama) {
-                    return true;
-                }
-        
-                return false;
-            });
-        };
+        foreach ($allItems as $spkItem) {
+            $qtyPesanan = (int) ($spkItem->jumlah ?? 0);
+            $totalDiambil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
+            $totalCetak = (int) ($printTotalsByItemId[$spkItem->id] ?? 0);
+            $ambilFull = $qtyPesanan > 0 && $totalDiambil >= $qtyPesanan;
 
-        foreach ($spk as $spkRow) {
-            foreach ($spkRow->items as $spkItem) {
-                $produk = $spkItem->produk;
-                if (!$produk) {
+            $cetakSelesai = $totalDiambil > 0 && $totalCetak >= $totalDiambil;
+            if ($ambilFull && $cetakSelesai) {
+                continue;
+            }
+
+            $produk = $spkItem->produk;
+            if (!$produk) {
+                continue;
+            }
+
+            $alur = $produk->alur_produksi_json ?? [];
+            if (!is_array($alur) || empty($alur)) {
+                continue;
+            }
+
+            $bahanBakus = $produk->bahanBakus;
+            foreach ($alur as $step) {
+                if (!is_array($step)) {
+                    continue;
+                }
+                $divisiId   = $step['divisi_mesin_id'] ?? null;
+                $divisiNama = isset($step['divisi_mesin'])
+                    ? trim((string) $step['divisi_mesin'])
+                    : null;
+                if (!$divisiId && !$divisiNama) {
                     continue;
                 }
 
-                $alur = $produk->alur_produksi_json ?? [];
-                if (!is_array($alur) || empty($alur)) {
-                    continue;
+                $tipeKey = $divisiId ?: $divisiNama;
+                $tipeLabelDasar = $divisiNama ?: 'Tanpa Tipe';
+
+                if (!isset($tipeMesinGroups[$tipeKey])) {
+                    $mesinMatches = collect();
+                    if ($divisiId && isset($mesinByTipeId[$divisiId])) {
+                        $mesinMatches = $mesinByTipeId[$divisiId];
+                    }
+                    if ($mesinMatches->isEmpty() && $divisiNama && isset($mesinByTipeNama[$divisiNama])) {
+                        $mesinMatches = $mesinByTipeNama[$divisiNama];
+                    }
+
+                    $tipeMesinGroups[$tipeKey] = [
+                        'tipe_key'    => $tipeKey,
+                        'tipe_label'  => $tipeLabelDasar,
+                        'mesin_list'  => $mesinMatches->values()->all(),
+                        'spk'         => [],
+                        'bahanGroups' => [],
+                    ];
                 }
 
-                foreach ($alur as $step) {
-                    if (!is_array($step)) {
-                        continue;
-                    }
+                $group = &$tipeMesinGroups[$tipeKey];
+                $spkRow = $spkItem->spk;
 
-                    $divisiId   = isset($step['divisi_mesin_id']) ? (int) $step['divisi_mesin_id'] : null;
-                    $divisiNama = isset($step['divisi_mesin']) ? trim((string) $step['divisi_mesin']) : null;
+                if ($spkRow && !isset($group['spk'][$spkRow->id])) {
+                    $group['spk'][$spkRow->id] = $spkRow;
+                }
 
-                    if (!$divisiId && !$divisiNama) {
-                        continue;
-                    }
-
-                    // $mesin = $findMesinForDivisi($divisiId, $divisiNama);
-
-                    $tipeKey = $divisiId ?: ($divisiNama ?: 'tanpa_tipe');
-
-                    $tipeLabelDasar = $divisiNama ?: 'Tanpa Tipe';
-
-                    if (!isset($tipeMesinGroups[$tipeKey])) {
-                        $tipeMesinGroups[$tipeKey] = [
-                            'tipe_key'    => $tipeKey,
-                            'tipe_label'  => $tipeLabelDasar,
-                            'mesin_list'  => [],
-                            'spk'         => [],
-                            'bahanGroups' => [],
+                foreach ($bahanBakus as $bahan) {
+                    $bahanId = $bahan->id;
+                    if (!isset($group['bahanGroups'][$bahanId])) {
+                        $group['bahanGroups'][$bahanId] = [
+                            'id'    => $bahan->id,
+                            'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
+                            'kode'  => $bahan->kode_bahan ?? '',
+                            'items' => [],
                         ];
                     }
 
-                    $mesinMatches = $findMesinForDivisi($divisiId, $divisiNama);
+                    $uniqKey = 'spk_'.$spkRow->id.'_item_'.$spkItem->id;
 
-                    if ($mesinMatches && $mesinMatches->isNotEmpty()) {
-                        foreach ($mesinMatches as $mesin) {
-                            $tipeMesinGroups[$tipeKey]['mesin_list'][$mesin->id] = $mesin;
-                        }
-                    }
-
-                    if (!isset($tipeMesinGroups[$tipeKey]['spk'][$spkRow->id])) {
-                        $tipeMesinGroups[$tipeKey]['spk'][$spkRow->id] = $spkRow;
-                    }
-
-                    foreach ($produk->bahanBakus as $bahan) {
-                        $bahanId = $bahan->id;
-
-                        if (!isset($tipeMesinGroups[$tipeKey]['bahanGroups'][$bahanId])) {
-                            $tipeMesinGroups[$tipeKey]['bahanGroups'][$bahanId] = [
-                                'id'    => $bahan->id,
-                                'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
-                                'kode'  => $bahan->kode_bahan ?? '',
-                                'items' => [],
-                            ];
-                        }
-
-                        $uniqKey = 'spk_'.$spkRow->id.'_item_'.$spkItem->id;
-
-                        if (!isset($tipeMesinGroups[$tipeKey]['bahanGroups'][$bahanId]['items'][$uniqKey])) {
-                            $tipeMesinGroups[$tipeKey]['bahanGroups'][$bahanId]['items'][$uniqKey] = [
-                                'spk'  => $spkRow,
-                                'item' => $spkItem,
-                            ];
-                        }
+                    if (!isset($group['bahanGroups'][$bahanId]['items'][$uniqKey])) {
+                        $group['bahanGroups'][$bahanId]['items'][$uniqKey] = [
+                            'spk'  => $spkRow,
+                            'item' => $spkItem,
+                        ];
                     }
                 }
             }
         }
 
-        foreach ($tipeMesinGroups as $key => &$group) {
+        foreach ($tipeMesinGroups as &$group) {
             $mesinList = $group['mesin_list'] ?? [];
-            Log::debug('Mesin List:', ['tipeKey' => $key, 'mesinCount' => count($mesinList), 'mesinList' => $mesinList]);
-
             if (count($mesinList) === 1) {
-                $group['label'] = reset($mesinList)->nama_mesin ?? $group['tipe_label'];
-                Log::debug('Label for single machine:', ['label' => $group['label']]);
+                $mesin = reset($mesinList);
+                $group['label'] = $mesin->nama_mesin ?? $group['tipe_label'];
+
             } else {
                 $group['label'] = $group['tipe_label'];
-                Log::debug('Label for multiple machines:', ['label' => $group['label']]);
             }
         }
+
         unset($group);
 
         $queueRows = SpkItemCetakQueue::query()
@@ -302,73 +418,67 @@ class PekerjaanController extends Controller
                 'mesin',
             ])
             ->orderByDesc('created_at')
-            // ->where('user_id', auth()->id())
-            ->where('user_id', 1)
+            ->where('user_id', auth()->id())
             ->get();
 
-        $totalQtyDiambil = (int) $queueRows->sum('jumlah');
-        $totalQtyCetakDariAmbil = 0;
-        foreach ($queueRows as $q) {
-            $spkItem = $q->spkItem;
-            if (!$spkItem) {
-                continue;
-            }
-            $diambil = (int) $q->jumlah;
-            $sudahCetakItem = (int) $spkItem->jumlah_sudah_cetak; 
-            
-            $totalQtyCetakDariAmbil += min($diambil, $sudahCetakItem);
-        }
-        
-        // $progressPekerjaanSaya = 0.0;
-        // if ($totalQtyDiambil > 0) {
-        //     $progressPekerjaanSaya = min(100, round(($totalQtyCetakDariAmbil / $totalQtyDiambil) * 100, 1));
-        // }
+        $logsByKey = SpkItemCetakLog::query()
+            ->selectRaw('spk_item_id, user_id, mesin_id, SUM(jumlah) as total')
+            ->groupBy('spk_item_id', 'user_id', 'mesin_id')
+            ->get()
+            ->keyBy(function ($row) {
+                return $row->spk_item_id.'_'.$row->user_id.'_'.$row->mesin_id;
+            });
 
-        $queueRowsFiltered = $queueRows->filter(function (SpkItemCetakQueue $q) {
-            $spkItem = $q->spkItem;
-            if (!$spkItem) {
+        $queueRowsFiltered = $queueRows->filter(function ($q) use ($logsByKey) {
+
+            $item = $q->spkItem;
+
+            if (!$item) {
                 return false;
             }
-            $diambil = (int) ($q->jumlah ?? 0);
-            if ($diambil <= 0) {
-                return false;
-            }
-            $sudahCetakItem = (int) ($spkItem->jumlah_sudah_cetak ?? 0);
-           
-            $selesaiUntukQueue = $sudahCetakItem >= $diambil;
-            return !$selesaiUntukQueue;
+
+            $key = $item->id.'_'.$q->user_id.'_'.$q->mesin_id;
+
+            $printedForQueue = $logsByKey[$key]->total ?? 0;
+
+            return (int)$printedForQueue < (int)$q->jumlah;
+
         })->values();
 
-        $pekerjaanSayaItems = $queueRowsFiltered->map(function ($q) {
-            $spkItem = $q->spkItem;
-            $spk = $spkItem?->spk;
+        $pekerjaanSayaItems = $queueRowsFiltered->map(function ($q) use ($logsByKey) {
+            $item = $q->spkItem;
+            $spk  = $item?->spk;
+            $key = $q->spk_item_id.'_'.$q->user_id.'_'.$q->mesin_id;
+            $printedForQueue = (int) ($logsByKey[$key]->total ?? 0);
+            $qtyDiambil = (int) ($q->jumlah ?? 0);
+            $progress = 0;
+
+            if ($qtyDiambil > 0) {
+                $progress = min(100, round(($printedForQueue / $qtyDiambil) * 100, 1));
+            }
+
             return [
-                'queue' => $q,
-                'spk' => $spk,
-                'item' => $spkItem,
-                'mesin' => $q->mesin,
-                'mesin_nama' => $q->mesin->nama_mesin ?? '-',
-                'nomor_spk' => $spk?->nomor_spk ?? '-',
-                'pelanggan' => $spk?->pelanggan?->nama ?? '-',
-                'nama_item' => $spkItem?->nama_produk ?? '-',
+                'queue'       => $q,
+                'spk'         => $spk,
+                'item'        => $item,
+                'mesin'       => $q->mesin,
+                'mesin_nama'  => $q->mesin->nama_mesin ?? '-',
+                'nomor_spk'   => $spk?->nomor_spk ?? '-',
+                'pelanggan'   => $spk?->pelanggan?->nama ?? '-',
+                'nama_item'   => $item?->nama_produk ?? '-',
+                'printed'     => $printedForQueue,
+                'qty_diambil' => $qtyDiambil,
+                'progress'    => $progress,
             ];
-        })->values();
-        $pekerjaanSayaCount = $queueRowsFiltered->count();
+        });
 
-        $itemIds = $spk->flatMap(fn ($spkRow) => $spkRow->items->pluck('id'))->unique()->values();
-        $queueTotalsByItemId = SpkItemCetakQueue::query()
-            ->selectRaw('spk_item_id, SUM(jumlah) as total_diambil')
-            ->whereIn('spk_item_id', $itemIds->all())
-            ->groupBy('spk_item_id')
-            ->pluck('total_diambil', 'spk_item_id');
-
+        $pekerjaanSayaCount = $pekerjaanSayaItems->count();
         return view('pages.pekerjaan.operator-cetak', [
-            'spk'             => $spk,
-            // 'customers'       => $customers,
-            'tipeMesinGroups' => $tipeMesinGroups,
+            'spk'                => $spk,
+            'tipeMesinGroups'    => $tipeMesinGroups,
             'pekerjaanSayaItems' => $pekerjaanSayaItems,
             'pekerjaanSayaCount' => $pekerjaanSayaCount,
-            // 'progressPekerjaanSaya' => $progressPekerjaanSaya,
+            'queueTotalsByItemId'=> $queueTotalsByItemId,
         ]);
     }
 
@@ -446,15 +556,19 @@ class PekerjaanController extends Controller
     public function storeCetakProgress(StoreSpkItemCetakProgressRequest $request): RedirectResponse
     {
         $spkItemId = (int) $request->input('spk_item_id');
-        $jumlah = (int) $request->input('jumlah');
+        $jumlah    = (int) $request->input('jumlah');
+        $mesinId   = $request->integer('mesin_id') ?: null;
 
         try {
-            DB::transaction(function () use ($spkItemId, $jumlah) {
+
+            DB::transaction(function () use ($spkItemId, $jumlah, $mesinId) {
+
                 $item = SPKItem::query()
                     ->lockForUpdate()
                     ->findOrFail($spkItemId);
 
                 $qtyPesanan = (int) ($item->jumlah ?? 0);
+
                 if ($qtyPesanan <= 0) {
                     throw ValidationException::withMessages([
                         'jumlah' => 'Quantity pesanan tidak valid.',
@@ -467,6 +581,7 @@ class PekerjaanController extends Controller
                     ->get(['jumlah']);
 
                 $sudahCetak = (int) $lockedLogs->sum('jumlah');
+
                 $akanTotal = $sudahCetak + $jumlah;
 
                 if ($akanTotal > $qtyPesanan) {
@@ -477,17 +592,20 @@ class PekerjaanController extends Controller
 
                 SpkItemCetakLog::query()->create([
                     'spk_item_id' => $item->id,
-                    'user_id' => 1, //(int) auth()->id(),
-                    'jumlah' => $jumlah,
+                    'user_id'     => 1, //(int) auth()->id(),
+                    'mesin_id'    => $mesinId,
+                    'jumlah'      => $jumlah,
                 ]);
 
                 if ($item->spk) {
+
                     $keterangan = sprintf(
                         'Cetak %d %s untuk item "%s".',
                         $jumlah,
                         $item->satuan,
                         $item->nama_produk
                     );
+
                     ActivityLogService::log(
                         $item->spk,
                         'spk_item_cetak_tambah',
@@ -496,7 +614,9 @@ class PekerjaanController extends Controller
                     );
                 }
             });
+
         } catch (ValidationException $e) {
+
             return back()->withErrors($e->errors())->withInput();
         }
 
@@ -509,49 +629,59 @@ class PekerjaanController extends Controller
             ->map(fn ($v) => (int) $v)
             ->values();
 
-        DB::transaction(function () use ($ids) {
-            $items = SPKItem::query()
-                ->whereIn('id', $ids->all())
-                ->lockForUpdate()
-                ->get()
-                ->keyBy('id');
+        $mesinId = $request->integer('mesin_id') ?: null;
+        $userId  = (int) (auth()->id() ?? 1);
 
-            foreach ($ids as $id) {
-                $item = $items->get($id);
+        DB::transaction(function () use ($ids, $mesinId, $userId) {
+
+            foreach ($ids as $itemId) {
+
+                $item = SPKItem::lockForUpdate()->find($itemId);
+
                 if (!$item) {
                     continue;
                 }
 
-                $qtyPesanan = (int) ($item->jumlah ?? 0);
-                if ($qtyPesanan <= 0) {
+                $queue = SpkItemCetakQueue::query()
+                    ->where('spk_item_id', $itemId)
+                    ->where('user_id', $userId)
+                    ->where('mesin_id', $mesinId)
+                    ->first();
+
+                if (!$queue) {
                     continue;
                 }
 
-                $lockedLogs = SpkItemCetakLog::query()
-                    ->where('spk_item_id', $item->id)
-                    ->lockForUpdate()
-                    ->get(['jumlah']);
+                $qtyDiambil = (int) $queue->jumlah;
 
-                $sudahCetak = (int) $lockedLogs->sum('jumlah');
+                $sudahCetak = SpkItemCetakLog::query()
+                    ->where('spk_item_id', $itemId)
+                    ->where('user_id', $userId)
+                    ->where('mesin_id', $mesinId)
+                    ->sum('jumlah');
 
-                $sisa = $qtyPesanan - $sudahCetak;
+                $sisa = $qtyDiambil - $sudahCetak;
+
                 if ($sisa <= 0) {
                     continue;
                 }
 
-                SpkItemCetakLog::query()->create([
-                    'spk_item_id' => $item->id,
-                    'user_id' => 1, //(int) auth()->id(),
-                    'jumlah' => $sisa,
+                SpkItemCetakLog::create([
+                    'spk_item_id' => $itemId,
+                    'user_id'     => $userId,
+                    'mesin_id'    => $mesinId,
+                    'jumlah'      => $sisa,
                 ]);
 
                 if ($item->spk) {
+
                     $keterangan = sprintf(
                         'Bulk-complete cetak %d %s untuk item "%s".',
                         $sisa,
                         $item->satuan,
                         $item->nama_produk
                     );
+
                     ActivityLogService::log(
                         $item->spk,
                         'spk_item_cetak_bulk_complete',
@@ -562,7 +692,7 @@ class PekerjaanController extends Controller
             }
         });
 
-        return back()->with('success', 'Bulk print berhasil: item ditandai 100% selesai.');
+        return back()->with('success', 'Bulk print berhasil: item ditandai selesai.');
     }
 
     public function history(SPKItem $spkItem)
@@ -741,7 +871,7 @@ class PekerjaanController extends Controller
             }
         });
 
-        return back()->with('success', 'Pekerjaan berhasil diambil (planning) dan jumlah ditambahkan ke antrian mesin.');
+        return back()->with('success', 'Pekerjaan berhasil diambil dan jumlah ditambahkan ke antrian mesin.');
     }
 
     public function batalAmbilQueue(BatalAmbilPekerjaanRequest $request): RedirectResponse
@@ -751,15 +881,55 @@ class PekerjaanController extends Controller
             ->map(fn ($v) => (int) $v)
             ->unique()
             ->values();
+
         $userId = (int) (auth()->id() ?? 1);
+
         DB::transaction(function () use ($ids, $mesinId, $userId) {
-            SpkItemCetakQueue::query()
+            $queues = SpkItemCetakQueue::query()
+                ->with('spkItem')
                 ->where('mesin_id', $mesinId)
                 ->where('user_id', $userId)
                 ->whereIn('spk_item_id', $ids->all())
-                ->delete();
+                ->lockForUpdate()
+                ->get();
+
+            foreach ($queues as $queue) {
+                $item = $queue->spkItem;
+                if (!$item) {
+                    continue;
+                }
+
+                $queueQty   = (int) ($queue->jumlah ?? 0);
+                if ($queueQty <= 0) {
+                    $queue->delete();
+                    continue;
+                }
+
+                $sudahCetak = (int) ($item->jumlah_sudah_cetak ?? 0);
+
+                $sisaKlaim = max(0, $queueQty - $sudahCetak);
+
+                if ($sisaKlaim <= 0) {
+                    $queue->jumlah = min($queueQty, $sudahCetak);
+                    if ($queue->jumlah <= 0) {
+                        $queue->delete();
+                    } else {
+                        $queue->save();
+                    }
+                    continue;
+                }
+
+                $newQty = $queueQty - $sisaKlaim;
+                if ($newQty <= 0) {
+                    $queue->delete();
+                } else {
+                    $queue->jumlah = $newQty;
+                    $queue->save();
+                }
+            }
         });
-        return back()->with('success', 'Pekerjaan berhasil dibatalkan dari antrian (ambil dibatalkan).');
+
+        return back()->with('success', 'Sisa pekerjaan yang belum dicetak berhasil dibatalkan dari antrian Anda.');
     }
 
     public function ambilQueueAll(MultiAmbilPekerjaanRequest $request): RedirectResponse
