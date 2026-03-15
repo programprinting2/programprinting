@@ -206,9 +206,9 @@ class SpkService
     /**
      * Get SPK list without pagination
      */
-    public function getAllSpk(array $filters = [])
+    public function getAllSpk(array $filters = [], array $with = [])
     {
-        return $this->spkRepository->all($filters); 
+        return $this->spkRepository->all($filters, $with);
     }
 
     /**

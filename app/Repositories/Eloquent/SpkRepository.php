@@ -21,10 +21,23 @@ class SpkRepository implements SpkRepositoryInterface
     //     return $this->model->with(['pelanggan', 'items.produk'])->get();
     // }
 
-    public function all(array $filters = []): Collection
+    public function all(array $filters = [], array $with = []): Collection
     {
-        $query = $this->model->with(['pelanggan', 'items.produk']);
+        // $query = $this->model->with(['pelanggan', 'items.produk']);
         
+        // $query = $this->model
+        // ->select('id','nomor_spk','pelanggan_id','tanggal_spk','status')
+        // ->with([
+        //     'pelanggan:id,nama',
+        //     'items:id,spk_id,produk_id,jumlah,nama_produk,panjang,lebar,satuan,file_pendukung',
+        //     'items.produk:id,nama_produk,kode_produk,alur_produksi_json,is_metric,metric_unit',
+        //     'items.produk.bahanBakus:id,nama_bahan,kode_bahan'
+        // ]);
+        $query = $this->model
+            ->select('id','nomor_spk','pelanggan_id','tanggal_spk','status','created_at')
+            ->with($with);
+
+
         // Terapkan filter status jika ada
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
@@ -64,15 +77,7 @@ class SpkRepository implements SpkRepositoryInterface
 
     public function paginate(int $perPage = 10, array $filters = []): LengthAwarePaginator
     {
-        $query = $this->model->with([
-            'pelanggan:id,nama,email',
-        
-            'items:id,spk_id,produk_id,nama_produk',
-        
-            'items.produk:id,nama_produk,kode_produk,alur_produksi_json',
-        
-            'items.produk.bahanBakus:id,nama_bahan,kode_bahan'
-        ]);
+        $query = $this->model->with(['pelanggan', 'items.produk']);
 
         // FILTER STATUS
         if (!empty($filters['status'])) {

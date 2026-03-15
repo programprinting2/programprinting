@@ -281,8 +281,6 @@
                             $metricUnitLabel = 'm';
 
                             foreach ($items as $rec) {
-                                /** @var \App\Models\SPK $spkRow */
-                                /** @var \App\Models\SPKItem $spkItem */
                                 $spkRow = $rec['spk'];
                                 $spkItem = $rec['item'];
 
@@ -1643,8 +1641,8 @@
           // const qty = parseInt(btn.getAttribute('data-qty') || '0', 10);
           // const sudah = parseInt(btn.getAttribute('data-sudah') || '0', 10);
           // const sisa = parseInt(btn.getAttribute('data-sisa') || '0', 10);
-          const qtyTotal   = parseInt(btn.getAttribute('data-qty') || '0', 10);        // total pesanan (opsional, kalau mau ditampilkan di tempat lain)
-          const qtyDiambil = parseInt(btn.getAttribute('data-diambil') || '0', 10);   // JUMLAH DIAMBIL
+          const qtyTotal   = parseInt(btn.getAttribute('data-qty') || '0', 10);        
+          const qtyDiambil = parseInt(btn.getAttribute('data-diambil') || '0', 10);   
           const sudah      = parseInt(btn.getAttribute('data-sudah') || '0', 10);
           const sisaGlobal = parseInt(btn.getAttribute('data-sisa') || '0', 10);
 
@@ -1665,7 +1663,7 @@
           document.getElementById('cetak_qty').textContent   = qtyDiambil.toLocaleString('id-ID');
           document.getElementById('cetak_sudah').textContent = sudah.toLocaleString('id-ID');
           document.getElementById('cetak_sisa').textContent  = sisaGlobal.toLocaleString('id-ID');
-          document.getElementById('cetak_sisa_label').textContent = qtyDiambil.toLocaleString('id-ID');
+          document.getElementById('cetak_sisa_label').textContent = sisaGlobal.toLocaleString('id-ID');
           document.getElementById('cetak_sisa_setelah').innerHTML = "Sisa setelah cetak: -";
 
           const jumlahInput = document.getElementById('cetak_jumlah');
@@ -1860,7 +1858,7 @@
       if(checkboxMax){
         checkboxMax.addEventListener("change", function(){
           const sisaText = document
-            .getElementById('cetak_qty')
+            .getElementById('cetak_sisa')
             .textContent
             .replace(/\./g,'')
             .replace(/,/g,'');
@@ -2109,6 +2107,28 @@
     });
   </script>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+
+      const formAmbil = document.getElementById('formAmbil');
+      const btnAmbil  = document.getElementById('btnAmbil');
+
+      if (!formAmbil || !btnAmbil) return;
+
+      formAmbil.addEventListener('submit', function () {
+
+        btnAmbil.disabled = true;
+
+        const text = btnAmbil.querySelector('.btn-text');
+        const loading = btnAmbil.querySelector('.btn-loading');
+
+        if (text) text.classList.add('d-none');
+        if (loading) loading.classList.remove('d-none');
+
+      });
+    });
+  </script>
+
 <div class="modal fade" id="globalPreviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
     <div class="modal-content">
@@ -2200,8 +2220,15 @@
             Tutup
           </button>
 
-          <button type="submit" class="btn btn-success px-4">
-            <i class="fa fa-check me-1"></i> Ambil
+          <button type="submit" class="btn btn-success px-4" id="btnAmbil">
+            <span class="btn-text">
+              <i class="fa fa-check me-1"></i> Ambil
+            </span>
+
+            <span class="btn-loading d-none">
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Memproses...
+            </span>
           </button>
         </div>
 
@@ -2247,7 +2274,7 @@
                 <div class="row text-center g-2">
                   <div class="col-4">
                     <div class="border rounded p-2 bg-white">
-                      <div class="text-muted small">Pesanan</div>
+                      <div class="text-muted small">Pekerjaan</div>
                       <div class="fw-bold text-primary fs-6" id="cetak_qty"></div>
                     </div>
                   </div>
