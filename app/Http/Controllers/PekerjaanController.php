@@ -40,7 +40,7 @@ class PekerjaanController extends Controller
             'items:id,spk_id,produk_id,jumlah,nama_produk,panjang,lebar,satuan',
             'items.produk:id,nama_produk,kode_produk,alur_produksi_json,is_metric,metric_unit',
             'items.produk.bahanBakus:id,nama_bahan,kode_bahan',
-            'items.cetakLogs:id,spk_item_id,created_at' 
+            'items.cetakLogs:id,spk_item_id,jumlah,deleted_at,created_at'
         ]);
 
         $spkMap = $spk->keyBy('id');
@@ -171,16 +171,17 @@ class PekerjaanController extends Controller
             ->pluck('total_cetak', 'spk_item_id');
 
         foreach ($allItems as $item) {
-            $totalDiambil = (int) ($queueTotalsByItemId[$item->id] ?? 0);
-            $totalCetak   = (int) ($printTotalsByItemId[$item->id] ?? 0);
-            
+            $qty = (int) ($item->jumlah ?? 0);
+            $totalCetak = $item->cetakLogs
+                ->whereNull('deleted_at')
+                ->sum('jumlah');
+
             $item->jumlah_sudah_cetak = $totalCetak;
-            $item->sisa_belum_cetak = max(0, $totalDiambil - $totalCetak);
-            $item->progress_cetak_persen = $totalDiambil > 0
-                ? min(100, round(($totalCetak / $totalDiambil) * 100, 1))
+            $item->sisa_belum_cetak = max(0, $qty - $totalCetak);
+            $item->progress_cetak_persen = $qty > 0
+                ? min(100, round(($totalCetak / $qty) * 100, 1))
                 : 0;
         }
-
 
         $allMesin = Cache::remember(
             'master_mesin_all',
@@ -337,7 +338,7 @@ class PekerjaanController extends Controller
             }
             return true;
         })->values();
-        
+
         $pekerjaanSayaItems = $queueRowsFiltered->map(function ($q) use ($printTotalsByItemId) {
             $item = $q->spkItem;
             $spk  = $item?->spk;
