@@ -37,7 +37,7 @@ class PekerjaanController extends Controller
 
         $spk = $this->spkService->getAllSpk($filters, [
             'pelanggan:id,nama,email',
-            'items:id,spk_id,produk_id,jumlah,nama_produk,panjang,lebar,satuan',
+            'items:id,spk_id,produk_id,jumlah,nama_produk,panjang,lebar,satuan,file_pendukung',
             'items.produk:id,nama_produk,kode_produk,alur_produksi_json,is_metric,metric_unit',
             'items.produk.bahanBakus:id,nama_bahan,kode_bahan',
             'items.cetakLogs:id,spk_item_id,jumlah,deleted_at,created_at'
