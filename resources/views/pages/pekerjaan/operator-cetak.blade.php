@@ -110,8 +110,11 @@
             id="tabPekerjaanSaya"
             role="tabpanel"
             aria-labelledby="tab-pekerjaan-saya">
-          {{-- Multi Cetak --}}
-          <div class="d-flex justify-content-end mb-3">
+          {{-- Multi Cetak & Ambil Pekerjaan --}}
+          <div class="d-flex justify-content-end gap-2 mb-3">
+            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAmbilPekerjaan">
+              Ambil pekerjaan
+            </button>
             <form method="POST" action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}" id="bulkCetakFormGlobal">
               @csrf
               <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
@@ -618,6 +621,408 @@
         @endforeach
   </div>
 
+  {{-- MODAL: Ambil Pekerjaan --}}
+  <div class="modal fade" id="modalAmbilPekerjaan" tabindex="-1" aria-labelledby="modalAmbilPekerjaanLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalAmbilPekerjaanLabel">
+            Ambil Pekerjaan
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" data-bs-target="#modalAmbilPekerjaan" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+
+          {{-- Tab navigasi per tipe mesin di dalam modal --}}
+          <div class="row g-3 mb-4" id="modalAmbilTabs" role="tablist">
+            @foreach($tipeMesinGroups as $tipe => $group)
+              @php
+                $slug = \Illuminate\Support\Str::slug($tipe, '-');
+                $label = $group['label'] ?? $tipe;
+                $mesinListForTipe = $group['mesin_list'] ?? [];
+                $isFirst = $loop->first;
+              @endphp
+              <div class="col-md-3">
+                <button class="card tab-card w-100 text-start {{ $isFirst ? 'active' : '' }}"
+                        id="modal-tab-tipe-{{ $slug }}"
+                        data-bs-toggle="tab"
+                        data-bs-target="#modalTabTipe{{ $slug }}"
+                        data-mesin-list='@json($mesinListForTipe)'
+                        data-slug="{{ $slug }}"
+                        type="button"
+                        role="tab">
+                  <div class="card-body d-flex align-items-center gap-3">
+                    <div class="tab-icon bg-success-subtle text-success">
+                      <i class="fa fa-cogs"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                      <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="mb-0 fw-semibold">{{ $label }}</h6>
+                        <span class="badge bg-success rounded-pill px-3">
+                          {{ count($group['spk']) }}
+                        </span>
+                      </div>
+                      <small class="text-muted">Ambil pekerjaan</small>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            @endforeach
+          </div>
+
+          {{-- Tab content per tipe mesin di dalam modal --}}
+          <div class="tab-content" id="modalAmbilTabContent">
+            @foreach($tipeMesinGroups as $tipe => $group)
+              @php
+                $slug = \Illuminate\Support\Str::slug($tipe, '-');
+                $accordionIdBase = 'modalAccordionTipe'.$slug;
+                $isFirst = $loop->first;
+              @endphp
+              <div class="tab-pane fade {{ $isFirst ? 'show active' : ''}}" id="modalTabTipe{{ $slug }}"
+                  role="tabpanel"
+                  aria-labelledby="modal-tab-tipe-{{ $slug }}">
+
+                <div class="d-flex align-items-center justify-content-between mb-3 flex-nowrap">
+                  <div id="modalMesinSubTabsContainer-{{ $slug }}" class="d-flex align-items-center gap-2 d-none">
+                    <span class="text-muted small">Mesin:</span>
+                    <div id="modalMesinSubTabsInner-{{ $slug }}" class="nav nav-pills d-flex align-items-center gap-1" role="tablist"></div>
+                  </div>
+
+                  <form method="POST"
+                        action="{{ route('pekerjaan.operator-cetak.multi-ambil-semua') }}"
+                        class="d-flex justify-content-end gap-2 mb-2 modalBulkAmbilForm flex-grow-1"
+                        data-tipe-tab="{{ $slug }}">
+                    @csrf
+                    <input type="hidden" name="mesin_id" class="modalBulkAmbilMesinId" value="">
+                    <div class="modalBulkAmbilInputs"></div>
+                    <button type="button" class="btn btn-sm btn-secondary btnModalMultiAmbil" disabled>
+                      Multi Ambil
+                    </button>
+                  </form>
+                </div>
+
+                <div class="accordion" id="{{ $accordionIdBase }}">
+                  @php
+                    $bahanGroups = $group['bahanGroups'] ?? [];
+                  @endphp
+
+                  @forelse($bahanGroups as $bahan)
+                    @php
+                      $accordionId = ($accordionIdBase).'-bahan-'.$bahan['id'];
+                      $items = array_values($bahan['items'] ?? []);
+                    @endphp
+
+                    <div class="accordion-item">
+                      <h2 class="accordion-header" id="modal-heading-{{ $accordionId }}">
+                        <button class="accordion-button collapsed" type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#modal-collapse-{{ $accordionId }}"
+                                aria-expanded="false"
+                                aria-controls="modal-collapse-{{ $accordionId }}">
+                          <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                            <div class="flex-grow-1">
+                              @php
+                                $totalMetric = 0;
+                                $metricUnitLabel = 'm';
+                                foreach ($items as $rec) {
+                                    $spkItem = $rec['item'];
+                                    $produk = $spkItem->produk;
+                                    if (!$produk || $produk->is_metric !== true) continue;
+                                    $metricUnit = $produk->metric_unit ?: 'cm';
+                                    $panjang = (float) ($spkItem->panjang ?? 0);
+                                    $lebar   = (float) ($spkItem->lebar ?? 0);
+                                    $jumlah  = (float) ($spkItem->jumlah ?? 0);
+                                    if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) continue;
+                                    switch (strtolower($metricUnit)) {
+                                        case 'mm': $panjang /= 1000; $lebar /= 1000; break;
+                                        case 'cm': $panjang /= 100;  $lebar /= 100;  break;
+                                    }
+                                    $totalMetric += $panjang * $lebar * $jumlah;
+                                }
+                              @endphp
+                              <h6 class="mb-1 text-dark fw-bold">{{ $bahan['nama'] }}</h6>
+                              @if(!empty($bahan['kode']))
+                                <small class="text-muted">{{ $bahan['kode'] }}</small>
+                              @endif
+                            </div>
+                            <div class="text-end">
+                              <div class="badge bg-secondary text-white mb-1">{{ count($items) }} item</div>
+                              @if($totalMetric > 0)
+                                <div class="small text-muted">
+                                  Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
+                                </div>
+                              @endif
+                            </div>
+                          </div>
+                        </button>
+                      </h2>
+
+                      <div id="modal-collapse-{{ $accordionId }}" class="accordion-collapse collapse"
+                          aria-labelledby="modal-heading-{{ $accordionId }}"
+                          data-bs-parent="#{{ $accordionIdBase }}">
+                        <div class="accordion-body">
+                          <div class="table-responsive">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                              <div class="form-check">
+                                @php
+                                  $remainingAccordionItems = collect($items)->filter(function ($rec) use ($queueTotalsByItemId) {
+                                    $qty = (int) ($rec['item']->jumlah ?? 0);
+                                    $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
+                                    return max(0, $qty - $totalDiambil) > 0;
+                                  })->count();
+                                @endphp
+                                <input class="form-check-input modal-cek-all-accordion" type="checkbox"
+                                      data-modal-accordion-id="{{ $accordionId }}"
+                                      {{ $remainingAccordionItems === 0 ? 'disabled' : '' }}>
+                                <label class="form-check-label">
+                                  Pilih semua item pada tabel ini untuk <strong>diambil</strong>
+                                </label>
+                              </div>
+                            </div>
+                            <table class="table table-sm align-middle mb-0">
+                              <thead class="table-light">
+                                <tr>
+                                  <th>Nomor SPK</th>
+                                  <th>Pelanggan</th>
+                                  <th class="text-center" style="width:50px;">File</th>
+                                  <th>Nama Item</th>
+                                  <th>Ukuran / Luas</th>
+                                  <th class="text-end">Jumlah</th>
+                                  <th>Satuan</th>
+                                  <th class="text-end">Progress</th>
+                                  <th class="text-center" style="width:40px;">Pilih</th>
+                                  <th class="text-center" style="width:140px;">Action</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                @php
+                                  $groupedBySpk = collect($items ?? [])->groupBy(function ($rec) {
+                                      return $rec['spk']->id;
+                                  });
+                                @endphp
+
+                                @forelse($groupedBySpk as $spkId => $rows)
+                                  @php
+                                    $spkRow = $rows->first()['spk'];
+                                    $rowspan = $rows->count();
+                                    $firstRow = true;
+
+                                    $groupDefaultFiles = [];
+                                    foreach ($rows as $rec) {
+                                        $it = $rec['item'];
+                                        $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                        $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+                                        $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                        $path = $default['path'] ?? null;
+                                        if (!$path) continue;
+                                        $groupDefaultFiles[$path] = $default;
+                                    }
+                                    $groupDefaultFiles = array_values($groupDefaultFiles);
+                                  @endphp
+
+                                  @foreach($rows as $rec)
+                                    @php
+                                      $spkItem = $rec['item'];
+                                      $produk = $spkItem->produk;
+                                      $isMetric   = $produk && ($produk->is_metric === true);
+                                      $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                                      $panjang = (float) ($spkItem->panjang ?? 0);
+                                      $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                                      if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                          $luas = $panjang * $lebar;
+                                          $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                          $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                                      } elseif ($isMetric) {
+                                          $dimensiText = 'Metric ('.$metricUnit.')';
+                                          $luasText = 'Ukuran belum lengkap';
+                                      } else {
+                                          $dimensiText = '-';
+                                          $luasText = '';
+                                      }
+
+                                      $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                      $filePendukung = is_string($filePendukungRaw) ? (json_decode($filePendukungRaw, true) ?: []) : (array) $filePendukungRaw;
+                                      $firstFile  = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+                                      $thumbUrl   = null;
+                                      $isPdfFirst = false;
+                                      if ($firstFile && !empty($firstFile['path'])) {
+                                          $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
+                                          $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
+                                      }
+
+                                      $qty = (int) ($spkItem->jumlah ?? 0);
+                                      $totalDiambil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
+                                      $sisaAmbil = max(0, $qty - $totalDiambil);
+                                      $pctAmbil = $qty > 0 ? min(100, round(($totalDiambil / $qty) * 100, 1)) : 0.0;
+                                      $sudahCetak = (int) ($spkItem->jumlah_sudah_cetak ?? 0);
+                                      $pctCetak = (float) ($spkItem->progress_cetak_persen ?? 0);
+                                      $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+                                    @endphp
+
+                                    <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
+                                      @if($firstRow)
+                                        <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                          <div class="d-flex align-items-start gap-2">
+                                            <div class="form-check mt-1">
+                                              @php
+                                                $remainingItems = collect($rows)->filter(function ($rec) use ($queueTotalsByItemId) {
+                                                  $qty = (int) ($rec['item']->jumlah ?? 0);
+                                                  $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
+                                                  return max(0, $qty - $totalDiambil) > 0;
+                                                })->count();
+                                              @endphp
+                                              <input type="checkbox"
+                                                    class="form-check-input modal-cek-spk"
+                                                    data-spk-id="{{ $spkRow->id }}"
+                                                    data-modal-accordion-id="{{ $accordionId }}"
+                                                    {{ $remainingItems === 0 ? 'disabled' : '' }}
+                                                    title="Pilih semua item SPK ini">
+                                            </div>
+                                            <div>
+                                              {{ $spkRow->nomor_spk }}
+                                              @php
+                                                $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                                $now = \Carbon\Carbon::now();
+                                                $diff = $spkDate->diff($now);
+                                              @endphp
+                                              <small class="text-muted d-block">{{ $spkDate->format('d/m/Y') }}</small>
+                                              @if($spkDate->isPast())
+                                                <small class="text-muted">{{ $diff->days }} hari
+                                                  @if($diff->h > 0) {{ $diff->h }} jam @endif
+                                                </small>
+                                              @endif
+                                            </div>
+                                            @if(count($groupDefaultFiles))
+                                              <button type="button"
+                                                      class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                                      data-spk-id="{{ $spkRow->id }}"
+                                                      data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                                      data-files='@json($groupDefaultFiles)'
+                                                      title="Lihat file default item (group ini)">
+                                                <i class="fa fa-eye"></i>
+                                              </button>
+                                            @endif
+                                          </div>
+                                        </td>
+                                        <td rowspan="{{ $rowspan }}" class="align-top">
+                                          {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                                        </td>
+                                        @php $firstRow = false; @endphp
+                                      @endif
+
+                                      <td class="text-center align-middle" style="width: 60px;">
+                                        @if($firstFile && $thumbUrl)
+                                          <button type="button"
+                                                  class="btn btn-sm btn-light p-1 btn-preview-item-file"
+                                                  data-file-path="{{ $firstFile['path'] }}"
+                                                  data-file-name="{{ $firstFile['name'] ?? '' }}"
+                                                  data-file-type="{{ $firstFile['type'] ?? '' }}"
+                                                  title="Preview file item">
+                                            @if($isPdfFirst)
+                                              <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                            @else
+                                              <img src="{{ $thumbUrl }}"
+                                                  alt="{{ $firstFile['name'] ?? 'Preview' }}"
+                                                  class="img-thumbnail"
+                                                  style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
+                                                  loading="lazy">
+                                            @endif
+                                          </button>
+                                        @else
+                                          <span class="text-muted">-</span>
+                                        @endif
+                                      </td>
+
+                                      <td>{{ $spkItem->nama_produk }}</td>
+                                      <td>
+                                        <div class="fw-semibold">{{ $dimensiText }}</div>
+                                        @if($luasText)<div class="text-muted small">{{ $luasText }}</div>@endif
+                                      </td>
+                                      <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                      <td>{{ $spkItem->satuan }}</td>
+
+                                      <td class="text-end">
+                                        <div class="small fw-semibold mb-1">Ambil: {{ $pctAmbil }}%</div>
+                                        <div class="progress mb-2" style="height:6px;">
+                                          <div class="progress-bar bg-success" role="progressbar"
+                                              style="width: {{ $pctAmbil }}%;"
+                                              aria-valuenow="{{ $pctAmbil }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small text-muted mb-2">
+                                          Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($qty,0,',','.') }}
+                                          (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
+                                        </div>
+                                        <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
+                                        <div class="progress" style="height:6px;">
+                                          <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
+                                              role="progressbar"
+                                              style="width: {{ $pctCetak }}%;"
+                                              aria-valuenow="{{ $pctCetak }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <div class="small text-muted mt-1">
+                                          Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                                        </div>
+                                      </td>
+
+                                      <td class="text-center">
+                                        <input type="checkbox"
+                                              class="form-check-input modal-ambil-item-checkbox"
+                                              value="{{ $spkItem->id }}"
+                                              data-modal-accordion-id="{{ $accordionId }}"
+                                              data-spk-id="{{ $spkRow->id }}"
+                                              data-nomor-spk="{{ $spkRow->nomor_spk }}"
+                                              data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
+                                              data-item="{{ $spkItem->nama_produk }}"
+                                              data-qty="{{ $qty }}"
+                                              data-sisa-ambil="{{ $sisaAmbil }}"
+                                              @disabled($sisaAmbil <= 0)>
+                                      </td>
+                                      <td class="text-center">
+                                        <button type="button"
+                                                class="btn btn-sm {{ $sisaAmbil <= 0 ? 'btn-secondary disabled' : 'btn-success' }} btn-open-ambil-modal"
+                                                {{ $sisaAmbil <= 0 ? 'disabled' : '' }}
+                                                data-spk-item-id="{{ $spkItem->id }}"
+                                                data-nomor-spk="{{ $spkRow->nomor_spk }}"
+                                                data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
+                                                data-nama-item="{{ $spkItem->nama_produk }}"
+                                                data-sisa-ambil="{{ $sisaAmbil }}">
+                                          Ambil
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  @endforeach
+                                @empty
+                                  <tr>
+                                    <td colspan="10" class="text-center text-muted">
+                                      Tidak ada item untuk bahan ini pada tipe mesin ini.
+                                    </td>
+                                  </tr>
+                                @endforelse
+                              </tbody>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  @empty
+                    <div class="text-center py-4 text-muted">
+                      Tidak ada data bahan untuk tipe mesin ini.
+                    </div>
+                  @endforelse
+                </div>
+              </div>
+            @endforeach
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" data-bs-target="#modalAmbilPekerjaan">Tutup</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
 @endsection
 
 @push('custom-scripts')
@@ -938,13 +1343,15 @@
 
       document.addEventListener('click', function (e) {
         const btnSingle = e.target.closest('.btn-open-ambil-modal');
-        if (btnSingle) {
+        // Skip jika tombol berasal dari dalam modal Ambil Pekerjaan (ditangani handler modal)
+        if (btnSingle && !btnSingle.closest('#modalAmbilPekerjaan')) {
           openAmbilModalSingle(btnSingle);
           return;
         }
 
         const btnMulti = e.target.closest('.btnMultiAmbil');
-        if (btnMulti) {
+        // Skip jika tombol berasal dari dalam modal Ambil Pekerjaan
+        if (btnMulti && !btnMulti.closest('#modalAmbilPekerjaan')) {
           const checked = document.querySelectorAll('.ambil-item-checkbox:checked');
           if (!checked.length) {
             return;
@@ -2484,4 +2891,387 @@
     </div>
   </div>
 </div>
+  {{-- =========================================================
+       Modal Ambil Pekerjaan
+       ========================================================= --}}
+  <script>
+  (function () {
+    'use strict';
+
+    // -------------------------------------------------------
+    // 1. Referensi elemen ambil modal (shared, sama seperti luar)
+    // -------------------------------------------------------
+    const ambilModalEl  = document.getElementById('ambilModal');
+    const ambilModal    = ambilModalEl ? bootstrap.Modal.getOrCreateInstance(ambilModalEl) : null;
+    const ambilMesinId  = document.getElementById('ambil_mesin_id');
+    const ambilInputs   = document.getElementById('ambil_inputs');
+    const ambilJumlah   = document.getElementById('ambil_jumlah');
+
+    // -------------------------------------------------------
+    // 2. Helper: set hidden inputs item IDs ke formAmbil
+    // -------------------------------------------------------
+    function modalSetAmbilHiddenIds(ids) {
+      if (!ambilInputs) return;
+      ambilInputs.innerHTML = '';
+      ids.forEach(function (id) {
+        var inp = document.createElement('input');
+        inp.type  = 'hidden';
+        inp.name  = 'spk_item_ids[]';
+        inp.value = String(id);
+        ambilInputs.appendChild(inp);
+      });
+    }
+
+    // -------------------------------------------------------
+    // 3. getActiveMesinId untuk MODAL (baca dari #modalAmbilTabs)
+    // -------------------------------------------------------
+    function modalGetActiveMesinId() {
+      // Cek sub-tab mesin yang sedang aktif di dalam modal
+      var activeSub = document.querySelector('[id^="modalMesinSubTabsInner-"] .nav-link.active');
+      if (activeSub && activeSub.dataset && activeSub.dataset.mesinId) {
+        return String(activeSub.dataset.mesinId);
+      }
+
+      // Tidak ada sub-tab aktif → cek tab tipe mesin yang aktif di dalam modal
+      var activeTabBtn = document.querySelector('#modalAmbilTabs .tab-card.active[data-mesin-list]');
+      if (activeTabBtn) {
+        try {
+          var raw  = activeTabBtn.getAttribute('data-mesin-list');
+          var list = raw ? JSON.parse(raw) : [];
+          if (Array.isArray(list) && list.length === 1 && list[0].id) {
+            return String(list[0].id);
+          }
+          // Lebih dari 1 mesin tapi belum pilih sub-tab
+          return '';
+        } catch (e) {
+          return '';
+        }
+      }
+      return '';
+    }
+
+    // -------------------------------------------------------
+    // 4. Render / clear sub-tab mesin di dalam modal
+    // -------------------------------------------------------
+    function modalClearAllMesinSubTabs() {
+      document.querySelectorAll('[id^="modalMesinSubTabsContainer-"]').forEach(function (c) {
+        c.classList.add('d-none');
+      });
+      document.querySelectorAll('[id^="modalMesinSubTabsInner-"]').forEach(function (i) {
+        i.innerHTML = '';
+      });
+    }
+
+    function modalRenderMesinSubTabsForSlug(slug, mesinList) {
+      var container = document.getElementById('modalMesinSubTabsContainer-' + slug);
+      var inner     = document.getElementById('modalMesinSubTabsInner-' + slug);
+      if (!container || !inner) return;
+
+      inner.innerHTML = '';
+
+      if (!mesinList || mesinList.length <= 1) {
+        container.classList.add('d-none');
+        return;
+      }
+
+      container.classList.remove('d-none');
+
+      mesinList.forEach(function (m, idx) {
+        var btn = document.createElement('button');
+        btn.type      = 'button';
+        btn.className = 'nav-link btn btn-sm ' + (idx === 0 ? 'active' : '');
+        btn.setAttribute('role', 'tab');
+        btn.dataset.mesinId = m.id || '';
+        btn.textContent = m.nama_mesin || ('Mesin #' + (m.id || idx));
+
+        btn.addEventListener('click', function () {
+          inner.querySelectorAll('.nav-link').forEach(function (el) {
+            el.classList.remove('active');
+          });
+          btn.classList.add('active');
+        });
+
+        inner.appendChild(btn);
+      });
+    }
+
+    // -------------------------------------------------------
+    // 5. Sync tombol Multi Ambil di dalam modal
+    // -------------------------------------------------------
+    function modalSyncMultiAmbilButtons() {
+      var checked    = document.querySelectorAll('.modal-ambil-item-checkbox:checked');
+      var hasChecked = checked.length > 0;
+
+      document.querySelectorAll('.btnModalMultiAmbil').forEach(function (btn) {
+        btn.disabled = !hasChecked;
+        if (hasChecked) {
+          btn.classList.remove('btn-secondary');
+          btn.classList.add('btn-success');
+        } else {
+          btn.classList.remove('btn-success');
+          btn.classList.add('btn-secondary');
+        }
+      });
+    }
+
+    // -------------------------------------------------------
+    // 6. Buka ambilModal (single) dari dalam modal
+    // -------------------------------------------------------
+    function modalOpenAmbilSingle(btn) {
+      var itemId    = btn.getAttribute('data-spk-item-id');
+      var nomorSpk  = btn.getAttribute('data-nomor-spk')   || '-';
+      var pelanggan = btn.getAttribute('data-pelanggan')    || '-';
+      var namaItem  = btn.getAttribute('data-nama-item')    || '-';
+      var sisaAmbil = parseInt(btn.getAttribute('data-sisa-ambil') || '0', 10) || 0;
+
+      var mesinId = modalGetActiveMesinId();
+      if (!mesinId) {
+        Swal.fire({ icon: 'warning', title: 'Mesin belum dipilih', text: 'Silakan pilih mesin dulu.' });
+        return;
+      }
+
+      ambilMesinId.value = mesinId;
+      modalSetAmbilHiddenIds([itemId]);
+
+      document.getElementById('ambil_nomor_spk').textContent = nomorSpk;
+      document.getElementById('ambil_pelanggan').textContent  = pelanggan;
+      document.getElementById('ambil_nama_item').textContent  = namaItem;
+      document.getElementById('ambil_sisa').textContent       = sisaAmbil.toLocaleString('id-ID');
+
+      ambilJumlah.value = '';
+      ambilJumlah.max   = String(Math.max(0, sisaAmbil));
+      ambilModal.show();
+    }
+
+    // -------------------------------------------------------
+    // 7. Buka ambilModal (multi) dari dalam modal
+    // -------------------------------------------------------
+    function modalOpenAmbilMulti(btnMulti) {
+      var checked = document.querySelectorAll('.modal-ambil-item-checkbox:checked');
+      if (!checked.length) return;
+
+      var mesinId = modalGetActiveMesinId();
+      if (!mesinId) {
+        Swal.fire({ icon: 'warning', title: 'Mesin belum dipilih', text: 'Silakan pilih mesin dulu.' });
+        return;
+      }
+
+      var html = `
+        <div style="max-height:350px;overflow:auto">
+        <table class="table table-sm table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th>SPK</th>
+              <th>Pelanggan</th>
+              <th>Item</th>
+              <th class="text-end">Qty Diambil (baru)</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
+      var totalItem = 0;
+      checked.forEach(function (cb) {
+        var sisaAmbil = parseInt(cb.dataset.sisaAmbil || '0', 10) || 0;
+        if (sisaAmbil <= 0) return;
+        html += `
+          <tr>
+            <td>${cb.dataset.nomorSpk || '-'}</td>
+            <td>${cb.dataset.pelanggan || '-'}</td>
+            <td>${cb.dataset.item || '-'}</td>
+            <td class="text-end">${sisaAmbil.toLocaleString('id-ID')}</td>
+          </tr>
+        `;
+        totalItem++;
+      });
+      html += `
+          </tbody>
+        </table>
+        </div>
+        <div class="mt-3 text-start"><strong>Total item dipilih: ${totalItem}</strong></div>
+      `;
+
+      if (totalItem === 0) {
+        Swal.fire({ icon: 'info', title: 'Tidak ada qty yang bisa diambil', text: 'Semua item yang dipilih sudah tidak punya sisa ambil.' });
+        return;
+      }
+
+      Swal.fire({
+        title: 'Konfirmasi Multi Ambil (Semua Sisa)',
+        html: html,
+        icon: 'info',
+        width: 800,
+        showCancelButton: true,
+        confirmButtonText: 'Ya, ambil semua',
+        cancelButtonText: 'Batal',
+        confirmButtonColor: '#198754'
+      }).then(function (result) {
+        if (!result.isConfirmed) return;
+
+        var form      = btnMulti.closest('.modalBulkAmbilForm');
+        if (!form) return;
+        var bulkInputs = form.querySelector('.modalBulkAmbilInputs');
+        var mesinInput = form.querySelector('.modalBulkAmbilMesinId');
+        if (!bulkInputs || !mesinInput) return;
+
+        bulkInputs.innerHTML = '';
+        document.querySelectorAll('.modal-ambil-item-checkbox:checked').forEach(function (cb) {
+          var sisa = parseInt(cb.dataset.sisaAmbil || '0', 10) || 0;
+          if (sisa <= 0) return;
+          var inp = document.createElement('input');
+          inp.type  = 'hidden';
+          inp.name  = 'spk_item_ids[]';
+          inp.value = cb.value;
+          bulkInputs.appendChild(inp);
+        });
+        mesinInput.value = mesinId;
+
+        Swal.fire({
+          title: 'Memproses...',
+          text: 'Sedang memproses multi ambil',
+          allowOutsideClick: false,
+          didOpen: function () { Swal.showLoading(); }
+        });
+        form.submit();
+      });
+    }
+
+    // -------------------------------------------------------
+    // 8. Pasang listener tab tipe mesin di dalam modal
+    // -------------------------------------------------------
+    document.querySelectorAll('#modalAmbilTabs [data-mesin-list]').forEach(function (btn) {
+      var slug = btn.getAttribute('data-slug');
+
+      btn.addEventListener('shown.bs.tab', function () {
+        var list = [];
+        try {
+          var raw = btn.getAttribute('data-mesin-list');
+          list = raw ? JSON.parse(raw) : [];
+        } catch (e) {}
+
+        modalClearAllMesinSubTabs();
+        if (slug) modalRenderMesinSubTabsForSlug(slug, list);
+      });
+
+      // Active-class styling untuk tab-card di dalam modal
+      btn.addEventListener('shown.bs.tab', function () {
+        document.querySelectorAll('#modalAmbilTabs .tab-card').forEach(function (el) {
+          el.classList.remove('active');
+        });
+        btn.classList.add('active');
+      });
+    });
+
+    // -------------------------------------------------------
+    // 9. Inisialisasi saat modal pertama kali dibuka
+    // -------------------------------------------------------
+    var modalAmbilPekerjaanEl = document.getElementById('modalAmbilPekerjaan');
+    if (modalAmbilPekerjaanEl) {
+      modalAmbilPekerjaanEl.addEventListener('shown.bs.modal', function () {
+        var activeTabBtn = document.querySelector('#modalAmbilTabs .tab-card.active[data-mesin-list]');
+        modalClearAllMesinSubTabs();
+        if (activeTabBtn) {
+          try {
+            var tabInstance = bootstrap.Tab.getOrCreateInstance(activeTabBtn);
+            tabInstance.show(); // trigger show agar konten tab bootstrap ikut sinkron
+          } catch(e) {}
+          
+          var slug = activeTabBtn.getAttribute('data-slug');
+          var list = [];
+          try {
+            var raw = activeTabBtn.getAttribute('data-mesin-list');
+            list = raw ? JSON.parse(raw) : [];
+          } catch (e) {}
+          if (slug) modalRenderMesinSubTabsForSlug(slug, list);
+        }
+        modalSyncMultiAmbilButtons();
+      });
+    }
+
+    // -------------------------------------------------------
+    // 10. Delegasi event click di dalam modal
+    // -------------------------------------------------------
+    document.addEventListener('click', function (e) {
+
+      // -- tombol Ambil (single) di dalam modal --
+      var btnAmbilSingle = e.target.closest('#modalAmbilPekerjaan .btn-open-ambil-modal');
+      if (btnAmbilSingle) {
+        modalOpenAmbilSingle(btnAmbilSingle);
+        return;
+      }
+
+      // -- tombol Multi Ambil di dalam modal --
+      var btnMulti = e.target.closest('.btnModalMultiAmbil');
+      if (btnMulti) {
+        modalOpenAmbilMulti(btnMulti);
+        return;
+      }
+
+      // -- checkbox modal-ambil-item-checkbox --
+      if (e.target.classList && e.target.classList.contains('modal-ambil-item-checkbox')) {
+        var cb         = e.target;
+        var spkId      = cb.dataset.spkId;
+        var accordionId = cb.dataset.modalAccordionId;
+
+        // Sync cek-spk
+        var spkItems   = document.querySelectorAll(`.modal-ambil-item-checkbox[data-spk-id="${spkId}"][data-modal-accordion-id="${accordionId}"]`);
+        var spkChecked = document.querySelectorAll(`.modal-ambil-item-checkbox[data-spk-id="${spkId}"][data-modal-accordion-id="${accordionId}"]:checked`);
+        var spkMaster  = document.querySelector(`.modal-cek-spk[data-spk-id="${spkId}"][data-modal-accordion-id="${accordionId}"]`);
+        if (spkMaster) spkMaster.checked = spkItems.length === spkChecked.length;
+
+        // Sync cek-all-accordion
+        var accItems   = document.querySelectorAll(`.modal-ambil-item-checkbox[data-modal-accordion-id="${accordionId}"]`);
+        var accChecked = document.querySelectorAll(`.modal-ambil-item-checkbox[data-modal-accordion-id="${accordionId}"]:checked`);
+        var accMaster  = document.querySelector(`.modal-cek-all-accordion[data-modal-accordion-id="${accordionId}"]`);
+        if (accMaster) accMaster.checked = accItems.length === accChecked.length;
+
+        modalSyncMultiAmbilButtons();
+        return;
+      }
+
+      // -- cek-spk di dalam modal --
+      if (e.target.classList && e.target.classList.contains('modal-cek-spk')) {
+        var spkCb      = e.target;
+        var spkId2     = spkCb.dataset.spkId;
+        var accordionId2 = spkCb.dataset.modalAccordionId;
+
+        document.querySelectorAll(`.modal-ambil-item-checkbox[data-spk-id="${spkId2}"][data-modal-accordion-id="${accordionId2}"]`)
+          .forEach(function (c) { c.checked = spkCb.checked; });
+
+        var accItems2   = document.querySelectorAll(`.modal-ambil-item-checkbox[data-modal-accordion-id="${accordionId2}"]`);
+        var accChecked2 = document.querySelectorAll(`.modal-ambil-item-checkbox[data-modal-accordion-id="${accordionId2}"]:checked`);
+        var accMaster2  = document.querySelector(`.modal-cek-all-accordion[data-modal-accordion-id="${accordionId2}"]`);
+        if (accMaster2) accMaster2.checked = accItems2.length === accChecked2.length;
+
+        modalSyncMultiAmbilButtons();
+        return;
+      }
+
+      // -- cek-all-accordion di dalam modal --
+      if (e.target.classList && e.target.classList.contains('modal-cek-all-accordion')) {
+        var allCb      = e.target;
+        var accordionId3 = allCb.dataset.modalAccordionId;
+
+        document.querySelectorAll(`.modal-ambil-item-checkbox[data-modal-accordion-id="${accordionId3}"]`)
+          .forEach(function (c) { c.checked = allCb.checked; });
+
+        document.querySelectorAll(`.modal-cek-spk[data-modal-accordion-id="${accordionId3}"]`)
+          .forEach(function (s) { s.checked = allCb.checked; });
+
+        modalSyncMultiAmbilButtons();
+        return;
+      }
+    });
+
+    // -------------------------------------------------------
+    // 11. Sync tombol multi ambil jika checkbox berubah via change
+    // -------------------------------------------------------
+    document.addEventListener('change', function (e) {
+      if (e.target.classList && e.target.classList.contains('modal-ambil-item-checkbox')) {
+        modalSyncMultiAmbilButtons();
+      }
+    });
+
+  })();
+  </script>
+
 @endpush
