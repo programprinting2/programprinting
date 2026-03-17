@@ -432,14 +432,22 @@ function createProfileForm() {
                         </div>
                         <div class="profile-tipe-settings" data-tipe="per_klik" style="display: none;">
                             <div class="row mb-2">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Ukuran Kertas</label>
                                     <input type="text" class="form-control profile-ukuran-kertas" placeholder="A4+, A3+, Custom, dll">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Mode Warna</label>
                                     <select class="form-select profile-mode-warna">
                                         ${(window.MODE_WARNA_OPTIONS || []).map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Mode Cetakan</label>
+                                    <select class="form-select profile-mode-cetakan">
+                                        <option value="">Pilih Mode Cetakan</option>
+                                        <option value="single_side">Single side</option>
+                                        <option value="double_side">Double side</option>
                                     </select>
                                 </div>
                             </div>
@@ -691,16 +699,24 @@ function createEditProfileForm(mesinId, profileData = null, profileIndex = null)
                         </div>
                         <div class="profile-tipe-settings" data-tipe="per_klik" style="display: ${profileData && profileData.tipe === 'per_klik' ? 'block' : 'none'};">
                             <div class="row mb-2">
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Ukuran Kertas</label>
                                     <input type="text" class="form-control profile-ukuran-kertas" placeholder="A4+, A3+, Custom, dll" value="${profileData && profileData.settings ? profileData.settings.ukuran_kertas ?? '' : ''}">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-md-4">
                                     <label class="form-label">Mode Warna</label>
                                     <select class="form-select profile-mode-warna">
                                         ${(window.MODE_WARNA_OPTIONS || []).map(opt =>
                                             `<option value="${opt}" ${profileData && profileData.settings && profileData.settings.mode_warna === opt ? 'selected' : ''}>${opt}</option>`
                                         ).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">Mode Cetakan</label>
+                                    <select class="form-select profile-mode-cetakan">
+                                        <option value="">Pilih Mode Cetakan</option>
+                                        <option value="single_side">Single side</option>
+                                        <option value="double_side">Double side</option>
                                     </select>
                                 </div>
                             </div>
@@ -974,6 +990,7 @@ function collectProfileData(containerId) {
         } else if (tipe === 'per_klik') {
             settings.ukuran_kertas = $(this).find('.profile-ukuran-kertas').val() || '';
             settings.mode_warna = $(this).find('.profile-mode-warna').val() || '';
+            settings.mode_cetakan = $(this).find('.profile-mode-cetakan').val() || '';
             settings.lebar_kertas = parseFloat($(this).find('.profile-lebar-kertas').val()) || 0;
             settings.tinggi_kertas = parseFloat($(this).find('.profile-tinggi-kertas').val()) || 0;
             settings.harga_per_klik = parseFloat($(this).find('.profile-harga-per-klik').val()) || 0;
@@ -1033,7 +1050,7 @@ function collectProfileData(containerId) {
                 errorMessage = 'Harga tinta per liter dan konsumsi tinta per m² harus diisi dengan nilai';
             }
         } else if (tipe === 'per_klik') {
-            if (settings.ukuran_kertas == '' || settings.mode_warna == '' || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik < 0 || settings.jumlah_klik < 1) {
+            if (settings.ukuran_kertas == '' || settings.mode_warna == '' || settings.lebar_kertas <= 0 || settings.tinggi_kertas <= 0 || settings.harga_per_klik < 0 || settings.jumlah_klik < 1 || settings.mode_cetakan == '') {
                 isValid = false;
                 errorMessage = 'Ukuran kertas, mode warna, dimensi kertas, harga per klik, dan jumlah klik harus diisi dengan benar';
             }
