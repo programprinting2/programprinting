@@ -48,7 +48,7 @@ class KasirController extends Controller
         $this->kasirService->storePayment($spk, $request->validated());
 
         return redirect()
-           ->route('kasir.spk.payment', ['spk' => $spk->id])
+           ->route('kasir.index')
            ->with('success', 'Pembayaran berhasil disimpan.');
     }
 } 

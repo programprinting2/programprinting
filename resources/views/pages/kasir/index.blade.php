@@ -59,7 +59,7 @@
                   </td>
                   <td>
                     <a href="{{ route('spk.show', $spk) }}" class="btn btn-sm btn-outline-secondary" title="Lihat Detail"><i class="fas fa-file-alt"></i></a>
-                    <a href="{{ route('kasir.spk.payment', ['spk' => $spk->id]) }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
+                    <a href="{{ route('kasir.spk.payment', $spk) }}" class="btn btn-sm btn-outline-secondary" title="Pembayaran"><i class="fas fa-credit-card"></i></a>
                     <!-- <a href="#" class="btn btn-sm btn-outline-secondary" title="Edit"><i class="fas fa-edit"></i></a> -->
                     <!-- <a href="{{ route('kasir.invoice.print', 'INV-2023-002') }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="Cetak"><i class="fas fa-print"></i></a> -->
                   </td>

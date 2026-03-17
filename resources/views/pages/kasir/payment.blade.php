@@ -17,7 +17,7 @@
           Masukkan detail pembayaran untuk {{ $spk->nomor_spk }}
         </p>
 
-        <form id="form-payment-spk" action="{{ route('kasir.spk.payment.store', ['spk' => $spk->id]) }}" method="POST">
+        <form id="form-payment-spk" action="{{ route('kasir.spk.payment.store', $spk) }}" method="POST">
           @csrf
 
           <div class="mb-3">
