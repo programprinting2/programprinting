@@ -268,6 +268,26 @@ Route::group(['prefix' => 'pekerjaan'], function () {
         ->name('pekerjaan.tandai-selesai');
 });
 
+// Notification Route 
+Route::post('/notifications/{id}/read', function (Request $request, string $id) {
+    $user = $request->user();
+    if (!$user) abort(403);
+
+    $notif = $user->notifications()->whereKey($id)->firstOrFail();
+    $notif->markAsRead();
+
+    return response()->json(['ok' => true]);
+})->name('notifications.read');
+
+Route::post('/notifications/mark-all-read', function (Request $request) {
+    $user = $request->user();
+    if (!$user) {
+        abort(403);
+    }
+    $user->unreadNotifications->markAsRead();
+    return response()->json(['ok' => true]);
+})->name('notifications.markAllRead');
+
 //Hutang Route
 Route::get('/hutang', [HutangController::class, 'index'])->name('hutang.index');
 

@@ -14,3 +14,8 @@
 Broadcast::channel('App.User.{id}', function ($user, $id) {
     return (int) $user->id === (int) $id;
 });
+
+Broadcast::channel('manager-order', function ($user = null) {
+    // return (bool) $user;
+    return true; //untuk sementara karena belum implement auth 
+});

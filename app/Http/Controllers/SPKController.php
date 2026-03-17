@@ -11,6 +11,8 @@ use App\Models\Pelanggan;
 use App\Models\BahanBaku;
 use App\Models\SPK;
 use App\Services\SpkService;
+use App\Models\User;
+use App\Notifications\SpkActivityNotification;
 use App\Services\ActivityLogService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Log;
@@ -70,6 +72,17 @@ class SPKController extends Controller
     {
         try {
             $spk = $this->spkService->createSpk($request->validated());
+            
+            $recipients = User::query()->get(); // atau filter role admin/manager
+            foreach ($recipients as $user) {
+                $user->notify(new SpkActivityNotification(
+                    spkId: (int) $spk->id,
+                    nomorSpk: (string) $spk->nomor_spk,
+                    action: 'created',
+                    status: (string) ($spk->status ?? ''),
+                    pelanggan: optional($spk->pelanggan)->nama,
+                ));
+            }
 
             return redirect()
                 ->route('spk.show', $spk)
@@ -283,6 +296,17 @@ class SPKController extends Controller
         }
 
         $spk->update(['status' => $newStatus]);
+
+        $recipients = User::query()->get(); // atau filter role admin/manager
+        foreach ($recipients as $user) {
+            $user->notify(new SpkActivityNotification(
+                spkId: (int) $spk->id,
+                nomorSpk: (string) $spk->nomor_spk,
+                action: 'status_changed',
+                status: (string) ($spk->status ?? ''),
+                pelanggan: optional($spk->pelanggan)->nama,
+            ));
+        }
 
         return back()->with('success', "Status SPK berhasil diubah menjadi {$newStatus}.");
     }

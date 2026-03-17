@@ -126,20 +126,6 @@ class PekerjaanController extends Controller
         ]);
     }
 
-    public function managerOrderRow(SPK $spk)
-    {
-        // load relasi minimum yang dipakai row
-        $spk->load([
-            'pelanggan',
-            'items', // kalau progress dihitung dari items
-            // idealnya progress sudah agregat server-side (lebih cepat)
-        ]);
-
-        return view('pages.pekerjaan.partials.manager-order-spk-row', [
-            'item' => $spk,
-        ]);
-    }
-
     public function managerProduksi(Request $request): View
     {
         // $filters = $request->only(['search', 'customer_id']);

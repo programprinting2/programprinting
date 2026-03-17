@@ -278,7 +278,7 @@
                 <tbody id="accordionSpk">
                     @forelse($spk as $item)
                         @php $collapseId = 'detail-spk-'.$item->id; @endphp
-                        <tr class="spk-row" data-status="{{ $item->status }}">
+                        <tr class="spk-row" data-status="{{ $item->status }}" data-spk-id="{{ $item->id }}">
                             <td>
                                 @if($item->status === 'proses_bayar')
                                     <input type="checkbox" class="checkSpkRow" value="{{ $item->id }}">
@@ -432,7 +432,7 @@
                         </tr>
 
                         <!-- Collapse Row -->
-                        <tr class="spk-row" data-status="{{ $item->status }}">
+                        <tr class="spk-row" data-status="{{ $item->status }}" data-spk-id="{{ $item->id }}">
                             <td colspan="9" class="p-0 border-0">
                                 <div id="{{ $collapseId }}" class="collapse spk-collapse" data-bs-parent="#accordionSpk">
                                     <div class="border border-2 px-4 py-3">

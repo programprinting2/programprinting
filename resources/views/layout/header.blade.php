@@ -128,67 +128,54 @@
           </div>
         </div>
       </li>
+      @php
+        $user = auth()->user() ?? \App\Models\User::first(); 
+        $unreadCount = $user->unreadNotifications()->count();
+        $latestNotifs = $user->notifications()->latest()->limit(10)->get();
+      @endphp
       <li class="nav-item dropdown">
-        <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+        <a class="nav-link dropdown-toggle" href="#" id="notificationDropdown" role="button"
+          data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
           <i data-feather="bell"></i>
-          <div class="indicator">
+          <div class="indicator" id="notifIndicator" style="{{ $unreadCount ? '' : 'display:none;' }}">
             <div class="circle"></div>
           </div>
         </a>
-        <div class="dropdown-menu p-0" aria-labelledby="notificationDropdown">
+        <div class="dropdown-menu p-0" aria-labelledby="notificationDropdown" style="min-width: 360px;">
           <div class="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
-            <p>6 New Notifications</p>
-            <a href="javascript:;" class="text-muted">Clear all</a>
+            <p class="mb-0"><span id="notifCount">{{ $unreadCount }}</span> Notifikasi baru</p>
+            <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a>
           </div>
-          <div class="p-1">
-            <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-              <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
-                <i class="icon-sm text-white" data-feather="gift"></i>
-              </div>
-              <div class="flex-grow-1 me-2">
-                <p>New Order Recieved</p>
-                <p class="tx-12 text-muted">30 min ago</p>
-              </div>	
-            </a>
-            <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-              <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
-                <i class="icon-sm text-white" data-feather="alert-circle"></i>
-              </div>
-              <div class="flex-grow-1 me-2">
-                <p>Server Limit Reached!</p>
-                <p class="tx-12 text-muted">1 hrs ago</p>
-              </div>	
-            </a>
-            <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-              <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
-                <img class="wd-30 ht-30 rounded-circle" src="{{ url('https://via.placeholder.com/30x30') }}" alt="userr">
-              </div>
-              <div class="flex-grow-1 me-2">
-                <p>New customer registered</p>
-                <p class="tx-12 text-muted">2 sec ago</p>
-              </div>	
-            </a>
-            <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-              <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
-                <i class="icon-sm text-white" data-feather="layers"></i>
-              </div>
-              <div class="flex-grow-1 me-2">
-                <p>Apps are ready for update</p>
-                <p class="tx-12 text-muted">5 hrs ago</p>
-              </div>	
-            </a>
-            <a href="javascript:;" class="dropdown-item d-flex align-items-center py-2">
-              <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
-                <i class="icon-sm text-white" data-feather="download"></i>
-              </div>
-              <div class="flex-grow-1 me-2">
-                <p>Download completed</p>
-                <p class="tx-12 text-muted">6 hrs ago</p>
-              </div>	
-            </a>
+          <div class="p-1" id="notifList">
+            @forelse($latestNotifs as $n)
+              @php
+                $data = $n->data ?? [];
+                $action = $data['action'] ?? '';
+                $title = $action === 'created'
+                  ? 'SPK baru dibuat'
+                  : ($action === 'status_changed' ? 'Status SPK berubah' : 'Update SPK');
+                $nomor = $data['nomor_spk'] ?? ('#'.$data['spk_id'] ?? '-');
+                $sub = trim(($data['pelanggan'] ?? '').' • '.(($data['status'] ?? '') ? ('Status: '.$data['status']) : ''));
+                $isUnread = is_null($n->read_at);
+              @endphp
+              <a href="{{ route('spk.show', $data['nomor_spk'] ?? 0) }}"
+                class="dropdown-item d-flex align-items-center py-2 {{ $isUnread ? 'bg-light' : '' }}"
+                data-notif-id="{{ $n->id }}">
+                <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
+                  <i class="icon-sm text-white" data-feather="{{ $action === 'created' ? 'plus-circle' : 'refresh-cw' }}"></i>
+                </div>
+                <div class="flex-grow-1 me-2">
+                  <p class="mb-0">{{ $title }}: {{ $nomor }}</p>
+                  <p class="tx-12 text-muted mb-0">{{ $sub ?: '-' }}</p>
+                </div>
+                <p class="tx-12 text-muted mb-0">{{ $n->created_at?->diffForHumans() }}</p>
+              </a>
+            @empty
+              <div class="text-center text-muted py-3">Tidak ada notifikasi.</div>
+            @endforelse
           </div>
           <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
-            <a href="javascript:;">View all</a>
+            <a href="{{ route('pekerjaan.manager-order') }}">View all</a>
           </div>
         </div>
       </li>
@@ -237,3 +224,113 @@
     </ul>
   </div>
 </nav>
+
+<script>
+(function () {
+  const indicator = document.getElementById('notifIndicator');
+  const countEl = document.getElementById('notifCount');
+  const listEl = document.getElementById('notifList');
+  const clearBtn = document.getElementById('notifClearAll');
+
+  if (!countEl || !listEl) return;
+
+  function setCount(n) {
+    countEl.textContent = String(n);
+    if (indicator) indicator.style.display = n > 0 ? '' : 'none';
+  }
+
+  function escapeHtml(s) {
+    return String(s ?? '').replace(/[&<>"']/g, (m) => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'
+    }[m]));
+  }
+
+  function prependNotif(payload) {
+    const action = payload.action || '';
+    const title = action === 'created'
+      ? 'SPK baru dibuat'
+      : (action === 'status_changed' ? 'Status SPK berubah' : 'Update SPK');
+
+    const nomor = payload.nomor_spk || ('#' + payload.spk_id);
+    const subParts = [];
+    if (payload.pelanggan) subParts.push(payload.pelanggan);
+    if (payload.status) subParts.push('Status: ' + payload.status);
+    const sub = subParts.join(' • ') || '-';
+
+    const icon = action === 'created' ? 'plus-circle' : 'refresh-cw';
+    const href = "{{ route('spk.show', 0) }}".replace(/0$/, encodeURIComponent(payload.spk_id || 0));
+
+    const itemHtml = `
+      <a href="${href}" class="dropdown-item d-flex align-items-center py-2 bg-light">
+        <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
+          <i class="icon-sm text-white" data-feather="${icon}"></i>
+        </div>
+        <div class="flex-grow-1 me-2">
+          <p class="mb-0">${escapeHtml(title)}: ${escapeHtml(nomor)}</p>
+          <p class="tx-12 text-muted mb-0">${escapeHtml(sub)}</p>
+        </div>
+        <p class="tx-12 text-muted mb-0">baru</p>
+      </a>
+    `;
+
+    // kalau list kosong "Tidak ada notifikasi", replace
+    if (listEl.textContent.includes('Tidak ada notifikasi')) {
+      listEl.innerHTML = itemHtml;
+    } else {
+      listEl.insertAdjacentHTML('afterbegin', itemHtml);
+    }
+
+    if (window.feather) feather.replace();
+
+    const current = parseInt(countEl.textContent || '0', 10) || 0;
+    setCount(current + 1);
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', async (e) => {
+      e.preventDefault();
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const res = await fetch("{{ route('notifications.markAllRead') }}", {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+      });
+      if (res.ok) {
+        setCount(0);
+        // optionally: hilangkan highlight bg-light
+        listEl.querySelectorAll('.dropdown-item.bg-light').forEach(el => el.classList.remove('bg-light'));
+      }
+    });
+  }
+
+  // realtime: private channel user
+  const userId = @json(auth()->id());
+  if (userId && window.Echo) {
+    window.Echo.private(`App.User.${userId}`)
+      .notification((notification) => {
+        prependNotif(notification);
+      });
+  }
+})();
+</script>
+
+<script>
+(function () {
+  document.addEventListener('click', async (e) => {
+    const a = e.target.closest('a[data-notif-id]');
+    if (!a) return;
+
+    const id = a.getAttribute('data-notif-id');
+    if (!id) return;
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+
+    // mark as read tanpa mengganggu navigasi
+    try {
+      await fetch("{{ route('notifications.read', ['id' => '__ID__']) }}".replace('__ID__', encodeURIComponent(id)), {
+        method: 'POST',
+        headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+      });
+    } catch (_) {}
+  });
+})();
+</script>
