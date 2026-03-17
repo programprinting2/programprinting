@@ -120,24 +120,64 @@
               produk_id: window.SPKCurrentProdukIdForFinishing || null,
               show_all: showAll ? 1 : 0 
           },
-          success: function(response) {
+          success: function (response) {
               if (response.data && response.data.length > 0) {
                   let html = '';
-                  response.data.forEach(function(produk) {
+
+                  const getCustomerKategoriHarga = () => {
+                      const el = document.getElementById('customerKategoriHarga');
+                      return (el?.value ?? 'Umum').toString().trim().toLowerCase();
+                  };
+
+                  const getHargaByTier = (tiers, qty) => {
+                      if (!Array.isArray(tiers) || tiers.length === 0) return 0;
+
+                      const sorted = [...tiers]
+                          .filter(t => t && t.harga != null)
+                          .map(t => ({
+                              min_qty: Number(t.min_qty ?? 0),
+                              max_qty: Number(t.max_qty ?? 0),
+                              harga: Number(t.harga ?? 0),
+                          }))
+                          .sort((a, b) => a.min_qty - b.min_qty);
+
+                      if (sorted.length === 0) return 0;
+
+                      const q = Number(qty ?? 0);
+
+                      const matched = sorted.find(h => q >= h.min_qty && q <= h.max_qty);
+                      if (matched) return matched.harga;
+
+                      const last = sorted[sorted.length - 1];
+                      if (q > last.max_qty) return last.harga;
+
+                      return sorted[0].harga;
+                  };
+
+                  response.data.forEach(function (produk) {
+                      const kategori = getCustomerKategoriHarga();
+                      const isReseller = kategori === 'Reseller';
+
+                      const hargaTiers = isReseller
+                          ? (produk.harga_reseller_json || [])
+                          : (produk.harga_bertingkat_json || []);
+
+                      const hargaJual = getHargaByTier(hargaTiers, 1);
+
                       html += `
-                          <tr class="pilih-produk-finishing" 
-                              data-id="${produk.id}" 
+                          <tr class="pilih-produk-finishing"
+                              data-id="${produk.id}"
                               data-kode="${produk.kode_produk}"
                               data-nama="${produk.nama_produk}"
                               data-satuan="${produk.satuan_nama || 'pcs'}"
-                              data-harga="${produk.total_modal_keseluruhan || 0}"
+                              data-harga="${hargaJual || 0}"
                               data-kategori="${produk.kategori_nama || '-'}"
                               data-jenis="${produk.jenis_produk || 'produk'}"
                               data-panjang="${produk.panjang || 0}"
                               data-lebar="${produk.lebar || 0}"
                               data-panjangLocked="${produk.panjang_locked || false}"
                               data-lebarLocked="${produk.lebar_locked || false}"
-                              data-is_metric="${produk.is_metric || false}"        
+                              data-is_metric="${produk.is_metric || false}"
                               data-metric_unit="${produk.metric_unit || '-'}"
                               data-harga-bertingkat-json='${JSON.stringify(produk.harga_bertingkat_json || [])}'
                               data-harga-reseller-json='${JSON.stringify(produk.harga_reseller_json || [])}'>
@@ -145,14 +185,13 @@
                               <td>${produk.nama_produk ?? '-'}</td>
                               <td>${produk.kategori_nama ?? '-'}</td>
                               <td>${produk.satuan_nama ?? 'pcs'}</td>
-                              <td class="text-end">Rp ${produk.total_modal_keseluruhan ? parseFloat(produk.total_modal_keseluruhan).toLocaleString('id-ID') : '0'}</td>
+                              <td class="text-end">Rp ${(hargaJual ? Number(hargaJual) : 0).toLocaleString('id-ID')}</td>
                           </tr>
                       `;
                   });
+
                   tbody.html(html);
-
                   renderPagination(response, searchTerm);
-
                   if (typeof feather !== 'undefined') feather.replace();
               } else {
                   tbody.html('<tr><td colspan="6" class="text-center text-muted">Tidak ada produk finishing ditemukan</td></tr>');

@@ -3538,6 +3538,23 @@
         //     }
         // });
 
+        document.addEventListener("input", (e) => {
+            const input = e.target;
+            if (!(input instanceof HTMLInputElement)) return;
+            if (!input.matches('input[data-finishing-field][data-finishing-index]')) return;
+        
+            const indexRaw = input.getAttribute("data-finishing-index");
+            const field = input.getAttribute("data-finishing-field");
+            if (!indexRaw || !field) return;
+        
+            if (field === "luas") return;
+        
+            const index = Number.parseInt(indexRaw, 10);
+            if (Number.isNaN(index)) return;
+        
+            updateFinishingField(index, field, input.value);
+        });
+
         const urgentToggle = modal.querySelector("#modalUrgentToggle");
         const urgentValue = modal.querySelector("#modalUrgentValue");
         const urgentStatus = modal.querySelector(".urgent-status");
@@ -3679,28 +3696,56 @@
     function updateFinishingTotalBadge(index) {
         const finishing = modalFinishingData[index];
         if (!finishing) return;
-
-        const qty = finishing.jumlah || 1;
-        const total = parseFloat(finishing.total || 0);
-        const panjang = parseFloat(finishing.panjang) || 0;
-        const lebar = parseFloat(finishing.lebar) || 0;
-        const dimensiValid = panjang > 0 && lebar > 0;
-        const dataLengkap = finishing.is_metric
-            ? qty > 0 && dimensiValid
-            : qty > 0;
-
-        const badgeEl = document.querySelector(
-            `#headingFinishing${index} .badge.bg-primary`,
-        );
-        if (badgeEl) {
-            if (dataLengkap && total > 0) {
-                const hargaPerUnit = qty > 0 ? total / qty : 0;
-                badgeEl.innerHTML = `${qty} × Rp ${hargaPerUnit.toLocaleString("id-ID")} = Rp ${total.toLocaleString("id-ID")}`;
-                badgeEl.className = "badge bg-primary ms-2"; // Warna normal
+    
+        const qty = Number(finishing.jumlah || 0);
+        const total = Number(finishing.total || 0);
+        const panjang = Number(finishing.panjang || 0);
+        const lebar = Number(finishing.lebar || 0);
+    
+        const panjangLocked = finishing.panjang_locked === true || finishing.panjang_locked === "true";
+        const lebarLocked = finishing.lebar_locked === true || finishing.lebar_locked === "true";
+    
+        let dimensiValid = false;
+        let faktorDimensi = 1;
+    
+        if (finishing.is_metric) {
+            if (!panjangLocked && !lebarLocked) {
+                dimensiValid = panjang > 0 && lebar > 0;
+                faktorDimensi = dimensiValid ? panjang * lebar : 0;
+            } else if (panjangLocked && !lebarLocked) {
+                dimensiValid = lebar > 0;
+                faktorDimensi = dimensiValid ? lebar : 0;
+            } else if (!panjangLocked && lebarLocked) {
+                dimensiValid = panjang > 0;
+                faktorDimensi = dimensiValid ? panjang : 0;
             } else {
-                badgeEl.innerHTML = "Data belum lengkap";
-                badgeEl.className = "badge bg-warning ms-2"; // Warna warning
+                dimensiValid = true;
+                faktorDimensi = 1;
             }
+        }
+    
+        const dataLengkap = finishing.is_metric ? (qty > 0 && dimensiValid) : (qty > 0);
+    
+        const badgeEl = document.querySelector(`#headingFinishing${index} .badge`);
+        if (!badgeEl) return;
+    
+        if (dataLengkap && total > 0) {
+            let hargaPerUnit = 0;
+            let qtyDisplay = qty;
+    
+            if (finishing.is_metric && faktorDimensi > 0) {
+                hargaPerUnit = total / (qty * faktorDimensi);
+                qtyDisplay = qty * faktorDimensi;
+            } else {
+                hargaPerUnit = qty > 0 ? total / qty : 0;
+                qtyDisplay = qty;
+            }
+    
+            badgeEl.className = "badge bg-primary ms-2";
+            badgeEl.innerHTML = `${qtyDisplay} × Rp ${Number(hargaPerUnit).toLocaleString("id-ID")} = Rp ${Number(total).toLocaleString("id-ID")}`;
+        } else {
+            badgeEl.className = "badge bg-warning ms-2";
+            badgeEl.innerHTML = "Data belum lengkap";
         }
     }
 
