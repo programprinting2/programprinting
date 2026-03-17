@@ -100,6 +100,7 @@
                   <th>Total Biaya</th>
         <!-- <th>Item Pekerjaan</th> -->
                   <th>Aksi</th>
+      <th>Otorisasi</th>
       </tr>
       </thead>
       <tbody>
@@ -198,15 +199,6 @@
                         <a href="{{ route('spk.edit', $item) }}" class="btn btn-warning btn-xs btn-icon rounded" title="Edit">
                           <i class="link-icon icon-sm" data-feather="edit"></i>
                         </a>
-                        @if($item->status === 'draft')
-                          <form action="{{ route('spk.acc', $item) }}" method="POST" class="d-inline-block form-acc-spk">
-                            @csrf
-                            @method('PATCH')
-                            <button type="button" class="btn btn-success btn-xs btn-icon rounded btn-acc-spk" title="ACC ke Proses Bayar">
-                              <i class="link-icon icon-sm" data-feather="check-circle"></i>
-                            </button>
-                          </form>
-                        @endif
                         <form action="{{ route('spk.destroy', $item) }}" method="POST" class="d-inline-block form-hapus-spk">
                           @csrf
                           @method('DELETE')
@@ -215,6 +207,17 @@
                           </button>
                         </form>
                       </div>
+      </td>
+      <td>
+        @if($item->status === 'draft')
+          <form action="{{ route('spk.acc', $item) }}" method="POST" class="d-inline-block form-acc-spk">
+            @csrf
+              @method('PATCH')
+                <button type="button" class="btn btn-success btn-xs btn-icon rounded btn-acc-spk" title="ACC ke Proses Bayar">
+                  <i class="link-icon icon-sm" data-feather="check-circle"></i>
+                </button>
+          </form>
+        @endif
       </td>
       </tr>
     @empty
