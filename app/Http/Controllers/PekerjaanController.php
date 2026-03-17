@@ -11,6 +11,7 @@ use App\Http\Requests\AmbilPekerjaanRequest;
 use App\Http\Requests\MultiAmbilPekerjaanRequest;
 use App\Http\Requests\BatalAmbilPekerjaanRequest;
 use App\Models\SPKItem;
+use App\Models\SPK;
 use App\Models\SpkItemCetakQueue;
 use App\Services\ActivityLogService;
 use App\Models\SpkItemCetakLog;
@@ -122,6 +123,20 @@ class PekerjaanController extends Controller
             'bahanBakuGroups' => $bahanBakuGroups,
             'produkGroups'    => $produkGroups,
             'mesinGroups'     => $mesinGroups,
+        ]);
+    }
+
+    public function managerOrderRow(SPK $spk)
+    {
+        // load relasi minimum yang dipakai row
+        $spk->load([
+            'pelanggan',
+            'items', // kalau progress dihitung dari items
+            // idealnya progress sudah agregat server-side (lebih cepat)
+        ]);
+
+        return view('pages.pekerjaan.partials.manager-order-spk-row', [
+            'item' => $spk,
         ]);
     }
 
@@ -313,46 +328,45 @@ class PekerjaanController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $queueRowsFiltered = $queueRows->filter(function ($q) use ($printTotalsByItemId) {
+        $queueRowsSorted = $queueRows->sortBy('created_at')->values();
+        $printedUsedByItem = [];
+
+        $queueRowsFiltered = $queueRowsSorted->filter(function ($q) use ($printTotalsByItemId, &$printedUsedByItem) {
             $item = $q->spkItem;
+            $spk  = $item?->spk;
 
-            if (!$item) {
-                return false;
-            }
-
-            $spk = $item->spk;
-            if (!$spk) {
-                return false;
-            }
-
-            $itemId = $item->id;
-            $totalCetakAll = (int) ($printTotalsByItemId[$itemId] ?? 0);
-            $qtyDiambil = (int) ($q->jumlah ?? 0);
-
-            if ($totalCetakAll >= $qtyDiambil) {
+            if (!$item || !$spk) {
                 return false;
             }
 
             if ($spk->status !== 'manager_approval_order') {
                 return false;
             }
-            return true;
+
+            $itemId       = $item->id;
+            $qtyDiambil   = (int) ($q->jumlah ?? 0);
+            $totalCetakAll = (int) ($printTotalsByItemId[$itemId] ?? 0);
+
+            $alreadyAllocated = $printedUsedByItem[$itemId] ?? 0;
+            $remainingForItem = max(0, $totalCetakAll - $alreadyAllocated);
+            $printedForQueue = min($qtyDiambil, $remainingForItem);
+
+            $printedUsedByItem[$itemId] = $alreadyAllocated + $printedForQueue;
+
+            $q->computed_printed = $printedForQueue;
+
+            return $printedForQueue < $qtyDiambil;
         })->values();
 
-        $pekerjaanSayaItems = $queueRowsFiltered->map(function ($q) use ($printTotalsByItemId) {
-            $item = $q->spkItem;
-            $spk  = $item?->spk;
-            $itemId = $item->id;
-            $qtyDiambil = (int) ($q->jumlah ?? 0);
-            $totalCetakAll = (int) ($printTotalsByItemId[$itemId] ?? 0);
-            $printedForQueue = min($totalCetakAll, $qtyDiambil);
-            $progress = 0;
+        $pekerjaanSayaItems = $queueRowsFiltered->map(function ($q) {
+            $item            = $q->spkItem;
+            $spk             = $item?->spk;
+            $qtyDiambil      = (int) ($q->jumlah ?? 0);
+            $printedForQueue = (int) ($q->computed_printed ?? 0);
+            $progress        = 0;
 
             if ($qtyDiambil > 0) {
-                $progress = min(
-                    100,
-                    round(($printedForQueue / $qtyDiambil) * 100, 1)
-                );
+                $progress = min(100, round(($printedForQueue / $qtyDiambil) * 100, 1));
             }
 
             return [
