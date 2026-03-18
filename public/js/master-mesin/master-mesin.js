@@ -715,8 +715,8 @@ function createEditProfileForm(mesinId, profileData = null, profileIndex = null)
                                     <label class="form-label">Mode Cetakan</label>
                                     <select class="form-select profile-mode-cetakan">
                                         <option value="">Pilih Mode Cetakan</option>
-                                        <option value="single_side">Single side</option>
-                                        <option value="double_side">Double side</option>
+                                        <option value="single_side" ${profileData && profileData.settings && profileData.settings.mode_cetakan === 'single_side' ? 'selected' : ''}>Single side</option>
+                                        <option value="double_side" ${profileData && profileData.settings && profileData.settings.mode_cetakan === 'double_side' ? 'selected' : ''}>Double side</option>
                                     </select>
                                 </div>
                             </div>
