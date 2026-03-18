@@ -314,6 +314,14 @@
     window.addEventListener("produkDipilih", (e) => {
         const data = e.detail;
         currentSelectedProduk = data;
+        console.log(currentSelectedProduk);
+
+        renderPdfProdukModeInfo();
+        const pdfControls = document.getElementById("pdfFileControls");
+        if (pdfControls && pdfControls.style.display !== "none" && currentFilePdfInfo) {
+            applyPdfModeCetakanRules();
+            calculatePdfSummary();
+        }
 
         const produkSelect = document.getElementById("modalProdukSelect");
         const produkId = document.getElementById("modalProdukId");
@@ -4909,6 +4917,63 @@
         if (imageControls) imageControls.style.display = "none";
         const standalone = document.getElementById("explorerOpenStandalone");
         if (standalone) standalone.style.display = "";
+
+        renderPdfProdukModeInfo();
+        applyPdfModeCetakanRules();
+    }
+
+    function renderPdfProdukModeInfo() {
+        const wrap = document.getElementById("pdfProdukModeInfo");
+        const rowWarna = document.getElementById("rowModeWarna");
+        const rowCetak = document.getElementById("rowModeCetakan");
+        const badgeWarna = document.getElementById("pdfModeWarnaBadge");
+        const badgeCetak = document.getElementById("pdfModeCetakanBadge");
+    
+        if (!wrap || !rowWarna || !rowCetak || !badgeWarna || !badgeCetak) return;
+    
+        const modeWarna = currentSelectedProduk?.mode_warna;
+        const modeCetakan = currentSelectedProduk?.mode_cetakan;
+    
+        const format = v => String(v)
+            .toLowerCase()
+            .replace(/_/g, " ")
+            .replace(/\b\w/g, c => c.toUpperCase());
+    
+        const hasWarna = modeWarna !== null && modeWarna !== undefined && String(modeWarna).trim() !== "";
+        const hasCetak = modeCetakan !== null && modeCetakan !== undefined && String(modeCetakan).trim() !== "";
+    
+        if (hasWarna) {
+            rowWarna.style.display = "block";
+            badgeWarna.textContent = format(modeWarna);
+        } else {
+            rowWarna.style.display = "none";
+        }
+    
+        if (hasCetak) {
+            rowCetak.style.display = "block";
+            badgeCetak.textContent = format(modeCetakan);
+        } else {
+            rowCetak.style.display = "none";
+        }
+    
+        wrap.style.display = (hasWarna || hasCetak) ? "block" : "none";
+    }
+
+    function applyPdfModeCetakanRules() {
+        const pagesInput = document.getElementById("filePdfPages");
+        if (!pagesInput) return;
+    
+        const modeCetakan = (currentSelectedProduk?.mode_cetakan || "").toLowerCase();
+        const isDoubleSide = modeCetakan === "double_side";
+    
+        if (isDoubleSide) {
+            pagesInput.value = "2";
+            pagesInput.disabled = true; 
+        } else {
+            const pages = parseInt(currentFilePdfInfo?.num_pages) || 0;
+            pagesInput.value = pages ? String(pages) : "";
+            pagesInput.disabled = false;
+        }
     }
 
     function hidePdfControls() {
@@ -4925,35 +4990,46 @@
 
         const standalone = document.getElementById("explorerOpenStandalone");
         if (standalone) standalone.style.display = "";
+
+        const pagesInput = document.getElementById("filePdfPages");
+        if (pagesInput) {
+            pagesInput.disabled = false;
+        }
     }
 
     function updatePdfControls(info) {
         const pages = parseInt(info.num_pages) || 0;
-        document.getElementById("filePdfPages").value = pages;
-
-        // Set default qty = 1
+        const pagesInput = document.getElementById("filePdfPages");
+        if (pagesInput) pagesInput.value = pages;
+    
         const qtyInput = document.getElementById("filePdfQty");
         if (qtyInput && !qtyInput.value) qtyInput.value = 1;
-
+    
+        renderPdfProdukModeInfo();
+        applyPdfModeCetakanRules();
         calculatePdfSummary();
     }
 
     function calculatePdfSummary() {
         if (!currentFilePdfInfo) return;
-
-        const pages = parseInt(currentFilePdfInfo.num_pages) || 0;
+    
         const qtyInput = document.getElementById("filePdfQty");
         const qty = parseInt(qtyInput?.value) || 1;
-        const summary = pages * qty;
+    
+        const modeCetakan = (currentSelectedProduk?.mode_cetakan || "").toLowerCase();
+        const isDoubleSide = modeCetakan === "double_side";
+    
+        const pages = isDoubleSide ? 2 : (parseInt(currentFilePdfInfo.num_pages) || 0);
+        const summary = isDoubleSide ? qty : (pages * qty);
+    
+        applyPdfModeCetakanRules();
 
-        // Ambil satuan dari produk yang dipilih
         const satuanDisplay = document.getElementById("modalSatuanDisplay");
         const satuan = satuanDisplay?.textContent || "-";
-
+    
         document.getElementById("filePdfSummary").value = summary;
         document.getElementById("filePdfSummaryUnit").textContent = satuan;
-
-        // Update modalJumlahInput (readonly untuk PDF)
+    
         const modalJumlahInput = document.getElementById("modalJumlahInput");
         if (modalJumlahInput) {
             modalJumlahInput.value = summary;

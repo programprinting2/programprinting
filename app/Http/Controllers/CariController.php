@@ -403,6 +403,23 @@ class CariController extends Controller
         $produks = $query->with(['kategoriUtama', 'subSatuan'])->orderBy('nama_produk')->paginate(10);
 
         $produks->getCollection()->transform(function ($item) {
+            $modeWarna = null;
+            $modeCetakan = null;
+    
+            $params = $item->parameter_modal_json ?? [];
+            if (is_array($params)) {
+                foreach ($params as $p) {
+                    if ($modeWarna === null && !empty($p['mode_warna'])) {
+                        $modeWarna = $p['mode_warna'];
+                    }
+                    if ($modeCetakan === null && !empty($p['mode_cetakan'])) {
+                        $modeCetakan = $p['mode_cetakan'];
+                    }
+                    if ($modeWarna !== null && $modeCetakan !== null) {
+                        break;
+                    }
+                }
+            }
             return [
                 'id' => $item->id,
                 'kode_produk' => $item->kode_produk,
@@ -420,6 +437,8 @@ class CariController extends Controller
                 'metric_unit' => $item->metric_unit ?? '-',
                 'harga_bertingkat_json' => $item->harga_bertingkat_json ?? [],
                 'harga_reseller_json' => $item->harga_reseller_json ?? [],
+                'mode_warna' => $modeWarna,
+                'mode_cetakan' => $modeCetakan,
             ];
         });
 

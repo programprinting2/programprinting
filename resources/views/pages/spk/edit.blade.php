@@ -613,6 +613,19 @@
 
                     {{-- Controls untuk File PDF --}}
                     <div id="pdfFileControls" class="mb-3" style="display: none;">
+                      <div id="pdfProdukModeInfo" class="mb-2" style="display:none;">
+                        <div class="small">
+                          <div id="rowModeWarna" style="display:none; margin-bottom:4px;">
+                            <strong>Mode Warna :</strong>
+                            <span id="pdfModeWarnaBadge" class="badge bg-primary text-white ms-1"></span>
+                          </div>
+
+                          <div id="rowModeCetakan" style="display:none;">
+                            <strong>Mode Cetakan :</strong>
+                            <span id="pdfModeCetakanBadge" class="badge bg-success text-white ms-1"></span>
+                          </div>
+                        </div>
+                      </div>
                       <div class="row g-2">
                         <div class="col-4">
                           <label class="form-label small mb-1">Halaman</label>

@@ -134,6 +134,8 @@
                               data-satuan="${produk.satuan_nama || 'pcs'}"
                               data-is_metric="${produk.is_metric || false}"
                               data-metric_unit="${produk.metric_unit || '-'}"
+                              data-mode_warna="${produk.mode_warna || ''}"
+                              data-mode_cetakan="${produk.mode_cetakan || ''}"
                               data-harga_bertingkat_json='${JSON.stringify(produk.harga_bertingkat_json || [])}'
                               data-harga_reseller_json='${JSON.stringify(produk.harga_reseller_json || [])}'>
                               <td>${produk.kode_produk ?? '-'}</td>
@@ -215,6 +217,8 @@
           metric_unit: $(this).data('metric_unit') || '-',
           harga_bertingkat_json: $(this).data('harga_bertingkat_json') || [],
           harga_reseller_json: $(this).data('harga_reseller_json') || [],
+          mode_warna: $(this).data('mode_warna') || null,
+          mode_cetakan: $(this).data('mode_cetakan') || null,
           sourceModal: 'spk'
       };
 
