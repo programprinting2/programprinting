@@ -104,7 +104,14 @@ class SpkService
                 foreach ($data['items'] as $itemData) {
                     $itemId = $itemData['id'] ?? null;
                     if ($itemId && $existingItems->has($itemId)) {
-                        $this->spkItemRepository->update($itemId, $itemData);
+                        $updated = $this->spkItemRepository->update($itemId, $itemData);
+                        
+                        if ($updated) {
+                            $spkItem = $this->spkItemRepository->findWithRelations($itemId);
+                            if ($spkItem) {
+                                $spkItem->updateTotalBiaya(); 
+                            }
+                        }
                         $existingItems->forget($itemId);
                     } else {
                         $newItem = $this->createSpkItem($id, $itemData);
