@@ -1599,12 +1599,15 @@ $(function () {
             $("#harga_reseller_json").val(JSON.stringify(hargaResellerList));
             const paramArr = parameterMesinList.map((row) => {
                 const param = row.opsi[row.selected];
+                const settings = param?.settings || {};
                 return {
                     mesin_id: row.mesin_id,
                     nama_parameter: param.nama,
                     harga: param.total,
                     jumlah: row.jumlah,
                     total: param.total * row.jumlah,
+                    mode_warna: settings.mode_warna || null,
+                    mode_cetakan: settings.mode_cetakan || null,
                 };
             });
             $("#parameter_modal_json").val(JSON.stringify(paramArr));
