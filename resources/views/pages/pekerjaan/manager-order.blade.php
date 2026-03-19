@@ -2206,7 +2206,7 @@
 
     // Manual submit for search input
     $('input[name="search"]').on('keypress', function(e) {
-      if (e.which === 13) { // Enter key
+      if (e.which === 13) {
         e.preventDefault();
         searchForm.submit();
       }
@@ -2573,9 +2573,13 @@
         });
       });
 
+      let isInitialLoadStatus = true;
       function applyStatusFilter(statusValue) {
         document.querySelectorAll('.filter-status-card').forEach(function (c) {
-          c.classList.toggle('status-active', (c.getAttribute('data-status-value') || '') === statusValue);
+          c.classList.toggle(
+            'status-active',
+            (c.getAttribute('data-status-value') || '') === statusValue
+          );
         });
         document.querySelectorAll('#accordionSpk .spk-row').forEach(function (tr) {
           var rowStatus = tr.getAttribute('data-status') || '';
@@ -2587,17 +2591,24 @@
         });
         var emptyRow = document.getElementById('clientFilterEmptyRow');
         if (emptyRow) emptyRow.classList.toggle('d-none', visibleCount > 0);
-
         var clearStatusBtn = document.getElementById('clearStatusFilter');
         if (clearStatusBtn) clearStatusBtn.addEventListener('click', function () {
           applyStatusFilter('');
         });
-
         var statusInput = document.getElementById('statusFilterInput');
         if (statusInput) statusInput.value = statusValue;
         var params = new URLSearchParams(window.location.search);
-        if (statusValue) params.set('status', statusValue); else params.delete('status');
-        window.history.replaceState({}, '', window.location.pathname + (params.toString() ? '?' + params.toString() : ''));
+        if (statusValue) params.set('status', statusValue);
+        else params.delete('status');
+        
+        if (!isInitialLoadStatus) {
+          params.delete('spk_id');
+        }
+        window.history.replaceState(
+          {},
+          '',
+          window.location.pathname + (params.toString() ? '?' + params.toString() : '')
+        );
       }
 
       document.querySelectorAll('.filter-status-card').forEach(function (card) {
@@ -2606,11 +2617,141 @@
           applyStatusFilter(statusValue);
         });
       });
-
       var initialStatus = (new URLSearchParams(window.location.search)).get('status') || '';
       applyStatusFilter(initialStatus);
+     
+      isInitialLoadStatus = false;
   });
-  </script>
+</script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const params = new URLSearchParams(window.location.search);
+    const accordionParams = ['spk_id', 'produk_id', 'bahan_id', 'mesin_id', 'pelanggan_id'];
+
+    let isInitialLoad = true;
+
+    function updateUrl() {
+      const qs = params.toString();
+      const url = window.location.pathname + (qs ? '?' + qs : '');
+      window.history.replaceState({}, '', url);
+    }
+
+    const tabButtons = document.querySelectorAll('#managerOrderTabs button[data-bs-toggle="tab"]');
+    tabButtons.forEach(btn => {
+      btn.addEventListener('shown.bs.tab', function () {
+        const rawId = this.id || '';
+        const tabKey = rawId.replace('tab-', '');
+        if (!tabKey) return;
+
+        params.set('tab', tabKey);
+
+        if (tabKey !== 'spk-list') {
+          params.delete('status');
+        }
+
+        if (!isInitialLoad) {
+          accordionParams.forEach(p => params.delete(p));
+        }
+
+        updateUrl();
+        document.querySelectorAll('.tab-card').forEach(el => el.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    (function activateInitialTab() {
+    const tabFromUrl = params.get('tab') || 'spk-list';
+    const btn = document.querySelector(`#managerOrderTabs button#tab-${tabFromUrl}`);
+    if (!btn) return;
+
+    if (tabFromUrl !== 'spk-list' && params.has('status')) {
+      params.delete('status');
+    }
+
+    params.set('tab', tabFromUrl);
+    updateUrl();
+
+    if (window.bootstrap && bootstrap.Tab) {
+      new bootstrap.Tab(btn).show();
+    } else {
+      btn.classList.add('active');
+      document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.remove('show', 'active');
+      });
+
+      const target = btn.getAttribute('data-bs-target');
+      if (target) {
+        const pane = document.querySelector(target);
+        if (pane) {
+          pane.classList.add('show', 'active');
+        }
+      }
+    }
+
+    document.querySelectorAll('.tab-card').forEach(el => el.classList.remove('active'));
+    btn.classList.add('active');
+    })();
+
+    function rememberAccordionState(containerSelector, paramName, idPrefix) {
+      const container = document.querySelector(containerSelector);
+      if (!container) return;
+
+      container.querySelectorAll('.accordion-collapse, .spk-collapse').forEach(el => {
+        el.addEventListener('show.bs.collapse', function () {
+          const fullId = this.id || '';
+          if (!fullId.startsWith(idPrefix)) return;
+
+          const rawId = fullId.substring(idPrefix.length);
+          if (!rawId) return;
+
+          // SELALU baca query terkini dari URL, supaya tab/status tidak hilang
+          const currentParams = new URLSearchParams(window.location.search);
+
+          const accordionParams = ['spk_id', 'produk_id', 'bahan_id', 'mesin_id', 'pelanggan_id'];
+
+          // hapus param accordion lain
+          accordionParams.forEach(p => {
+            if (p !== paramName) {
+              currentParams.delete(p);
+            }
+          });
+
+          // set hanya satu (mis. spk_id=39)
+          currentParams.set(paramName, rawId);
+
+          const qs = currentParams.toString();
+          const url = window.location.pathname + (qs ? '?' + qs : '');
+          window.history.replaceState({}, '', url);
+        });
+      });
+
+      const savedId = params.get(paramName);
+      if (!savedId) return;
+
+      const targetId = idPrefix + savedId;
+      const collapseEl = document.getElementById(targetId);
+      if (!collapseEl) return;
+
+      if (window.bootstrap && bootstrap.Collapse) {
+        new bootstrap.Collapse(collapseEl, { toggle: true });
+      } else {
+        collapseEl.classList.add('show');
+      }
+    }
+
+    setTimeout(() => {
+      rememberAccordionState('#accordionSpk', 'spk_id', 'detail-spk-');
+      rememberAccordionState('#produkAccordion', 'produk_id', 'produk-collapse');
+      rememberAccordionState('#bahanAccordion', 'bahan_id', 'bahan-collapse');
+      rememberAccordionState('#mesinAccordion', 'mesin_id', 'mesin-collapse');
+      rememberAccordionState('#pelangganAccordion', 'pelanggan_id', 'pelanggan-collapse');
+
+      isInitialLoad = false;
+    }, 100);
+  });
+</script>
+
 
 
 <div class="modal fade" id="globalPreviewModal" tabindex="-1" aria-hidden="true">
