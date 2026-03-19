@@ -392,13 +392,16 @@
                             <td class="text-end align-middle">
                                 <div class="progress" style="height:6px;">
                                     <div class="progress-bar {{ $spkProgressColor }}"
+                                        data-field="spk-progress-bar"
+                                        data-spk-id="{{ $item->id }}"
                                         role="progressbar"
                                         style="width: {{ $spkProgressPct }}%;"
                                         aria-valuenow="{{ $spkProgressPct }}"
                                         aria-valuemin="0"
                                         aria-valuemax="100"></div>
                                 </div>
-                                <div class="small mt-1">{{ $spkProgressPct }}%</div>
+                                <div class="small mt-1" data-field="spk-progress-pct"
+                                data-spk-id="{{ $item->id }}">{{ $spkProgressPct }}%</div>
                             </td>
                             <td>
                                 <div class="btn-group gap-1" role="group">
@@ -567,23 +570,29 @@
                                                                     : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
                                                             @endphp
 
-                                                            <td class="text-end align-middle">
+                                                            <td class="text-end align-middle" data-field="spk-item-progress-cell" data-spk-item-id="{{ $spkItem->id }}" data-spk-id="{{ $item->id }}">
                                                                 @if($sisa <= 0)
-                                                                    <span class="badge bg-success mb-2">Selesai</span>
+                                                                    <span class="badge bg-success mb-2" data-field="spk-item-done-badge" data-spk-item-id="{{ $spkItem->id }}">
+                                                                      Selesai
+                                                                    </span>
                                                                 @else
-                                                                    <div class="small text-danger fw-semibold mb-1">
+                                                                    <div class="small text-danger fw-semibold mb-1"
+                                                                    data-field="spk-item-remaining" data-spk-item-id="{{ $spkItem->id }}">
                                                                         Sisa: {{ number_format($sisa, 0, ',', '.') }} {{ $spkItem->satuan }}
                                                                     </div>
                                                                 @endif
                                                                 <div class="progress" style="height:6px;">
                                                                     <div class="progress-bar {{ $progressColor }}"
                                                                         role="progressbar"
+                                                                        data-field="spk-item-progress-bar"
+                                                                        data-spk-item-id="{{ $spkItem->id }}"
                                                                         style="width: {{ $progressPct }}%;"
                                                                         aria-valuenow="{{ $progressPct }}"
                                                                         aria-valuemin="0"
                                                                         aria-valuemax="100"></div>
                                                                 </div>
-                                                                <div class="small">{{ $progressPct }}%</div>
+                                                                <div class="small" data-field="spk-item-progress-pct"
+                                                                data-spk-item-id="{{ $spkItem->id }}">{{ $progressPct }}%</div>
                                                             </td>
                                                         </tr>
                                                     @empty
@@ -2388,6 +2397,97 @@
           this.classList.add('active');
       });
   });
+
+  (function () {
+    function setProgressBar(el, pct, colorClass) {
+      if (!el) return;
+      const n = Math.max(0, Math.min(100, Number(pct || 0)));
+      el.style.width = `${n}%`;
+      el.setAttribute('aria-valuenow', String(n));
+
+      if (colorClass) {
+        el.classList.remove('bg-success', 'bg-warning', 'bg-primary', 'bg-danger', 'bg-secondary');
+        el.classList.add(colorClass);
+      }
+    }
+
+    function setText(el, text) {
+      if (!el) return;
+      el.textContent = text;
+    }
+
+    function handleSpkUpdated(e) {
+      const spkId = e.spk_id;
+      if (!spkId) return;
+
+      const pct = e.spk_progress_pct ?? 0;
+      const color = e.spk_progress_color;
+
+      const bar = document.querySelector(`[data-field="spk-progress-bar"][data-spk-id="${spkId}"]`);
+      const pctEl = document.querySelector(`[data-field="spk-progress-pct"][data-spk-id="${spkId}"]`);
+
+      setProgressBar(bar, pct, color);
+      setText(pctEl, `${Math.round(Number(pct || 0))}%`);
+    }
+
+
+    function handleSpkItemUpdated(e) {
+      const itemId = e.spk_item_id;
+      if (!itemId) return;
+
+      const pct = e.progress_pct ?? 0;
+      const color = e.progress_color;
+
+      const bar = document.querySelector(`[data-field="spk-item-progress-bar"][data-spk-item-id="${itemId}"]`);
+      const pctEl = document.querySelector(`[data-field="spk-item-progress-pct"][data-spk-item-id="${itemId}"]`);
+
+      setProgressBar(bar, pct, color);
+      setText(pctEl, `${Number(pct || 0)}%`);
+
+      const remainingEl = document.querySelector(`[data-field="spk-item-remaining"][data-spk-item-id="${itemId}"]`);
+      const doneBadgeEl = document.querySelector(`[data-field="spk-item-done-badge"][data-spk-item-id="${itemId}"]`);
+
+      const isDone = !!e.is_done;
+      if (isDone) {
+        if (remainingEl) remainingEl.remove();          
+        if (!doneBadgeEl) {
+          const cell = document.querySelector(`[data-field="spk-item-progress-cell"][data-spk-item-id="${itemId}"]`);
+          if (cell) {
+            const badge = document.createElement('span');
+            badge.className = 'badge bg-success mb-2';
+            badge.setAttribute('data-field', 'spk-item-done-badge');
+            badge.setAttribute('data-spk-item-id', String(itemId));
+            badge.textContent = 'Selesai';
+            cell.prepend(badge);
+          }
+        }
+      } else {
+        const remaining = e.remaining ?? 0;
+        const satuan = e.satuan ?? '';
+        if (doneBadgeEl) doneBadgeEl.remove();
+
+        if (remainingEl) {
+          remainingEl.textContent = `Sisa: ${Number(remaining).toLocaleString('id-ID')} ${satuan}`.trim();
+        } else {
+          const cell = document.querySelector(`[data-field="spk-item-progress-cell"][data-spk-item-id="${itemId}"]`);
+          if (cell) {
+            const div = document.createElement('div');
+            div.className = 'small text-danger fw-semibold mb-1';
+            div.setAttribute('data-field', 'spk-item-remaining');
+            div.setAttribute('data-spk-item-id', String(itemId));
+            div.textContent = `Sisa: ${Number(remaining).toLocaleString('id-ID')} ${satuan}`.trim();
+            cell.prepend(div);
+          }
+        }
+      }
+    }
+
+    if (!window.Echo) return;
+
+    window.Echo.channel('manager-order')
+      .listen('.spk.updated', handleSpkUpdated)
+      .listen('.spk.item.updated', handleSpkItemUpdated);
+  })();
   </script>
 
   <script>
