@@ -25,6 +25,7 @@
         "fakerphp/faker": "^1.23",
         "fruitcake/laravel-debugbar": "^4.1",
         "laravel/boost": "^1.8.7",
+        "laravel/breeze": "^2.4",
         "laravel/sail": "^1.0.1",
         "mockery/mockery": "^1.6",
         "nunomaduro/collision": "^8.1",

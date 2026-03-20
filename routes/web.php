@@ -11,6 +11,7 @@
 |
 */
 // use App\Http\Controllers\MasterMesinController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\MesinController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -33,26 +34,17 @@ use App\Http\Controllers\PekerjaanController;
 
 Route::get('/', function () {
     return view('dashboard');
+})->middleware(['auth','single.session']); 
+
+Route::middleware(['auth', 'single.session'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
+require __DIR__.'/auth.php';
 
-
-Route::group(['prefix' => 'backend'], function () {
-    // Route::get('master-mesin', function () {
-    //     return view('pages.backend.master-mesin');
-    // });
-    // Route::get('master-mesin', [MasterMesinController::class, 'index'])->name('backend.master-mesin');
-    // Route::post('master-mesin/create', [MasterMesinController::class, 'store'])->name('backend.master-mesin.create');
-    // Route::put('master-mesin/{id}/update', [MasterMesinController::class, 'update'])->name('backend.master-mesin.update');
-    // Route::put('master-mesin/{id}/clear-image', [MasterMesinController::class, 'clearImage'])->name('backend.master-mesin.clear-image');
-    // // Route::delete('master-mesin/{id}', [MasterMesinController::class, 'delete'])->name('backend.master-mesin.delete');
-    // Route::get('/master-mesin/filter', [App\Http\Controllers\MasterMesinController::class, 'filter'])->name('backend.master-mesin.filter');
-    // Route::get('/backend/master-mesin/grid', [App\Http\Controllers\MasterMesinController::class, 'grid'])->name('backend.master-mesin.grid');
-
-    // Master Mesin New
-    // Route::get('master-mesin-new', [MasterMesinController::class, 'index'])->name('backend.master-mesin-new');
-    // Route::post('master-mesin-new/create', [MasterMesinController::class, 'store'])->name('backend.master-mesin-new.create');
-
+Route::group(['prefix' => 'backend', 'middleware' => ['auth', 'single.session']], function () {
     // Master Mesin Resource Routes
     Route::resource('master-mesin', MesinController::class)->names([
         'index' => 'backend.master-mesin.index',
@@ -193,7 +185,7 @@ Route::group(['prefix' => 'backend'], function () {
 
 });
 
-Route::group(['prefix' => 'pembelian'], function () {
+Route::group(['prefix' => 'pembelian', 'middleware' => ['auth', 'single.session']], function () {
     // Pembelian Resource Routes
     Route::resource('/', PembelianController::class)->names([
         'index' => 'pembelian.index',
@@ -206,7 +198,7 @@ Route::group(['prefix' => 'pembelian'], function () {
     ])->parameters(['' => 'kode_pembelian']);
 });
 
-Route::group(['prefix' => 'spk'], function () {
+Route::group(['prefix' => 'spk', 'middleware' => ['auth', 'single.session']], function () {
     Route::resource('/', SPKController::class)->names([
         'index' => 'spk.index',
         'create' => 'spk.create',
@@ -221,7 +213,7 @@ Route::group(['prefix' => 'spk'], function () {
     Route::patch('/{spk}/status', [SPKController::class, 'updateStatus'])->name('spk.update-status');
 });
 
-Route::group(['prefix' => 'pekerjaan'], function () {
+Route::group(['prefix' => 'pekerjaan', 'middleware' => ['auth', 'single.session']], function () {
     Route::get('/manager-order', [PekerjaanController::class, 'managerOrder'])
         ->name('pekerjaan.manager-order');
 
@@ -277,7 +269,7 @@ Route::post('/notifications/{id}/read', function (Request $request, string $id) 
     $notif->markAsRead();
 
     return response()->json(['ok' => true]);
-})->name('notifications.read');
+})->middleware(['auth', 'single.session'])->name('notifications.read');
 
 Route::post('/notifications/mark-all-read', function (Request $request) {
     $user = $request->user();
@@ -286,12 +278,12 @@ Route::post('/notifications/mark-all-read', function (Request $request) {
     }
     $user->unreadNotifications->markAsRead();
     return response()->json(['ok' => true]);
-})->name('notifications.markAllRead');
+})->middleware(['auth', 'single.session'])->name('notifications.markAllRead');
 
 //Hutang Route
-Route::get('/hutang', [HutangController::class, 'index'])->name('hutang.index');
+Route::get('/hutang', [HutangController::class, 'index'])->middleware(['auth', 'single.session'])->name('hutang.index');
 
-Route::group(['prefix' => 'kasir'], function () {
+Route::group(['prefix' => 'kasir', 'middleware' => ['auth', 'single.session']], function () {
     Route::get('/', [KasirController::class, 'index'])->name('kasir.index');
     Route::get('/invoice/{no}', [KasirController::class, 'show'])->name('kasir.invoice.show');
     Route::get('/invoice/{no}/cetak', [KasirController::class, 'print'])->name('kasir.invoice.print');
@@ -304,7 +296,7 @@ Route::group(['prefix' => 'kasir'], function () {
 
 
 
-Route::group(['prefix' => 'email'], function () {
+Route::group(['prefix' => 'email', 'middleware' => ['auth', 'single.session']], function () {
     Route::get('inbox', function () {
         return view('pages.email.inbox');
     });

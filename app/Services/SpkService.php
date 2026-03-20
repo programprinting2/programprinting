@@ -41,7 +41,7 @@ class SpkService
                 'status' => $data['status'] ?? 'draft',
                 'catatan' => $data['catatan'] ?? null,
                 'invoice_groups' => $data['invoice_groups'] ?? null,
-                'created_by' => '1' //auth()->id(),
+                'created_by' => (int) auth()->id(),
             ];
 
             // Create SPK
@@ -136,7 +136,7 @@ class SpkService
                 'catatan' => $data['catatan'] ?? null,
                 'status' => $data['status'] ?? $spk->status,
                 'invoice_groups' => $invoiceGroups,
-                'updated_by' => auth()->id(),
+                'updated_by' => (int) auth()->id(),
             ];
             $this->spkRepository->update($id, $updateData);
 

@@ -16,18 +16,29 @@
             <div class="auth-form-wrapper px-4 py-5">
               <a href="#" class="noble-ui-logo d-block mb-2">Noble<span>UI</span></a>
               <h5 class="text-muted fw-normal mb-4">Create a free account.</h5>
-              <form class="forms-sample">
+              <form method="POST" action="{{ route('register') }}">
+                @csrf
+
                 <div class="mb-3">
                   <label for="exampleInputUsername1" class="form-label">Username</label>
-                  <input type="text" class="form-control" id="exampleInputUsername1" autocomplete="Username" placeholder="Username">
+                  <input type="text" class="form-control" id="exampleInputUsername1" name="name" value="{{ old('name') }}" required autofocus placeholder="Username">
+                  @error('name')
+                      <span class="text-danger small">{{ $message }}</span>
+                  @enderror
                 </div>
                 <div class="mb-3">
                   <label for="userEmail" class="form-label">Email address</label>
-                  <input type="email" class="form-control" id="userEmail" placeholder="Email">
+                  <input type="email" class="form-control" id="userEmail" name="email" value="{{ old('email') }}" required autofocus placeholder="Email">
+                  @error('email')
+                      <span class="text-danger small">{{ $message }}</span>
+                  @enderror
                 </div>
                 <div class="mb-3">
                   <label for="userPassword" class="form-label">Password</label>
-                  <input type="password" class="form-control" id="userPassword" autocomplete="current-password" placeholder="Password">
+                  <input type="password" class="form-control" id="userPassword" name="password" required autocomplete="current-password" placeholder="Password">
+                  @error('password')
+                      <span class="text-danger small">{{ $message }}</span>
+                  @enderror
                 </div>
                 <div class="form-check mb-3">
                   <input type="checkbox" class="form-check-input" id="authCheck">
@@ -36,13 +47,9 @@
                   </label>
                 </div>
                 <div>
-                  <a href="{{ url('/') }}" class="btn btn-primary me-2 mb-2 mb-md-0">Sign up</a>
-                  <button type="button" class="btn btn-outline-primary btn-icon-text mb-2 mb-md-0">
-                    <i class="btn-icon-prepend" data-feather="twitter"></i>
-                    Sign up with twitter
-                  </button>
+                  <button type="submit" class="btn btn-primary me-2 mb-2 mb-md-0">Sign up</button>
                 </div>
-                <a href="{{ url('/auth/login') }}" class="d-block mt-3 text-muted">Already a user? Sign in</a>
+                <a href="{{ route('login') }}" class="d-block mt-3 text-muted">Already a user? Sign in</a>
               </form>
             </div>
           </div>

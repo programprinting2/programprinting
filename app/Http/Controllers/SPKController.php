@@ -39,7 +39,7 @@ class SPKController extends Controller
                 'status',
             ]);
     
-            $filters['created_by'] = auth()->id() ?? 1; 
+            // $filters['created_by'] = auth()->id() ?? 1; 
     
             $spk = $this->spkService->getPaginatedSpk(10, $filters);
             $customers = Pelanggan::where('status', true)->get();
@@ -236,7 +236,7 @@ class SPKController extends Controller
 
             $spk->update([
                 'status' => 'proses_bayar',
-                'updated_by' => 1,//auth()->id(),
+                'updated_by' => (int) auth()->id(),
             ]);
 
             // ActivityLogService::log($spk, 'spk_acc_proses_bayar', 'SPK di-ACC ke proses bayar', 'info');

@@ -21,7 +21,7 @@ class ActivityLogService
             'loggable_id'   => $model->getKey(),
             'aktivitas'     => $aktivitas,
             'keterangan'    => $keterangan,
-            'user_id'      =>  1, //auth()->id(),
+            'user_id'      =>  (int) auth()->id(),
             'level'        => $level,
         ]);
     }

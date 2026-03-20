@@ -491,7 +491,7 @@ class PekerjaanController extends Controller
 
                 SpkItemCetakLog::query()->create([
                     'spk_item_id' => $item->id,
-                    'user_id'     => 1, //(int) auth()->id(),
+                    'user_id'     => (int) auth()->id(),
                     'mesin_id'    => $mesinId,
                     'jumlah'      => $jumlah,
                 ]);
