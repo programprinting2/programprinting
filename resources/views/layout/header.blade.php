@@ -144,7 +144,12 @@
         <div class="dropdown-menu p-0" aria-labelledby="notificationDropdown" style="min-width: 360px;">
           <div class="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
             <p class="mb-0"><span id="notifCount">{{ $unreadCount }}</span> Notifikasi baru</p>
-            <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a>
+            <div class="d-flex gap-3">
+              <a href="javascript:;" class="text-muted ms-3" id="notifReload" title="Reload Page">
+                <i class="fas fa-sync"></i>
+              </a>
+              <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a>
+            </div>
           </div>
           <div class="p-1" id="notifList">
             @forelse($latestNotifs as $n)
@@ -312,6 +317,15 @@
       .notification((notification) => {
         prependNotif(notification);
       });
+  }
+})();
+
+(function () {
+  const reloadBtn = document.getElementById('notifReload');
+  if (reloadBtn) {
+    reloadBtn.addEventListener('click', function () {
+      location.reload(); 
+    });
   }
 })();
 </script>
