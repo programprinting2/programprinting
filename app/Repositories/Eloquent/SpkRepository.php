@@ -34,7 +34,7 @@ class SpkRepository implements SpkRepositoryInterface
         //     'items.produk.bahanBakus:id,nama_bahan,kode_bahan'
         // ]);
         $query = $this->model
-            ->select('id','nomor_spk','pelanggan_id','tanggal_spk','status','created_at','total_biaya')
+            ->select('id','nomor_spk','pelanggan_id','tanggal_spk','status','created_at','total_biaya','status_pembayaran')
             ->with($with);
 
 

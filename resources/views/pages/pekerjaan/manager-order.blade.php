@@ -388,7 +388,6 @@
                                             $weightedStepProgressSum += ($eligible * $pct);
                                         }
                                     } else {
-                                        // fallback untuk data item yang belum punya metadata step
                                         $qty = (float) ($it->jumlah ?? 0);
                                         if ($qty > 0) {
                                             $pct = (float) ($it->progress_cetak_persen ?? 0);
