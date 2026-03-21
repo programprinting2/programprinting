@@ -639,14 +639,22 @@ class PekerjaanController extends Controller
                     ->orderBy('created_at')
                     ->get()
                     ->values()
-                    ->map(fn ($l) => [
-                        'id' => $l->id,
-                        'jumlah' => (int) $l->jumlah,
-                        'operator' => $l->user->name ?? ('User #'.$l->user_id),
-                        'waktu' => optional($l->created_at)->format('H:i') ?? '',
-                        'tanggal' => optional($l->created_at)->format('d/m/Y') ?? '',
-                        'is_batalkan' => $l->trashed(),
-                    ]),
+                    ->map(function ($l) {
+
+                        $time = $l->created_at
+                            ? $l->created_at->copy()->timezone('Asia/Jakarta')
+                            : null;
+                
+                        return [
+                            'id' => $l->id,
+                            'jumlah' => (int) $l->jumlah,
+                            'operator' => $l->user->name ?? ('User #'.$l->user_id),
+                            'waktu' => $time ? $time->format('H:i') : '',
+                            'tanggal' => $time ? $time->format('d/m/Y') : '',
+                            'datetime' => $time ? $time->toIso8601String() : null,
+                            'is_batalkan' => $l->trashed(),
+                        ];
+                    }),
             ]);
         }
 
