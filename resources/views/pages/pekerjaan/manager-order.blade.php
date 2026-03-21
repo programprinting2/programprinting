@@ -368,20 +368,38 @@
                             </td>
                             <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
                             @php
-                                $items = $item->items ?? collect(); 
+                                $items = $item->items ?? collect();
 
-                                $totalQty = $items->sum(function($it) {
-                                    return (float) ($it->jumlah ?? 0);
-                                });
+                                $totalEligibleStepQty = 0.0;
+                                $weightedStepProgressSum = 0.0;
 
-                                $weightedProgressSum = $items->sum(function($it) {
-                                    $qty   = (float) ($it->jumlah ?? 0);
-                                    $pct   = (float) ($it->progress_cetak_persen ?? 0);
-                                    return $qty * $pct;
-                                });
+                                foreach ($items as $it) {
+                                    $steps = collect((array) data_get($it, 'workflow_steps_by_mesin', []));
 
-                                $spkProgressPct = $totalQty > 0
-                                    ? round($weightedProgressSum / $totalQty)
+                                    if ($steps->isNotEmpty()) {
+                                        foreach ($steps as $step) {
+                                            $eligible = (float) ($step['eligible_qty'] ?? 0);
+                                            if ($eligible <= 0) {
+                                                continue;
+                                            }
+
+                                            $pct = (float) ($step['progress_pct'] ?? 0);
+                                            $totalEligibleStepQty += $eligible;
+                                            $weightedStepProgressSum += ($eligible * $pct);
+                                        }
+                                    } else {
+                                        // fallback untuk data item yang belum punya metadata step
+                                        $qty = (float) ($it->jumlah ?? 0);
+                                        if ($qty > 0) {
+                                            $pct = (float) ($it->progress_cetak_persen ?? 0);
+                                            $totalEligibleStepQty += $qty;
+                                            $weightedStepProgressSum += ($qty * $pct);
+                                        }
+                                    }
+                                }
+
+                                $spkProgressPct = $totalEligibleStepQty > 0
+                                    ? round($weightedStepProgressSum / $totalEligibleStepQty)
                                     : 0;
 
                                 $spkProgressColor = $spkProgressPct >= 100
@@ -563,8 +581,17 @@
                                                             <td class="text-end">{{ $spkItem->jumlah }}</td>
                                                             <td>{{ $spkItem->satuan }}</td>
                                                             @php
-                                                                $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
-                                                                $sisa        = (int)  ($spkItem->sisa_belum_cetak ?? 0);
+                                                                $steps = collect((array) data_get($spkItem, 'workflow_steps_by_mesin', []));
+                                                                $activeStep = $steps->first(function ($s) {
+                                                                    return (int) ($s['eligible_qty'] ?? 0) > 0
+                                                                        && (int) ($s['remaining_qty'] ?? 0) > 0;
+                                                                }) ?? $steps->last();
+
+                                                                $progressPct = (float) ($activeStep['progress_pct'] ?? 0);
+                                                                $sisa        = (int) ($activeStep['remaining_qty'] ?? 0);
+                                                                $stepIndex   = (int) ($activeStep['step_index'] ?? 1);
+                                                                $stepTotal   = (int) ($activeStep['step_total'] ?? 1);
+
                                                                 $progressColor = $progressPct >= 100
                                                                     ? 'bg-success'
                                                                     : ($progressPct >= 50 ? 'bg-warning' : 'bg-primary');
@@ -579,6 +606,9 @@
                                                                     <div class="small text-danger fw-semibold mb-1"
                                                                     data-field="spk-item-remaining" data-spk-item-id="{{ $spkItem->id }}">
                                                                         Sisa: {{ number_format($sisa, 0, ',', '.') }} {{ $spkItem->satuan }}
+                                                                    </div>
+                                                                    <div class="small text-muted mb-1">
+                                                                        Step {{ $stepIndex }}/{{ $stepTotal }}
                                                                     </div>
                                                                 @endif
                                                                 <div class="progress" style="height:6px;">

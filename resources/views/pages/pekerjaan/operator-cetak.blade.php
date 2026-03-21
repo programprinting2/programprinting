@@ -112,9 +112,9 @@
             aria-labelledby="tab-pekerjaan-saya">
           {{-- Multi Cetak & Ambil Pekerjaan --}}
           <div class="d-flex justify-content-end gap-2 mb-3">
-            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAmbilPekerjaan">
+            <!-- <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAmbilPekerjaan">
               Ambil pekerjaan
-            </button>
+            </button> -->
             <form method="POST" action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}" id="bulkCetakFormGlobal">
               @csrf
               <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
@@ -341,11 +341,10 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                           <div class="form-check">
                             @php
-                              $remainingAccordionItems = collect($items)->filter(function ($rec) use ($queueTotalsByItemId) {
-                                $qty = (int) ($rec['item']->jumlah ?? 0);
-                                $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
-                                $sisaAmbil = max(0, $qty - $totalDiambil);
-                                return $sisaAmbil > 0;
+                              $remainingAccordionItems = collect($items)->filter(function ($rec) {
+                                $workflowStep = $rec['workflow_step'] ?? [];
+                                $sisaAmbilStep = (int) ($workflowStep['remaining_take_qty'] ?? 0);
+                                return $sisaAmbilStep > 0;
                               })->count();
                             @endphp
                             <input class="form-check-input cek-all-accordion" type="checkbox" data-accordion-id="{{ $accordionId }}" {{ $remainingAccordionItems === 0 ? 'disabled' : '' }}>
@@ -432,14 +431,17 @@
                                       $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
                                   }
 
-                                  $qty = (int) ($spkItem->jumlah ?? 0);
-                                  $totalDiambil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
-                                  $sisaAmbil = max(0, $qty - $totalDiambil);
-                                  $pctAmbil = $qty > 0 ? min(100, round(($totalDiambil / $qty) * 100, 1)) : 0.0;
+                                  $workflowStep = $rec['workflow_step'] ?? [];
+                                  $stepIndex = (int) ($workflowStep['step_index'] ?? 1);
+                                  $stepTotal = (int) ($workflowStep['step_total'] ?? 1);
+                                  $eligibleQty = (int) ($workflowStep['eligible_qty'] ?? 0);
+                                  $totalDiambil = (int) ($workflowStep['queued_qty_step'] ?? 0);
+                                  $sisaAmbil = (int) ($workflowStep['remaining_take_qty'] ?? 0);
+                                  $pctAmbil = $eligibleQty > 0 ? min(100, round(($totalDiambil / $eligibleQty) * 100, 1)) : 0.0;
 
-                                  $sudahCetak = (int) ($spkItem->jumlah_sudah_cetak ?? 0);
-                                  $pctCetak = (float) ($spkItem->progress_cetak_persen ?? 0);
-                                  $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+                                  $sudahCetak = (int) ($workflowStep['printed_qty_step'] ?? 0);
+                                  $pctCetak = (float) ($workflowStep['progress_step_pct'] ?? 0);
+                                  $sisa = (int) ($workflowStep['remaining_print_qty'] ?? 0);
                                 @endphp
 
                                 <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
@@ -448,11 +450,9 @@
                                       <div class="d-flex align-items-start gap-2">
                                         <div class="form-check mt-1">
                                           @php
-                                            $remainingItems = collect($rows)->filter(function ($rec) use ($queueTotalsByItemId) {
-                                              $qty = (int) ($rec['item']->jumlah ?? 0);
-                                              $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
-                                              $sisaAmbil = max(0, $qty - $totalDiambil);
-                                              return $sisaAmbil > 0;
+                                            $remainingItems = collect($rows)->filter(function ($rec) {
+                                              $workflowStep = $rec['workflow_step'] ?? [];
+                                              return (int) ($workflowStep['remaining_take_qty'] ?? 0) > 0;
                                             })->count();
                                           @endphp
                                           <input type="checkbox"
@@ -530,7 +530,7 @@
                                       <div class="text-muted small">{{ $luasText }}</div>
                                     @endif
                                   </td>
-                                  <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                  <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
                                   <td>{{ $spkItem->satuan }}</td>
                                   @php
                                     $progressColor = $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary');
@@ -554,7 +554,7 @@
                                           aria-valuemax="100"></div>
                                     </div>
                                     <div class="small text-muted mb-2">
-                                      Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($qty,0,',','.') }}
+                                      Step {{ $stepIndex }}/{{ $stepTotal }} • Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($eligibleQty,0,',','.') }}
                                       (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
                                     </div>
 
@@ -580,7 +580,7 @@
                                           data-nomor-spk="{{ $spkRow->nomor_spk }}"
                                           data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
                                           data-item="{{ $spkItem->nama_produk }}"
-                                          data-qty="{{ $qty }}"
+                                          data-qty="{{ $eligibleQty }}"
                                           data-sisa-ambil="{{ $sisaAmbil }}"
                                           @disabled($sisaAmbil <= 0)>
                                   </td>
@@ -765,10 +765,9 @@
                             <div class="d-flex justify-content-between align-items-center mb-2">
                               <div class="form-check">
                                 @php
-                                  $remainingAccordionItems = collect($items)->filter(function ($rec) use ($queueTotalsByItemId) {
-                                    $qty = (int) ($rec['item']->jumlah ?? 0);
-                                    $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
-                                    return max(0, $qty - $totalDiambil) > 0;
+                                  $remainingAccordionItems = collect($items)->filter(function ($rec) {
+                                    $workflowStep = $rec['workflow_step'] ?? [];
+                                    return (int) ($workflowStep['remaining_take_qty'] ?? 0) > 0;
                                   })->count();
                                 @endphp
                                 <input class="form-check-input modal-cek-all-accordion" type="checkbox"
@@ -851,13 +850,16 @@
                                           $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
                                       }
 
-                                      $qty = (int) ($spkItem->jumlah ?? 0);
-                                      $totalDiambil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
-                                      $sisaAmbil = max(0, $qty - $totalDiambil);
-                                      $pctAmbil = $qty > 0 ? min(100, round(($totalDiambil / $qty) * 100, 1)) : 0.0;
-                                      $sudahCetak = (int) ($spkItem->jumlah_sudah_cetak ?? 0);
-                                      $pctCetak = (float) ($spkItem->progress_cetak_persen ?? 0);
-                                      $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+                                      $workflowStep = $rec['workflow_step'] ?? [];
+                                      $stepIndex = (int) ($workflowStep['step_index'] ?? 1);
+                                      $stepTotal = (int) ($workflowStep['step_total'] ?? 1);
+                                      $eligibleQty = (int) ($workflowStep['eligible_qty'] ?? 0);
+                                      $totalDiambil = (int) ($workflowStep['queued_qty_step'] ?? 0);
+                                      $sisaAmbil = (int) ($workflowStep['remaining_take_qty'] ?? 0);
+                                      $pctAmbil = $eligibleQty > 0 ? min(100, round(($totalDiambil / $eligibleQty) * 100, 1)) : 0.0;
+                                      $sudahCetak = (int) ($workflowStep['printed_qty_step'] ?? 0);
+                                      $pctCetak = (float) ($workflowStep['progress_step_pct'] ?? 0);
+                                      $sisa = (int) ($workflowStep['remaining_print_qty'] ?? 0);
                                     @endphp
 
                                     <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
@@ -866,10 +868,9 @@
                                           <div class="d-flex align-items-start gap-2">
                                             <div class="form-check mt-1">
                                               @php
-                                                $remainingItems = collect($rows)->filter(function ($rec) use ($queueTotalsByItemId) {
-                                                  $qty = (int) ($rec['item']->jumlah ?? 0);
-                                                  $totalDiambil = (int) ($queueTotalsByItemId[$rec['item']->id] ?? 0);
-                                                  return max(0, $qty - $totalDiambil) > 0;
+                                                $remainingItems = collect($rows)->filter(function ($rec) {
+                                                  $workflowStep = $rec['workflow_step'] ?? [];
+                                                  return (int) ($workflowStep['remaining_take_qty'] ?? 0) > 0;
                                                 })->count();
                                               @endphp
                                               <input type="checkbox"
@@ -939,7 +940,7 @@
                                         <div class="fw-semibold">{{ $dimensiText }}</div>
                                         @if($luasText)<div class="text-muted small">{{ $luasText }}</div>@endif
                                       </td>
-                                      <td class="text-end">{{ $spkItem->jumlah }}</td>
+                                    <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
                                       <td>{{ $spkItem->satuan }}</td>
 
                                       <td class="text-end">
@@ -950,7 +951,7 @@
                                               aria-valuenow="{{ $pctAmbil }}" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
                                         <div class="small text-muted mb-2">
-                                          Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($qty,0,',','.') }}
+                                          Step {{ $stepIndex }}/{{ $stepTotal }} • Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($eligibleQty,0,',','.') }}
                                           (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
                                         </div>
                                         <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
@@ -974,7 +975,7 @@
                                               data-nomor-spk="{{ $spkRow->nomor_spk }}"
                                               data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
                                               data-item="{{ $spkItem->nama_produk }}"
-                                              data-qty="{{ $qty }}"
+                                              data-qty="{{ $eligibleQty }}"
                                               data-sisa-ambil="{{ $sisaAmbil }}"
                                               @disabled($sisaAmbil <= 0)>
                                       </td>
@@ -1254,7 +1255,6 @@
       const ambilJumlah = document.getElementById('ambil_jumlah');
 
       function getActiveMesinId() {
-        // 1) Kalau ada sub-tab mesin yang sedang aktif, pakai itu (kasus >1 mesin)
         const activeSub = document.querySelector('[id^="mesinSubTabsInner-"] .nav-link.active');
         if (activeSub && activeSub.dataset && activeSub.dataset.mesinId) {
           return String(activeSub.dataset.mesinId);

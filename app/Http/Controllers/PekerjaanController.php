@@ -227,12 +227,25 @@ class PekerjaanController extends Controller
 
         $allItems = $spk->pluck('items')->flatten();
         $itemIds  = $allItems->pluck('id')->unique();
+        $allMesin = Cache::remember(
+            'master_mesin_all',
+            3600,
+            fn () => MasterMesin::all(['id', 'nama_mesin', 'tipe_mesin'])
+        );
+        $tipeNamaByMesinId = $allMesin->mapWithKeys(function ($mesin) {
+            return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
+        });
 
         $queueTotalsByItemId = SpkItemCetakQueue::query()
             ->selectRaw('spk_item_id, SUM(jumlah) as total_diambil')
             ->whereIn('spk_item_id', $itemIds)
             ->groupBy('spk_item_id')
             ->pluck('total_diambil', 'spk_item_id');
+        $queueByItemAndMesin = SpkItemCetakQueue::query()
+            ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_diambil')
+            ->whereIn('spk_item_id', $itemIds)
+            ->groupBy('spk_item_id', 'mesin_id')
+            ->get();
 
         $printTotalsByItemId = SpkItemCetakLog::query()
             ->selectRaw('spk_item_id, SUM(jumlah) as total_cetak')
@@ -240,6 +253,40 @@ class PekerjaanController extends Controller
             ->whereNull('deleted_at')
             ->groupBy('spk_item_id')
             ->pluck('total_cetak', 'spk_item_id');
+        $printByItemAndMesin = SpkItemCetakLog::query()
+            ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_cetak')
+            ->whereIn('spk_item_id', $itemIds)
+            ->whereNull('deleted_at')
+            ->groupBy('spk_item_id', 'mesin_id')
+            ->get();
+
+        $queueByItemAndStepType = [];
+        foreach ($queueByItemAndMesin as $rowQueue) {
+            $itemId = (int) ($rowQueue->spk_item_id ?? 0);
+            $mesinId = (int) ($rowQueue->mesin_id ?? 0);
+            $tipeNama = $tipeNamaByMesinId[$mesinId] ?? '';
+            if ($itemId <= 0 || $tipeNama === '') {
+                continue;
+            }
+
+            $aggKey = $itemId.'|'.$tipeNama;
+            $queueByItemAndStepType[$aggKey] = (int) ($queueByItemAndStepType[$aggKey] ?? 0)
+                + (int) ($rowQueue->total_diambil ?? 0);
+        }
+
+        $printByItemAndStepType = [];
+        foreach ($printByItemAndMesin as $rowPrint) {
+            $itemId = (int) ($rowPrint->spk_item_id ?? 0);
+            $mesinId = (int) ($rowPrint->mesin_id ?? 0);
+            $tipeNama = $tipeNamaByMesinId[$mesinId] ?? '';
+            if ($itemId <= 0 || $tipeNama === '') {
+                continue;
+            }
+
+            $aggKey = $itemId.'|'.$tipeNama;
+            $printByItemAndStepType[$aggKey] = (int) ($printByItemAndStepType[$aggKey] ?? 0)
+                + (int) ($rowPrint->total_cetak ?? 0);
+        }
 
         foreach ($allItems as $item) {
             $qty = (int) ($item->jumlah ?? 0);
@@ -254,17 +301,16 @@ class PekerjaanController extends Controller
                 : 0;
         }
 
-        $allMesin = Cache::remember(
-            'master_mesin_all',
-            3600,
-            fn () => MasterMesin::all()
-        );
-
-        $mesinByTipeId = collect();
-        $mesinByTipeNama = $allMesin->groupBy(function ($m) {
-            return strtolower(trim((string) $m->tipe_mesin));
+        $mesinByTipeId = collect(); 
+        $mesinById = $allMesin->keyBy(function ($m) {
+            return (int) $m->id;
         });
-
+        $mesinByTipeNama = $allMesin->groupBy(function ($m) {
+            return $this->normalizeMesinType($m->tipe_mesin ?? null);
+        });
+        $mesinByNamaMesin = $allMesin->groupBy(function ($m) {
+            return $this->normalizeMesinType($m->nama_mesin ?? null);
+        });
         $tipeMesinGroups = [];
 
         foreach ($allItems as $spkItem) {
@@ -272,22 +318,68 @@ class PekerjaanController extends Controller
             if (!$produk) {
                 continue;
             }
-            $qtyTotal   = (int) ($spkItem->jumlah ?? 0);
-            $totalAmbil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
-            $totalCetak = (int) ($printTotalsByItemId[$spkItem->id] ?? 0);
+            // $qtyTotal   = (int) ($spkItem->jumlah ?? 0);
+            // $totalAmbil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
+            // $totalCetak = (int) ($printTotalsByItemId[$spkItem->id] ?? 0);
 
-            $ambilFull  = $qtyTotal > 0 && $totalAmbil >= $qtyTotal;
-            $cetakFull  = $totalAmbil > 0 && $totalCetak >= $totalAmbil;
+            // $ambilFull  = $qtyTotal > 0 && $totalAmbil >= $qtyTotal;
+            // $cetakFull  = $totalAmbil > 0 && $totalCetak >= $totalAmbil;
 
-            if ($ambilFull && $cetakFull) {
-                continue;
-            }
+            // if ($ambilFull && $cetakFull) {
+            //     continue;
+            // }
 
             $alur = $produk->alur_produksi_json ?? [];
 
             if (!is_array($alur) || empty($alur)) {
                 continue;
             }
+
+            $eligibleQtyForStep = (int) ($spkItem->jumlah ?? 0);
+            $workflowStepsByMesin = [];
+            $totalStepCount = count($alur);
+
+            foreach ($alur as $index => $step) {
+                $identity = $this->resolveStepIdentity($step);
+                $stepMesinId = (int) ($identity['step_id'] ?? 0);
+                $stepCandidates = $identity['candidates'] ?? [];
+                $stepNameLabel = (string) ($identity['step_name'] ?? '');
+                if ($stepMesinId <= 0 && empty($stepCandidates)) {
+                    continue;
+                }
+                $stepGroupKey = (string) ($stepMesinId ?: $stepNameLabel);
+                // agregasi by kandidat tipe
+                $printedQtyStep = 0;
+                $queuedQtyStep = 0;
+                foreach ($stepCandidates as $candidateType) {
+                    $stepAggKey = $spkItem->id.'|'.$candidateType;
+                    $printedQtyStep += (int) ($printByItemAndStepType[$stepAggKey] ?? 0);
+                    $queuedQtyStep  += (int) ($queueByItemAndStepType[$stepAggKey] ?? 0);
+                }
+                $remainingTakeQty = max(0, $eligibleQtyForStep - $queuedQtyStep);
+                $remainingPrintQty = max(0, $queuedQtyStep - $printedQtyStep);
+                $stepPayload = [
+                    'step_index' => $index + 1,
+                    'step_total' => $totalStepCount,
+                    'eligible_qty' => $eligibleQtyForStep,
+                    'printed_qty_step' => $printedQtyStep,
+                    'queued_qty_step' => $queuedQtyStep,
+                    'remaining_take_qty' => $remainingTakeQty,
+                    'remaining_print_qty' => $remainingPrintQty,
+                    'progress_step_pct' => $eligibleQtyForStep > 0
+                        ? min(100, round(($printedQtyStep / $eligibleQtyForStep) * 100, 1))
+                        : 0,
+                    'step_name' => $stepNameLabel,
+                ];
+                if (!isset($workflowStepsByMesin[$stepGroupKey])) {
+                    $workflowStepsByMesin[$stepGroupKey] = [];
+                }
+                $workflowStepsByMesin[$stepGroupKey][] = $stepPayload;
+                                
+                $eligibleQtyForStep = $printedQtyStep;
+            }
+
+            $spkItem->workflow_steps_by_mesin = $workflowStepsByMesin;
 
             $bahanBakus = $produk->bahanBakus;
 
@@ -309,17 +401,37 @@ class PekerjaanController extends Controller
                 }
 
                 $tipeKey = $divisiId ?: $divisiNama;
+                $workflowBucket = data_get($spkItem, 'workflow_steps_by_mesin.'.(string) $tipeKey);
+                $workflowStep = $this->pickActiveWorkflowStepFromBucket($workflowBucket);
+
+                if (!$workflowStep || (int) ($workflowStep['eligible_qty'] ?? 0) <= 0) {
+                    continue;
+                }
                 $tipeLabelDasar = $divisiNama ?: $divisiKeterangan ?: 'Tanpa Tipe';
 
                 if (!isset($tipeMesinGroups[$tipeKey])) {
                     $mesinMatches = collect();
-                    if ($divisiId && isset($mesinByTipeId[$divisiId])) {
-                        $mesinMatches = $mesinByTipeId[$divisiId];
+
+                    $divisiNamaNorm = $this->normalizeMesinType($divisiNama ?? null);
+                    $divisiKetNorm  = $this->normalizeMesinType($divisiKeterangan ?? null);
+
+                    if ($divisiId && isset($mesinById[(int) $divisiId])) {
+                        $mesinMatches = collect([$mesinById[(int) $divisiId]]);
                     }
 
-                    $divisiNamaNorm = strtolower(trim((string) $divisiNama));
                     if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByTipeNama[$divisiNamaNorm])) {
                         $mesinMatches = $mesinByTipeNama[$divisiNamaNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByNamaMesin[$divisiNamaNorm])) {
+                        $mesinMatches = $mesinByNamaMesin[$divisiNamaNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByTipeNama[$divisiKetNorm])) {
+                        $mesinMatches = $mesinByTipeNama[$divisiKetNorm];
+                    }
+                    if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByNamaMesin[$divisiKetNorm])) {
+                        $mesinMatches = $mesinByNamaMesin[$divisiKetNorm];
                     }
 
                     $tipeMesinGroups[$tipeKey] = [
@@ -353,8 +465,9 @@ class PekerjaanController extends Controller
 
                     if (!isset($group['bahanGroups'][$bahanId]['items'][$uniqKey])) {
                         $group['bahanGroups'][$bahanId]['items'][$uniqKey] = [
-                            'spk'  => $spkRow,
-                            'item' => $spkItem,
+                            'spk'           => $spkRow,
+                            'item'          => $spkItem,
+                            'workflow_step' => $workflowStep,
                         ];
                     }
                 }
@@ -388,7 +501,7 @@ class PekerjaanController extends Controller
         $queueRowsSorted = $queueRows->sortBy('created_at')->values();
         $printedUsedByItem = [];
 
-        $queueRowsFiltered = $queueRowsSorted->filter(function ($q) use ($printTotalsByItemId, &$printedUsedByItem) {
+        $queueRowsFiltered = $queueRowsSorted->filter(function ($q) use ($tipeNamaByMesinId, $printByItemAndStepType, &$printedUsedByItem) {
             $item = $q->spkItem;
             $spk  = $item?->spk;
 
@@ -402,13 +515,19 @@ class PekerjaanController extends Controller
 
             $itemId       = $item->id;
             $qtyDiambil   = (int) ($q->jumlah ?? 0);
-            $totalCetakAll = (int) ($printTotalsByItemId[$itemId] ?? 0);
+            $stepType = $tipeNamaByMesinId[(int) ($q->mesin_id ?? 0)] ?? '';
+            if ($stepType === '') {
+                return false;
+            }
+            $stepAggKey = $itemId.'|'.$stepType;
+            $totalCetakStep = (int) ($printByItemAndStepType[$stepAggKey] ?? 0);
 
-            $alreadyAllocated = $printedUsedByItem[$itemId] ?? 0;
-            $remainingForItem = max(0, $totalCetakAll - $alreadyAllocated);
+            $allocKey = $stepAggKey;
+            $alreadyAllocated = $printedUsedByItem[$allocKey] ?? 0;
+            $remainingForItem = max(0, $totalCetakStep - $alreadyAllocated);
             $printedForQueue = min($qtyDiambil, $remainingForItem);
 
-            $printedUsedByItem[$itemId] = $alreadyAllocated + $printedForQueue;
+            $printedUsedByItem[$allocKey] = $alreadyAllocated + $printedForQueue;
 
             $q->computed_printed = $printedForQueue;
 
@@ -487,26 +606,163 @@ class PekerjaanController extends Controller
 
     public function getCetakProgress(SPKItem $spkItem): JsonResponse
     {
-        $spkItem->load(['cetakLogs.user', 'spk.pelanggan']);
+        $spkItem->load([
+            'produk:id,alur_produksi_json',
+            'cetakLogs.user',
+            'spk.pelanggan',
+        ]);
 
-        $qty = (int) ($spkItem->jumlah ?? 0);
-        $sudah = (int) $spkItem->cetakLogs->sum('jumlah');
-        $sisa = max(0, $qty - $sudah);
-        $pct = $qty > 0 ? min(100, round(($sudah / $qty) * 100, 1)) : 0;
+        $qtyPesanan = (int) ($spkItem->jumlah ?? 0);
+        $alur = $spkItem->produk?->alur_produksi_json ?? [];
+
+        if (!is_array($alur) || empty($alur)) {
+            return response()->json([
+                'item' => [
+                    'id' => $spkItem->id,
+                    'nama_produk' => $spkItem->nama_produk,
+                    'qty_pesanan' => $qtyPesanan,
+                    'step_index' => 0,
+                    'step_total' => 0,
+                    'progress_persen' => 0,
+                    'sisa' => $qtyPesanan,
+                    'eligible_qty' => 0,
+                    'printed_qty' => 0,
+                    'remaining_qty' => $qtyPesanan,
+                ],
+                'spk' => [
+                    'nomor_spk' => $spkItem->spk->nomor_spk ?? '',
+                    'pelanggan' => $spkItem->spk->pelanggan->nama ?? '-',
+                ],
+                'steps' => [],
+                'logs' => $spkItem->cetakLogs()
+                    ->withTrashed()
+                    ->orderBy('created_at')
+                    ->get()
+                    ->values()
+                    ->map(fn ($l) => [
+                        'id' => $l->id,
+                        'jumlah' => (int) $l->jumlah,
+                        'operator' => $l->user->name ?? ('User #'.$l->user_id),
+                        'waktu' => optional($l->created_at)->format('H:i') ?? '',
+                        'tanggal' => optional($l->created_at)->format('d/m/Y') ?? '',
+                        'is_batalkan' => $l->trashed(),
+                    ]),
+            ]);
+        }
+
+        // Ambil log cetak aktif (non-soft-delete), lalu agregasi by tipe mesin.
+        $activePrintLogs = SpkItemCetakLog::query()
+            ->where('spk_item_id', $spkItem->id)
+            ->whereNull('deleted_at')
+            ->get(['mesin_id', 'jumlah']);
+
+        $mesinIds = $activePrintLogs
+            ->pluck('mesin_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $mesinTypeByMesinId = MasterMesin::query()
+            ->whereIn('id', $mesinIds)
+            ->get(['id', 'tipe_mesin'])
+            ->mapWithKeys(function ($mesin) {
+                return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
+            });
+
+        $printedByStepType = [];
+        foreach ($activePrintLogs as $log) {
+            $mesinId = (int) ($log->mesin_id ?? 0);
+            $stepType = $mesinTypeByMesinId[$mesinId] ?? '';
+            if ($stepType === '') {
+                continue;
+            }
+
+            $printedByStepType[$stepType] = (int) ($printedByStepType[$stepType] ?? 0) + (int) ($log->jumlah ?? 0);
+        }
+
+        $steps = [];
+        $eligibleQty = $qtyPesanan;
+        $totalSteps = count($alur);
+
+        foreach ($alur as $index => $step) {
+            if (!is_array($step)) {
+                continue;
+            }
+
+            $stepNama = trim((string) ($step['divisi_mesin'] ?? ''));
+            $stepType = $this->normalizeMesinType($stepNama);
+            if ($stepType === '') {
+                continue;
+            }
+
+            $printedQty = (int) ($printedByStepType[$stepType] ?? 0);
+            $remainingQty = max(0, $eligibleQty - $printedQty);
+            $progressPct = $eligibleQty > 0
+                ? min(100, round(($printedQty / $eligibleQty) * 100, 1))
+                : 0;
+
+            $steps[] = [
+                'step_index' => $index + 1,
+                'step_total' => $totalSteps,
+                'divisi_mesin' => $stepNama,
+                'divisi_mesin_id' => $step['divisi_mesin_id'] ?? null,
+                'keterangan_divisi' => $step['keterangan_divisi'] ?? '',
+                'eligible_qty' => $eligibleQty,
+                'printed_qty' => $printedQty,
+                'remaining_qty' => $remainingQty,
+                'progress_persen' => $progressPct,
+            ];
+
+            // Workflow parsial: eligible step berikutnya = output printed step sekarang
+            $eligibleQty = $printedQty;
+        }
+
+        // Step aktif = step pertama yang masih punya remaining > 0, fallback ke step terakhir.
+        $activeStep = collect($steps)->first(function ($s) {
+            return (int) ($s['eligible_qty'] ?? 0) > 0
+                && (int) ($s['remaining_qty'] ?? 0) > 0;
+        });
+
+        if (!$activeStep) {
+            $activeStep = !empty($steps) ? end($steps) : null;
+        }
+
+        // Progress akumulatif berbobot dari semua step (eligible sebagai bobot).
+        $totalEligibleAllSteps = collect($steps)->sum(fn ($s) => (float) ($s['eligible_qty'] ?? 0));
+        $weightedProgress = collect($steps)->sum(function ($s) {
+            $eligible = (float) ($s['eligible_qty'] ?? 0);
+            $pct = (float) ($s['progress_persen'] ?? 0);
+            return $eligible * $pct;
+        });
+
+        $workflowProgressPct = $totalEligibleAllSteps > 0
+            ? round($weightedProgress / $totalEligibleAllSteps, 1)
+            : 0.0;
 
         return response()->json([
             'item' => [
                 'id' => $spkItem->id,
                 'nama_produk' => $spkItem->nama_produk,
-                'qty' => $qty,
-                'sudah' => $sudah,
-                'sisa' => $sisa,
-                'progress_persen' => $pct,
+                'qty_pesanan' => $qtyPesanan,
+
+                // Fokus realtime UI: step aktif
+                'step_index' => (int) ($activeStep['step_index'] ?? 0),
+                'step_total' => (int) ($activeStep['step_total'] ?? 0),
+                'progress_persen' => (float) ($activeStep['progress_persen'] ?? 0),
+                'sisa' => (int) ($activeStep['remaining_qty'] ?? 0),
+                'eligible_qty' => (int) ($activeStep['eligible_qty'] ?? 0),
+                'printed_qty' => (int) ($activeStep['printed_qty'] ?? 0),
+                'remaining_qty' => (int) ($activeStep['remaining_qty'] ?? 0),
+
+                // Opsional untuk rekap SPK
+                'workflow_progress_persen' => $workflowProgressPct,
             ],
             'spk' => [
                 'nomor_spk' => $spkItem->spk->nomor_spk ?? '',
                 'pelanggan' => $spkItem->spk->pelanggan->nama ?? '-',
             ],
+            'steps' => array_values($steps),
             'logs' => $spkItem->cetakLogs()
                 ->withTrashed()
                 ->orderBy('created_at')
@@ -530,50 +786,78 @@ class PekerjaanController extends Controller
         $mesinId   = $request->integer('mesin_id') ?: null;
 
         try {
-
             DB::transaction(function () use ($spkItemId, $jumlah, $mesinId) {
+                $userId = (int) auth()->id();
 
                 $item = SPKItem::query()
                     ->lockForUpdate()
                     ->findOrFail($spkItemId);
 
                 $qtyPesanan = (int) ($item->jumlah ?? 0);
-
                 if ($qtyPesanan <= 0) {
                     throw ValidationException::withMessages([
                         'jumlah' => 'Quantity pesanan tidak valid.',
                     ]);
                 }
 
-                $lockedLogs = SpkItemCetakLog::query()
+                if (!$mesinId) {
+                    throw ValidationException::withMessages([
+                        'mesin_id' => 'Mesin wajib dipilih.',
+                    ]);
+                }
+
+                $lockedQueueRows = SpkItemCetakQueue::query()
                     ->where('spk_item_id', $item->id)
+                    ->where('user_id', $userId)
+                    ->where('mesin_id', $mesinId)
                     ->lockForUpdate()
                     ->get(['jumlah']);
 
-                $sudahCetak = (int) $lockedLogs->sum('jumlah');
+                $qtyDiambilDiMesin = (int) $lockedQueueRows->sum('jumlah');
 
-                $akanTotal = $sudahCetak + $jumlah;
-
-                if ($akanTotal > $qtyPesanan) {
+                if ($qtyDiambilDiMesin <= 0) {
                     throw ValidationException::withMessages([
-                        'jumlah' => 'Jumlah melebihi qty pesanan (overprint).',
+                        'jumlah' => 'Item ini belum diambil pada mesin yang dipilih.',
+                    ]);
+                }
+
+                $lockedLogs = SpkItemCetakLog::query()
+                    ->where('spk_item_id', $item->id)
+                    ->where('user_id', $userId)
+                    ->where('mesin_id', $mesinId)
+                    ->whereNull('deleted_at')
+                    ->lockForUpdate()
+                    ->get(['jumlah']);
+
+                $sudahCetakDiMesin = (int) $lockedLogs->sum('jumlah');
+                $sisaBolehCetak = max(0, $qtyDiambilDiMesin - $sudahCetakDiMesin);
+
+                if ($sisaBolehCetak <= 0) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => 'Tidak ada sisa qty untuk dicetak pada mesin ini.',
+                    ]);
+                }
+
+                if ($jumlah > $sisaBolehCetak) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => "Jumlah melebihi sisa yang bisa dicetak pada mesin ini. Sisa: {$sisaBolehCetak}.",
                     ]);
                 }
 
                 SpkItemCetakLog::query()->create([
                     'spk_item_id' => $item->id,
-                    'user_id'     => (int) auth()->id(),
+                    'user_id'     => $userId,
                     'mesin_id'    => $mesinId,
                     'jumlah'      => $jumlah,
                 ]);
 
                 if ($item->spk) {
-
                     $keterangan = sprintf(
-                        'Cetak %d %s untuk item "%s".',
+                        'Cetak %d %s untuk item "%s" pada mesin #%d.',
                         $jumlah,
                         $item->satuan,
-                        $item->nama_produk
+                        $item->nama_produk,
+                        $mesinId
                     );
 
                     ActivityLogService::log(
@@ -584,9 +868,7 @@ class PekerjaanController extends Controller
                     );
                 }
             });
-
         } catch (ValidationException $e) {
-
             return back()->withErrors($e->errors())->withInput();
         }
 
@@ -602,32 +884,31 @@ class PekerjaanController extends Controller
         $mesinId = $request->integer('mesin_id') ?: null;
         $userId  = (int) (auth()->id() ?? 1);
 
-        DB::transaction(function () use ($ids, $mesinId, $userId) {
+        $createdCount = 0;
 
+        DB::transaction(function () use ($ids, $mesinId, $userId, &$createdCount) {
             foreach ($ids as $itemId) {
-
                 $item = SPKItem::lockForUpdate()->find($itemId);
 
                 if (!$item) {
                     continue;
                 }
 
-                $queue = SpkItemCetakQueue::query()
+                $qtyDiambil = (int) SpkItemCetakQueue::query()
                     ->where('spk_item_id', $itemId)
                     ->where('user_id', $userId)
                     ->where('mesin_id', $mesinId)
-                    ->first();
+                    ->sum('jumlah');
 
-                if (!$queue) {
+                if ($qtyDiambil <= 0) {
                     continue;
                 }
 
-                $qtyDiambil = (int) $queue->jumlah;
-
-                $sudahCetak = SpkItemCetakLog::query()
+                $sudahCetak = (int) SpkItemCetakLog::query()
                     ->where('spk_item_id', $itemId)
                     ->where('user_id', $userId)
                     ->where('mesin_id', $mesinId)
+                    ->whereNull('deleted_at')
                     ->sum('jumlah');
 
                 $sisa = $qtyDiambil - $sudahCetak;
@@ -643,10 +924,11 @@ class PekerjaanController extends Controller
                     'jumlah'      => $sisa,
                 ]);
 
-                if ($item->spk) {
+                $createdCount++;
 
+                if ($item->spk) {
                     $keterangan = sprintf(
-                        'Bulk-complete cetak %d %s untuk item "%s".',
+                        'Multi cetak %d %s untuk item "%s".',
                         $sisa,
                         $item->satuan,
                         $item->nama_produk
@@ -662,7 +944,11 @@ class PekerjaanController extends Controller
             }
         });
 
-        return back()->with('success', 'Bulk print berhasil: item ditandai selesai.');
+        if ($createdCount <= 0) {
+            return back()->with('warning', 'Tidak ada item yang bisa di cetak complete pada mesin ini.');
+        }
+
+        return back()->with('success', 'Multi cetak berhasil: item ditandai selesai.');
     }
 
     public function history(SPKItem $spkItem)
@@ -802,9 +1088,23 @@ class PekerjaanController extends Controller
             ->values();
         $ambil = (int) $request->input('jumlah');
         $userId = (int) (auth()->id() ?? 1);
+        $targetMesinType = $this->normalizeMesinType(
+            MasterMesin::query()->whereKey($mesinId)->value('tipe_mesin')
+        );
+        if ($targetMesinType === '') {
+            throw ValidationException::withMessages([
+                'mesin_id' => 'Mesin tidak valid atau tidak memiliki tipe mesin.',
+            ]);
+        }
+        $mesinTypeByMesinId = MasterMesin::query()
+            ->get(['id', 'tipe_mesin'])
+            ->mapWithKeys(function ($mesin) {
+                return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
+            });
 
-        DB::transaction(function () use ($ids, $mesinId, $ambil, $userId) {
+        DB::transaction(function () use ($ids, $mesinId, $ambil, $userId, $targetMesinType, $mesinTypeByMesinId) {
             $items = SPKItem::query()
+                ->with('produk:id,alur_produksi_json')
                 ->whereIn('id', $ids->all())
                 ->lockForUpdate()
                 ->get()
@@ -821,14 +1121,32 @@ class PekerjaanController extends Controller
                     continue;
                 }
 
-                $totalClaimedAll = (int) SpkItemCetakQueue::query()
-                    ->where('spk_item_id', $item->id)
-                    ->sum('jumlah');
+                $remainingTakeForTarget = $this->calculateRemainingTakeForStep(
+                    $item,
+                    $mesinId,
+                    $targetMesinType,
+                    $mesinTypeByMesinId
+                );
+                
 
-                if ($totalClaimedAll + $ambil > $qtyPesanan) {
-                    $sisaBolehDiambil = max(0, $qtyPesanan - $totalClaimedAll);
+                \Log::info('ambilQueue guard', [
+                    'spk_item_id' => $item->id,
+                    'mesin_id' => $mesinId,
+                    'target_mesin_type' => $targetMesinType,
+                    'ambil' => $ambil,
+                    'remaining_take_for_target' => $remainingTakeForTarget,
+                ]);
+
+                if ($remainingTakeForTarget <= 0) {
                     throw ValidationException::withMessages([
-                        'jumlah' => "Jumlah melebihi sisa yang bisa diambil. Sisa yang tersedia: {$sisaBolehDiambil}.",
+                        'jumlah' => 'Step ini belum eligible untuk diambil atau sisa ambil sudah habis.',
+                    ]);
+                }
+                
+
+                if ($ambil > $remainingTakeForTarget) {
+                    throw ValidationException::withMessages([
+                        'jumlah' => "Jumlah melebihi sisa yang bisa diambil. Sisa yang tersedia: {$remainingTakeForTarget}.",
                     ]);
                 }
 
@@ -856,7 +1174,6 @@ class PekerjaanController extends Controller
 
         DB::transaction(function () use ($ids, $mesinId, $userId) {
             $queues = SpkItemCetakQueue::query()
-                ->with('spkItem')
                 ->where('mesin_id', $mesinId)
                 ->where('user_id', $userId)
                 ->whereIn('spk_item_id', $ids->all())
@@ -864,23 +1181,25 @@ class PekerjaanController extends Controller
                 ->get();
 
             foreach ($queues as $queue) {
-                $item = $queue->spkItem;
-                if (!$item) {
-                    continue;
-                }
+                $itemId = (int) ($queue->spk_item_id ?? 0);
+                $queueQty = (int) ($queue->jumlah ?? 0);
 
-                $queueQty   = (int) ($queue->jumlah ?? 0);
-                if ($queueQty <= 0) {
+                if ($itemId <= 0 || $queueQty <= 0) {
                     $queue->delete();
                     continue;
                 }
 
-                $sudahCetak = (int) ($item->jumlah_sudah_cetak ?? 0);
+                $sudahCetakPadaQueueIni = (int) SpkItemCetakLog::query()
+                    ->where('spk_item_id', $itemId)
+                    ->where('user_id', $userId)
+                    ->where('mesin_id', $mesinId)
+                    ->whereNull('deleted_at')
+                    ->sum('jumlah');
 
-                $sisaKlaim = max(0, $queueQty - $sudahCetak);
+                $sisaBelumCetak = max(0, $queueQty - $sudahCetakPadaQueueIni);
 
-                if ($sisaKlaim <= 0) {
-                    $queue->jumlah = min($queueQty, $sudahCetak);
+                if ($sisaBelumCetak <= 0) {
+                    $queue->jumlah = min($queueQty, $sudahCetakPadaQueueIni);
                     if ($queue->jumlah <= 0) {
                         $queue->delete();
                     } else {
@@ -889,7 +1208,7 @@ class PekerjaanController extends Controller
                     continue;
                 }
 
-                $newQty = $queueQty - $sisaKlaim;
+                $newQty = $queueQty - $sisaBelumCetak;
                 if ($newQty <= 0) {
                     $queue->delete();
                 } else {
@@ -912,8 +1231,34 @@ class PekerjaanController extends Controller
 
         $userId = (int) (auth()->id() ?? 1);
 
-        DB::transaction(function () use ($ids, $mesinId, $userId) {
+        $targetMesinType = $this->normalizeMesinType(
+            MasterMesin::query()->whereKey($mesinId)->value('tipe_mesin')
+        );
+
+        if ($targetMesinType === '') {
+            throw ValidationException::withMessages([
+                'mesin_id' => 'Mesin tidak valid atau tidak memiliki tipe mesin.',
+            ]);
+        }
+
+        $mesinTypeByMesinId = MasterMesin::query()
+            ->get(['id', 'tipe_mesin'])
+            ->mapWithKeys(function ($mesin) {
+                return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
+            });
+
+        $createdCount = 0;
+
+        DB::transaction(function () use (
+            $ids,
+            $mesinId,
+            $userId,
+            $targetMesinType,
+            $mesinTypeByMesinId,
+            &$createdCount
+        ) {
             $items = SPKItem::query()
+                ->with('produk:id,alur_produksi_json')
                 ->whereIn('id', $ids->all())
                 ->lockForUpdate()
                 ->get()
@@ -930,12 +1275,17 @@ class PekerjaanController extends Controller
                     continue;
                 }
 
-                $totalClaimedAll = (int) SpkItemCetakQueue::query()
-                    ->where('spk_item_id', $item->id)
-                    ->sum('jumlah');
+                $stepInfo = $this->calculateRemainingTakeForStep(
+                    $item,
+                    $mesinId,
+                    $targetMesinType,
+                    $mesinTypeByMesinId
+                );
 
-                $sisaBolehDiambil = max(0, $qtyPesanan - $totalClaimedAll);
-                if ($sisaBolehDiambil <= 0) {
+                $matched = (bool) ($stepInfo['matched'] ?? false);
+                $sisaBolehDiambil = (int) ($stepInfo['remaining'] ?? 0);
+
+                if (!$matched || $sisaBolehDiambil <= 0) {
                     continue;
                 }
 
@@ -944,10 +1294,171 @@ class PekerjaanController extends Controller
                     'mesin_id'    => $mesinId,
                     'user_id'     => $userId,
                     'jumlah'      => $sisaBolehDiambil,
-                ]);    
+                ]);
+
+                $createdCount++;
             }
         });
 
+        if ($createdCount <= 0) {
+            return back()->with('warning', 'Tidak ada item eligible untuk diambil pada step mesin ini.');
+        }
+
         return back()->with('success', 'Multi ambil berhasil: semua sisa qty yang bisa diambil sudah dimasukkan ke antrian.');
+    }
+
+    private function normalizeMesinType(?string $mesinType): string
+    {
+        return strtolower(trim((string) $mesinType));
+    }
+
+    private function resolveStepIdentity(array $step): array
+    {
+        $stepId = (int) ($step['divisi_mesin_id'] ?? 0);
+
+        $rawName = trim((string) ($step['divisi_mesin'] ?? ''));
+        $rawAlt  = trim((string) ($step['keterangan_divisi'] ?? ''));
+        $rawType = trim((string) ($step['tipe_mesin'] ?? ''));
+
+        $candidates = collect([$rawName, $rawAlt, $rawType])
+            ->map(fn ($v) => $this->normalizeMesinType($v))
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        return [
+            'step_id' => $stepId,
+            'step_name' => $rawName !== '' ? $rawName : ($rawAlt !== '' ? $rawAlt : $rawType),
+            'candidates' => $candidates,
+        ];
+    }
+
+    private function pickActiveWorkflowStepFromBucket($workflowBucket): ?array
+    {
+        if (!$workflowBucket) {
+            return null;
+        }
+
+        $list = (is_array($workflowBucket) && array_is_list($workflowBucket))
+            ? $workflowBucket
+            : [$workflowBucket];
+
+        foreach ($list as $step) {
+            if ((int) ($step['remaining_take_qty'] ?? 0) > 0) {
+                return $step;
+            }
+        }
+
+        return !empty($list) ? end($list) : null;
+    }
+
+    private function calculateRemainingTakeForStep(
+        SPKItem $item,
+        int $targetMesinId,
+        string $targetMesinType,
+        $mesinTypeByMesinId
+    ): array {
+        $produk = $item->produk;
+        $alur = $produk?->alur_produksi_json ?? [];
+        if (!is_array($alur) || empty($alur)) {
+            return [
+                'remaining' => 0,
+                'eligible' => 0,
+                'queued' => 0,
+                'printed' => 0,
+                'matched' => false,
+                'step_index' => 0,
+                'step_total' => 0,
+                'step_name' => '',
+            ];
+        }
+
+        $printByStepType = [];
+        $printRows = SpkItemCetakLog::query()
+            ->selectRaw('mesin_id, SUM(jumlah) as total_cetak')
+            ->where('spk_item_id', $item->id)
+            ->whereNull('deleted_at')
+            ->groupBy('mesin_id')
+            ->get();
+
+        foreach ($printRows as $row) {
+            $tipe = $mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '';
+            if ($tipe === '') {
+                continue;
+            }
+            $printByStepType[$tipe] = (int) ($printByStepType[$tipe] ?? 0) + (int) ($row->total_cetak ?? 0);
+        }
+
+        $queueByStepType = [];
+        $queueRows = SpkItemCetakQueue::query()
+            ->selectRaw('mesin_id, SUM(jumlah) as total_diambil')
+            ->where('spk_item_id', $item->id)
+            ->groupBy('mesin_id')
+            ->get();
+
+        foreach ($queueRows as $row) {
+            $tipe = $mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '';
+            if ($tipe === '') {
+                continue;
+            }
+            $queueByStepType[$tipe] = (int) ($queueByStepType[$tipe] ?? 0) + (int) ($row->total_diambil ?? 0);
+        }
+
+        $eligibleQty = (int) ($item->jumlah ?? 0);
+        $stepTotal = count($alur);
+
+        foreach ($alur as $index => $step) {
+            if (!is_array($step)) {
+                continue;
+            }
+
+            $identity = $this->resolveStepIdentity($step);
+            $stepId = (int) ($identity['step_id'] ?? 0);
+            $stepName = (string) ($identity['step_name'] ?? '');
+            $candidates = $identity['candidates'] ?? [];
+
+            if ($stepId <= 0 && empty($candidates)) {
+                continue;
+            }
+
+            $printedQty = 0;
+            $queuedQty = 0;
+            foreach ($candidates as $candidateType) {
+                $printedQty += (int) ($printByStepType[$candidateType] ?? 0);
+                $queuedQty  += (int) ($queueByStepType[$candidateType] ?? 0);
+            }
+
+            $remainingTake = max(0, $eligibleQty - $queuedQty);
+
+            $isTargetStep = ($stepId > 0 && $stepId === $targetMesinId)
+                || in_array($targetMesinType, $candidates, true);
+
+            if ($isTargetStep) {
+                return [
+                    'remaining' => $remainingTake,
+                    'eligible' => $eligibleQty,
+                    'queued' => $queuedQty,
+                    'printed' => $printedQty,
+                    'matched' => true,
+                    'step_index' => $index + 1,
+                    'step_total' => $stepTotal,
+                    'step_name' => $stepName,
+                ];
+            }
+
+            $eligibleQty = $printedQty;
+        }
+
+        return [
+            'remaining' => 0,
+            'eligible' => 0,
+            'queued' => 0,
+            'printed' => 0,
+            'matched' => false,
+            'step_index' => 0,
+            'step_total' => $stepTotal,
+            'step_name' => '',
+        ];
     }
 }

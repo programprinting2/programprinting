@@ -31,28 +31,19 @@ class SpkItemCetakLogObserver
 
     protected function handleLogChange(SpkItemCetakLog $log): void
     {
-        $item = $log->spkItem()->with(['spk', 'cetakLogs'])->first();
+        $item = $log->spkItem()->with(['spk', 'cetakLogs', 'produk'])->first();
 
-        if (! $item || ! $item->spk) {
+        if (!$item || !$item->spk) {
             return;
         }
 
         $spk = $item->spk;
 
-        // =========================
-        // 1) Hitung progress item
-        // =========================
-        $qty = (int) ($item->jumlah ?? 0);
+        $itemWorkflow = $this->buildItemWorkflowProgress($item);
 
-        $totalCetakItem = (int) SpkItemCetakLog::query()
-            ->where('spk_item_id', $item->id)
-            ->whereNull('deleted_at')
-            ->sum('jumlah');
-
-        $remaining = max(0, $qty - $totalCetakItem);
-        $progressPct = $qty > 0
-            ? min(100, round(($totalCetakItem / $qty) * 100, 1))
-            : 0.0;
+        $progressPct = (float) ($itemWorkflow['active_progress_pct'] ?? 0.0);
+        $remaining = (int) ($itemWorkflow['active_remaining_qty'] ?? 0);
+        $isDone = (bool) ($itemWorkflow['is_done'] ?? false);
 
         $progressColor = $progressPct >= 100
             ? 'bg-success'
@@ -61,37 +52,35 @@ class SpkItemCetakLogObserver
         event(new SpkItemUpdated(
             spkId: (int) $spk->id,
             spkItemId: (int) $item->id,
-            progressPct: (float) $progressPct,
+            progressPct: $progressPct,
             progressColor: $progressColor,
-            remaining: (int) $remaining,
+            remaining: $remaining,
             satuan: (string) ($item->satuan ?? ''),
-            isDone: $remaining <= 0 && $qty > 0,
+            isDone: $isDone,
         ));
 
-        // ==================================
-        // 2) Hitung progress total level SPK
-        // ==================================
-        $spk->loadMissing('items.cetakLogs');
+        $spk->loadMissing(['items.produk', 'items.cetakLogs']);
 
-        $totalQty = 0.0;
-        $weightedProgress = 0.0;
+        $totalEligibleStepQty = 0.0;
+        $weightedStepProgress = 0.0;
 
         foreach ($spk->items as $spkItem) {
-            $itemQty = (float) ($spkItem->jumlah ?? 0);
-            $printed = (float) $spkItem->cetakLogs
-                ->whereNull('deleted_at')
-                ->sum('jumlah');
+            $wf = $this->buildItemWorkflowProgress($spkItem);
 
-            $itemProgress = $itemQty > 0
-                ? min(100, round(($printed / $itemQty) * 100, 1))
-                : 0.0;
+            foreach (($wf['steps'] ?? []) as $step) {
+                $eligible = (float) ($step['eligible_qty'] ?? 0);
+                if ($eligible <= 0) {
+                    continue;
+                }
 
-            $totalQty += $itemQty;
-            $weightedProgress += ($itemQty * $itemProgress);
+                $pct = (float) ($step['progress_pct'] ?? 0);
+                $totalEligibleStepQty += $eligible;
+                $weightedStepProgress += ($eligible * $pct);
+            }
         }
 
-        $spkProgressPct = $totalQty > 0
-            ? (int) round($weightedProgress / $totalQty)
+        $spkProgressPct = $totalEligibleStepQty > 0
+            ? (int) round($weightedStepProgress / $totalEligibleStepQty)
             : 0;
 
         $spkProgressColor = $spkProgressPct >= 100
@@ -104,23 +93,9 @@ class SpkItemCetakLogObserver
             spkProgressColor: $spkProgressColor,
         ));
 
-        // =========================================================
-        // 3) Auto advance status jika semua item selesai dicetak
-        //    (pertahankan rule lama Anda)
-        // =========================================================
         $allDone = $spk->items->every(function (SPKItem $it): bool {
-            $itemQty = (int) ($it->jumlah ?? 0);
-
-            if ($itemQty <= 0) {
-                return false;
-            }
-
-            $printed = (int) SpkItemCetakLog::query()
-                ->where('spk_item_id', $it->id)
-                ->whereNull('deleted_at')
-                ->sum('jumlah');
-
-            return $printed >= $itemQty;
+            $wf = $this->buildItemWorkflowProgress($it);
+            return (bool) ($wf['is_done'] ?? false);
         });
 
         if ($allDone && $spk->status === 'manager_approval_order') {
@@ -128,5 +103,121 @@ class SpkItemCetakLogObserver
                 'status' => 'operator_cetak',
             ]);
         }
+    }
+
+    private function normalizeMesinType(?string $value): string
+    {
+        return strtolower(trim((string) $value));
+    }
+
+    private function buildItemWorkflowProgress(SPKItem $item): array
+    {
+        $item->loadMissing(['produk:id,alur_produksi_json', 'cetakLogs:spk_item_id,mesin_id,jumlah,deleted_at']);
+
+        $qtyPesanan = (int) ($item->jumlah ?? 0);
+        $alur = $item->produk?->alur_produksi_json ?? [];
+
+        if (!is_array($alur) || empty($alur)) {
+            return [
+                'active_progress_pct' => 0.0,
+                'active_remaining_qty' => $qtyPesanan,
+                'active_step_index' => 0,
+                'active_step_total' => 0,
+                'is_done' => false,
+                'steps' => [],
+                'aggregate_pct' => 0.0,
+            ];
+        }
+
+        $activeLogs = $item->cetakLogs->whereNull('deleted_at')->values();
+        $mesinIds = $activeLogs->pluck('mesin_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $mesinTypeByMesinId = \App\Models\MasterMesin::query()
+            ->whereIn('id', $mesinIds)
+            ->get(['id', 'tipe_mesin'])
+            ->mapWithKeys(fn ($m) => [(int) $m->id => $this->normalizeMesinType($m->tipe_mesin ?? null)]);
+
+        $printedByStepType = [];
+        foreach ($activeLogs as $log) {
+            $mesinId = (int) ($log->mesin_id ?? 0);
+            $stepType = $mesinTypeByMesinId[$mesinId] ?? '';
+            if ($stepType === '') {
+                continue;
+            }
+            $printedByStepType[$stepType] = (int) ($printedByStepType[$stepType] ?? 0) + (int) ($log->jumlah ?? 0);
+        }
+
+        $steps = [];
+        $eligibleQty = $qtyPesanan;
+        $stepTotal = count($alur);
+
+        foreach ($alur as $idx => $step) {
+            if (!is_array($step)) {
+                continue;
+            }
+
+            $stepType = $this->normalizeMesinType($step['divisi_mesin'] ?? '');
+            if ($stepType === '') {
+                continue;
+            }
+
+            $printedQty = (int) ($printedByStepType[$stepType] ?? 0);
+            $remainingQty = max(0, $eligibleQty - $printedQty);
+            $progressPct = $eligibleQty > 0
+                ? min(100, round(($printedQty / $eligibleQty) * 100, 1))
+                : 0.0;
+
+            $steps[] = [
+                'step_index' => $idx + 1,
+                'step_total' => $stepTotal,
+                'eligible_qty' => $eligibleQty,
+                'printed_qty' => $printedQty,
+                'remaining_qty' => $remainingQty,
+                'progress_pct' => $progressPct,
+            ];
+
+            $eligibleQty = $printedQty;
+        }
+
+        $activeStep = collect($steps)->first(fn ($s) =>
+            (int) ($s['eligible_qty'] ?? 0) > 0 && (int) ($s['remaining_qty'] ?? 0) > 0
+        );
+
+        if (!$activeStep) {
+            $activeStep = !empty($steps) ? end($steps) : null;
+        }
+
+        $totalEligibleAllSteps = collect($steps)->sum(fn ($s) => (float) ($s['eligible_qty'] ?? 0));
+        $weighted = collect($steps)->sum(fn ($s) =>
+            ((float) ($s['eligible_qty'] ?? 0)) * ((float) ($s['progress_pct'] ?? 0))
+        );
+
+        $aggregatePct = $totalEligibleAllSteps > 0
+            ? round($weighted / $totalEligibleAllSteps, 1)
+            : 0.0;
+
+        $activeRemaining = (int) ($activeStep['remaining_qty'] ?? $qtyPesanan);
+        $activeEligible = (int) ($activeStep['eligible_qty'] ?? 0);
+        $activeIndex = (int) ($activeStep['step_index'] ?? 0);
+        $activeTotal = (int) ($activeStep['step_total'] ?? 0);
+
+        $isDone = $activeTotal > 0
+            && $activeIndex === $activeTotal
+            && $activeEligible > 0
+            && $activeRemaining <= 0;
+
+        return [
+            'active_progress_pct' => (float) ($activeStep['progress_pct'] ?? 0.0),
+            'active_remaining_qty' => $activeRemaining,
+            'active_step_index' => $activeIndex,
+            'active_step_total' => $activeTotal,
+            'is_done' => $isDone,
+            'steps' => $steps,
+            'aggregate_pct' => $aggregatePct,
+        ];
     }
 }
