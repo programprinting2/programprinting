@@ -1789,6 +1789,13 @@
                 const statusBadge = row.is_batalkan 
                   ? '<span class="badge bg-danger">Dibatalkan</span>'
                   : '<span class="badge bg-success">Selesai</span>';
+                const actionHtml = row.can_cancel
+                  ? `<button type="button"
+                        class="btn btn-sm btn-outline-danger btn-global-batalkan-log"
+                        data-log-id="${row.id}">
+                        Batalkan
+                    </button>`
+                  : '<span class="text-muted small">-</span>';
                 return `<tr>
                   <td class="text-center">${no}</td>
                   <td>${
@@ -1800,6 +1807,7 @@
                   <td class="text-end">${escapeHtml(row.jumlah_formatted || '0')}</td>
                   <td>${escapeHtml(row.operator || '-')}</td>
                   <td>${statusBadge}</td>
+                  <td>${actionHtml}</td>
                 </tr>`;
               }).join('');
             }
@@ -2034,6 +2042,66 @@
           if (result.isConfirmed) {
             form.submit();
           }
+        });
+      });
+
+      document.addEventListener('click', function (e) {
+        const btn = e.target.closest('.btn-global-batalkan-log');
+        if (!btn) return;
+
+        const logId = btn.getAttribute('data-log-id');
+        if (!logId) return;
+
+        Swal.fire({
+          title: 'Batalkan cetak?',
+          text: 'Log cetak akan dibatalkan.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Ya, batalkan',
+          cancelButtonText: 'Batal',
+          confirmButtonColor: '#d33'
+        }).then((result) => {
+          if (!result.isConfirmed) return;
+
+          fetch(`{{ route('pekerjaan.operator-cetak.destroy-history', ['log' => 'LOG_ID_PLACEHOLDER']) }}`
+            .replace('LOG_ID_PLACEHOLDER', logId), {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+              'X-Requested-With': 'XMLHttpRequest',
+              'Accept': 'application/json'
+            }
+          })
+          .then(async (res) => {
+            const data = await res.json();
+
+            if (!res.ok || !data.success) {
+              Swal.fire({
+                icon: 'error',
+                title: 'Gagal',
+                text: data.message || 'Gagal membatalkan cetakan.'
+              });
+              return;
+            }
+
+            Swal.fire({
+              icon: 'success',
+              title: 'Berhasil',
+              text: 'Cetakan berhasil dibatalkan.'
+            }).then(() => {
+              location.reload(); 
+            });
+
+            // const currentPage = 1;
+            // loadGlobalHistory(currentPage);
+          })
+          .catch(() => {
+            Swal.fire({
+              icon: 'error',
+              title: 'Error',
+              text: 'Terjadi kesalahan jaringan.'
+            });
+          });
         });
       });
 
@@ -2830,11 +2898,12 @@
                 <th class="text-end">Jumlah</th>
                 <th>Operator</th>
                 <th style="width: 100px;">Status</th>
+                <th style="width: 140px;">Aksi</th>
               </tr>
             </thead>
             <tbody id="globalHistoryBody">
               <tr>
-                <td colspan="6" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
+                <td colspan="8" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
               </tr>
             </tbody>
           </table>

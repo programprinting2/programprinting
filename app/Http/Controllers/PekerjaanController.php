@@ -978,20 +978,30 @@ class PekerjaanController extends Controller
         return response()->json(['logs' => $logs]);
     }
 
-    public function destroyHistory(SpkItemCetakLog $log)
+    public function destroyHistory(SpkItemCetakLog $log): JsonResponse
     {
+        $authUserId = (int) auth()->id();
+
+        if ((int) $log->user_id !== $authUserId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Anda tidak berhak membatalkan cetak milik operator lain.',
+            ], 403);
+        }
+
         DB::transaction(function () use ($log, &$response) {
             $spkItem = $log->spkItem;
             $log->delete();
 
-            $qtyPesanan   = (int) ($spkItem->jumlah ?? 0);
-            $sudahCetak   = (int) $spkItem->cetakLogs()->sum('jumlah');
-            $sisa         = max(0, $qtyPesanan - $sudahCetak);
+            $qtyPesanan = (int) ($spkItem->jumlah ?? 0);
+            $sudahCetak = (int) $spkItem->cetakLogs()
+                ->whereNull('deleted_at')
+                ->sum('jumlah');
+            $sisa = max(0, $qtyPesanan - $sudahCetak);
 
-            $progressPct  = 0;
-            if ($qtyPesanan > 0) {
-                $progressPct = min(100, round(($sudahCetak / $qtyPesanan) * 100));
-            }
+            $progressPct = $qtyPesanan > 0
+                ? min(100, round(($sudahCetak / $qtyPesanan) * 100))
+                : 0;
 
             if ($spkItem->spk) {
                 $keterangan = sprintf(
@@ -1000,6 +1010,7 @@ class PekerjaanController extends Controller
                     $spkItem->satuan,
                     $spkItem->nama_produk
                 );
+
                 ActivityLogService::log(
                     $spkItem->spk,
                     'spk_item_cetak_batalkan',
@@ -1007,13 +1018,13 @@ class PekerjaanController extends Controller
                     'warning'
                 );
             }
-            
+
             $response = [
-                'success'            => true,
-                'spk_item_id'        => $spkItem->id,
+                'success' => true,
+                'spk_item_id' => $spkItem->id,
                 'jumlah_sudah_cetak' => $sudahCetak,
-                'sisa_belum_cetak'   => $sisa,
-                'progress_persen'    => $progressPct,
+                'sisa_belum_cetak' => $sisa,
+                'progress_persen' => $progressPct,
             ];
         });
 
@@ -1034,6 +1045,10 @@ class PekerjaanController extends Controller
             ->withTrashed()
             ->with(['spkItem.spk.pelanggan', 'user'])
             ->orderByDesc('created_at');
+            
+        $query->whereHas('spkItem.spk', function ($q) {
+            $q->where('status', '!=', 'selesai');
+        });
 
         $now = now();
         switch ($filter) {
@@ -1058,8 +1073,9 @@ class PekerjaanController extends Controller
         }
 
         $logs = $query->paginate(10)->withQueryString();
+        $authUserId = (int) auth()->id();
 
-        $data = $logs->getCollection()->map(function ($log) {
+        $data = $logs->getCollection()->map(function ($log) use ($authUserId) {
             $spkItem = $log->spkItem;
             $spk = $spkItem?->spk;
             return [
@@ -1070,6 +1086,7 @@ class PekerjaanController extends Controller
                 'jumlah_formatted' => number_format((int) $log->jumlah, 0, ',', '.'),
                 'operator'        => optional($log->user)->name ?? ('User #' . $log->user_id),
                 'is_batalkan'      => $log->trashed(),  
+                'can_cancel'       => ((int) $log->user_id === $authUserId) && !$log->trashed(),
             ];
         })->values()->all();
 
