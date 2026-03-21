@@ -145,7 +145,7 @@
           <div class="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
             <p class="mb-0"><span id="notifCount">{{ $unreadCount }}</span> Notifikasi baru</p>
             <div class="d-flex gap-3">
-              <a href="javascript:;" class="text-muted ms-3" id="notifReload" title="Reload Page">
+              <a class="text-muted ms-3" id="notifReload" title="Reload Page">
                 <i class="fas fa-sync"></i>
               </a>
               <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a>
@@ -164,7 +164,7 @@
                 $isUnread = is_null($n->read_at);
               @endphp
               <a href="{{ route('spk.show', $data['nomor_spk'] ?? 0) }}"
-                class="dropdown-item d-flex align-items-center py-2 {{ $isUnread ? 'bg-light' : '' }}"
+                class="dropdown-item d-flex align-items-center py-2 {{ $isUnread ? '' : 'bg-light' }}"
                 data-notif-id="{{ $n->id }}">
                 <div class="wd-30 ht-30 d-flex align-items-center justify-content-center bg-primary rounded-circle me-3">
                   <i class="icon-sm text-white" data-feather="{{ $action === 'created' ? 'plus-circle' : 'refresh-cw' }}"></i>
