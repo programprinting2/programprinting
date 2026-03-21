@@ -41,10 +41,16 @@ class PekerjaanController extends Controller
             'items:id,spk_id,produk_id,jumlah,nama_produk,panjang,lebar,satuan,file_pendukung',
             'items.produk:id,nama_produk,kode_produk,alur_produksi_json,is_metric,metric_unit',
             'items.produk.bahanBakus:id,nama_bahan,kode_bahan',
-            'items.cetakLogs:id,spk_item_id,jumlah,deleted_at,created_at'
+            'items.cetakLogs:id,spk_item_id,mesin_id,jumlah,deleted_at,created_at'
         ]);
 
         $spkMap = $spk->keyBy('id');
+        $tipeMesinNamaByMesinId = MasterMesin::query()
+            ->get(['id', 'tipe_mesin'])
+            ->mapWithKeys(function (MasterMesin $mesin) {
+                $normalizedTipeMesin = strtolower(trim((string) ($mesin->tipe_mesin ?? '')));
+                return [(int) $mesin->id => $normalizedTipeMesin];
+            });
 
         $bahanBakuGroups = [];
         $mesinGroups     = [];
@@ -86,22 +92,86 @@ class PekerjaanController extends Controller
 
                 // Group mesin
                 $alur = $produk->alur_produksi_json ?? [];
-                foreach ($alur as $step) {
-                    $mesinId   = $step['divisi_mesin_id'] ?? null;
-                    $mesinNama = $step['divisi_mesin'] ?? null;
-                    if (!$mesinId && !$mesinNama) continue;
+                $workflowStepsByMesin = [];
+                if (is_array($alur) && !empty($alur)) {
+                    $stepPrintedByKey = [];
+                    foreach ($item->cetakLogs as $log) {
+                        $mesinId = (int) ($log->mesin_id ?? 0);
+                        if ($mesinId <= 0) {
+                            continue;
+                        }
 
-                    $key = $mesinId ?: $mesinNama;
-                    if (!isset($mesinGroups[$key])) {
-                        $mesinGroups[$key] = [
-                            'id'   => $mesinId,
-                            'nama' => $mesinNama,
-                            'kode' => $step['keterangan_divisi'] ?? '',
-                            'spk'  => []
-                        ];
+                        $tipeMesinNama = (string) ($tipeMesinNamaByMesinId[$mesinId] ?? '');
+                        if ($tipeMesinNama === '') {
+                            continue;
+                        }
+
+                        $stepLogKey = 'name:'.$tipeMesinNama;
+                        $stepPrintedByKey[$stepLogKey] = (int) ($stepPrintedByKey[$stepLogKey] ?? 0) + (int) ($log->jumlah ?? 0);
                     }
-                    $mesinGroups[$key]['spk'][$row->id] = $row;
+
+                    $eligibleQtyForStep = (int) ($item->jumlah ?? 0);
+                    $totalStepCount = count($alur);
+
+                    foreach ($alur as $index => $step) {
+                        if (!is_array($step)) {
+                            continue;
+                        }
+
+                        $mesinId   = $step['divisi_mesin_id'] ?? null;
+                        $mesinNama = isset($step['divisi_mesin'])
+                            ? trim((string) $step['divisi_mesin'])
+                            : null;
+                        if (!$mesinId && !$mesinNama) {
+                            continue;
+                        }
+
+                        $key = $mesinId ?: $mesinNama;
+                        $stepNameKey = 'name:'.strtolower(trim((string) $mesinNama));
+                        $stepIdKey = $mesinId ? 'id:'.(int) $mesinId : null;
+                        if ($stepIdKey && isset($stepPrintedByKey[$stepIdKey])) {
+                            $printedQty = (int) $stepPrintedByKey[$stepIdKey];
+                        } else {
+                            $printedQty = (int) ($stepPrintedByKey[$stepNameKey] ?? 0);
+                        }
+                        
+                        $remainingQty = max(0, $eligibleQtyForStep - $printedQty);
+
+                        $workflowStepsByMesin[(string) $key] = [
+                            'step_index' => $index + 1,
+                            'step_total' => $totalStepCount,
+                            'eligible_qty' => $eligibleQtyForStep,
+                            'printed_qty' => $printedQty,
+                            'remaining_qty' => $remainingQty,
+                            'progress_pct' => $eligibleQtyForStep > 0
+                                ? min(100, round(($printedQty / $eligibleQtyForStep) * 100, 1))
+                                : 0,
+                        ];
+
+                        if ($eligibleQtyForStep <= 0) {
+                            $eligibleQtyForStep = $printedQty;
+                            continue;
+                        }
+
+                        if (!isset($mesinGroups[$key])) {
+                            $mesinGroups[$key] = [
+                                'id'   => $mesinId,
+                                'nama' => $mesinNama,
+                                'kode' => $step['keterangan_divisi'] ?? '',
+                                'spk'  => [],
+                                'total_eligible' => 0,
+                                'total_printed' => 0,
+                            ];
+                        }
+
+                        $mesinGroups[$key]['spk'][$row->id] = $row;
+                        $mesinGroups[$key]['total_eligible'] += $eligibleQtyForStep;
+                        $mesinGroups[$key]['total_printed'] += min($printedQty, $eligibleQtyForStep);
+                        $eligibleQtyForStep = $printedQty;
+                    }
                 }
+
+                $item->workflow_steps_by_mesin = $workflowStepsByMesin;
 
                 // Group produk
                 $prodKey = $item->produk_id ?: $item->nama_produk;
@@ -190,9 +260,9 @@ class PekerjaanController extends Controller
             fn () => MasterMesin::all()
         );
 
-        $mesinByTipeId = $allMesin->groupBy('tipe_mesin_id');
+        $mesinByTipeId = collect();
         $mesinByTipeNama = $allMesin->groupBy(function ($m) {
-            return trim((string) $m->tipe_mesin);
+            return strtolower(trim((string) $m->tipe_mesin));
         });
 
         $tipeMesinGroups = [];
@@ -247,8 +317,9 @@ class PekerjaanController extends Controller
                         $mesinMatches = $mesinByTipeId[$divisiId];
                     }
 
-                    if ($mesinMatches->isEmpty() && $divisiNama && isset($mesinByTipeNama[$divisiNama])) {
-                        $mesinMatches = $mesinByTipeNama[$divisiNama];
+                    $divisiNamaNorm = strtolower(trim((string) $divisiNama));
+                    if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByTipeNama[$divisiNamaNorm])) {
+                        $mesinMatches = $mesinByTipeNama[$divisiNamaNorm];
                     }
 
                     $tipeMesinGroups[$tipeKey] = [

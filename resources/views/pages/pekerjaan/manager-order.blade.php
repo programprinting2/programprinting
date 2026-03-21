@@ -1112,43 +1112,12 @@
       <div class="accordion" id="mesinAccordion">
         @forelse($mesinGroups as $mesin)
           @php
-            $totalQty = 0;
-            $weightedProgress = 0;
+            $mesinKey = (string) (($mesin['id'] ?? null) ?: ($mesin['nama'] ?? ''));
+            $totalEligibleQty = (float) ($mesin['total_eligible'] ?? 0);
+            $totalPrintedQty = (float) ($mesin['total_printed'] ?? 0);
 
-            $targetId = $mesin['id'] ?? null;
-
-            foreach ($mesin['spk'] as $spkRow) {
-                foreach ($spkRow->items as $spkItem) {
-
-                    $produk = $spkItem->produk;
-                    if (!$produk || !$targetId) continue;
-
-                    $alur = $produk->alur_produksi_json ?? [];
-                    if (!is_array($alur) || empty($alur)) continue;
-
-                    $matched = false;
-
-                    foreach ($alur as $step) {
-                        if (!is_array($step)) continue;
-
-                        if ((int)($step['divisi_mesin_id'] ?? 0) === (int)$targetId) {
-                            $matched = true;
-                            break;
-                        }
-                    }
-
-                    if (!$matched) continue;
-
-                    $qty = (float) ($spkItem->jumlah ?? 0);
-                    $pct = (float) ($spkItem->progress_cetak_persen ?? 0);
-
-                    $totalQty += $qty;
-                    $weightedProgress += ($qty * $pct);
-                }
-            }
-
-            $mesinProgressPct = $totalQty > 0
-                ? round($weightedProgress / $totalQty)
+            $mesinProgressPct = $totalEligibleQty > 0
+                ? round(($totalPrintedQty / $totalEligibleQty) * 100)
                 : 0;
 
             $mesinProgressColor = $mesinProgressPct >= 100
@@ -1168,36 +1137,24 @@
                       $totalMetric = 0;
                       $metricUnitLabel = 'm';
 
-                      $targetId = $mesin['id'] ?? null;
+                      $mesinKey = (string) (($mesin['id'] ?? null) ?: ($mesin['nama'] ?? ''));
 
                       foreach ($mesin['spk'] as $spkRow) {
                           foreach ($spkRow->items as $spkItem) {
                               $produk = $spkItem->produk;
-                              if (!$produk || $produk->is_metric !== true || !$targetId) {
+                              if (!$produk || $produk->is_metric !== true) {
                                   continue;
                               }
 
-                              $alur = $produk->alur_produksi_json ?? [];
-                              if (!is_array($alur) || empty($alur)) {
-                                  continue;
-                              }
-
-                              $matched = false;
-                              foreach ($alur as $step) {
-                                  if (!is_array($step)) continue;
-                                  if ((int)($step['divisi_mesin_id'] ?? 0) === (int)$targetId) {
-                                      $matched = true;
-                                      break;
-                                  }
-                              }
-                              if (!$matched) {
+                              $workflowStep = data_get($spkItem, 'workflow_steps_by_mesin.'.$mesinKey);
+                              if (!$workflowStep || (int) ($workflowStep['eligible_qty'] ?? 0) <= 0) {
                                   continue;
                               }
 
                               $metricUnit = $produk->metric_unit ?: 'cm';
                               $panjang = (float) ($spkItem->panjang ?? 0);
                               $lebar   = (float) ($spkItem->lebar ?? 0);
-                              $jumlah  = (float) ($spkItem->jumlah ?? 0);
+                              $jumlah  = (float) ($workflowStep['eligible_qty'] ?? 0);
 
                               if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
                                   continue;
@@ -1268,38 +1225,11 @@
                     <tbody>
                       @foreach($mesin['spk'] as $spkRow)
                         @php
-                          $targetId = $mesin['id'] ?? null;
-                          $targetNama = trim((string)($mesin['nama'] ?? ''));
+                          $mesinKey = (string) (($mesin['id'] ?? null) ?: ($mesin['nama'] ?? ''));
 
-                          $itemsForMesin = $spkRow->items->filter(function ($spkItem) use ($targetId, $targetNama) {
-                              $produk = $spkItem->produk;
-                              if (!$produk) {
-                                  return false;
-                              }
-
-                              $alur = $produk->alur_produksi_json ?? [];
-                              if (!is_array($alur) || empty($alur)) {
-                                  return false;
-                              }
-
-                              foreach ($alur as $step) {
-                                  if (!is_array($step)) {
-                                      continue;
-                                  }
-
-                                  $stepId = $step['divisi_mesin_id'] ?? null;
-                                  $stepNama = trim((string)($step['divisi_mesin'] ?? ''));
-
-                                  if ($targetId && (int)$stepId === (int)$targetId) {
-                                      return true;
-                                  }
-
-                                  if (!$targetId && $targetNama !== '' && strcasecmp($stepNama, $targetNama) === 0) {
-                                      return true;
-                                  }
-                              }
-
-                              return false;
+                          $itemsForMesin = $spkRow->items->filter(function ($spkItem) use ($mesinKey) {
+                              $workflowStep = data_get($spkItem, 'workflow_steps_by_mesin.'.$mesinKey);
+                              return $workflowStep && (int) ($workflowStep['eligible_qty'] ?? 0) > 0;
                           })->values();
 
                           $rowspan = $itemsForMesin->count();
@@ -1309,6 +1239,7 @@
                         @forelse($itemsForMesin as $spkItem)
                           @php
                               $produk = $spkItem->produk;
+                              $workflowStep = data_get($spkItem, 'workflow_steps_by_mesin.'.$mesinKey);
                               $isMetric   = $produk && ($produk->is_metric === true);
                               $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
                               $panjang = (float) ($spkItem->panjang ?? 0);
@@ -1325,8 +1256,12 @@
                                   $dimensiText = '-';
                                   $luasText = '';
                               }
-                              $progressPct = (float) ($spkItem->progress_cetak_persen ?? 0);
-                              $sisa = (int) ($spkItem->sisa_belum_cetak ?? 0);
+                              $progressPct = (float) ($workflowStep['progress_pct'] ?? 0);
+                              $sisa = (int) ($workflowStep['remaining_qty'] ?? 0);
+                              $eligibleQty = (int) ($workflowStep['eligible_qty'] ?? 0);
+                              $printedQty = (int) ($workflowStep['printed_qty'] ?? 0);
+                              $stepIndex = (int) ($workflowStep['step_index'] ?? 1);
+                              $stepTotal = (int) ($workflowStep['step_total'] ?? 1);
 
                               $progressColor = $progressPct >= 100
                               ? 'bg-success'
@@ -1446,9 +1381,12 @@
                                   @endif
                               </td>
 
-                              <td class="text-end">{{ $spkItem->jumlah }}</td>
+                              <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
                               <td>{{ $spkItem->satuan }}</td>
                               <td class="text-end align-middle">
+                                <div class="small text-muted mb-1">
+                                  Step {{ $stepIndex }}/{{ $stepTotal }} • {{ number_format($printedQty,0,',','.') }}/{{ number_format($eligibleQty,0,',','.') }}
+                                </div>
                                 @if($sisa <= 0)
                                   <span class="badge bg-success mb-2">
                                   Selesai
