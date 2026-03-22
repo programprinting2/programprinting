@@ -450,24 +450,6 @@
           </ul>
         </div>
       </li>
-      <li class="nav-item {{ active_class(['auth/*']) }}">
-        <a class="nav-link" data-bs-toggle="collapse" href="#auth" role="button"
-          aria-expanded="{{ is_active_route(['auth/*']) }}" aria-controls="auth">
-          <i class="link-icon" data-feather="unlock"></i>
-          <span class="link-title">Authentication</span>
-          <i class="link-arrow" data-feather="chevron-down"></i>
-        </a>
-        <div class="collapse {{ show_class(['auth/*']) }}" id="auth">
-          <ul class="nav sub-menu">
-            <li class="nav-item">
-              <a href="{{ url('/auth/login') }}" class="nav-link {{ active_class(['auth/login']) }}">Login</a>
-            </li>
-            <li class="nav-item">
-              <a href="{{ url('/auth/register') }}" class="nav-link {{ active_class(['auth/register']) }}">Register</a>
-            </li>
-          </ul>
-        </div>
-      </li>
       <li class="nav-item {{ active_class(['error/*']) }}">
         <a class="nav-link" data-bs-toggle="collapse" href="#error" role="button"
           aria-expanded="{{ is_active_route(['error/*']) }}" aria-controls="error">

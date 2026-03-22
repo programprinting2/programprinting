@@ -47,7 +47,7 @@
                 
                 </div>
 
-                <a href="{{ url('/auth/register') }}" class="d-block mt-3 text-muted">Not a user? Sign up</a>
+                <a href="{{ url('/register') }}" class="d-block mt-3 text-muted">Not a user? Sign up</a>
               </form>
             </div>
           </div>

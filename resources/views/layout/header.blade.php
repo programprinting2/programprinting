@@ -145,7 +145,7 @@
           <div class="px-3 py-2 d-flex align-items-center justify-content-between border-bottom">
             <p class="mb-0"><span id="notifCount">{{ $unreadCount }}</span> Notifikasi baru</p>
             <div class="d-flex gap-3">
-              <a class="text-muted ms-3" id="notifReload" title="Reload Page">
+              <a href="javascript:;" class="text-muted ms-3" id="notifReload" title="Reload Page">
                 <i class="fas fa-sync"></i>
               </a>
               <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a>

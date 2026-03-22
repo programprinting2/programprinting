@@ -34,7 +34,7 @@ use App\Http\Controllers\PekerjaanController;
 
 Route::get('/', function () {
     return view('dashboard');
-})->middleware(['auth','single.session']); 
+})->middleware(['auth','single.session'])->name('dashboard');; 
 
 Route::middleware(['auth', 'single.session'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -473,15 +473,6 @@ Route::group(['prefix' => 'general'], function () {
     });
     Route::get('timeline', function () {
         return view('pages.general.timeline');
-    });
-});
-
-Route::group(['prefix' => 'auth'], function () {
-    Route::get('login', function () {
-        return view('pages.auth.login');
-    });
-    Route::get('register', function () {
-        return view('pages.auth.register');
     });
 });
 

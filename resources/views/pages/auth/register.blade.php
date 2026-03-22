@@ -15,7 +15,7 @@
           <div class="col-md-8 ps-md-0">
             <div class="auth-form-wrapper px-4 py-5">
               <a href="#" class="noble-ui-logo d-block mb-2">Noble<span>UI</span></a>
-              <h5 class="text-muted fw-normal mb-4">Create a free account.</h5>
+              <h5 class="text-muted fw-normal mb-4">Create an account to continue.</h5>
               <form method="POST" action="{{ route('register') }}">
                 @csrf
 
@@ -35,16 +35,15 @@
                 </div>
                 <div class="mb-3">
                   <label for="userPassword" class="form-label">Password</label>
-                  <input type="password" class="form-control" id="userPassword" name="password" required autocomplete="current-password" placeholder="Password">
+                  <input type="password" class="form-control" id="userPassword" name="password" required autocomplete="new-password" placeholder="Password">
                   @error('password')
                       <span class="text-danger small">{{ $message }}</span>
                   @enderror
                 </div>
-                <div class="form-check mb-3">
-                  <input type="checkbox" class="form-check-input" id="authCheck">
-                  <label class="form-check-label" for="authCheck">
-                    Remember me
-                  </label>
+                <div class="mb-3">
+                  <label for="userPasswordConfirmation" class="form-label">Confirm Password</label>
+                  <input type="password" class="form-control" id="userPasswordConfirmation"
+                        name="password_confirmation" required placeholder="Confirm Password">
                 </div>
                 <div>
                   <button type="submit" class="btn btn-primary me-2 mb-2 mb-md-0">Sign up</button>
