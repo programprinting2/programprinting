@@ -47,9 +47,9 @@
               <a href="{{ url('/general/profile') }}" class="dropdown-item d-flex flex-column align-items-center justify-content-center wd-70 ht-70"><i data-feather="instagram" class="icon-lg mb-1"></i><p class="tx-12">Profile</p></a>
             </div>
           </div>
-          <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
+          <!-- <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
             <a href="javascript:;">View all</a>
-          </div>
+          </div> -->
         </div>
       </li>
       <li class="nav-item dropdown">
@@ -123,9 +123,9 @@
               </div>	
             </a>
           </div>
-          <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
+          <!-- <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
             <a href="javascript:;">View all</a>
-          </div>
+          </div> -->
         </div>
       </li>
       @php
@@ -148,10 +148,10 @@
               <a href="javascript:;" class="text-muted ms-3" id="notifReload" title="Reload Page">
                 <i class="fas fa-sync"></i>
               </a>
-              <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a>
+              <!-- <a href="javascript:;" class="text-muted" id="notifClearAll">Clear all</a> -->
             </div>
           </div>
-          <div class="p-1" id="notifList">
+          <div class="p-1" id="notifList" style="max-height: 400px; overflow-y: auto;">
             @forelse($latestNotifs as $n)
               @php
                 $data = $n->data ?? [];
@@ -179,9 +179,9 @@
               <div class="text-center text-muted py-3">Tidak ada notifikasi.</div>
             @endforelse
           </div>
-          <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
+          <!-- <div class="px-3 py-2 d-flex align-items-center justify-content-center border-top">
             <a href="{{ route('pekerjaan.manager-order') }}">View all</a>
-          </div>
+          </div> -->
         </div>
       </li>
       <li class="nav-item dropdown">
@@ -349,5 +349,42 @@
       });
     } catch (_) {}
   });
+})();
+</script>
+
+<script>
+  (function () {
+  const notificationIcon = document.getElementById('notificationDropdown'); 
+  const indicator = document.getElementById('notifIndicator'); 
+  const countEl = document.getElementById('notifCount'); 
+  const listEl = document.getElementById('notifList'); 
+
+  function setCount(n) {
+    countEl.textContent = String(n);  
+    if (indicator) indicator.style.display = n > 0 ? '' : 'none'; 
+  }
+
+  if (notificationIcon) {
+    notificationIcon.addEventListener('click', async function () {
+      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      
+      try {
+        const res = await fetch("{{ route('notifications.markAllRead') }}", {
+          method: 'POST',
+          headers: { 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' },
+        });
+        
+        if (res.ok) {
+          setCount(0);
+
+          listEl.querySelectorAll('.dropdown-item').forEach(el => {
+            el.classList.add('bg-light');  
+          });
+        }
+      } catch (e) {
+        console.error('Failed to mark all notifications as read', e);
+      }
+    });
+  }
 })();
 </script>
