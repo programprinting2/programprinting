@@ -13,6 +13,7 @@ use App\Http\Requests\BatalAmbilPekerjaanRequest;
 use App\Models\SPKItem;
 use App\Models\SPK;
 use App\Models\SpkItemCetakQueue;
+use App\Models\User;
 use App\Services\ActivityLogService;
 use App\Models\SpkItemCetakLog;
 use Illuminate\Http\RedirectResponse;
@@ -204,9 +205,63 @@ class PekerjaanController extends Controller
         $filters['sort_status'] = 'manager_approval_order';
 
         $spk = $this->spkService->getPaginatedSpk(10, $filters);
-        // $customers = Pelanggan::where('status', true)->get();
+        $activeTab = $request->string('tab')->toString();
+        if ($activeTab === '') {
+            $activeTab = 'data-pekerjaan';
+        }
 
-        return view('pages.pekerjaan.manager-produksi', compact('spk'));
+        $users = User::query()
+            ->with(['mesins:id,nama_mesin'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'email']);
+
+        $allMesin = MasterMesin::query()
+            ->orderBy('nama_mesin')
+            ->get(['id', 'nama_mesin', 'tipe_mesin']);
+
+        $selectedUserId = (int) ($request->integer('user_role_user_id') ?? 0);
+        if ($selectedUserId <= 0 && $users->isNotEmpty()) {
+            $selectedUserId = (int) ($users->first()->id ?? 0);
+        }
+
+        $selectedUser = $users->firstWhere('id', $selectedUserId);
+        $selectedUserMesinIds = $selectedUser
+            ? $selectedUser->mesins->pluck('id')->map(fn ($id) => (int) $id)->all()
+            : [];
+
+        return view('pages.pekerjaan.manager-produksi', compact(
+            'spk',
+            'users',
+            'allMesin',
+            'selectedUserId',
+            'selectedUserMesinIds',
+            'activeTab'
+        ));
+    }
+
+    public function saveUserMesinRoles(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'user_id' => ['required', 'integer', 'exists:users,id'],
+            'mesin_ids' => ['nullable', 'array'],
+            'mesin_ids.*' => ['integer', 'exists:mesin,id'],
+        ]);
+
+        $user = User::query()->findOrFail((int) $validated['user_id']);
+        $mesinIds = collect($validated['mesin_ids'] ?? [])
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->all();
+
+        $user->mesins()->sync($mesinIds);
+
+        return back()
+            ->with('success', 'Assignment role mesin berhasil disimpan.')
+            ->withInput([
+                'tab' => 'assignment-role-mesin',
+                'user_role_user_id' => (int) $user->id,
+            ]);
     }
 
     public function operatorCetak(Request $request): View
@@ -227,11 +282,13 @@ class PekerjaanController extends Controller
 
         $allItems = $spk->pluck('items')->flatten();
         $itemIds  = $allItems->pluck('id')->unique();
-        $allMesin = Cache::remember(
+        $allMesinRaw = Cache::remember(
             'master_mesin_all',
             3600,
             fn () => MasterMesin::all(['id', 'nama_mesin', 'tipe_mesin'])
         );
+        $assignedMesinIds = $this->getAssignedMesinIdsForCurrentUser();
+        $allMesin = $allMesinRaw->whereIn('id', $assignedMesinIds)->values();
         $tipeNamaByMesinId = $allMesin->mapWithKeys(function ($mesin) {
             return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
         });
@@ -432,6 +489,10 @@ class PekerjaanController extends Controller
                     }
                     if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByNamaMesin[$divisiKetNorm])) {
                         $mesinMatches = $mesinByNamaMesin[$divisiKetNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty()) {
+                        continue;
                     }
 
                     $tipeMesinGroups[$tipeKey] = [
@@ -792,6 +853,7 @@ class PekerjaanController extends Controller
         $spkItemId = (int) $request->input('spk_item_id');
         $jumlah    = (int) $request->input('jumlah');
         $mesinId   = $request->integer('mesin_id') ?: null;
+        $this->assertMesinAssignedToCurrentUser((int) $mesinId);
 
         try {
             DB::transaction(function () use ($spkItemId, $jumlah, $mesinId) {
@@ -890,6 +952,7 @@ class PekerjaanController extends Controller
             ->values();
 
         $mesinId = $request->integer('mesin_id') ?: null;
+        $this->assertMesinAssignedToCurrentUser((int) $mesinId);
         $userId  = (int) (auth()->id() ?? 1);
 
         $createdCount = 0;
@@ -1107,6 +1170,7 @@ class PekerjaanController extends Controller
     public function ambilQueue(AmbilPekerjaanRequest $request): RedirectResponse
     {
         $mesinId = (int) $request->input('mesin_id');
+        $this->assertMesinAssignedToCurrentUser($mesinId);
         $ids = collect($request->input('spk_item_ids', []))
             ->map(fn ($v) => (int) $v)
             ->unique()
@@ -1146,13 +1210,13 @@ class PekerjaanController extends Controller
                     continue;
                 }
 
-                $remainingTakeForTarget = $this->calculateRemainingTakeForStep(
+                $stepInfo = $this->calculateRemainingTakeForStep(
                     $item,
                     $mesinId,
                     $targetMesinType,
                     $mesinTypeByMesinId
                 );
-                
+                $remainingTakeForTarget = (int) ($stepInfo['remaining'] ?? 0);
 
                 \Log::info('ambilQueue guard', [
                     'spk_item_id' => $item->id,
@@ -1160,6 +1224,7 @@ class PekerjaanController extends Controller
                     'target_mesin_type' => $targetMesinType,
                     'ambil' => $ambil,
                     'remaining_take_for_target' => $remainingTakeForTarget,
+                    'step_info' => $stepInfo,
                 ]);
 
                 if ($remainingTakeForTarget <= 0) {
@@ -1190,6 +1255,7 @@ class PekerjaanController extends Controller
     public function batalAmbilQueue(BatalAmbilPekerjaanRequest $request): RedirectResponse
     {
         $mesinId = (int) $request->input('mesin_id');
+        $this->assertMesinAssignedToCurrentUser($mesinId);
         $ids = collect($request->input('spk_item_ids', []))
             ->map(fn ($v) => (int) $v)
             ->unique()
@@ -1249,6 +1315,7 @@ class PekerjaanController extends Controller
     public function ambilQueueAll(MultiAmbilPekerjaanRequest $request): RedirectResponse
     {
         $mesinId = (int) $request->input('mesin_id');
+        $this->assertMesinAssignedToCurrentUser($mesinId);
         $ids = collect($request->input('spk_item_ids', []))
             ->map(fn ($v) => (int) $v)
             ->unique()
@@ -1335,6 +1402,36 @@ class PekerjaanController extends Controller
     private function normalizeMesinType(?string $mesinType): string
     {
         return strtolower(trim((string) $mesinType));
+    }
+
+    private function getAssignedMesinIdsForCurrentUser(): array
+    {
+        $authUser = auth()->user();
+        if (!$authUser) {
+            return [];
+        }
+
+        return $authUser->mesins()
+            ->pluck('mesin.id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+    }
+
+    private function assertMesinAssignedToCurrentUser(int $mesinId): void
+    {
+        if ($mesinId <= 0) {
+            throw ValidationException::withMessages([
+                'mesin_id' => 'Mesin wajib dipilih.',
+            ]);
+        }
+
+        $assignedMesinIds = $this->getAssignedMesinIdsForCurrentUser();
+        if (!in_array($mesinId, $assignedMesinIds, true)) {
+            throw ValidationException::withMessages([
+                'mesin_id' => 'Anda tidak memiliki akses untuk mesin yang dipilih.',
+            ]);
+        }
     }
 
     private function resolveStepIdentity(array $step): array

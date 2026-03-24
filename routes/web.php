@@ -219,6 +219,9 @@ Route::group(['prefix' => 'pekerjaan', 'middleware' => ['auth', 'single.session'
 
     Route::get('/manager-produksi', [PekerjaanController::class, 'managerProduksi'])
         ->name('pekerjaan.manager-produksi');
+        
+    Route::post('/manager-produksi/mesin-roles', [PekerjaanController::class, 'saveUserMesinRoles'])
+        ->name('pekerjaan.manager-produksi.mesin-roles.save');
 
     Route::get('/operator-cetak', [PekerjaanController::class, 'operatorCetak'])
         ->name('pekerjaan.operator-cetak');

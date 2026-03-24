@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Services\SupabaseStorageService;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\App;
 
@@ -215,6 +216,12 @@ class MasterMesin extends Model
     public function scopeActive($query)
     {
         return $query->where('status', 'Aktif');
+    }
+
+    public function users(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'user_mesin', 'mesin_id', 'user_id')
+            ->withTimestamps();
     }
 
     /**

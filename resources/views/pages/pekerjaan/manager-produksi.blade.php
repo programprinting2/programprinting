@@ -13,12 +13,43 @@
     <div class="col-md-12 grid-margin stretch-card">
       <div class="card">
         <div class="card-body">
+    @php
+      $activeTab = old('tab', $activeTab ?? request('tab', 'data-pekerjaan'));
+      $selectedUserId = (int) old('user_id', $selectedUserId ?? 0);
+      $selectedUserMesinIds = collect(old('mesin_ids', $selectedUserMesinIds ?? []))
+        ->map(fn ($id) => (int) $id)
+        ->all();
+    @endphp
+
     <div class="d-flex justify-content-between align-items-center mb-3">
             <div class="row">
             <h6 class="card-title mb-0">Data Pekerjaan Manager Produksi</h6>
             <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Manager Produksi.</p>
     </div>
           </div>
+
+          <ul class="nav nav-tabs mb-3" id="managerProduksiTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link {{ $activeTab === 'data-pekerjaan' ? 'active' : '' }}"
+                type="button"
+                data-target-pane="data-pekerjaan-pane"
+              >
+                Data Pekerjaan
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link {{ $activeTab === 'assignment-role-mesin' ? 'active' : '' }}"
+                type="button"
+                data-target-pane="assignment-role-mesin-pane"
+              >
+                Assignment Role Mesin
+              </button>
+            </li>
+          </ul>
+
+          <div id="data-pekerjaan-pane" class="{{ $activeTab === 'assignment-role-mesin' ? 'd-none' : '' }}">
 
           <!-- Divider -->
           <hr class="my-4">
@@ -223,7 +254,7 @@
       <tr>
                 <td colspan="8" class="p-0 border-0">
                     <div id="{{ $collapseId }}" class="collapse spk-collapse" data-bs-parent="#accordionSpk">
-                        <div class="border border-2 px-4 py-3">
+                        <div class="border-2 px-4 py-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
                                 <div class="d-flex align-items-center gap-2">
                                     <span class="badge bg-light text-dark border">
@@ -431,6 +462,71 @@
               </div>
             </div>
           </div>
+  </div>
+
+          <div id="assignment-role-mesin-pane" class="{{ $activeTab === 'assignment-role-mesin' ? '' : 'd-none' }}">
+            <hr class="my-4">
+
+            <div class="row g-3 mb-4">
+              <div class="col-md-6">
+                <label class="form-label">Pilih User</label>
+                <form method="GET" action="{{ route('pekerjaan.manager-produksi') }}" id="userRoleFilterForm">
+                  <input type="hidden" name="tab" value="assignment-role-mesin">
+                  <select class="form-select" name="user_role_user_id"
+                    onchange="document.getElementById('userRoleFilterForm').submit();">
+                    @forelse(($users ?? []) as $userOption)
+                      <option value="{{ $userOption->id }}" {{ (int) $userOption->id === (int) $selectedUserId ? 'selected' : '' }}>
+                        {{ $userOption->name }} ({{ $userOption->email }})
+                      </option>
+                    @empty
+                      <option value="">Tidak ada user tersedia</option>
+                    @endforelse
+                  </select>
+                </form>
+              </div>
+            </div>
+
+            @if(($users ?? collect())->isEmpty())
+              <div class="alert alert-warning mb-0">Tidak ada user untuk assignment role mesin.</div>
+            @else
+              <form method="POST" action="{{ route('pekerjaan.manager-produksi.mesin-roles.save') }}">
+                @csrf
+                <input type="hidden" name="tab" value="assignment-role-mesin">
+                <input type="hidden" name="user_role_user_id" value="{{ $selectedUserId }}">
+                <input type="hidden" name="user_id" value="{{ $selectedUserId }}">
+
+                <div class="card border mb-3">
+                  <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                    <span class="fw-semibold">Daftar Mesin</span>
+                    <small class="text-muted">Centang mesin yang boleh diakses user terpilih</small>
+                  </div>
+                  <div class="card-body">
+                    <div class="row g-2">
+                      @forelse(($allMesin ?? []) as $mesin)
+                        <div class="col-md-4">
+                          <label class="border rounded p-2 w-100 d-flex align-items-start gap-2">
+                            <input class="form-check-input mt-1"
+                              type="checkbox"
+                              name="mesin_ids[]"
+                              value="{{ $mesin->id }}"
+                              {{ in_array((int) $mesin->id, $selectedUserMesinIds, true) ? 'checked' : '' }}>
+                            <span>
+                              <span class="fw-semibold d-block">{{ $mesin->nama_mesin }}</span>
+                              <small class="text-muted">{{ $mesin->tipe_mesin ?: '-' }}</small>
+                            </span>
+                          </label>
+                        </div>
+                      @empty
+                        <div class="col-12 text-muted">Tidak ada data mesin.</div>
+                      @endforelse
+                    </div>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">Simpan Assignment</button>
+              </form>
+            @endif
+          </div>
         </div>
       </div>
     </div>
@@ -442,6 +538,24 @@
   <script>
     // Initialize Feather Icons
     feather.replace();
+
+    const paneDataPekerjaan = document.getElementById('data-pekerjaan-pane');
+    const paneAssignmentRole = document.getElementById('assignment-role-mesin-pane');
+    const tabButtons = document.querySelectorAll('#managerProduksiTabs .nav-link');
+    tabButtons.forEach((btn) => {
+      btn.addEventListener('click', function () {
+        tabButtons.forEach((b) => b.classList.remove('active'));
+        this.classList.add('active');
+
+        const targetPane = this.getAttribute('data-target-pane');
+        if (paneDataPekerjaan) {
+          paneDataPekerjaan.classList.toggle('d-none', targetPane !== 'data-pekerjaan-pane');
+        }
+        if (paneAssignmentRole) {
+          paneAssignmentRole.classList.toggle('d-none', targetPane !== 'assignment-role-mesin-pane');
+        }
+      });
+    });
 
     // Search form handling
     const searchForm = $('#searchForm');
@@ -476,12 +590,12 @@
 
     // Reset filter
     $('#resetFilter').click(function() {
-        window.location.href = '{{ route("spk.index") }}';
+        window.location.href = '{{ route("pekerjaan.manager-produksi") }}';
     });
 
     // Clear search
     $('#clearSearch').click(function() {
-        window.location.href = '{{ route("spk.index") }}';
+        window.location.href = '{{ route("pekerjaan.manager-produksi") }}';
     });
 
     // Show loading spinner when page is loading
