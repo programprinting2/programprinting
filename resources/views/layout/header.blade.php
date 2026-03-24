@@ -233,6 +233,10 @@
   </div>
 </nav>
 
+<audio id="notifBellSound" preload="auto">
+  <source src="{{ asset('assets/sounds/bell-sound.mp3') }}" type="audio/mpeg">
+</audio>
+
 <script>
 (function () {
   const indicator = document.getElementById('notifIndicator');
@@ -294,6 +298,28 @@
     setCount(current + 1);
   }
 
+  function playNotifSound() {
+    const audio = document.getElementById('notifBellSound');
+    if (!audio) return;
+
+    audio.currentTime = 0;
+    const p = audio.play();
+    if (p && typeof p.catch === 'function') {
+      p.catch(() => {
+      });
+    }
+  }
+
+  document.addEventListener('click', () => {
+    const audio = document.getElementById('notifBellSound');
+    if (audio) {
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+      }).catch(() => {});
+    }
+  }, { once: true });
+
   if (clearBtn) {
     clearBtn.addEventListener('click', async (e) => {
       e.preventDefault();
@@ -316,6 +342,7 @@
     window.Echo.private(`App.User.${userId}`)
       .notification((notification) => {
         prependNotif(notification);
+        playNotifSound();
       });
   }
 })();
