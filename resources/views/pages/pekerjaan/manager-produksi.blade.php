@@ -464,74 +464,150 @@
           </div>
   </div>
 
-          <div id="assignment-role-mesin-pane" class="{{ $activeTab === 'assignment-role-mesin' ? '' : 'd-none' }}">
-            <hr class="my-4">
+  <div id="assignment-role-mesin-pane" class="{{ $activeTab === 'assignment-role-mesin' ? '' : 'd-none' }}">
 
-            <div class="row g-3 mb-4">
-              <div class="col-md-6">
-                <label class="form-label">Pilih User</label>
-                <form method="GET" action="{{ route('pekerjaan.manager-produksi') }}" id="userRoleFilterForm">
-                  <input type="hidden" name="tab" value="assignment-role-mesin">
-                  <select class="form-select" name="user_role_user_id"
-                    onchange="document.getElementById('userRoleFilterForm').submit();">
-                    @forelse(($users ?? []) as $userOption)
-                      <option value="{{ $userOption->id }}" {{ (int) $userOption->id === (int) $selectedUserId ? 'selected' : '' }}>
-                        {{ $userOption->name }} ({{ $userOption->email }})
-                      </option>
-                    @empty
-                      <option value="">Tidak ada user tersedia</option>
-                    @endforelse
-                  </select>
-                </form>
-              </div>
+    <hr class="my-4">
+
+    <div class="card border-0 mb-3">
+      <div class="card-body p-0">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+
+          <div>
+            <h5 class="mb-1 fw-semibold">List User & Assignment Role Mesin</h5>
+            <div class="text-muted small">
+              Role mesin adalah daftar mesin yang boleh diakses oleh masing-masing user.
             </div>
-
-            @if(($users ?? collect())->isEmpty())
-              <div class="alert alert-warning mb-0">Tidak ada user untuk assignment role mesin.</div>
-            @else
-              <form method="POST" action="{{ route('pekerjaan.manager-produksi.mesin-roles.save') }}">
-                @csrf
-                <input type="hidden" name="tab" value="assignment-role-mesin">
-                <input type="hidden" name="user_role_user_id" value="{{ $selectedUserId }}">
-                <input type="hidden" name="user_id" value="{{ $selectedUserId }}">
-
-                <div class="card border mb-3">
-                  <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <span class="fw-semibold">Daftar Mesin</span>
-                    <small class="text-muted">Centang mesin yang boleh diakses user terpilih</small>
-                  </div>
-                  <div class="card-body">
-                    <div class="row g-2">
-                      @forelse(($allMesin ?? []) as $mesin)
-                        <div class="col-md-4">
-                          <label class="border rounded p-2 w-100 d-flex align-items-start gap-2">
-                            <input class="form-check-input mt-1"
-                              type="checkbox"
-                              name="mesin_ids[]"
-                              value="{{ $mesin->id }}"
-                              {{ in_array((int) $mesin->id, $selectedUserMesinIds, true) ? 'checked' : '' }}>
-                            <span>
-                              <span class="fw-semibold d-block">{{ $mesin->nama_mesin }}</span>
-                              <small class="text-muted">{{ $mesin->tipe_mesin ?: '-' }}</small>
-                            </span>
-                          </label>
-                        </div>
-                      @empty
-                        <div class="col-12 text-muted">Tidak ada data mesin.</div>
-                      @endforelse
-                    </div>
-                  </div>
-                </div>
-
-                <button type="submit" class="btn btn-primary">Simpan Assignment</button>
-              </form>
-            @endif
           </div>
         </div>
       </div>
     </div>
+
+    <div class="card border">
+      <div class="card-body p-0">
+
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+
+            <thead class="table-light">
+              <tr>
+                <th style="width: 220px;">User</th>
+                <th>Email</th>
+                <th>Role Mesin</th>
+                <th class="text-center" style="width: 160px;">Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @forelse(($users ?? collect()) as $u)
+              <tr class="row-user-assignment" data-user-id="{{ $u->id }}" style="cursor:pointer;">
+                
+                <td class="fw-semibold">
+                  {{ $u->name }}
+                </td>
+
+                <td class="text-muted">
+                  {{ $u->email }}
+                </td>
+
+                <td>
+                  @if(($u->mesins ?? collect())->isEmpty())
+                    <span class="badge bg-light text-muted border">Belum ada mesin</span>
+                  @else
+                    <div class="d-flex flex-wrap gap-1">
+                      @foreach($u->mesins as $mesin)
+                        <span class="badge bg-primary-subtle text-primary border">
+                          {{ $mesin->nama_mesin }}
+                        </span>
+                      @endforeach
+                    </div>
+                  @endif
+                </td>
+
+                <td class="text-center text-muted small">
+                  Klik untuk atur mesin
+                </td>
+
+              </tr>
+              @empty
+              <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                  Tidak ada user
+                </td>
+              </tr>
+              @endforelse
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+      </div>
+    </div>
   </div>
 
+
+<div class="modal fade" id="assignmentRoleModal" tabindex="-1">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Assignment Role Mesin</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body position-relative">
+
+        <div id="modalLoading"
+          class="position-absolute top-0 start-0 w-100 h-100 bg-white d-flex flex-column justify-content-center align-items-center d-none"
+          style="z-index:10;">
+          <div class="spinner-border text-primary"></div>
+          <div class="mt-2 text-muted">Memuat data...</div>
+        </div>
+
+        <form method="POST"
+          action="{{ route('pekerjaan.manager-produksi.mesin-roles.save') }}"
+          id="formAssignment">
+
+          @csrf
+          <input type="hidden" name="user_id" id="modalUserId">
+          <div class="card border mb-3">
+            <div class="card-header bg-light">
+              <span class="fw-semibold">Daftar Mesin</span>
+            </div>
+
+            <div class="card-body">
+              <div class="row g-2">
+                @foreach(($allMesin ?? []) as $mesin)
+                <div class="col-md-4">
+                  <label class="border rounded p-2 w-100 d-flex gap-2">
+                    <input class="form-check-input"
+                      type="checkbox"
+                      name="mesin_ids[]"
+                      value="{{ $mesin->id }}">
+                    <span>
+                      <span class="fw-semibold d-block">{{ $mesin->nama_mesin }}</span>
+                      <small class="text-muted">{{ $mesin->tipe_mesin ?: '-' }}</small>
+                    </span>
+                  </label>
+                </div>
+                @endforeach
+              </div>
+            </div>
+          </div>
+
+          <div class="text-end">
+            <button type="submit" class="btn btn-primary" id="btnSubmitAssignment">
+              <span class="default-text">Simpan</span>
+              <span class="loading-text d-none">
+                <span class="spinner-border spinner-border-sm"></span> Menyimpan...
+              </span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 @endsection
 
 @push('custom-scripts')
@@ -556,6 +632,11 @@
         }
       });
     });
+
+    // @if(session('success') && request('tab') === 'assignment-role-mesin')
+    //   const modal = new bootstrap.Modal(document.getElementById('assignmentRoleModal'));
+    //   modal.show();
+    // @endif
 
     // Search form handling
     const searchForm = $('#searchForm');
@@ -637,6 +718,69 @@
             btn.closest('form').submit();
           }
         });
+      });
+    });
+  </script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const modalEl = document.getElementById('assignmentRoleModal');
+      const modal = new bootstrap.Modal(modalEl);
+
+      const modalLoading = document.getElementById('modalLoading');
+      const userIdInput = document.getElementById('modalUserId');
+
+      function setLoading(state) {
+        modalLoading.classList.toggle('d-none', !state);
+      }
+
+      function resetCheckbox() {
+        document.querySelectorAll('input[name="mesin_ids[]"]').forEach(cb => {
+          cb.checked = false;
+        });
+      }
+
+      document.querySelectorAll('.row-user-assignment').forEach(row => {
+        row.addEventListener('click', async () => {
+          const userId = row.dataset.userId;
+          if (!userId) return;
+
+          userIdInput.value = userId;
+          resetCheckbox();
+          setLoading(true);
+          modal.show();
+
+          try {
+            const url = `{{ route('pekerjaan.manager-produksi.mesin-ids', ['userId' => '__ID__']) }}`
+              .replace('__ID__', userId);
+
+            const res = await fetch(url, {
+              headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            });
+
+            const data = await res.json();
+
+            if (!data.success) throw new Error();
+
+            const assigned = new Set(data.mesin_ids.map(String));
+
+            document.querySelectorAll('input[name="mesin_ids[]"]').forEach(cb => {
+              cb.checked = assigned.has(cb.value);
+            });
+
+          } catch (err) {
+            Swal.fire('Error', 'Gagal load data mesin', 'error');
+          } finally {
+            setLoading(false);
+          }
+        });
+      });
+
+      document.getElementById('formAssignment').addEventListener('submit', function () {
+        const btn = document.getElementById('btnSubmitAssignment');
+        btn.disabled = true;
+        btn.querySelector('.default-text').classList.add('d-none');
+        btn.querySelector('.loading-text').classList.remove('d-none');
       });
     });
   </script>

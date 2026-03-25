@@ -264,6 +264,21 @@ class PekerjaanController extends Controller
             ]);
     }
 
+    public function getUserAssignedMesinIds(int $userId)
+    {
+        $user = User::query()->findOrFail($userId);
+
+        $mesinIds = $user->mesins()
+            ->pluck('mesin.id')
+            ->map(fn ($id) => (int) $id)
+            ->values();
+
+        return response()->json([
+            'success' => true,
+            'mesin_ids' => $mesinIds,
+        ]);
+    }
+
     public function operatorCetak(Request $request): View
     {
         $filters['status'] = 'manager_approval_order';
