@@ -19,42 +19,69 @@ class FileExplorerController extends Controller
     public function index(Request $request): JsonResponse
     {
         $basePath = config('app.explorer_base_path', 'F:/PESANAN/');
-        $currentPath = $request->get('path', $basePath);
 
-        if (!File::exists($currentPath) || !File::isDirectory($currentPath)) {
+        $requestedPath = $request->get('path'); 
+        $requestedPathStr = is_string($requestedPath) ? trim($requestedPath) : '';
+
+        $userId = auth()->id();
+        $lastPathCacheKey = $userId ? ('explorer_last_path:user:' . $userId) : null;
+
+        $lastPathTtl = now()->addMinutes(15);
+
+        if ($requestedPathStr === '') {
+            $cachedLastPath = $lastPathCacheKey ? Cache::get($lastPathCacheKey) : null;
+
+            $currentPath = (is_string($cachedLastPath) && trim($cachedLastPath) !== '')
+                ? $cachedLastPath
+                : $basePath;
+        } else {
+            $currentPath = $requestedPathStr;
+        }
+
+        $currentPathReal = realpath($currentPath);
+        $basePathReal = realpath($basePath);
+
+        if (
+            !$currentPathReal ||
+            !File::isDirectory($currentPathReal) ||
+            ($basePathReal && !str_starts_with($currentPathReal, $basePathReal))
+        ) {
             $currentPath = $basePath;
+            $currentPathReal = realpath($currentPath) ?: $currentPath;
+        }
+
+        if ($lastPathCacheKey) {
+            Cache::put($lastPathCacheKey, $currentPathReal, $lastPathTtl);
         }
 
         try {
-            // cache key unik berdasarkan path
-            $cacheKey = 'explorer_' . md5($currentPath);
+            $cacheKey = 'explorer_' . md5($currentPathReal);
 
-            $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($currentPath) {
-
+            $data = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($currentPathReal) {
                 $directories = [];
                 $files = [];
 
-                // Get directories
-                $dirList = File::directories($currentPath);
+                $dirList = File::directories($currentPathReal);
                 foreach ($dirList as $path) {
                     $directories[] = [
                         'name' => basename($path),
                         'path' => str_replace('\\', '/', $path),
-                        'type' => 'directory'
+                        'type' => 'directory',
                     ];
                 }
 
-                // Get files
-                foreach (File::files($currentPath) as $file) {
+                foreach (File::files($currentPathReal) as $file) {
                     $ext = strtolower($file->getExtension());
-                    if (!in_array($ext, $this->allowedExtensions)) continue;
+                    if (!in_array($ext, $this->allowedExtensions, true)) {
+                        continue;
+                    }
 
                     $files[] = [
                         'name' => $file->getFilename(),
                         'path' => str_replace('\\', '/', $file->getRealPath()),
                         'type' => 'file',
                         'extension' => $ext,
-                        'size' => $file->getSize()
+                        'size' => $file->getSize(),
                     ];
                 }
 
@@ -66,17 +93,16 @@ class FileExplorerController extends Controller
 
             return response()->json([
                 'success' => true,
-                'current_path' => str_replace('\\', '/', $currentPath),
-                'parent_path' => str_replace('\\', '/', dirname($currentPath)),
+                'current_path' => str_replace('\\', '/', $currentPathReal),
+                'parent_path' => str_replace('\\', '/', dirname($currentPathReal)),
                 'directories' => $data['directories'],
                 'files' => $data['files'],
-                'sep' => DIRECTORY_SEPARATOR
+                'sep' => DIRECTORY_SEPARATOR,
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ], 500);
         }
     }
