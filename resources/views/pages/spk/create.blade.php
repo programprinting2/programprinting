@@ -697,6 +697,28 @@
       box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
     }
 
+    .modal.modal-nested {
+      z-index: 1065 !important;
+    }
+
+    .modal-backdrop.show:nth-of-type(2) {
+      z-index: 1060;
+      background-color: rgba(0, 0, 0, 0.6);
+    }
+
+    body.nested-open #modalTambahItemPesanan {
+      filter: blur(2px);
+      transform: scale(0.98);
+      opacity: 0.8;
+      transition: all 0.2s ease;
+    }
+
+    .modal.modal-nested .modal-content {
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+      border: none;
+      border-radius: 10px;
+    }
+
     /* Style untuk preview image */
     .border-dashed {
       border-style: dashed !important;
@@ -947,9 +969,9 @@
     }
   </style>
   <!-- Modal File Explorer -->
-  <div class="modal fade" id="modalFileExplorer" tabindex="-1" aria-labelledby="modalFileExplorerLabel"
+  <div class="modal fade modal-nested" id="modalFileExplorer" tabindex="-1" aria-labelledby="modalFileExplorerLabel"
     aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="modalFileExplorerLabel"><i class="fa fa-search me-2"></i>Pilih File</h5>
@@ -961,7 +983,7 @@
               <button class="btn btn-sm btn-outline-secondary me-2" id="btnExplorerBack" title="Kembali">
                 <i class="fa fa-arrow-left"></i>
               </button>
-              <input type="text" class="form-control form-control-sm" id="inputExplorerPath">
+              <input type="text" class="form-control form-control-sm" id="inputExplorerPath" autocomplete="off">
             </div>
             <div class="explorer-content" id="explorerContent" style="height: 400px; overflow-y: auto;">
               <!-- Content loaded via AJAX -->
@@ -1537,4 +1559,5 @@
                                           ])
                                           <script src="{{ asset('js/spk/spk-helper.js') }}"></script>
                                           <script src="{{ asset('js/spk/form-create.js') }}"></script>
+                                          
 @endpush

@@ -37,6 +37,21 @@
 
     let editItemIndex = null;
 
+    function setModalItemMode(mode) {
+        const labelEl = document.getElementById("modalTambahItemPesananLabel");
+        const btnEl = document.getElementById("modalBtnSimpanItem");
+
+        if (!labelEl || !btnEl) return;
+
+        if (mode === "edit") {
+            labelEl.innerHTML = `<i class="fa fa-edit me-2"></i>Edit Item Pesanan`;
+            btnEl.innerHTML = `<i class="fa fa-pen me-1"></i> Update Item`;
+        } else {
+            labelEl.innerHTML = `<i class="fa fa-plus-circle me-2"></i>Tambah Item Pesanan`;
+            btnEl.innerHTML = `<i class="fa fa-plus me-1"></i> Tambah Item`;
+        }
+    }
+
     // --- Invoice Grouping ---
     let invoiceGroups = [];
     let isGroupingMode = false;
@@ -314,7 +329,6 @@
     window.addEventListener("produkDipilih", (e) => {
         const data = e.detail;
         currentSelectedProduk = data;
-        console.log(currentSelectedProduk);
 
         renderPdfProdukModeInfo();
         const pdfControls = document.getElementById("pdfFileControls");
@@ -583,15 +597,14 @@
         if (e.target.closest("#modalBtnSimpanItem")) {
             e.preventDefault();
 
+            const isEditMode = editItemIndex !== null;
+
             const item = getItemFormData();
             if (!validateItem(item)) return;
 
             tambahItemPekerjaan();
 
-            // Tutup modal jika masih terbuka
-            const modalElement = document.getElementById(
-                "modalTambahItemPesanan",
-            );
+            const modalElement = document.getElementById("modalTambahItemPesanan");
             if (modalElement) {
                 const modalInstance = bootstrap.Modal.getInstance(modalElement);
                 modalInstance?.hide();
@@ -600,10 +613,10 @@
             SafeHelper.notify(
                 "success",
                 "Berhasil",
-                "Item berhasil ditambahkan",
+                isEditMode ? "Item berhasil diupdate" : "Item berhasil ditambahkan"
             );
             return;
-        }
+            }
 
         if (e.target.closest("#btnGroupItemsMode")) {
             e.preventDefault();
@@ -1280,6 +1293,7 @@
         if (!item) return;
 
         openModalTambahItem();
+        setModalItemMode("edit");
         editItemIndex = idx;
 
         // Reset and load files
@@ -2118,6 +2132,7 @@
     function resetModalTambahItem() {
         currentExpandedFinishingIndex = 0;
         currentSelectedProduk = null;
+        setModalItemMode("create");
         // Reset semua input
         const form = document.getElementById("modalTambahItemPesanan");
         if (!form) return;
@@ -5090,5 +5105,14 @@
             console.error('Error:', error);
             alert('Terjadi kesalahan saat membuka folder.');
         }
+    });
+
+    const nestedModal = document.getElementById('modalFileExplorer');
+    nestedModal.addEventListener('shown.bs.modal', () => {
+    document.body.classList.add('nested-open');
+    });
+
+    nestedModal.addEventListener('hidden.bs.modal', () => {
+    document.body.classList.remove('nested-open');
     });
 })();
