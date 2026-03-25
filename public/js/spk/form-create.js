@@ -4262,6 +4262,16 @@
         const contentArea = document.getElementById("explorerContent");
         const pathInput = document.getElementById("inputExplorerPath");
 
+        pathInput.addEventListener('keydown', function (e) {
+            if (e.key !== 'Enter') return;
+            e.preventDefault();
+          
+            const nextPath = (pathInput.value || '').trim();
+            if (!nextPath) return;
+          
+            loadExplorerPath(nextPath);
+          });
+
         contentArea.innerHTML = `
             <div class="p-4 text-center text-muted">
                 <i class="fa fa-spinner fa-spin fa-2x mb-2"></i>

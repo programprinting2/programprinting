@@ -941,7 +941,7 @@
               <button class="btn btn-sm btn-outline-secondary me-2" id="btnExplorerBack" title="Kembali">
                 <i class="fa fa-arrow-left"></i>
               </button>
-              <input type="text" class="form-control form-control-sm" id="inputExplorerPath" readonly>
+              <input type="text" class="form-control form-control-sm" id="inputExplorerPath">
             </div>
             <div class="explorer-content" id="explorerContent" style="height: 400px; overflow-y: auto;">
               <!-- Content loaded via AJAX -->
