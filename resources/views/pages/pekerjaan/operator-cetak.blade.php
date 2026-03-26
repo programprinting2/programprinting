@@ -120,424 +120,499 @@
               </button>
             </form>
           </div>
-          <div class="table-responsive">
-            <table class="table table-sm align-middle">
-              <thead class="table-light">
-                <tr>
-                  <th>No SPK</th>
-                  <th>Pelanggan</th>
-                  <th>Item</th>
-                  <th class="text-end">Qty Diambil</th>
-                  <th>Mesin</th>
-                  <th class="text-end" style="width:180px;">Progress</th>
-                  <th class="text-center" style="width:40px;">Pilih</th>
-                  <th class="text-center" style="width:210px;">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                @forelse(($pekerjaanSayaItems ?? []) as $row)
-                  @php
-                  $spk = $row['spk'];
-                  $item = $row['item'];
-                  $queue = $row['queue'];
-
-                  $mesinNama = $row['mesin_nama'] ?? '-';
-
-                  $qtyDiambil = (int) ($row['qty_diambil'] ?? 0);
-                  $printed    = (int) ($row['printed'] ?? 0);
-                  $progress   = (float) ($row['progress'] ?? 0);
-
-                  $sisa = max(0, $qtyDiambil - $printed);
-                  @endphp
-                  <tr>
-                    <td>{{ $row['nomor_spk'] ?? '-' }}</td>
-                    <td>{{ $row['pelanggan'] ?? '-' }}</td>
-                    <td>{{ $row['nama_item'] ?? '-' }}</td>
-                    <td class="text-end">{{ number_format((int) ($queue->jumlah ?? 0), 0, ',', '.') }}</td>
-                    <td>{{ $mesinNama }}</td>
-                    <td class="text-end">
-                      <div class="small fw-semibold mb-1">
-                        Progress: {{ $progress }}%
-                      </div>
-
-                      <div class="progress mb-1" style="height:6px;">
-                        <div class="progress-bar {{ $progress >= 100 ? 'bg-success' : ($progress >= 50 ? 'bg-warning' : 'bg-primary') }}"
-                            role="progressbar"
-                            style="width: {{ $progress }}%;"
-                            aria-valuenow="{{ $progress }}"
-                            aria-valuemin="0"
-                            aria-valuemax="100"></div>
-                      </div>
-
-                      <div class="small text-muted">
-                        Selesai: {{ number_format($printed,0,',','.') }} /
-                        {{ number_format($qtyDiambil,0,',','.') }}
-                        (Sisa: {{ number_format($sisa,0,',','.') }})
-                      </div>
-                    </td>
-                    <td class="text-center">
-                      <input type="checkbox"
-                            class="form-check-input cetak-item-checkbox"
-                            value="{{ $item->id }}"
-                            data-mesin-id="{{ $queue->mesin_id }}"
-                            data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
-                            data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
-                            data-item="{{ $item->nama_produk ?? '-' }}"
-                            data-qty="{{ $qtyDiambil }}"
-                            data-sisa="{{ $sisa }}">
-                    </td>
-                    <td class="text-center">
-                      {{-- CETAK hanya di Pekerjaan Saya --}}
-                      <button type="button"
-                              class="btn btn-xs btn-primary btn-open-cetak-modal"
-                              data-spk-item-id="{{ $item->id }}"
-                              data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
-                              data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
-                              data-nama-item="{{ $item->nama_produk ?? '-' }}"
-                              data-qty="{{ $qtyDiambil }}"
-                              data-mesin-id="{{ (int) ($queue->mesin_id ?? 0) }}"
-                              data-diambil="{{ (int) ($queue->jumlah ?? 0) }}"
-                              data-sudah="{{ $printed }}" 
-                              data-sisa="{{ $sisa }}">
+          @if(($pekerjaanSayaByMesin ?? collect())->count() > 0)
+            {{-- Tab card mesin --}}
+            <div class="row g-3 mb-3" id="pekerjaanSayaMesinTabs" role="tablist">
+              @foreach($pekerjaanSayaByMesin as $group)
+                @php
+                  $isFirst = $loop->first;
+                  $slug = 'ps-mesin-'.$group['mesin_id'];
+                @endphp
+                <div class="col-md-3">
+                  <button class="card tab-card w-100 text-start {{ $isFirst ? 'active' : '' }}"
+                          id="tab-{{ $slug }}"
+                          data-bs-toggle="tab"
+                          data-bs-target="#pane-{{ $slug }}"
+                          type="button"
+                          role="tab"
+                          aria-controls="pane-{{ $slug }}"
+                          aria-selected="{{ $isFirst ? 'true' : 'false' }}">
+                    <div class="card-body d-flex align-items-center gap-3">
+                      <div class="tab-icon bg-primary-subtle text-primary">
                         <i class="fa fa-print"></i>
-                      </button>
-                      {{-- BATAL AMBIL di Pekerjaan Saya --}}
-                      <form method="POST"
-                            action="{{ route('pekerjaan.operator-cetak.batal-ambil') }}"
-                            class="d-inline ms-1 form-batal-ambil">
-                        @csrf
-                        <input type="hidden" name="mesin_id" value="{{ (int) ($queue->mesin_id ?? 0) }}">
-                        <input type="hidden" name="spk_item_ids[]" value="{{ $item->id }}">
-                        <button type="submit" class="btn btn-xs btn-outline-danger">
-                          Batal ambil
-                        </button>
-                      </form>
-                    </td>
-                  </tr>
-                @empty
-                  <tr>
-                    <td colspan="7" class="text-center text-muted py-4">Belum ada pekerjaan yang diambil.</td>
-                  </tr>
-                @endforelse
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <h6 class="mb-0 fw-semibold">{{ $group['mesin_nama'] }}</h6>
+                          <span class="badge bg-primary rounded-pill px-3">{{ $group['count'] ?? 0 }}</span>
+                        </div>
+                        <small class="text-muted">Pekerjaan per mesin</small>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              @endforeach
+            </div>
+            {{-- Content per mesin --}}
+            <div class="tab-content" id="pekerjaanSayaMesinTabContent">
+              @foreach($pekerjaanSayaByMesin as $group)
+                @php
+                  $isFirst = $loop->first;
+                  $slug = 'ps-mesin-'.$group['mesin_id'];
+                  $rows = $group['items'] ?? collect();
+                @endphp
+                <div class="tab-pane fade {{ $isFirst ? 'show active' : '' }}"
+                    id="pane-{{ $slug }}"
+                    role="tabpanel"
+                    aria-labelledby="tab-{{ $slug }}">
+                  <div class="table-responsive">
+                    <table class="table table-sm align-middle">
+                      <thead class="table-light">
+                        <tr>
+                          <th>No SPK</th>
+                          <th>Pelanggan</th>
+                          <th>Item</th>
+                          <th class="text-end">Qty Diambil</th>
+                          <th>Mesin</th>
+                          <th class="text-end" style="width:180px;">Progress</th>
+                          <th class="text-center" style="width:40px;">Pilih</th>
+                          <th class="text-center" style="width:210px;">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        @forelse($rows as $row)
+                          @php
+                            $spk = $row['spk'];
+                            $item = $row['item'];
+                            $queue = $row['queue'];
+                            $mesinNama = $row['mesin_nama'] ?? '-';
+                            $qtyDiambil = (int) ($row['qty_diambil'] ?? 0);
+                            $printed = (int) ($row['printed'] ?? 0);
+                            $progress = (float) ($row['progress'] ?? 0);
+                            $sisa = max(0, $qtyDiambil - $printed);
+                          @endphp
+                          <tr>
+                            <td>{{ $row['nomor_spk'] ?? '-' }}</td>
+                            <td>{{ $row['pelanggan'] ?? '-' }}</td>
+                            <td>{{ $row['nama_item'] ?? '-' }}</td>
+                            <td class="text-end">{{ number_format((int) ($queue->jumlah ?? 0), 0, ',', '.') }}</td>
+                            <td>{{ $mesinNama }}</td>
+                            <td class="text-end">
+                              <div class="small fw-semibold mb-1">Progress: {{ $progress }}%</div>
+                              <div class="progress mb-1" style="height:6px;">
+                                <div class="progress-bar {{ $progress >= 100 ? 'bg-success' : ($progress >= 50 ? 'bg-warning' : 'bg-primary') }}"
+                                    role="progressbar"
+                                    style="width: {{ $progress }}%;"
+                                    aria-valuenow="{{ $progress }}"
+                                    aria-valuemin="0"
+                                    aria-valuemax="100"></div>
+                              </div>
+                              <div class="small text-muted">
+                                Selesai: {{ number_format($printed,0,',','.') }} / {{ number_format($qtyDiambil,0,',','.') }}
+                                (Sisa: {{ number_format($sisa,0,',','.') }})
+                              </div>
+                            </td>
+                            <td class="text-center">
+                              <input type="checkbox"
+                                    class="form-check-input cetak-item-checkbox"
+                                    value="{{ $item->id }}"
+                                    data-mesin-id="{{ $queue->mesin_id }}"
+                                    data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
+                                    data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
+                                    data-item="{{ $item->nama_produk ?? '-' }}"
+                                    data-qty="{{ $qtyDiambil }}"
+                                    data-sisa="{{ $sisa }}">
+                            </td>
+                            <td class="text-center">
+                              <button type="button"
+                                      class="btn btn-xs btn-primary btn-open-cetak-modal"
+                                      data-spk-item-id="{{ $item->id }}"
+                                      data-nomor-spk="{{ $spk->nomor_spk ?? '-' }}"
+                                      data-pelanggan="{{ $spk?->pelanggan?->nama ?? '-' }}"
+                                      data-nama-item="{{ $item->nama_produk ?? '-' }}"
+                                      data-qty="{{ $qtyDiambil }}"
+                                      data-mesin-id="{{ (int) ($queue->mesin_id ?? 0) }}"
+                                      data-diambil="{{ (int) ($queue->jumlah ?? 0) }}"
+                                      data-sudah="{{ $printed }}"
+                                      data-sisa="{{ $sisa }}">
+                                <i class="fa fa-print"></i>
+                              </button>
+                              <form method="POST"
+                                    action="{{ route('pekerjaan.operator-cetak.batal-ambil') }}"
+                                    class="d-inline ms-1 form-batal-ambil">
+                                @csrf
+                                <input type="hidden" name="mesin_id" value="{{ (int) ($queue->mesin_id ?? 0) }}">
+                                <input type="hidden" name="queue_ids[]" value="{{ (int) ($queue->id ?? 0) }}">
+                                <input type="hidden" name="spk_item_ids[]" value="{{ $item->id }}">
+                                <button type="submit" class="btn btn-xs btn-outline-danger">Batal ambil</button>
+                              </form>
+                            </td>
+                          </tr>
+                        @empty
+                          <tr>
+                            <td colspan="8" class="text-center text-muted py-4">Belum ada pekerjaan untuk mesin ini.</td>
+                          </tr>
+                        @endforelse
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          @else
+            <div class="text-center text-muted py-4">Belum ada pekerjaan yang diambil.</div>
+          @endif
         </div>
 
         {{-- TAB : Pool Pekerjaan --}}
         <div class="tab-pane fade" id="tabPoolPekerjaan" role="tabpanel" aria-labelledby="tab-pool-pekerjaan">
-          @foreach($poolTipeMesinGroups as $tipe => $group)
-          @php
-            $slug = \Illuminate\Support\Str::slug($tipe, '-');
-            $accordionIdBase = 'accordionTipe'.$slug;
-          @endphp
-          <div class="pool-tipe-wrapper">
-            <div class="accordion" id="{{ $accordionIdBase }}">
-              @php
+          @if(!empty($poolTipeMesinGroups))
+            {{-- Tab card tipe mesin --}}
+            <div class="row g-3 mb-3" id="poolTipeTabs" role="tablist">
+              @foreach($poolTipeMesinGroups as $tipe => $group)
+                @php
+                  $isFirst = $loop->first;
+                  $slug = 'pool-tipe-'.\Illuminate\Support\Str::slug($tipe, '-');
+                @endphp
+                <div class="col-md-3">
+                  <button class="card tab-card w-100 text-start {{ $isFirst ? 'active' : '' }}"
+                          id="tab-{{ $slug }}"
+                          data-bs-toggle="tab"
+                          data-bs-target="#pane-{{ $slug }}"
+                          type="button"
+                          role="tab"
+                          aria-controls="pane-{{ $slug }}"
+                          aria-selected="{{ $isFirst ? 'true' : 'false' }}">
+                    <div class="card-body d-flex align-items-center gap-3">
+                      <div class="tab-icon bg-success-subtle text-success">
+                        <i class="fa fa-cogs"></i>
+                      </div>
+                      <div class="flex-grow-1">
+                        <div class="d-flex align-items-center justify-content-between">
+                          <h6 class="mb-0 fw-semibold">{{ $group['label'] ?? $tipe }}</h6>
+                          <span class="badge bg-success rounded-pill px-3">{{ count($group['spk'] ?? []) }}</span>
+                        </div>
+                        <small class="text-muted">Pool per tipe mesin</small>
+                      </div>
+                    </div>
+                  </button>
+                </div>
+              @endforeach
+            </div>
+
+            {{-- Content per tipe mesin --}}
+            <div class="tab-content" id="poolTipeTabContent">
+              @foreach($poolTipeMesinGroups as $tipe => $group)
+                @php
+                  $isFirst = $loop->first;
+                  $slug = 'pool-tipe-'.\Illuminate\Support\Str::slug($tipe, '-');
+                  $accordionIdBase = 'accordionTipe'.\Illuminate\Support\Str::slug($tipe, '-');
                   /** @var array $group */
                   $bahanGroups = $group['bahanGroups'] ?? [];
-              @endphp
-
-              @forelse($bahanGroups as $bahan)
-                @php
-                  $accordionId = ($accordionIdBase ?? 'operatorTipe').'-bahan-'.$bahan['id'];
-                  $items = array_values($bahan['items'] ?? []);
                 @endphp
 
-                <div class="accordion-item">
-                  <h2 class="accordion-header" id="heading-{{ $accordionId }}">
-                    <button class="accordion-button collapsed" type="button"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#collapse-{{ $accordionId }}"
-                            aria-expanded="false"
-                            aria-controls="collapse-{{ $accordionId }}">
-                      <div class="d-flex justify-content-between align-items-center w-100 me-3">
-                        <div class="flex-grow-1">
-                          @php
-                            // Hitung total metric untuk bahan ini (di semua item yang tercatat)
-                            $totalMetric = 0;
-                            $metricUnitLabel = 'm';
+                <div class="tab-pane fade {{ $isFirst ? 'show active' : '' }}"
+                    id="pane-{{ $slug }}"
+                    role="tabpanel"
+                    aria-labelledby="tab-{{ $slug }}">
 
-                            foreach ($items as $rec) {
-                                $spkRow = $rec['spk'];
-                                $spkItem = $rec['item'];
+                  <div class="pool-tipe-wrapper">
+                    <div class="accordion" id="{{ $accordionIdBase }}">
+                      @forelse($bahanGroups as $bahan)
+                        @php
+                          $accordionId = ($accordionIdBase ?? 'operatorTipe').'-bahan-'.$bahan['id'];
+                          $items = array_values($bahan['items'] ?? []);
+                        @endphp
 
-                                $produk = $spkItem->produk;
-                                if (!$produk || $produk->is_metric !== true) {
-                                    continue;
-                                }
-
-                                $metricUnit = $produk->metric_unit ?: 'cm';
-                                $panjang = (float) ($spkItem->panjang ?? 0);
-                                $lebar   = (float) ($spkItem->lebar ?? 0);
-                                $jumlah  = (float) ($spkItem->jumlah ?? 0);
-                                if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
-                                    continue;
-                                }
-
-                                switch (strtolower($metricUnit)) {
-                                    case 'mm':
-                                        $panjang /= 1000; $lebar /= 1000; break;
-                                    case 'cm':
-                                        $panjang /= 100;  $lebar /= 100;  break;
-                                    case 'm':
-                                    default:
-                                        break;
-                                }
-
-                                $totalMetric += $panjang * $lebar * $jumlah;
-                            }
-                          @endphp
-
-                          <h6 class="mb-1 text-dark fw-bold">{{ $bahan['nama'] }}</h6>
-                          @if(!empty($bahan['kode']))
-                            <small class="text-muted">{{ $bahan['kode'] }}</small>
-                          @endif
-                        </div>
-                        <div class="text-end">
-                          <div class="badge bg-secondary text-white mb-1">
-                            {{ count($items) }} item
-                          </div>
-                          @if($totalMetric > 0)
-                            <div class="small text-muted">
-                              Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
-                            </div>
-                          @endif
-                        </div>
-                      </div>
-                    </button>
-                  </h2>
-
-                  <div id="collapse-{{ $accordionId }}" class="accordion-collapse collapse"
-                      aria-labelledby="heading-{{ $accordionId }}"
-                      data-bs-parent="#{{ $accordionIdBase ?? 'operatorTipe' }}">
-                    <div class="accordion-body">
-                      <div class="table-responsive">
-                        <table class="table table-sm align-middle mb-0">
-                          <thead class="table-light">
-                            <tr>
-                              <th>Nomor SPK</th>
-                              <th>Pelanggan</th>
-                              <th class="text-center" style="width:50px;">File</th>
-                              <th>Nama Item</th>
-                              <th>Ukuran / Luas</th>
-                              <th class="text-end">Jumlah</th>
-                              <th>Satuan</th>
-                              <!-- <th class="text-end">Sudah cetak</th> -->
-                              <th class="text-end">Progress</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            @php
-                              $groupedBySpk = collect($items ?? [])->groupBy(function ($rec) {
-                                  return $rec['spk']->id;
-                              });
-                            @endphp
-
-                            @forelse($groupedBySpk as $spkId => $rows)
-                              @php
-                                $spkRow = $rows->first()['spk'];
-                                $rowspan = $rows->count();
-                                $firstRow = true;
-
-                                $groupDefaultFiles = [];
-                                foreach ($rows as $rec) {
-                                    $it = $rec['item'];
-                                    $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
-                                    $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
-                                    $default = (is_array($files) && count($files)) ? $files[0] : null;
-                                    $path = $default['path'] ?? null;
-                                    if (!$path) continue;
-                                    $groupDefaultFiles[$path] = $default;
-                                }
-                                $groupDefaultFiles = array_values($groupDefaultFiles);
-                              @endphp
-
-                              @foreach($rows as $rec)
-                                @php
-                                  $spkItem = $rec['item'];
-
-                                  $produk = $spkItem->produk;
-                                  $isMetric   = $produk && ($produk->is_metric === true);
-                                  $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
-                                  $panjang = (float) ($spkItem->panjang ?? 0);
-                                  $lebar   = (float) ($spkItem->lebar ?? 0);
-
-                                  if ($isMetric && $panjang > 0 && $lebar > 0) {
-                                      $luas = $panjang * $lebar;
-                                      $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
-                                      $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
-                                  } elseif ($isMetric) {
-                                      $dimensiText = 'Metric ('.$metricUnit.')';
-                                      $luasText = 'Ukuran belum lengkap';
-                                  } else {
-                                      $dimensiText = '-';
-                                      $luasText = '';
-                                  }
-
-                                  $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
-                                  if (is_string($filePendukungRaw)) {
-                                      $filePendukung = json_decode($filePendukungRaw, true) ?: [];
-                                  } else {
-                                      $filePendukung = (array) $filePendukungRaw;
-                                  }
-                                  $firstFile  = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
-                                  $thumbUrl   = null;
-                                  $isPdfFirst = false;
-                                  if ($firstFile && !empty($firstFile['path'])) {
-                                      $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
-                                      $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
-                                  }
-
-                                  $workflowStep = $rec['workflow_step'] ?? [];
-                                  $stepIndex = (int) ($workflowStep['step_index'] ?? 1);
-                                  $stepTotal = (int) ($workflowStep['step_total'] ?? 1);
-                                  $eligibleQty = (int) ($workflowStep['eligible_qty'] ?? 0);
-                                  $totalDiambil = (int) ($workflowStep['queued_qty_step'] ?? 0);
-                                  $sisaAmbil = (int) ($workflowStep['remaining_take_qty'] ?? 0);
-                                  $pctAmbil = $eligibleQty > 0 ? min(100, round(($totalDiambil / $eligibleQty) * 100, 1)) : 0.0;
-
-                                  $sudahCetak = (int) ($workflowStep['printed_qty_step'] ?? 0);
-                                  $pctCetak = (float) ($workflowStep['progress_step_pct'] ?? 0);
-                                  $sisa = (int) ($workflowStep['remaining_print_qty'] ?? 0);
-                                @endphp
-
-                                <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
-                                  @if($firstRow)
-                                    <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
-                                      <div class="d-flex align-items-start gap-2">
-                                        <div>
-                                          {{ $spkRow->nomor_spk }}
-                                          @php
-                                            $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
-                                            $now = \Carbon\Carbon::now();
-                                            $diff = $spkDate->diff($now);
-                                          @endphp
-                                          <small class="text-muted d-block">
-                                            {{ $spkDate->format('d/m/Y') }}
-                                          </small>
-                                          @if($spkDate->isPast())
-                                            <small class="text-muted">
-                                              {{ $diff->days }} hari
-                                              @if($diff->h > 0)
-                                                {{ $diff->h }} jam
-                                              @endif
-                                            </small>
-                                          @endif
-                                        </div>
-
-                                        @if(count($groupDefaultFiles))
-                                          <button type="button"
-                                                  class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
-                                                  data-spk-id="{{ $spkRow->id }}"
-                                                  data-spk-nomor="{{ $spkRow->nomor_spk }}"
-                                                  data-files='@json($groupDefaultFiles)'
-                                                  title="Lihat file default item (group ini)">
-                                            <i class="fa fa-eye"></i>
-                                          </button>
-                                        @endif
-                                      </div>
-                                    </td>
-                                    <td rowspan="{{ $rowspan }}" class="align-top">
-                                      {{ optional($spkRow->pelanggan)->nama ?? '-' }}
-                                    </td>
-                                    @php $firstRow = false; @endphp
-                                  @endif
-
-                                  <td class="text-center align-middle" style="width: 60px;">
-                                    @if($firstFile && $thumbUrl)
-                                      <button type="button"
-                                              class="btn btn-sm btn-light p-1 btn-preview-item-file"
-                                              data-file-path="{{ $firstFile['path'] }}"
-                                              data-file-name="{{ $firstFile['name'] ?? '' }}"
-                                              data-file-type="{{ $firstFile['type'] ?? '' }}"
-                                              title="Preview file item">
-                                        @if($isPdfFirst)
-                                          <i class="fa fa-file-pdf text-danger fa-lg"></i>
-                                        @else
-                                          <img src="{{ $thumbUrl }}"
-                                              alt="{{ $firstFile['name'] ?? 'Preview' }}"
-                                              class="img-thumbnail"
-                                              style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
-                                              loading="lazy">
-                                        @endif
-                                      </button>
-                                    @else
-                                      <span class="text-muted">-</span>
-                                    @endif
-                                  </td>
-
-                                  <td>{{ $spkItem->nama_produk }}</td>
-                                  <td>
-                                    <div class="fw-semibold">{{ $dimensiText }}</div>
-                                    @if($luasText)
-                                      <div class="text-muted small">{{ $luasText }}</div>
-                                    @endif
-                                  </td>
-                                  <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
-                                  <td>{{ $spkItem->satuan }}</td>
+                        <div class="accordion-item">
+                          <h2 class="accordion-header" id="heading-{{ $accordionId }}">
+                            <button class="accordion-button collapsed" type="button"
+                                    data-bs-toggle="collapse"
+                                    data-bs-target="#collapse-{{ $accordionId }}"
+                                    aria-expanded="false"
+                                    aria-controls="collapse-{{ $accordionId }}">
+                              <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                                <div class="flex-grow-1">
                                   @php
-                                    $progressColor = $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary');
+                                    $totalMetric = 0;
+                                    $metricUnitLabel = 'm';
 
-                                    $firstFileForCetak = $firstFile;
-                                    $filePath = $firstFileForCetak['path'] ?? null;
-                                    $fileName = $firstFileForCetak['name'] ?? '';
-                                    $fileType = $firstFileForCetak['type'] ?? '';
+                                    foreach ($items as $rec) {
+                                        $spkRow = $rec['spk'];
+                                        $spkItem = $rec['item'];
+
+                                        $produk = $spkItem->produk;
+                                        if (!$produk || $produk->is_metric !== true) {
+                                            continue;
+                                        }
+
+                                        $metricUnit = $produk->metric_unit ?: 'cm';
+                                        $panjang = (float) ($spkItem->panjang ?? 0);
+                                        $lebar   = (float) ($spkItem->lebar ?? 0);
+                                        $jumlah  = (float) ($spkItem->jumlah ?? 0);
+                                        if ($panjang <= 0 || $lebar <= 0 || $jumlah <= 0) {
+                                            continue;
+                                        }
+
+                                        switch (strtolower($metricUnit)) {
+                                            case 'mm':
+                                                $panjang /= 1000; $lebar /= 1000; break;
+                                            case 'cm':
+                                                $panjang /= 100;  $lebar /= 100;  break;
+                                            case 'm':
+                                            default:
+                                                break;
+                                        }
+
+                                        $totalMetric += $panjang * $lebar * $jumlah;
+                                    }
                                   @endphp
 
-                                  <!-- <td class="text-end fw-semibold">{{ number_format($sudahCetak, 0, ',', '.') }}</td> -->
+                                  <h6 class="mb-1 text-dark fw-bold">{{ $bahan['nama'] }}</h6>
+                                  @if(!empty($bahan['kode']))
+                                    <small class="text-muted">{{ $bahan['kode'] }}</small>
+                                  @endif
+                                </div>
+                                <div class="text-end">
+                                  <div class="badge bg-secondary text-white mb-1">
+                                    {{ count($items) }} item
+                                  </div>
+                                  @if($totalMetric > 0)
+                                    <div class="small text-muted">
+                                      Total: {{ number_format($totalMetric, 2, ',', '.') }} {{ strtolower($metricUnitLabel ?? 'cm') }}²
+                                    </div>
+                                  @endif
+                                </div>
+                              </div>
+                            </button>
+                          </h2>
 
-                                  <td class="text-end">
-                                    <div class="small fw-semibold mb-1">Ambil: {{ $pctAmbil }}%</div>
-                                    <div class="progress mb-2" style="height:6px;">
-                                      <div class="progress-bar bg-success"
-                                          role="progressbar"
-                                          style="width: {{ $pctAmbil }}%;"
-                                          aria-valuenow="{{ $pctAmbil }}"
-                                          aria-valuemin="0"
-                                          aria-valuemax="100"></div>
-                                    </div>
-                                    <div class="small text-muted mb-2">
-                                      Step {{ $stepIndex }}/{{ $stepTotal }} • Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($eligibleQty,0,',','.') }}
-                                      (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
-                                    </div>
+                          <div id="collapse-{{ $accordionId }}" class="accordion-collapse collapse"
+                              aria-labelledby="heading-{{ $accordionId }}"
+                              data-bs-parent="#{{ $accordionIdBase ?? 'operatorTipe' }}">
+                            <div class="accordion-body">
+                              <div class="table-responsive">
+                                <table class="table table-sm align-middle mb-0">
+                                  <thead class="table-light">
+                                    <tr>
+                                      <th>Nomor SPK</th>
+                                      <th>Pelanggan</th>
+                                      <th class="text-center" style="width:50px;">File</th>
+                                      <th>Nama Item</th>
+                                      <th>Ukuran / Luas</th>
+                                      <th class="text-end">Jumlah</th>
+                                      <th>Satuan</th>
+                                      <th class="text-end">Progress</th>
+                                    </tr>
+                                  </thead>
+                                  <tbody>
+                                    @php
+                                      $groupedBySpk = collect($items ?? [])->groupBy(function ($rec) {
+                                          return $rec['spk']->id;
+                                      });
+                                    @endphp
 
-                                    <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
-                                    <div class="progress" style="height:6px;">
-                                      <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
-                                          role="progressbar"
-                                          style="width: {{ $pctCetak }}%;"
-                                          aria-valuenow="{{ $pctCetak }}"
-                                          aria-valuemin="0"
-                                          aria-valuemax="100"></div>
-                                    </div>
-                                    <div class="small text-muted mt-1">
-                                      Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
-                                    </div>
-                                  </td>
-                                </tr>
-                              @endforeach
-                            @empty
-                              <tr>
-                                <td colspan="8" class="text-center text-muted">
-                                  Tidak ada item untuk bahan ini pada tipe mesin ini.
-                                </td>
-                              </tr>
-                            @endforelse
-                          </tbody>
-                        </table>
-                      </div>
+                                    @forelse($groupedBySpk as $spkId => $rows)
+                                      @php
+                                        $spkRow = $rows->first()['spk'];
+                                        $rowspan = $rows->count();
+                                        $firstRow = true;
+
+                                        $groupDefaultFiles = [];
+                                        foreach ($rows as $rec) {
+                                            $it = $rec['item'];
+                                            $raw = $it->file_pendukung ?? $it->file_pendukung_json ?? '[]';
+                                            $files = is_string($raw) ? (json_decode($raw, true) ?: []) : (array) $raw;
+                                            $default = (is_array($files) && count($files)) ? $files[0] : null;
+                                            $path = $default['path'] ?? null;
+                                            if (!$path) continue;
+                                            $groupDefaultFiles[$path] = $default;
+                                        }
+                                        $groupDefaultFiles = array_values($groupDefaultFiles);
+                                      @endphp
+
+                                      @foreach($rows as $rec)
+                                        @php
+                                          $spkItem = $rec['item'];
+
+                                          $produk = $spkItem->produk;
+                                          $isMetric   = $produk && ($produk->is_metric === true);
+                                          $metricUnit = $produk && $produk->metric_unit ? $produk->metric_unit : 'cm';
+                                          $panjang = (float) ($spkItem->panjang ?? 0);
+                                          $lebar   = (float) ($spkItem->lebar ?? 0);
+
+                                          if ($isMetric && $panjang > 0 && $lebar > 0) {
+                                              $luas = $panjang * $lebar;
+                                              $dimensiText = sprintf('%.2f × %.2f %s', $lebar, $panjang, strtolower($metricUnit));
+                                              $luasText = sprintf('Luas: %.2f %s²', $luas, strtolower($metricUnit));
+                                          } elseif ($isMetric) {
+                                              $dimensiText = 'Metric ('.$metricUnit.')';
+                                              $luasText = 'Ukuran belum lengkap';
+                                          } else {
+                                              $dimensiText = '-';
+                                              $luasText = '';
+                                          }
+
+                                          $filePendukungRaw = $spkItem->file_pendukung ?? $spkItem->file_pendukung_json ?? '[]';
+                                          if (is_string($filePendukungRaw)) {
+                                              $filePendukung = json_decode($filePendukungRaw, true) ?: [];
+                                          } else {
+                                              $filePendukung = (array) $filePendukungRaw;
+                                          }
+                                          $firstFile  = is_array($filePendukung) && count($filePendukung) ? $filePendukung[0] : null;
+                                          $thumbUrl   = null;
+                                          $isPdfFirst = false;
+                                          if ($firstFile && !empty($firstFile['path'])) {
+                                              $thumbUrl   = route('backend.preview-file', ['path' => $firstFile['path']]);
+                                              $isPdfFirst = strtolower((string) ($firstFile['type'] ?? '')) === 'pdf';
+                                          }
+
+                                          $workflowStep = $rec['workflow_step'] ?? [];
+                                          $stepIndex = (int) ($workflowStep['step_index'] ?? 1);
+                                          $stepTotal = (int) ($workflowStep['step_total'] ?? 1);
+                                          $eligibleQty = (int) ($workflowStep['eligible_qty'] ?? 0);
+                                          $totalDiambil = (int) ($workflowStep['queued_qty_step'] ?? 0);
+                                          $sisaAmbil = (int) ($workflowStep['remaining_take_qty'] ?? 0);
+                                          $pctAmbil = $eligibleQty > 0 ? min(100, round(($totalDiambil / $eligibleQty) * 100, 1)) : 0.0;
+
+                                          $sudahCetak = (int) ($workflowStep['printed_qty_step'] ?? 0);
+                                          $pctCetak = (float) ($workflowStep['progress_step_pct'] ?? 0);
+                                          $sisa = (int) ($workflowStep['remaining_print_qty'] ?? 0);
+                                        @endphp
+
+                                        <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
+                                          @if($firstRow)
+                                            <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
+                                              <div class="d-flex align-items-start gap-2">
+                                                <div>
+                                                  {{ $spkRow->nomor_spk }}
+                                                  @php
+                                                    $spkDate = \Carbon\Carbon::parse($spkRow->tanggal_spk);
+                                                    $now = \Carbon\Carbon::now();
+                                                    $diff = $spkDate->diff($now);
+                                                  @endphp
+                                                  <small class="text-muted d-block">
+                                                    {{ $spkDate->format('d/m/Y') }}
+                                                  </small>
+                                                  @if($spkDate->isPast())
+                                                    <small class="text-muted">
+                                                      {{ $diff->days }} hari
+                                                      @if($diff->h > 0)
+                                                        {{ $diff->h }} jam
+                                                      @endif
+                                                    </small>
+                                                  @endif
+                                                </div>
+
+                                                @if(count($groupDefaultFiles))
+                                                  <button type="button"
+                                                          class="btn btn-sm btn-light p-1 ms-1 btn-preview-spk-files"
+                                                          data-spk-id="{{ $spkRow->id }}"
+                                                          data-spk-nomor="{{ $spkRow->nomor_spk }}"
+                                                          data-files='@json($groupDefaultFiles)'
+                                                          title="Lihat file default item (group ini)">
+                                                    <i class="fa fa-eye"></i>
+                                                  </button>
+                                                @endif
+                                              </div>
+                                            </td>
+                                            <td rowspan="{{ $rowspan }}" class="align-top">
+                                              {{ optional($spkRow->pelanggan)->nama ?? '-' }}
+                                            </td>
+                                            @php $firstRow = false; @endphp
+                                          @endif
+
+                                          <td class="text-center align-middle" style="width: 60px;">
+                                            @if($firstFile && $thumbUrl)
+                                              <button type="button"
+                                                      class="btn btn-sm btn-light p-1 btn-preview-item-file"
+                                                      data-file-path="{{ $firstFile['path'] }}"
+                                                      data-file-name="{{ $firstFile['name'] ?? '' }}"
+                                                      data-file-type="{{ $firstFile['type'] ?? '' }}"
+                                                      title="Preview file item">
+                                                @if($isPdfFirst)
+                                                  <i class="fa fa-file-pdf text-danger fa-lg"></i>
+                                                @else
+                                                  <img src="{{ $thumbUrl }}"
+                                                      alt="{{ $firstFile['name'] ?? 'Preview' }}"
+                                                      class="img-thumbnail"
+                                                      style="max-width: 40px; max-height: 40px; object-fit: cover; border-radius:4px;"
+                                                      loading="lazy">
+                                                @endif
+                                              </button>
+                                            @else
+                                              <span class="text-muted">-</span>
+                                            @endif
+                                          </td>
+
+                                          <td>{{ $spkItem->nama_produk }}</td>
+                                          <td>
+                                            <div class="fw-semibold">{{ $dimensiText }}</div>
+                                            @if($luasText)
+                                              <div class="text-muted small">{{ $luasText }}</div>
+                                            @endif
+                                          </td>
+                                          <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
+                                          <td>{{ $spkItem->satuan }}</td>
+
+                                          <td class="text-end">
+                                            <div class="small fw-semibold mb-1">Ambil: {{ $pctAmbil }}%</div>
+                                            <div class="progress mb-2" style="height:6px;">
+                                              <div class="progress-bar bg-success"
+                                                  role="progressbar"
+                                                  style="width: {{ $pctAmbil }}%;"
+                                                  aria-valuenow="{{ $pctAmbil }}"
+                                                  aria-valuemin="0"
+                                                  aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="small text-muted mb-2">
+                                              Step {{ $stepIndex }}/{{ $stepTotal }} • Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($eligibleQty,0,',','.') }}
+                                              (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
+                                            </div>
+
+                                            <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
+                                            <div class="progress" style="height:6px;">
+                                              <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
+                                                  role="progressbar"
+                                                  style="width: {{ $pctCetak }}%;"
+                                                  aria-valuenow="{{ $pctCetak }}"
+                                                  aria-valuemin="0"
+                                                  aria-valuemax="100"></div>
+                                            </div>
+                                            <div class="small text-muted mt-1">
+                                              Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      @endforeach
+                                    @empty
+                                      <tr>
+                                        <td colspan="8" class="text-center text-muted">
+                                          Tidak ada item untuk bahan ini pada tipe mesin ini.
+                                        </td>
+                                      </tr>
+                                    @endforelse
+                                  </tbody>
+                                </table>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      @empty
+                        <div class="text-center py-4 text-muted">
+                          Tidak ada data bahan untuk tipe mesin ini.
+                        </div>
+                      @endforelse
                     </div>
                   </div>
                 </div>
-              @empty
-                <div class="text-center py-4 text-muted">
-                  Tidak ada data bahan untuk tipe mesin ini.
-                </div>
-              @endforelse
+              @endforeach
             </div>
-          </div>
-          @endforeach
+          @else
+            <div class="text-center text-muted py-4">
+              Tidak ada pool pekerjaan untuk role mesin Anda.
+            </div>
+          @endif
         </div>
   </div>
 
@@ -1053,7 +1128,7 @@
     @endif
   </script>
 
-  <script>
+  <!-- <script>
   document.querySelectorAll('#operatorTabs button').forEach(btn => {
       btn.addEventListener('shown.bs.tab', function () {
 
@@ -1064,7 +1139,7 @@
           this.classList.add('active');
       });
   });
-  </script>
+  </script> -->
 
   <script>
     function syncMultiAmbilButtons() {
@@ -2502,7 +2577,7 @@
     });
   </script>
 
-  <!-- <script>
+  <script>
     document.addEventListener('DOMContentLoaded', function () {
 
       const formAmbil = document.getElementById('formAmbil');
@@ -2522,7 +2597,7 @@
 
       });
     });
-  </script> -->
+  </script>
 
 <div class="modal fade" id="globalPreviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
@@ -2639,7 +2714,7 @@
         @csrf
         <div class="modal-header py-2">
           <h6 class="modal-title mb-0">Cetak - Progress</h6>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" data-bs-target="#cetakProgressModal" aria-label="Close"></button>
         </div>
 
         <div class="modal-body">
@@ -2744,7 +2819,7 @@
         </div>
 
         <div class="modal-footer">
-          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Tutup</button>
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal" data-bs-target="#cetakProgressModal">Tutup</button>
           <button type="submit" class="btn btn-primary" id="btn_simpan_progress">
             <span class="btn-text">
               <i class="fa fa-save me-1"></i> Simpan Progress
@@ -3250,5 +3325,64 @@
 
   })();
   </script>
+
+<script>
+  (function () {
+    const ambilModalEl = document.getElementById('ambilModal');
+
+    if (!ambilModalEl) return;
+
+    const ambilModalInstance = bootstrap.Modal.getOrCreateInstance(ambilModalEl);
+
+    ambilModalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        ambilModalInstance.hide();
+      });
+    });
+
+    ambilModalEl.addEventListener('click', function (e) {
+      if (e.target === ambilModalEl) {
+        ambilModalInstance.hide();
+      }
+    });
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') {
+        if (ambilModalEl.classList.contains('show')) {
+          ambilModalInstance.hide();
+        }
+      }
+    });
+
+    ambilModalEl.addEventListener('shown.bs.modal', function () {
+      document.body.classList.add('modal-open');
+    });
+
+  })();
+</script>
+
+<script>
+  (function () {
+    function bindCardTabScope(containerSelector) {
+      const container = document.querySelector(containerSelector);
+      if (!container) return;
+
+      container.querySelectorAll('[data-bs-toggle="tab"]').forEach(btn => {
+        btn.addEventListener('shown.bs.tab', function () {
+          container.querySelectorAll('.tab-card').forEach(el => el.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+    }
+
+    bindCardTabScope('#operatorTabs');
+    bindCardTabScope('#pekerjaanSayaMesinTabs');
+    bindCardTabScope('#poolTipeTabs');
+    bindCardTabScope('#modalAmbilTabs');
+  })();
+</script>
 
 @endpush

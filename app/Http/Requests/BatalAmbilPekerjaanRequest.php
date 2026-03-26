@@ -14,7 +14,9 @@ class BatalAmbilPekerjaanRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'spk_item_ids' => ['required', 'array', 'min:1'],
+            'queue_ids' => ['nullable', 'array', 'min:1'],
+            'queue_ids.*' => ['integer', 'distinct', 'exists:spk_item_cetak_queue,id'],
+            'spk_item_ids' => ['nullable', 'array', 'min:1'],
             'spk_item_ids.*' => ['integer', 'distinct', 'exists:spk_items,id'],
             'mesin_id' => ['required', 'integer', 'exists:mesin,id'],
         ];

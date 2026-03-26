@@ -307,7 +307,10 @@ class PekerjaanController extends Controller
         $tipeNamaByMesinId = $allMesin->mapWithKeys(function ($mesin) {
             return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
         });
-        $poolTipeNamaByMesinId = $allMesinRaw->mapWithKeys(function ($mesin) {
+        // $poolTipeNamaByMesinId = $allMesinRaw->mapWithKeys(function ($mesin) {
+        //     return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
+        // });
+        $poolTipeNamaByMesinId = $allMesin->mapWithKeys(function ($mesin) {
             return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
         });
 
@@ -414,7 +417,7 @@ class PekerjaanController extends Controller
 
         $poolTipeMesinGroups = $this->buildTipeMesinGroups(
             $allItems,
-            $allMesinRaw,
+            $allMesin,
             $poolQueueByItemAndStepType,
             $poolPrintByItemAndStepType
         );
@@ -492,6 +495,23 @@ class PekerjaanController extends Controller
             ];
         });
 
+        $pekerjaanSayaByMesin = collect($pekerjaanSayaItems)
+            ->groupBy(function ($row) {
+                return (int) ($row['queue']->mesin_id ?? 0);
+            })
+            ->map(function ($rows, $mesinId) {
+                $first = $rows->first();
+
+                return [
+                    'mesin_id' => (int) $mesinId,
+                    'mesin_nama' => $first['mesin_nama'] ?? ('Mesin #'.$mesinId),
+                    'items' => $rows->values(),
+                    'count' => $rows->count(),
+                ];
+            })
+            ->sortBy(fn ($group) => strtolower((string) ($group['mesin_nama'] ?? '')))
+            ->values();
+
         $pekerjaanSayaCount = $pekerjaanSayaItems->count();
 
         return view('pages.pekerjaan.operator-cetak', [
@@ -500,6 +520,7 @@ class PekerjaanController extends Controller
             'poolTipeMesinGroups'=> $poolTipeMesinGroups,
             'pekerjaanSayaItems' => $pekerjaanSayaItems,
             'pekerjaanSayaCount' => $pekerjaanSayaCount,
+            'pekerjaanSayaByMesin' => $pekerjaanSayaByMesin,
             'queueTotalsByItemId'=> $queueTotalsByItemId,
         ]);
     }
@@ -1128,55 +1149,81 @@ class PekerjaanController extends Controller
     {
         $mesinId = (int) $request->input('mesin_id');
         $this->assertMesinAssignedToCurrentUser($mesinId);
-        $ids = collect($request->input('spk_item_ids', []))
-            ->map(fn ($v) => (int) $v)
-            ->unique()
-            ->values();
 
         $userId = (int) (auth()->id() ?? 1);
 
-        DB::transaction(function () use ($ids, $mesinId, $userId) {
-            $queues = SpkItemCetakQueue::query()
+        $queueIds = collect($request->input('queue_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v > 0)
+            ->unique()
+            ->values();
+
+        $itemIdsFallback = collect($request->input('spk_item_ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v > 0)
+            ->unique()
+            ->values();
+
+        DB::transaction(function () use ($queueIds, $itemIdsFallback, $mesinId, $userId) {
+            $selectedQueues = SpkItemCetakQueue::query()
                 ->where('mesin_id', $mesinId)
                 ->where('user_id', $userId)
-                ->whereIn('spk_item_id', $ids->all())
+                ->when(
+                    $queueIds->isNotEmpty(),
+                    fn ($q) => $q->whereIn('id', $queueIds->all()),
+                    fn ($q) => $q->whereIn('spk_item_id', $itemIdsFallback->all()) 
+                )
                 ->lockForUpdate()
                 ->get();
 
-            foreach ($queues as $queue) {
-                $itemId = (int) ($queue->spk_item_id ?? 0);
-                $queueQty = (int) ($queue->jumlah ?? 0);
+            if ($selectedQueues->isEmpty()) {
+                return;
+            }
 
-                if ($itemId <= 0 || $queueQty <= 0) {
-                    $queue->delete();
-                    continue;
-                }
+            $selectedQueueIds = $selectedQueues->pluck('id')->map(fn ($id) => (int) $id)->all();
+            $targetItemIds = $selectedQueues->pluck('spk_item_id')->map(fn ($id) => (int) $id)->unique()->values();
 
-                $sudahCetakPadaQueueIni = (int) SpkItemCetakLog::query()
-                    ->where('spk_item_id', $itemId)
-                    ->where('user_id', $userId)
-                    ->where('mesin_id', $mesinId)
-                    ->whereNull('deleted_at')
-                    ->sum('jumlah');
+            $allQueuesForItems = SpkItemCetakQueue::query()
+                ->where('mesin_id', $mesinId)
+                ->where('user_id', $userId)
+                ->whereIn('spk_item_id', $targetItemIds->all())
+                ->orderBy('created_at')
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get()
+                ->groupBy('spk_item_id');
 
-                $sisaBelumCetak = max(0, $queueQty - $sudahCetakPadaQueueIni);
+            $printedByItem = SpkItemCetakLog::query()
+                ->selectRaw('spk_item_id, SUM(jumlah) as total_cetak')
+                ->where('user_id', $userId)
+                ->where('mesin_id', $mesinId)
+                ->whereNull('deleted_at')
+                ->whereIn('spk_item_id', $targetItemIds->all())
+                ->groupBy('spk_item_id')
+                ->pluck('total_cetak', 'spk_item_id');
 
-                if ($sisaBelumCetak <= 0) {
-                    $queue->jumlah = min($queueQty, $sudahCetakPadaQueueIni);
-                    if ($queue->jumlah <= 0) {
+            foreach ($allQueuesForItems as $itemId => $queues) {
+                $remainingPrinted = (int) ($printedByItem[$itemId] ?? 0);
+
+                foreach ($queues as $queue) {
+                    $queueQty = (int) ($queue->jumlah ?? 0);
+
+                    $printedForQueue = min($queueQty, max(0, $remainingPrinted));
+                    $remainingPrinted -= $printedForQueue;
+
+                    $isSelected = in_array((int) $queue->id, $selectedQueueIds, true);
+                    if (!$isSelected) {
+                        continue;
+                    }
+
+                    $newQty = $printedForQueue; 
+
+                    if ($newQty <= 0) {
                         $queue->delete();
                     } else {
+                        $queue->jumlah = $newQty;
                         $queue->save();
                     }
-                    continue;
-                }
-
-                $newQty = $queueQty - $sisaBelumCetak;
-                if ($newQty <= 0) {
-                    $queue->delete();
-                } else {
-                    $queue->jumlah = $newQty;
-                    $queue->save();
                 }
             }
         });
