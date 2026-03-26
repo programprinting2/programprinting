@@ -64,40 +64,36 @@
               </button>
             </div>
 
-            {{-- TAB: Group per Tipe Mesin (untuk AMBIL) --}}
-            @foreach($tipeMesinGroups as $tipe => $group)
-              @php
-                $slug = \Illuminate\Support\Str::slug($tipe, '-');
-                $label = $group['label'] ?? $tipe;
-                $mesinListForTipe = $group['mesin_list'] ?? [];
-              @endphp
-
-              <div class="col-md-3">
-                <button class="card tab-card w-100 text-start"
-                        id="tab-tipe-{{ $slug }}"
-                        data-bs-toggle="tab"
-                        data-bs-target="#tabTipe{{ $slug }}"
-                        data-mesin-list='@json($mesinListForTipe)'
-                        data-slug="{{ $slug }}"
-                        type="button"
-                        role="tab">
-                  <div class="card-body d-flex align-items-center gap-3">
-                    <div class="tab-icon bg-success-subtle text-success">
-                      <i class="fa fa-cogs"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <h6 class="mb-0 fw-semibold">{{ $label }}</h6>
-                        <span class="badge bg-success rounded-pill px-3">
-                          {{ count($group['spk']) }}
-                        </span>
-                      </div>
-                      <small class="text-muted">Ambil pekerjaan</small>
-                    </div>
+            {{-- TAB: Pool Pekerjaan --}}
+            @php
+              $poolTotalSpk = 0;
+              foreach (($poolTipeMesinGroups ?? []) as $g) {
+                $poolTotalSpk += count($g['spk'] ?? []);
+              }
+            @endphp
+            <div class="col-md-3">
+              <button class="card tab-card w-100 text-start"
+                      id="tab-pool-pekerjaan"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabPoolPekerjaan"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-success-subtle text-success">
+                    <i class="fa fa-layer-group"></i>
                   </div>
-                </button>
-              </div>
-            @endforeach
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">Pool Pekerjaan</h6>
+                      <span class="badge bg-success rounded-pill px-3">
+                        {{ (int) $poolTotalSpk }}
+                      </span>
+                    </div>
+                    <small class="text-muted">Semua pekerjaan</small>
+                  </div>
+                </div>
+              </button>
+            </div>
           </div>
 
           <!-- Divider -->
@@ -112,9 +108,9 @@
             aria-labelledby="tab-pekerjaan-saya">
           {{-- Multi Cetak & Ambil Pekerjaan --}}
           <div class="d-flex justify-content-end gap-2 mb-3">
-            <!-- <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAmbilPekerjaan">
+            <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#modalAmbilPekerjaan">
               Ambil pekerjaan
-            </button> -->
+            </button>
             <form method="POST" action="{{ route('pekerjaan.operator-cetak.bulk-complete') }}" id="bulkCetakFormGlobal">
               @csrf
               <input type="hidden" name="mesin_id" id="bulkCetakMesinId" value="">
@@ -228,35 +224,14 @@
           </div>
         </div>
 
-        {{-- TAB : Per Tipe Mesin --}}
-        @foreach($tipeMesinGroups as $tipe => $group)
+        {{-- TAB : Pool Pekerjaan --}}
+        <div class="tab-pane fade" id="tabPoolPekerjaan" role="tabpanel" aria-labelledby="tab-pool-pekerjaan">
+          @foreach($poolTipeMesinGroups as $tipe => $group)
           @php
             $slug = \Illuminate\Support\Str::slug($tipe, '-');
             $accordionIdBase = 'accordionTipe'.$slug;
           @endphp
-          <div class="tab-pane fade" id="tabTipe{{ $slug }}"
-              role="tabpanel"
-              aria-labelledby="tab-tipe-{{ $slug }}">
-              <div class="d-flex align-items-center justify-content-between mb-3 flex-nowrap">
-                <div id="mesinSubTabsContainer-{{ $slug }}" class="d-flex align-items-center gap-2 d-none">
-                  <span class="text-muted small">Mesin:</span>
-                  <div id="mesinSubTabsInner-{{ $slug }}" class="nav nav-pills d-flex align-items-center gap-1" role="tablist">
-                  </div>
-                </div>
-
-                <form method="POST"
-                      action="{{ route('pekerjaan.operator-cetak.multi-ambil-semua') }}"
-                      class="d-flex justify-content-end gap-2 mb-2 bulkAmbilForm flex-grow-1"
-                      data-tipe-tab="{{ $slug }}">
-                  @csrf
-                  <input type="hidden" name="mesin_id" class="bulkAmbilMesinId" value="">
-                  <div class="bulkAmbilInputs"></div>
-
-                  <button type="button" class="btn btn-sm btn-secondary btnMultiAmbil" disabled>
-                    Multi Ambil
-                  </button>
-                </form>
-              </div>  
+          <div class="pool-tipe-wrapper">
             <div class="accordion" id="{{ $accordionIdBase }}">
               @php
                   /** @var array $group */
@@ -338,21 +313,6 @@
                       data-bs-parent="#{{ $accordionIdBase ?? 'operatorTipe' }}">
                     <div class="accordion-body">
                       <div class="table-responsive">
-                        <div class="d-flex justify-content-between align-items-center mb-2">
-                          <div class="form-check">
-                            @php
-                              $remainingAccordionItems = collect($items)->filter(function ($rec) {
-                                $workflowStep = $rec['workflow_step'] ?? [];
-                                $sisaAmbilStep = (int) ($workflowStep['remaining_take_qty'] ?? 0);
-                                return $sisaAmbilStep > 0;
-                              })->count();
-                            @endphp
-                            <input class="form-check-input cek-all-accordion" type="checkbox" data-accordion-id="{{ $accordionId }}" {{ $remainingAccordionItems === 0 ? 'disabled' : '' }}>
-                            <label class="form-check-label" for="cekAll-{{ $accordionId }}">
-                              Pilih semua item pada tabel ini untuk <strong>diambil</strong>
-                            </label>
-                          </div>
-                        </div>
                         <table class="table table-sm align-middle mb-0">
                           <thead class="table-light">
                             <tr>
@@ -365,8 +325,6 @@
                               <th>Satuan</th>
                               <!-- <th class="text-end">Sudah cetak</th> -->
                               <th class="text-end">Progress</th>
-                              <th class="text-center" style="width:40px;">Pilih</th>
-                              <th class="text-center" style="width:140px;">Action</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -448,20 +406,6 @@
                                   @if($firstRow)
                                     <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                       <div class="d-flex align-items-start gap-2">
-                                        <div class="form-check mt-1">
-                                          @php
-                                            $remainingItems = collect($rows)->filter(function ($rec) {
-                                              $workflowStep = $rec['workflow_step'] ?? [];
-                                              return (int) ($workflowStep['remaining_take_qty'] ?? 0) > 0;
-                                            })->count();
-                                          @endphp
-                                          <input type="checkbox"
-                                                class="form-check-input cek-spk"
-                                                data-spk-id="{{ $spkRow->id }}"
-                                                data-accordion-id="{{ $accordionId }}"
-                                                {{ $remainingItems === 0 ? 'disabled' : '' }}
-                                                title="Pilih semua item SPK ini">
-                                        </div>
                                         <div>
                                           {{ $spkRow->nomor_spk }}
                                           @php
@@ -571,31 +515,6 @@
                                       Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
                                     </div>
                                   </td>
-                                  <td class="text-center">
-                                    <input type="checkbox"
-                                          class="form-check-input ambil-item-checkbox"
-                                          value="{{ $spkItem->id }}"
-                                          data-accordion-id="{{ $accordionId }}"
-                                          data-spk-id="{{ $spkRow->id }}"
-                                          data-nomor-spk="{{ $spkRow->nomor_spk }}"
-                                          data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
-                                          data-item="{{ $spkItem->nama_produk }}"
-                                          data-qty="{{ $eligibleQty }}"
-                                          data-sisa-ambil="{{ $sisaAmbil }}"
-                                          @disabled($sisaAmbil <= 0)>
-                                  </td>
-                                  <td class="text-center">
-                                    <button type="button"
-                                            class="btn btn-sm {{ $sisaAmbil <= 0 ? 'btn-secondary disabled' : 'btn-success' }} btn-open-ambil-modal"
-                                            {{ $sisaAmbil <= 0 ? 'disabled' : '' }}
-                                            data-spk-item-id="{{ $spkItem->id }}"
-                                            data-nomor-spk="{{ $spkRow->nomor_spk }}"
-                                            data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
-                                            data-nama-item="{{ $spkItem->nama_produk }}"
-                                            data-sisa-ambil="{{ $sisaAmbil }}">
-                                      Ambil
-                                    </button>
-                                  </td>
                                 </tr>
                               @endforeach
                             @empty
@@ -618,12 +537,13 @@
               @endforelse
             </div>
           </div>
-        @endforeach
+          @endforeach
+        </div>
   </div>
 
   {{-- MODAL: Ambil Pekerjaan --}}
   <div class="modal fade" id="modalAmbilPekerjaan" tabindex="-1" aria-labelledby="modalAmbilPekerjaanLabel" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title" id="modalAmbilPekerjaanLabel">
@@ -2582,7 +2502,7 @@
     });
   </script>
 
-  <script>
+  <!-- <script>
     document.addEventListener('DOMContentLoaded', function () {
 
       const formAmbil = document.getElementById('formAmbil');
@@ -2602,7 +2522,7 @@
 
       });
     });
-  </script>
+  </script> -->
 
 <div class="modal fade" id="globalPreviewModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable modal-dialog-centered">
@@ -2967,18 +2887,12 @@
   (function () {
     'use strict';
 
-    // -------------------------------------------------------
-    // 1. Referensi elemen ambil modal (shared, sama seperti luar)
-    // -------------------------------------------------------
     const ambilModalEl  = document.getElementById('ambilModal');
     const ambilModal    = ambilModalEl ? bootstrap.Modal.getOrCreateInstance(ambilModalEl) : null;
     const ambilMesinId  = document.getElementById('ambil_mesin_id');
     const ambilInputs   = document.getElementById('ambil_inputs');
     const ambilJumlah   = document.getElementById('ambil_jumlah');
 
-    // -------------------------------------------------------
-    // 2. Helper: set hidden inputs item IDs ke formAmbil
-    // -------------------------------------------------------
     function modalSetAmbilHiddenIds(ids) {
       if (!ambilInputs) return;
       ambilInputs.innerHTML = '';
@@ -2991,9 +2905,6 @@
       });
     }
 
-    // -------------------------------------------------------
-    // 3. getActiveMesinId untuk MODAL (baca dari #modalAmbilTabs)
-    // -------------------------------------------------------
     function modalGetActiveMesinId() {
       // Cek sub-tab mesin yang sedang aktif di dalam modal
       var activeSub = document.querySelector('[id^="modalMesinSubTabsInner-"] .nav-link.active');
@@ -3019,9 +2930,6 @@
       return '';
     }
 
-    // -------------------------------------------------------
-    // 4. Render / clear sub-tab mesin di dalam modal
-    // -------------------------------------------------------
     function modalClearAllMesinSubTabs() {
       document.querySelectorAll('[id^="modalMesinSubTabsContainer-"]').forEach(function (c) {
         c.classList.add('d-none');

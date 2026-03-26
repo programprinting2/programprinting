@@ -307,6 +307,9 @@ class PekerjaanController extends Controller
         $tipeNamaByMesinId = $allMesin->mapWithKeys(function ($mesin) {
             return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
         });
+        $poolTipeNamaByMesinId = $allMesinRaw->mapWithKeys(function ($mesin) {
+            return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
+        });
 
         $queueTotalsByItemId = SpkItemCetakQueue::query()
             ->selectRaw('spk_item_id, SUM(jumlah) as total_diambil')
@@ -360,6 +363,35 @@ class PekerjaanController extends Controller
                 + (int) ($rowPrint->total_cetak ?? 0);
         }
 
+
+        $poolQueueByItemAndStepType = [];
+        foreach ($queueByItemAndMesin as $rowQueue) {
+            $itemId = (int) ($rowQueue->spk_item_id ?? 0);
+            $mesinId = (int) ($rowQueue->mesin_id ?? 0);
+            $tipeNama = $poolTipeNamaByMesinId[$mesinId] ?? '';
+            if ($itemId <= 0 || $tipeNama === '') {
+                continue;
+            }
+
+            $aggKey = $itemId.'|'.$tipeNama;
+            $poolQueueByItemAndStepType[$aggKey] = (int) ($poolQueueByItemAndStepType[$aggKey] ?? 0)
+                + (int) ($rowQueue->total_diambil ?? 0);
+        }
+
+        $poolPrintByItemAndStepType = [];
+        foreach ($printByItemAndMesin as $rowPrint) {
+            $itemId = (int) ($rowPrint->spk_item_id ?? 0);
+            $mesinId = (int) ($rowPrint->mesin_id ?? 0);
+            $tipeNama = $poolTipeNamaByMesinId[$mesinId] ?? '';
+            if ($itemId <= 0 || $tipeNama === '') {
+                continue;
+            }
+
+            $aggKey = $itemId.'|'.$tipeNama;
+            $poolPrintByItemAndStepType[$aggKey] = (int) ($poolPrintByItemAndStepType[$aggKey] ?? 0)
+                + (int) ($rowPrint->total_cetak ?? 0);
+        }
+
         foreach ($allItems as $item) {
             $qty = (int) ($item->jumlah ?? 0);
             $totalCetak = $item->cetakLogs
@@ -373,195 +405,19 @@ class PekerjaanController extends Controller
                 : 0;
         }
 
-        $mesinByTipeId = collect(); 
-        $mesinById = $allMesin->keyBy(function ($m) {
-            return (int) $m->id;
-        });
-        $mesinByTipeNama = $allMesin->groupBy(function ($m) {
-            return $this->normalizeMesinType($m->tipe_mesin ?? null);
-        });
-        $mesinByNamaMesin = $allMesin->groupBy(function ($m) {
-            return $this->normalizeMesinType($m->nama_mesin ?? null);
-        });
-        $tipeMesinGroups = [];
+        $tipeMesinGroups = $this->buildTipeMesinGroups(
+            $allItems,
+            $allMesin,
+            $queueByItemAndStepType,
+            $printByItemAndStepType
+        );
 
-        foreach ($allItems as $spkItem) {
-            $produk = $spkItem->produk;
-            if (!$produk) {
-                continue;
-            }
-            // $qtyTotal   = (int) ($spkItem->jumlah ?? 0);
-            // $totalAmbil = (int) ($queueTotalsByItemId[$spkItem->id] ?? 0);
-            // $totalCetak = (int) ($printTotalsByItemId[$spkItem->id] ?? 0);
-
-            // $ambilFull  = $qtyTotal > 0 && $totalAmbil >= $qtyTotal;
-            // $cetakFull  = $totalAmbil > 0 && $totalCetak >= $totalAmbil;
-
-            // if ($ambilFull && $cetakFull) {
-            //     continue;
-            // }
-
-            $alur = $produk->alur_produksi_json ?? [];
-
-            if (!is_array($alur) || empty($alur)) {
-                continue;
-            }
-
-            $eligibleQtyForStep = (int) ($spkItem->jumlah ?? 0);
-            $workflowStepsByMesin = [];
-            $totalStepCount = count($alur);
-
-            foreach ($alur as $index => $step) {
-                $identity = $this->resolveStepIdentity($step);
-                $stepMesinId = (int) ($identity['step_id'] ?? 0);
-                $stepCandidates = $identity['candidates'] ?? [];
-                $stepNameLabel = (string) ($identity['step_name'] ?? '');
-                if ($stepMesinId <= 0 && empty($stepCandidates)) {
-                    continue;
-                }
-                $stepGroupKey = (string) ($stepMesinId ?: $stepNameLabel);
-                // agregasi by kandidat tipe
-                $printedQtyStep = 0;
-                $queuedQtyStep = 0;
-                foreach ($stepCandidates as $candidateType) {
-                    $stepAggKey = $spkItem->id.'|'.$candidateType;
-                    $printedQtyStep += (int) ($printByItemAndStepType[$stepAggKey] ?? 0);
-                    $queuedQtyStep  += (int) ($queueByItemAndStepType[$stepAggKey] ?? 0);
-                }
-                $remainingTakeQty = max(0, $eligibleQtyForStep - $queuedQtyStep);
-                $remainingPrintQty = max(0, $queuedQtyStep - $printedQtyStep);
-                $stepPayload = [
-                    'step_index' => $index + 1,
-                    'step_total' => $totalStepCount,
-                    'eligible_qty' => $eligibleQtyForStep,
-                    'printed_qty_step' => $printedQtyStep,
-                    'queued_qty_step' => $queuedQtyStep,
-                    'remaining_take_qty' => $remainingTakeQty,
-                    'remaining_print_qty' => $remainingPrintQty,
-                    'progress_step_pct' => $eligibleQtyForStep > 0
-                        ? min(100, round(($printedQtyStep / $eligibleQtyForStep) * 100, 1))
-                        : 0,
-                    'step_name' => $stepNameLabel,
-                ];
-                if (!isset($workflowStepsByMesin[$stepGroupKey])) {
-                    $workflowStepsByMesin[$stepGroupKey] = [];
-                }
-                $workflowStepsByMesin[$stepGroupKey][] = $stepPayload;
-                                
-                $eligibleQtyForStep = $printedQtyStep;
-            }
-
-            $spkItem->workflow_steps_by_mesin = $workflowStepsByMesin;
-
-            $bahanBakus = $produk->bahanBakus;
-
-            foreach ($alur as $step) {
-                if (!is_array($step)) {
-                    continue;
-                }
-
-                $divisiId = $step['divisi_mesin_id'] ?? null;
-                $divisiNama = isset($step['divisi_mesin'])
-                    ? trim((string) $step['divisi_mesin'])
-                    : null;
-                $divisiKeterangan = isset($step['keterangan_divisi'])
-                    ? trim((string) $step['keterangan_divisi'])
-                    : null;
-
-                if (!$divisiId && !$divisiNama) {
-                    continue;
-                }
-
-                $tipeKey = $divisiId ?: $divisiNama;
-                $workflowBucket = data_get($spkItem, 'workflow_steps_by_mesin.'.(string) $tipeKey);
-                $workflowStep = $this->pickActiveWorkflowStepFromBucket($workflowBucket);
-
-                if (!$workflowStep || (int) ($workflowStep['eligible_qty'] ?? 0) <= 0) {
-                    continue;
-                }
-                $tipeLabelDasar = $divisiNama ?: $divisiKeterangan ?: 'Tanpa Tipe';
-
-                if (!isset($tipeMesinGroups[$tipeKey])) {
-                    $mesinMatches = collect();
-
-                    $divisiNamaNorm = $this->normalizeMesinType($divisiNama ?? null);
-                    $divisiKetNorm  = $this->normalizeMesinType($divisiKeterangan ?? null);
-
-                    if ($divisiId && isset($mesinById[(int) $divisiId])) {
-                        $mesinMatches = collect([$mesinById[(int) $divisiId]]);
-                    }
-
-                    if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByTipeNama[$divisiNamaNorm])) {
-                        $mesinMatches = $mesinByTipeNama[$divisiNamaNorm];
-                    }
-
-                    if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByNamaMesin[$divisiNamaNorm])) {
-                        $mesinMatches = $mesinByNamaMesin[$divisiNamaNorm];
-                    }
-
-                    if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByTipeNama[$divisiKetNorm])) {
-                        $mesinMatches = $mesinByTipeNama[$divisiKetNorm];
-                    }
-                    if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByNamaMesin[$divisiKetNorm])) {
-                        $mesinMatches = $mesinByNamaMesin[$divisiKetNorm];
-                    }
-
-                    if ($mesinMatches->isEmpty()) {
-                        continue;
-                    }
-
-                    $tipeMesinGroups[$tipeKey] = [
-                        'tipe_key'    => $tipeKey,
-                        'tipe_label'  => $tipeLabelDasar,
-                        'mesin_list'  => $mesinMatches->values()->all(),
-                        'spk'         => [],
-                        'bahanGroups' => [],
-                    ];
-                }
-
-                $group = &$tipeMesinGroups[$tipeKey];
-                $spkRow = $spkItem->spk;
-
-                if ($spkRow && !isset($group['spk'][$spkRow->id])) {
-                    $group['spk'][$spkRow->id] = $spkRow;
-                }
-
-                foreach ($bahanBakus as $bahan) {
-                    $bahanId = $bahan->id;
-                    if (!isset($group['bahanGroups'][$bahanId])) {
-                        $group['bahanGroups'][$bahanId] = [
-                            'id'    => $bahan->id,
-                            'nama'  => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
-                            'kode'  => $bahan->kode_bahan ?? '',
-                            'items' => [],
-                        ];
-                    }
-
-                    $uniqKey = 'spk_'.$spkRow->id.'_item_'.$spkItem->id;
-
-                    if (!isset($group['bahanGroups'][$bahanId]['items'][$uniqKey])) {
-                        $group['bahanGroups'][$bahanId]['items'][$uniqKey] = [
-                            'spk'           => $spkRow,
-                            'item'          => $spkItem,
-                            'workflow_step' => $workflowStep,
-                        ];
-                    }
-                }
-            }
-        }
-
-        foreach ($tipeMesinGroups as &$group) {
-            $mesinList = $group['mesin_list'] ?? [];
-
-            if (count($mesinList) === 1) {
-                $mesin = reset($mesinList);
-                $group['label'] = $mesin->nama_mesin ?? $group['tipe_label'];
-            } else {
-                $group['label'] = $group['tipe_label'];
-            }
-        }
-
-        unset($group);
+        $poolTipeMesinGroups = $this->buildTipeMesinGroups(
+            $allItems,
+            $allMesinRaw,
+            $poolQueueByItemAndStepType,
+            $poolPrintByItemAndStepType
+        );
 
         $userId = (int) (auth()->id() ?? 1);
 
@@ -641,6 +497,7 @@ class PekerjaanController extends Controller
         return view('pages.pekerjaan.operator-cetak', [
             'spk'                => $spk,
             'tipeMesinGroups'    => $tipeMesinGroups,
+            'poolTipeMesinGroups'=> $poolTipeMesinGroups,
             'pekerjaanSayaItems' => $pekerjaanSayaItems,
             'pekerjaanSayaCount' => $pekerjaanSayaCount,
             'queueTotalsByItemId'=> $queueTotalsByItemId,
@@ -1488,6 +1345,202 @@ class PekerjaanController extends Controller
         }
 
         return !empty($list) ? end($list) : null;
+    }
+
+    private function buildTipeMesinGroups(
+        \Illuminate\Support\Collection $allItems,
+        \Illuminate\Support\Collection $mesins,
+        array $queueByItemAndStepType,
+        array $printByItemAndStepType
+    ): array {
+        $mesinById = $mesins->keyBy(function ($m) {
+            return (int) $m->id;
+        });
+
+        $mesinByTipeNama = $mesins->groupBy(function ($m) {
+            return $this->normalizeMesinType($m->tipe_mesin ?? null);
+        });
+
+        $mesinByNamaMesin = $mesins->groupBy(function ($m) {
+            return $this->normalizeMesinType($m->nama_mesin ?? null);
+        });
+
+        $tipeMesinGroups = [];
+
+        foreach ($allItems as $spkItem) {
+            $produk = $spkItem->produk;
+            if (!$produk) {
+                continue;
+            }
+
+            $alur = $produk->alur_produksi_json ?? [];
+            if (!is_array($alur) || empty($alur)) {
+                continue;
+            }
+
+            $eligibleQtyForStep = (int) ($spkItem->jumlah ?? 0);
+            $workflowStepsByMesin = [];
+            $totalStepCount = count($alur);
+
+            foreach ($alur as $index => $step) {
+                $identity = $this->resolveStepIdentity($step);
+                $stepMesinId = (int) ($identity['step_id'] ?? 0);
+                $stepCandidates = $identity['candidates'] ?? [];
+                $stepNameLabel = (string) ($identity['step_name'] ?? '');
+
+                if ($stepMesinId <= 0 && empty($stepCandidates)) {
+                    continue;
+                }
+
+                $stepGroupKey = (string) ($stepMesinId ?: $stepNameLabel);
+
+                $printedQtyStep = 0;
+                $queuedQtyStep = 0;
+                foreach ($stepCandidates as $candidateType) {
+                    $stepAggKey = $spkItem->id.'|'.$candidateType;
+                    $printedQtyStep += (int) ($printByItemAndStepType[$stepAggKey] ?? 0);
+                    $queuedQtyStep  += (int) ($queueByItemAndStepType[$stepAggKey] ?? 0);
+                }
+
+                $remainingTakeQty = max(0, $eligibleQtyForStep - $queuedQtyStep);
+                $remainingPrintQty = max(0, $queuedQtyStep - $printedQtyStep);
+
+                $stepPayload = [
+                    'step_index' => $index + 1,
+                    'step_total' => $totalStepCount,
+                    'eligible_qty' => $eligibleQtyForStep,
+                    'printed_qty_step' => $printedQtyStep,
+                    'queued_qty_step' => $queuedQtyStep,
+                    'remaining_take_qty' => $remainingTakeQty,
+                    'remaining_print_qty' => $remainingPrintQty,
+                    'progress_step_pct' => $eligibleQtyForStep > 0
+                        ? min(100, round(($printedQtyStep / $eligibleQtyForStep) * 100, 1))
+                        : 0,
+                    'step_name' => $stepNameLabel,
+                ];
+
+                if (!isset($workflowStepsByMesin[$stepGroupKey])) {
+                    $workflowStepsByMesin[$stepGroupKey] = [];
+                }
+                $workflowStepsByMesin[$stepGroupKey][] = $stepPayload;
+
+                $eligibleQtyForStep = $printedQtyStep;
+            }
+
+            $spkItem->workflow_steps_by_mesin = $workflowStepsByMesin;
+
+            $bahanBakus = $produk->bahanBakus;
+
+            foreach ($alur as $step) {
+                if (!is_array($step)) {
+                    continue;
+                }
+
+                $divisiId = $step['divisi_mesin_id'] ?? null;
+                $divisiNama = isset($step['divisi_mesin'])
+                    ? trim((string) $step['divisi_mesin'])
+                    : null;
+                $divisiKeterangan = isset($step['keterangan_divisi'])
+                    ? trim((string) $step['keterangan_divisi'])
+                    : null;
+
+                if (!$divisiId && !$divisiNama) {
+                    continue;
+                }
+
+                $tipeKey = $divisiId ?: $divisiNama;
+                $workflowBucket = data_get($spkItem, 'workflow_steps_by_mesin.'.(string) $tipeKey);
+                $workflowStep = $this->pickActiveWorkflowStepFromBucket($workflowBucket);
+
+                if (!$workflowStep || (int) ($workflowStep['eligible_qty'] ?? 0) <= 0) {
+                    continue;
+                }
+
+                $tipeLabelDasar = $divisiNama ?: $divisiKeterangan ?: 'Tanpa Tipe';
+
+                if (!isset($tipeMesinGroups[$tipeKey])) {
+                    $mesinMatches = collect();
+
+                    $divisiNamaNorm = $this->normalizeMesinType($divisiNama ?? null);
+                    $divisiKetNorm  = $this->normalizeMesinType($divisiKeterangan ?? null);
+
+                    if ($divisiId && isset($mesinById[(int) $divisiId])) {
+                        $mesinMatches = collect([$mesinById[(int) $divisiId]]);
+                    }
+
+                    if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByTipeNama[$divisiNamaNorm])) {
+                        $mesinMatches = $mesinByTipeNama[$divisiNamaNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty() && $divisiNamaNorm !== '' && isset($mesinByNamaMesin[$divisiNamaNorm])) {
+                        $mesinMatches = $mesinByNamaMesin[$divisiNamaNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByTipeNama[$divisiKetNorm])) {
+                        $mesinMatches = $mesinByTipeNama[$divisiKetNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty() && $divisiKetNorm !== '' && isset($mesinByNamaMesin[$divisiKetNorm])) {
+                        $mesinMatches = $mesinByNamaMesin[$divisiKetNorm];
+                    }
+
+                    if ($mesinMatches->isEmpty()) {
+                        continue;
+                    }
+
+                    $tipeMesinGroups[$tipeKey] = [
+                        'tipe_key' => $tipeKey,
+                        'tipe_label' => $tipeLabelDasar,
+                        'mesin_list' => $mesinMatches->values()->all(),
+                        'spk' => [],
+                        'bahanGroups' => [],
+                    ];
+                }
+
+                $group = &$tipeMesinGroups[$tipeKey];
+                $spkRow = $spkItem->spk;
+
+                if ($spkRow && !isset($group['spk'][$spkRow->id])) {
+                    $group['spk'][$spkRow->id] = $spkRow;
+                }
+
+                foreach ($bahanBakus as $bahan) {
+                    $bahanId = $bahan->id;
+                    if (!isset($group['bahanGroups'][$bahanId])) {
+                        $group['bahanGroups'][$bahanId] = [
+                            'id' => $bahan->id,
+                            'nama' => $bahan->nama_bahan ?? ('Bahan #'.$bahan->id),
+                            'kode' => $bahan->kode_bahan ?? '',
+                            'items' => [],
+                        ];
+                    }
+
+                    $uniqKey = 'spk_'.$spkRow->id.'_item_'.$spkItem->id;
+                    if (!isset($group['bahanGroups'][$bahanId]['items'][$uniqKey])) {
+                        $group['bahanGroups'][$bahanId]['items'][$uniqKey] = [
+                            'spk' => $spkRow,
+                            'item' => $spkItem,
+                            'workflow_step' => $workflowStep,
+                        ];
+                    }
+                }
+            }
+        }
+
+        foreach ($tipeMesinGroups as &$group) {
+            $mesinList = $group['mesin_list'] ?? [];
+
+            if (count($mesinList) === 1) {
+                $mesin = reset($mesinList);
+                $group['label'] = $mesin->nama_mesin ?? $group['tipe_label'];
+            } else {
+                $group['label'] = $group['tipe_label'];
+            }
+        }
+
+        unset($group);
+
+        return $tipeMesinGroups;
     }
 
     private function calculateRemainingTakeForStep(
