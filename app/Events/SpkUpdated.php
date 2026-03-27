@@ -13,8 +13,10 @@ class SpkUpdated implements ShouldBroadcastNow
 
     public function __construct(
         public int $spkId,
-        public int $spkProgressPct,
-        public string $spkProgressColor, 
+        public ?int $spkProgressPct = null,
+        public ?string $spkProgressColor = null,
+        public ?string $status = null,
+        public ?string $statusPembayaran = null,
     ) {}
 
     public function broadcastOn(): Channel
@@ -29,10 +31,26 @@ class SpkUpdated implements ShouldBroadcastNow
 
     public function broadcastWith(): array
     {
-        return [
+        $payload = [
             'spk_id' => $this->spkId,
-            'spk_progress_pct' => $this->spkProgressPct,
-            'spk_progress_color' => $this->spkProgressColor,
         ];
+
+        if ($this->spkProgressPct !== null) {
+            $payload['spk_progress_pct'] = $this->spkProgressPct;
+        }
+
+        if ($this->spkProgressColor !== null) {
+            $payload['spk_progress_color'] = $this->spkProgressColor;
+        }
+
+        if ($this->status !== null) {
+            $payload['status'] = $this->status;
+        }
+
+        if ($this->statusPembayaran !== null) {
+            $payload['status_pembayaran'] = $this->statusPembayaran;
+        }
+
+        return $payload;
     }
 }

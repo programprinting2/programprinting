@@ -10,6 +10,7 @@ use App\Http\Requests\UpdateSpkRequest;
 use App\Models\Pelanggan;
 use App\Models\BahanBaku;
 use App\Models\SPK;
+use App\Events\SpkUpdated;
 use App\Services\SpkService;
 use App\Models\User;
 use App\Notifications\SpkActivityNotification;
@@ -239,6 +240,12 @@ class SPKController extends Controller
                 'updated_by' => (int) auth()->id(),
             ]);
 
+            event(new SpkUpdated(
+                spkId: (int) $spk->id,
+                status: (string) $spk->status,
+                statusPembayaran: $spk->status_pembayaran,
+            ));
+
             // ActivityLogService::log($spk, 'spk_acc_proses_bayar', 'SPK di-ACC ke proses bayar', 'info');
 
             return redirect()
@@ -296,6 +303,12 @@ class SPKController extends Controller
         }
 
         $spk->update(['status' => $newStatus]);
+
+        event(new SpkUpdated(
+            spkId: (int) $spk->id,
+            status: (string) $spk->status,
+            statusPembayaran: $spk->status_pembayaran,
+        ));
 
         $recipients = User::query()->get(); // atau filter role admin/manager
         foreach ($recipients as $user) {

@@ -91,6 +91,8 @@ class SpkItemCetakLogObserver
             spkId: (int) $spk->id,
             spkProgressPct: $spkProgressPct,
             spkProgressColor: $spkProgressColor,
+            status: (string) $spk->status,
+            statusPembayaran: $spk->status_pembayaran,
         ));
 
         $allDone = $spk->items->every(function (SPKItem $it): bool {
@@ -102,6 +104,12 @@ class SpkItemCetakLogObserver
             $spk->update([
                 'status' => 'operator_cetak',
             ]);
+
+            event(new SpkUpdated(
+                spkId: (int) $spk->id,
+                status: (string) $spk->status,
+                statusPembayaran: $spk->status_pembayaran,
+            ));
         }
     }
 

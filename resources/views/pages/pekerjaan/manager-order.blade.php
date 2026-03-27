@@ -346,7 +346,9 @@
                                     $currentLabel = $statusLabels[$item->status] ?? ($item->status ?? '-');
                                 @endphp
 
-                                <div class="d-flex align-items-center gap-1">
+                                <div class="d-flex align-items-center gap-1"
+                                     data-field="spk-status-icons"
+                                     data-spk-id="{{ $item->id }}">
                                     @foreach($statusSteps as $status => $step)
                                         @php
                                             $colorClass = 'text-muted';
@@ -361,10 +363,17 @@
                                                 elseif ($pembayaran === 'lunas') $colorClass = 'text-primary';
                                             }
                                         @endphp
-                                        <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}" style="{{ $style }} font-size: 0.8rem;"></i>
+                                        <i class="fa {{ $statusIcons[$status] ?? 'fa-circle' }} {{ $colorClass }}"
+                                           data-field="spk-status-icon"
+                                           data-spk-id="{{ $item->id }}"
+                                           data-step-status="{{ $status }}"
+                                           data-step-order="{{ $step }}"
+                                           style="{{ $style }} font-size: 0.8rem;"></i>
                                     @endforeach
                                 </div>
-                                <small class="d-block text-muted mt-1">{{ $currentLabel }}</small>
+                                <small class="d-block text-muted mt-1"
+                                       data-field="spk-status-label"
+                                       data-spk-id="{{ $item->id }}">{{ $currentLabel }}</small>
                             </td>
                             <td class="fw-semibold">Rp {{ number_format($item->total_biaya, 0, ',', '.') }}</td>
                             @php
@@ -2491,6 +2500,76 @@
       el.textContent = text;
     }
 
+    const STATUS_STEPS = {
+      draft: 1,
+      proses_bayar: 2,
+      manager_approval_order: 3,
+      operator_cetak: 4,
+      finishing_qc: 5,
+      siap_diambil: 6,
+      selesai: 7,
+    };
+
+    const STATUS_LABELS = {
+      draft: 'Draft',
+      proses_bayar: 'Proses Pembayaran',
+      manager_approval_order: 'Manager Approval Order',
+      operator_cetak: 'Operator Cetak',
+      finishing_qc: 'Finishing / QC',
+      siap_diambil: 'Siap Diambil',
+      selesai: 'Selesai',
+    };
+
+    function updateSpkStatusVisual(spkId, status, statusPembayaran) {
+      if (!spkId || !status) return;
+
+      const currentStep = STATUS_STEPS[status] ?? 0;
+      const icons = document.querySelectorAll(
+        `[data-field="spk-status-icon"][data-spk-id="${spkId}"]`,
+      );
+
+      icons.forEach((icon) => {
+        const stepStatus = icon.getAttribute('data-step-status') || '';
+        const stepOrder = Number(icon.getAttribute('data-step-order') || 0);
+        let colorClass = 'text-muted';
+
+        if (stepOrder <= currentStep) {
+          colorClass = 'text-primary';
+        }
+
+        if (stepStatus === 'proses_bayar') {
+          if (statusPembayaran === 'belum_bayar') {
+            colorClass = 'text-secondary';
+          } else if (statusPembayaran === 'kurang_bayar') {
+            colorClass = 'text-warning';
+          } else if (statusPembayaran === 'lunas') {
+            colorClass = 'text-primary';
+          }
+        }
+
+        icon.classList.remove('text-muted', 'text-primary', 'text-secondary', 'text-warning');
+        icon.classList.add(colorClass);
+      });
+
+      const labels = document.querySelectorAll(
+        `[data-field="spk-status-label"][data-spk-id="${spkId}"]`,
+      );
+      const currentLabel = STATUS_LABELS[status] ?? status;
+      labels.forEach((el) => {
+        el.textContent = currentLabel;
+      });
+
+      document.querySelectorAll(`tr[data-spk-id="${spkId}"]`).forEach((row) => {
+        row.setAttribute('data-status', status);
+      });
+
+      // Re-apply filter status aktif agar visibilitas row tetap konsisten
+      const currentFilter = document.getElementById('statusFilterInput')?.value ?? '';
+      if (typeof window.applyStatusFilter === 'function') {
+        window.applyStatusFilter(currentFilter);
+      }
+    }
+
     function parseNumberFromText(text) {
       const s = String(text || '').replace(/\./g, '').replace(/,/g, '.');
       const n = Number(s.replace(/[^\d.\\-]/g, ''));
@@ -2546,14 +2625,20 @@
       const spkId = e.spk_id;
       if (!spkId) return;
 
-      const pct = e.spk_progress_pct ?? 0;
-      const color = e.spk_progress_color;
+      if (e.spk_progress_pct !== undefined) {
+        const pct = e.spk_progress_pct ?? 0;
+        const color = e.spk_progress_color;
 
-      const bar = document.querySelector(`[data-field="spk-progress-bar"][data-spk-id="${spkId}"]`);
-      const pctEl = document.querySelector(`[data-field="spk-progress-pct"][data-spk-id="${spkId}"]`);
+        const bar = document.querySelector(`[data-field="spk-progress-bar"][data-spk-id="${spkId}"]`);
+        const pctEl = document.querySelector(`[data-field="spk-progress-pct"][data-spk-id="${spkId}"]`);
 
-      setProgressBar(bar, pct, color);
-      setText(pctEl, `${Math.round(Number(pct || 0))}%`);
+        setProgressBar(bar, pct, color);
+        setText(pctEl, `${Math.round(Number(pct || 0))}%`);
+      }
+
+      if (e.status !== undefined) {
+        updateSpkStatusVisual(spkId, e.status, e.status_pembayaran ?? null);
+      }
     }
 
 
@@ -2758,6 +2843,7 @@
           window.location.pathname + (params.toString() ? '?' + params.toString() : '')
         );
       }
+      window.applyStatusFilter = applyStatusFilter;
 
       document.querySelectorAll('.filter-status-card').forEach(function (card) {
         card.addEventListener('click', function () {

@@ -5,6 +5,7 @@ use App\Repositories\Interfaces\SpkRepositoryInterface;
 use Illuminate\Http\Request;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use App\Models\SPK;
+use App\Events\SpkUpdated;
 use App\Models\SpkPembayaran;
 use Illuminate\Support\Facades\DB;
 use App\Services\ActivityLogService;
@@ -50,6 +51,12 @@ class KasirService
             ]);
 
             $locked->refreshPembayaranSummary();
+            $locked->refresh();
+            event(new SpkUpdated(
+                spkId: (int) $locked->id,
+                status: (string) $locked->status,
+                statusPembayaran: (string) $locked->status_pembayaran,
+            ));
 
             // if ($locked->status_pembayaran === 'lunas' && $locked->status === 'proses_bayar') {
             //     $locked->update(['status' => 'proses_produksi']);
