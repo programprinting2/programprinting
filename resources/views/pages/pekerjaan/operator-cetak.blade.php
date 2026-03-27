@@ -122,31 +122,50 @@
           </div>
           @if(($pekerjaanSayaByMesin ?? collect())->count() > 0)
             {{-- Tab card mesin --}}
+            @php
+              $pekerjaanSayaByMesinMap = collect($pekerjaanSayaByMesin ?? [])
+                  ->keyBy(fn ($g) => (int) ($g['mesin_id'] ?? 0));
+
+              $firstEnabledMesin = collect($assignedMesins ?? [])->first(function ($mesin) use ($pekerjaanSayaByMesinMap) {
+                  $group = $pekerjaanSayaByMesinMap->get((int) $mesin->id);
+                  return (int) ($group['count'] ?? 0) > 0;
+              });
+              $firstEnabledMesinId = $firstEnabledMesin ? (int) $firstEnabledMesin->id : null;
+            @endphp
+
             <div class="row g-3 mb-3" id="pekerjaanSayaMesinTabs" role="tablist">
-              @foreach($pekerjaanSayaByMesin as $group)
+              @foreach(($assignedMesins ?? collect()) as $mesin)
                 @php
-                  $isFirst = $loop->first;
-                  $slug = 'ps-mesin-'.$group['mesin_id'];
+                  $mesinId = (int) $mesin->id;
+                  $group = $pekerjaanSayaByMesinMap->get($mesinId);
+                  $count = (int) ($group['count'] ?? 0);
+                  $isDisabled = $count <= 0;
+                  $isActive = !$isDisabled && $mesinId === $firstEnabledMesinId;
+                  $slug = 'ps-mesin-'.$mesinId;
                 @endphp
+
                 <div class="col-md-3">
-                  <button class="card tab-card w-100 text-start {{ $isFirst ? 'active' : '' }}"
+                  <button class="card tab-card w-100 text-start {{ $isActive ? 'active' : '' }} {{ $isDisabled ? 'disabled opacity-50 bg-light border-secondary' : '' }}"
                           id="tab-{{ $slug }}"
-                          data-bs-toggle="tab"
-                          data-bs-target="#pane-{{ $slug }}"
+                          data-bs-toggle="{{ $isDisabled ? '' : 'tab' }}"
+                          data-bs-target="{{ $isDisabled ? '' : '#pane-'.$slug }}"
                           type="button"
                           role="tab"
                           aria-controls="pane-{{ $slug }}"
-                          aria-selected="{{ $isFirst ? 'true' : 'false' }}">
+                          aria-selected="{{ $isActive ? 'true' : 'false' }}"
+                          {{ $isDisabled ? 'disabled' : '' }}>
                     <div class="card-body d-flex align-items-center gap-3">
-                      <div class="tab-icon bg-primary-subtle text-primary">
+                      <div class="tab-icon {{ $isDisabled ? 'bg-secondary-subtle text-secondary' : 'bg-primary-subtle text-primary' }}">
                         <i class="fa fa-print"></i>
                       </div>
                       <div class="flex-grow-1">
                         <div class="d-flex align-items-center justify-content-between">
-                          <h6 class="mb-0 fw-semibold">{{ $group['mesin_nama'] }}</h6>
-                          <span class="badge bg-primary rounded-pill px-3">{{ $group['count'] ?? 0 }}</span>
+                          <h6 class="mb-0 fw-semibold">{{ $mesin->nama_mesin }}</h6>
+                          <span class="badge {{ $isDisabled ? 'bg-secondary' : 'bg-primary' }} rounded-pill px-3">{{ $count }}</span>
                         </div>
-                        <small class="text-muted">Pekerjaan per mesin</small>
+                        <small class="text-muted">
+                          {{ $isDisabled ? 'Belum ada pekerjaan' : 'Pekerjaan per mesin' }}
+                        </small>
                       </div>
                     </div>
                   </button>

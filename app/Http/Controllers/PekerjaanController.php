@@ -304,6 +304,9 @@ class PekerjaanController extends Controller
         );
         $assignedMesinIds = $this->getAssignedMesinIdsForCurrentUser();
         $allMesin = $allMesinRaw->whereIn('id', $assignedMesinIds)->values();
+        $assignedMesins = $allMesin
+        ->sortBy(fn ($m) => strtolower((string) ($m->nama_mesin ?? '')))
+        ->values();
         $tipeNamaByMesinId = $allMesin->mapWithKeys(function ($mesin) {
             return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)];
         });
@@ -522,6 +525,7 @@ class PekerjaanController extends Controller
             'pekerjaanSayaCount' => $pekerjaanSayaCount,
             'pekerjaanSayaByMesin' => $pekerjaanSayaByMesin,
             'queueTotalsByItemId'=> $queueTotalsByItemId,
+            'assignedMesins' => $assignedMesins,
         ]);
     }
 
