@@ -567,6 +567,7 @@ class PekerjaanController extends Controller
         $spkItem->load([
             'produk:id,alur_produksi_json',
             'cetakLogs.user',
+            'cetakLogs.mesin:id,nama_mesin',
             'spk.pelanggan',
         ]);
 
@@ -607,6 +608,7 @@ class PekerjaanController extends Controller
                             'id' => $l->id,
                             'jumlah' => (int) $l->jumlah,
                             'operator' => $l->user->name ?? ('User #'.$l->user_id),
+                            'mesin' => optional($l->mesin)->nama_mesin ?? ('Mesin #'.$l->mesin_id),
                             'waktu' => $time ? $time->format('H:i') : '',
                             'tanggal' => $time ? $time->format('d/m/Y') : '',
                             'datetime' => $time ? $time->toIso8601String() : null,
@@ -738,6 +740,7 @@ class PekerjaanController extends Controller
                     'id' => $l->id,
                     'jumlah' => (int) $l->jumlah,
                     'operator' => $l->user->name ?? ('User #'.$l->user_id),
+                    'mesin' => optional($l->mesin)->nama_mesin ?? ('Mesin #'.$l->mesin_id),
                     'waktu' => optional($l->created_at)->format('H:i') ?? '',
                     'tanggal' => optional($l->created_at)->format('d/m/Y') ?? '',
                     'is_batalkan' => $l->trashed(),
@@ -1003,7 +1006,7 @@ class PekerjaanController extends Controller
         $filter = $request->input('filter', 'hari_ini');
         $query = SpkItemCetakLog::query()
             ->withTrashed()
-            ->with(['spkItem.spk.pelanggan', 'user'])
+            ->with(['spkItem.spk.pelanggan', 'user', 'mesin:id,nama_mesin'])
             ->orderByDesc('created_at');
             
         $query->whereHas('spkItem.spk', function ($q) {
@@ -1045,6 +1048,7 @@ class PekerjaanController extends Controller
                 'nama_produk'     => $spkItem?->nama_produk ?? '-',
                 'jumlah_formatted' => number_format((int) $log->jumlah, 0, ',', '.'),
                 'operator'        => optional($log->user)->name ?? ('User #' . $log->user_id),
+                'mesin' => optional($log->mesin)->nama_mesin ?? ('Mesin #'.$log->mesin_id),
                 'is_batalkan'      => $log->trashed(),  
                 'can_cancel'       => ((int) $log->user_id === $authUserId) && !$log->trashed(),
             ];

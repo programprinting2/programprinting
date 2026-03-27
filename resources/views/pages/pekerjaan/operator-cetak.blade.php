@@ -1825,7 +1825,7 @@
             params.set('date_to', to);
           }
 
-          tbody.innerHTML = '<tr><td colspan="7" class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span> Memuat...</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="9" class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span> Memuat...</td></tr>';
 
           fetch('{{ route("pekerjaan.operator-cetak.history-logs") }}?' + params.toString(), {
             headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' }
@@ -1837,7 +1837,7 @@
             const links = res.links || [];
 
             if (!data.length) {
-              tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-4">Tidak ada data untuk filter ini.</td></tr>';
+              tbody.innerHTML = '<tr><td colspan="9" class="text-center text-muted py-4">Tidak ada data untuk filter ini.</td></tr>';
             } else {
               tbody.innerHTML = data.map((row, idx) => {
                 const no = (meta.from || 0) + idx;
@@ -1861,6 +1861,7 @@
                   <td>${escapeHtml(row.nama_produk || '-')}</td>
                   <td class="text-end">${escapeHtml(row.jumlah_formatted || '0')}</td>
                   <td>${escapeHtml(row.operator || '-')}</td>
+                  <td>${escapeHtml(row.mesin || '-')}</td>
                   <td>${statusBadge}</td>
                   <td>${actionHtml}</td>
                 </tr>`;
@@ -1895,8 +1896,7 @@
             }
           })
           .catch(() => {
-            tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-3">Gagal memuat data.</td></tr>';
-            paginationEl.innerHTML = '';
+            tbody.innerHTML = '<tr><td colspan="9" class="text-center text-danger py-3">Gagal memuat data.</td></tr>';            paginationEl.innerHTML = '';
           });
         }
 
@@ -2277,6 +2277,7 @@
       <tr>
         <th style="width:40px;">No</th>
         <th>Operator</th>
+        <th>Mesin</th>
         <th class="text-end">Jumlah</th>
         <th>Waktu</th>
       </tr>
@@ -2288,6 +2289,7 @@
       logs.forEach((r, i) => {
         const jumlah = (r.jumlah ?? 0).toLocaleString('id-ID');
         const operator = r.operator ?? '-';
+        const mesin = r.mesin ?? '-';
         const waktu = r.waktu ?? '';
         const tanggal = r.tanggal ?? '';
         const isBatalkan = r.is_batalkan === true;
@@ -2297,6 +2299,7 @@
           <tr class="${rowClass}">
             <td class="text-center">${i + 1}</td>
             <td>${operator}</td>
+            <td>${mesin}</td>
             <td class="text-end fw-semibold ${isBatalkan ? 'text-danger' : 'text-primary'}">${jumlahText}</td>
             <td><div>${waktu}</div><div class="text-muted small">${tanggal}</div></td>
           </tr>`;
@@ -2952,13 +2955,14 @@
                 <th>Produk</th>
                 <th class="text-end">Jumlah</th>
                 <th>Operator</th>
+                <th>Mesin</th>
                 <th style="width: 100px;">Status</th>
                 <th style="width: 140px;">Aksi</th>
               </tr>
             </thead>
             <tbody id="globalHistoryBody">
               <tr>
-                <td colspan="8" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
+                <td colspan="9" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
               </tr>
             </tbody>
           </table>
