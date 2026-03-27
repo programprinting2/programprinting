@@ -14,6 +14,7 @@ use App\Models\SPKItem;
 use App\Models\SPK;
 use App\Models\SpkItemCetakQueue;
 use App\Models\User;
+use App\Events\SpkItemUpdated;
 use App\Services\ActivityLogService;
 use App\Models\SpkItemCetakLog;
 use Illuminate\Http\RedirectResponse;
@@ -1150,6 +1151,8 @@ class PekerjaanController extends Controller
             }
         });
 
+        $this->broadcastRealtimeForItems($ids->all());
+
         return back()->with('success', 'Pekerjaan berhasil diambil dan jumlah ditambahkan ke antrian mesin.');
     }
 
@@ -1172,7 +1175,8 @@ class PekerjaanController extends Controller
             ->unique()
             ->values();
 
-        DB::transaction(function () use ($queueIds, $itemIdsFallback, $mesinId, $userId) {
+        $affectedItemIds = [];
+        DB::transaction(function () use ($queueIds, $itemIdsFallback, $mesinId, $userId, &$affectedItemIds) {
             $selectedQueues = SpkItemCetakQueue::query()
                 ->where('mesin_id', $mesinId)
                 ->where('user_id', $userId)
@@ -1190,6 +1194,7 @@ class PekerjaanController extends Controller
 
             $selectedQueueIds = $selectedQueues->pluck('id')->map(fn ($id) => (int) $id)->all();
             $targetItemIds = $selectedQueues->pluck('spk_item_id')->map(fn ($id) => (int) $id)->unique()->values();
+            $affectedItemIds = $targetItemIds->all();
 
             $allQueuesForItems = SpkItemCetakQueue::query()
                 ->where('mesin_id', $mesinId)
@@ -1235,6 +1240,8 @@ class PekerjaanController extends Controller
                 }
             }
         });
+
+        $this->broadcastRealtimeForItems($affectedItemIds);
 
         return back()->with('success', 'Sisa pekerjaan yang belum dicetak berhasil dibatalkan dari antrian Anda.');
     }
@@ -1319,11 +1326,47 @@ class PekerjaanController extends Controller
             }
         });
 
+        $this->broadcastRealtimeForItems($ids->all());
+
         if ($createdCount <= 0) {
             return back()->with('warning', 'Tidak ada item eligible untuk diambil pada step mesin ini.');
         }
 
         return back()->with('success', 'Multi ambil berhasil: semua sisa qty yang bisa diambil sudah dimasukkan ke antrian.');
+    }
+
+    public function operatorCetakItemLiveState(SPKItem $spkItem): JsonResponse
+    {
+        $payload = $this->buildRealtimeStateForItem($spkItem);
+
+        return response()->json([
+            'spk_item_id' => (int) $spkItem->id,
+            'steps' => $payload['steps'],
+        ]);
+    }
+
+    public function operatorCetakModalLiveState(Request $request): JsonResponse
+    {
+        $ids = collect(explode(',', (string) $request->query('item_ids', '')))
+            ->map(fn ($value) => (int) trim($value))
+            ->filter(fn ($value) => $value > 0)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return response()->json(['items' => []]);
+        }
+
+        $items = SPKItem::query()
+            ->whereIn('id', $ids->all())
+            ->get(['id', 'spk_id', 'produk_id', 'jumlah', 'satuan']);
+
+        $result = [];
+        foreach ($items as $item) {
+            $result[(int) $item->id] = $this->buildRealtimeStateForItem($item);
+        }
+
+        return response()->json(['items' => $result]);
     }
 
     private function normalizeMesinType(?string $mesinType): string
@@ -1705,5 +1748,140 @@ class PekerjaanController extends Controller
             'step_total' => $stepTotal,
             'step_name' => '',
         ];
+    }
+
+    private function broadcastRealtimeForItems(array $itemIds): void
+    {
+        $ids = collect($itemIds)
+            ->map(fn ($value) => (int) $value)
+            ->filter(fn ($value) => $value > 0)
+            ->unique()
+            ->values();
+
+        if ($ids->isEmpty()) {
+            return;
+        }
+
+        $items = SPKItem::query()
+            ->with('spk:id')
+            ->whereIn('id', $ids->all())
+            ->get(['id', 'spk_id', 'satuan']);
+
+        foreach ($items as $item) {
+            $state = $this->buildRealtimeStateForItem($item);
+            $activeStep = collect($state['steps'])->first(function (array $step): bool {
+                return (int) ($step['remaining_take_qty'] ?? 0) > 0
+                    || (int) ($step['remaining_print_qty'] ?? 0) > 0;
+            });
+            if (!$activeStep) {
+                $activeStep = collect($state['steps'])->last();
+            }
+
+            $pctCetak = (float) ($activeStep['pct_cetak'] ?? 0);
+            $remainingPrint = (int) ($activeStep['remaining_print_qty'] ?? 0);
+            $progressColor = $pctCetak >= 100
+                ? 'bg-success'
+                : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary');
+
+            event(new SpkItemUpdated(
+                spkId: (int) ($item->spk_id ?? 0),
+                spkItemId: (int) $item->id,
+                progressPct: $pctCetak,
+                progressColor: $progressColor,
+                remaining: $remainingPrint,
+                satuan: (string) ($item->satuan ?? ''),
+                isDone: $remainingPrint <= 0,
+            ));
+        }
+    }
+
+    private function buildRealtimeStateForItem(SPKItem $item): array
+    {
+        $item->loadMissing('produk:id,alur_produksi_json');
+        $alur = $item->produk?->alur_produksi_json ?? [];
+        if (!is_array($alur) || empty($alur)) {
+            return ['steps' => []];
+        }
+
+        $mesinTypeByMesinId = MasterMesin::query()
+            ->get(['id', 'tipe_mesin'])
+            ->mapWithKeys(fn ($mesin) => [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?? null)]);
+
+        $printByStepType = [];
+        $printRows = SpkItemCetakLog::query()
+            ->selectRaw('mesin_id, SUM(jumlah) as total_cetak')
+            ->where('spk_item_id', $item->id)
+            ->whereNull('deleted_at')
+            ->groupBy('mesin_id')
+            ->get();
+
+        foreach ($printRows as $row) {
+            $stepType = (string) ($mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '');
+            if ($stepType === '') {
+                continue;
+            }
+            $printByStepType[$stepType] = (int) ($printByStepType[$stepType] ?? 0) + (int) ($row->total_cetak ?? 0);
+        }
+
+        $queueByStepType = [];
+        $queueRows = SpkItemCetakQueue::query()
+            ->selectRaw('mesin_id, SUM(jumlah) as total_diambil')
+            ->where('spk_item_id', $item->id)
+            ->groupBy('mesin_id')
+            ->get();
+        foreach ($queueRows as $row) {
+            $stepType = (string) ($mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '');
+            if ($stepType === '') {
+                continue;
+            }
+            $queueByStepType[$stepType] = (int) ($queueByStepType[$stepType] ?? 0) + (int) ($row->total_diambil ?? 0);
+        }
+
+        $eligibleQty = (int) ($item->jumlah ?? 0);
+        $stepTotal = count($alur);
+        $steps = [];
+
+        foreach ($alur as $index => $step) {
+            if (!is_array($step)) {
+                continue;
+            }
+            $identity = $this->resolveStepIdentity($step);
+            $stepName = (string) ($identity['step_name'] ?? '');
+            $candidates = $identity['candidates'] ?? [];
+            if (empty($candidates) && $stepName === '') {
+                continue;
+            }
+
+            $queuedQty = 0;
+            $printedQty = 0;
+            foreach ($candidates as $candidateType) {
+                $queuedQty += (int) ($queueByStepType[$candidateType] ?? 0);
+                $printedQty += (int) ($printByStepType[$candidateType] ?? 0);
+            }
+
+            $remainingTake = max(0, $eligibleQty - $queuedQty);
+            $remainingPrint = max(0, $queuedQty - $printedQty);
+            $pctAmbil = $eligibleQty > 0 ? min(100, round(($queuedQty / $eligibleQty) * 100, 1)) : 0.0;
+            $pctCetak = $eligibleQty > 0 ? min(100, round(($printedQty / $eligibleQty) * 100, 1)) : 0.0;
+
+            $steps[] = [
+                'step_index' => $index + 1,
+                'step_total' => $stepTotal,
+                'step_name' => $stepName,
+                'step_key' => \Illuminate\Support\Str::slug($stepName, '-'),
+                'eligible_qty' => $eligibleQty,
+                'queued_qty_step' => $queuedQty,
+                'printed_qty_step' => $printedQty,
+                'remaining_take_qty' => $remainingTake,
+                'remaining_print_qty' => $remainingPrint,
+                'pct_ambil' => $pctAmbil,
+                'pct_cetak' => $pctCetak,
+                'satuan' => (string) ($item->satuan ?? ''),
+            ];
+
+            $eligibleQty = $printedQty;
+        }
+
+        return ['steps' => $steps];
     }
 }

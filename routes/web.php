@@ -237,6 +237,10 @@ Route::group(['prefix' => 'pekerjaan', 'middleware' => ['auth', 'single.session'
     
     Route::post('/operator-cetak/multi-ambil-semua', [PekerjaanController::class, 'ambilQueueAll'])
         ->name('pekerjaan.operator-cetak.multi-ambil-semua');
+    Route::get('/operator-cetak/items/{spkItem}/live-state', [PekerjaanController::class, 'operatorCetakItemLiveState'])
+        ->name('pekerjaan.operator-cetak.item-live-state');
+    Route::get('/operator-cetak/modal-ambil/live-state', [PekerjaanController::class, 'operatorCetakModalLiveState'])
+        ->name('pekerjaan.operator-cetak.modal-live-state');
     
     Route::get('/operator-cetak/items/{spkItem}/progress', [PekerjaanController::class, 'getCetakProgress'])
         ->name('pekerjaan.operator-cetak.item-progress');

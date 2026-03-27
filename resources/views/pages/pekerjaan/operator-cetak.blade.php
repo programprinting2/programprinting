@@ -540,7 +540,14 @@
                                           $sisa = (int) ($workflowStep['remaining_print_qty'] ?? 0);
                                         @endphp
 
-                                        <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
+                                        @php
+                                          $stepKey = \Illuminate\Support\Str::slug((string) ($workflowStep['step_name'] ?? ''), '-');
+                                        @endphp
+                                        <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}"
+                                            data-field="operator-cetak-row"
+                                            data-spk-item-id="{{ $spkItem->id }}"
+                                            data-step-key="{{ $stepKey }}"
+                                            data-scope="pool">
                                           @if($firstRow)
                                             <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                               <div class="d-flex align-items-start gap-2">
@@ -612,34 +619,62 @@
                                               <div class="text-muted small">{{ $luasText }}</div>
                                             @endif
                                           </td>
-                                          <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
+                                          <td class="text-end"
+                                              data-field="eligible-qty"
+                                              data-spk-item-id="{{ $spkItem->id }}"
+                                              data-step-key="{{ $stepKey }}"
+                                              data-scope="pool">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
                                           <td>{{ $spkItem->satuan }}</td>
 
                                           <td class="text-end">
-                                            <div class="small fw-semibold mb-1">Ambil: {{ $pctAmbil }}%</div>
+                                            <div class="small fw-semibold mb-1"
+                                                data-field="ambil-pct-text"
+                                                data-spk-item-id="{{ $spkItem->id }}"
+                                                data-step-key="{{ $stepKey }}"
+                                                data-scope="pool">Ambil: {{ $pctAmbil }}%</div>
                                             <div class="progress mb-2" style="height:6px;">
                                               <div class="progress-bar bg-success"
                                                   role="progressbar"
+                                                  data-field="ambil-pct-bar"
+                                                  data-spk-item-id="{{ $spkItem->id }}"
+                                                  data-step-key="{{ $stepKey }}"
+                                                  data-scope="pool"
                                                   style="width: {{ $pctAmbil }}%;"
                                                   aria-valuenow="{{ $pctAmbil }}"
                                                   aria-valuemin="0"
                                                   aria-valuemax="100"></div>
                                             </div>
-                                            <div class="small text-muted mb-2">
+                                            <div class="small text-muted mb-2"
+                                                data-field="step-summary"
+                                                data-spk-item-id="{{ $spkItem->id }}"
+                                                data-step-key="{{ $stepKey }}"
+                                                data-scope="pool">
                                               Step {{ $stepIndex }}/{{ $stepTotal }} • Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($eligibleQty,0,',','.') }}
                                               (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
                                             </div>
 
-                                            <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
+                                            <div class="small fw-semibold mb-1"
+                                                data-field="cetak-pct-text"
+                                                data-spk-item-id="{{ $spkItem->id }}"
+                                                data-step-key="{{ $stepKey }}"
+                                                data-scope="pool">Cetak: {{ $pctCetak }}%</div>
                                             <div class="progress" style="height:6px;">
                                               <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
                                                   role="progressbar"
+                                                  data-field="cetak-pct-bar"
+                                                  data-spk-item-id="{{ $spkItem->id }}"
+                                                  data-step-key="{{ $stepKey }}"
+                                                  data-scope="pool"
                                                   style="width: {{ $pctCetak }}%;"
                                                   aria-valuenow="{{ $pctCetak }}"
                                                   aria-valuemin="0"
                                                   aria-valuemax="100"></div>
                                             </div>
-                                            <div class="small text-muted mt-1">
+                                            <div class="small text-muted mt-1"
+                                                data-field="sisa-cetak"
+                                                data-spk-item-id="{{ $spkItem->id }}"
+                                                data-step-key="{{ $stepKey }}"
+                                                data-scope="pool">
                                               Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
                                             </div>
                                           </td>
@@ -917,7 +952,14 @@
                                       $sisa = (int) ($workflowStep['remaining_print_qty'] ?? 0);
                                     @endphp
 
-                                    <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}">
+                                    @php
+                                      $stepKey = \Illuminate\Support\Str::slug((string) ($workflowStep['step_name'] ?? ''), '-');
+                                    @endphp
+                                    <tr class="{{ $sisaAmbil <= 0 ? 'item-selesai' : '' }}"
+                                        data-field="operator-cetak-row"
+                                        data-spk-item-id="{{ $spkItem->id }}"
+                                        data-step-key="{{ $stepKey }}"
+                                        data-scope="modal">
                                       @if($firstRow)
                                         <td rowspan="{{ $rowspan }}" class="fw-bold align-top">
                                           <div class="d-flex align-items-start gap-2">
@@ -995,28 +1037,57 @@
                                         <div class="fw-semibold">{{ $dimensiText }}</div>
                                         @if($luasText)<div class="text-muted small">{{ $luasText }}</div>@endif
                                       </td>
-                                    <td class="text-end">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
+                                    <td class="text-end"
+                                        data-field="eligible-qty"
+                                        data-spk-item-id="{{ $spkItem->id }}"
+                                        data-step-key="{{ $stepKey }}"
+                                        data-scope="modal">{{ number_format($eligibleQty, 0, ',', '.') }}</td>
                                       <td>{{ $spkItem->satuan }}</td>
 
                                       <td class="text-end">
-                                        <div class="small fw-semibold mb-1">Ambil: {{ $pctAmbil }}%</div>
+                                        <div class="small fw-semibold mb-1"
+                                            data-field="ambil-pct-text"
+                                            data-spk-item-id="{{ $spkItem->id }}"
+                                            data-step-key="{{ $stepKey }}"
+                                            data-scope="modal">Ambil: {{ $pctAmbil }}%</div>
                                         <div class="progress mb-2" style="height:6px;">
-                                          <div class="progress-bar bg-success" role="progressbar"
+                                          <div class="progress-bar bg-success"
+                                              role="progressbar"
+                                              data-field="ambil-pct-bar"
+                                              data-spk-item-id="{{ $spkItem->id }}"
+                                              data-step-key="{{ $stepKey }}"
+                                              data-scope="modal"
                                               style="width: {{ $pctAmbil }}%;"
                                               aria-valuenow="{{ $pctAmbil }}" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                        <div class="small text-muted mb-2">
+                                        <div class="small text-muted mb-2"
+                                            data-field="step-summary"
+                                            data-spk-item-id="{{ $spkItem->id }}"
+                                            data-step-key="{{ $stepKey }}"
+                                            data-scope="modal">
                                           Step {{ $stepIndex }}/{{ $stepTotal }} • Diambil: {{ number_format($totalDiambil,0,',','.') }} / {{ number_format($eligibleQty,0,',','.') }}
                                           (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
                                         </div>
-                                        <div class="small fw-semibold mb-1">Cetak: {{ $pctCetak }}%</div>
+                                        <div class="small fw-semibold mb-1"
+                                            data-field="cetak-pct-text"
+                                            data-spk-item-id="{{ $spkItem->id }}"
+                                            data-step-key="{{ $stepKey }}"
+                                            data-scope="modal">Cetak: {{ $pctCetak }}%</div>
                                         <div class="progress" style="height:6px;">
                                           <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
                                               role="progressbar"
+                                              data-field="cetak-pct-bar"
+                                              data-spk-item-id="{{ $spkItem->id }}"
+                                              data-step-key="{{ $stepKey }}"
+                                              data-scope="modal"
                                               style="width: {{ $pctCetak }}%;"
                                               aria-valuenow="{{ $pctCetak }}" aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                        <div class="small text-muted mt-1">
+                                        <div class="small text-muted mt-1"
+                                            data-field="sisa-cetak"
+                                            data-spk-item-id="{{ $spkItem->id }}"
+                                            data-step-key="{{ $stepKey }}"
+                                            data-scope="modal">
                                           Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
                                         </div>
                                       </td>
@@ -1025,6 +1096,7 @@
                                         <input type="checkbox"
                                               class="form-check-input modal-ambil-item-checkbox"
                                               value="{{ $spkItem->id }}"
+                                              data-spk-item-id="{{ $spkItem->id }}"
                                               data-modal-accordion-id="{{ $accordionId }}"
                                               data-spk-id="{{ $spkRow->id }}"
                                               data-nomor-spk="{{ $spkRow->nomor_spk }}"
@@ -1032,12 +1104,16 @@
                                               data-item="{{ $spkItem->nama_produk }}"
                                               data-qty="{{ $eligibleQty }}"
                                               data-sisa-ambil="{{ $sisaAmbil }}"
+                                              data-field="modal-ambil-checkbox"
+                                              data-step-key="{{ $stepKey }}"
                                               @disabled($sisaAmbil <= 0)>
                                       </td>
                                       <td class="text-center">
                                         <button type="button"
                                                 class="btn btn-sm {{ $sisaAmbil <= 0 ? 'btn-secondary disabled' : 'btn-success' }} btn-open-ambil-modal"
                                                 {{ $sisaAmbil <= 0 ? 'disabled' : '' }}
+                                                data-field="ambil-button"
+                                                data-step-key="{{ $stepKey }}"
                                                 data-spk-item-id="{{ $spkItem->id }}"
                                                 data-nomor-spk="{{ $spkRow->nomor_spk }}"
                                                 data-pelanggan="{{ optional($spkRow->pelanggan)->nama ?? '-' }}"
@@ -3483,6 +3559,193 @@
     toggle.addEventListener('change', function () {
       applyFilter(toggle.checked);
     });
+  })();
+</script>
+
+<script>
+  (function () {
+    const modalAmbilPekerjaanEl = document.getElementById('modalAmbilPekerjaan');
+    const numberFormatter = new Intl.NumberFormat('id-ID');
+    const pendingRefreshItemIds = new Set();
+    let refreshTimer = null;
+
+    function toNumber(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    function setProgressBar(el, pct, colorClass) {
+      if (!el) {
+        return;
+      }
+      const safePct = Math.max(0, Math.min(100, toNumber(pct)));
+      el.style.width = safePct + '%';
+      el.setAttribute('aria-valuenow', String(safePct));
+      if (colorClass) {
+        el.classList.remove('bg-success', 'bg-warning', 'bg-primary');
+        el.classList.add(colorClass);
+      }
+    }
+
+    function updateSelectorText(selector, text) {
+      document.querySelectorAll(selector).forEach(function (el) {
+        el.textContent = text;
+      });
+    }
+
+    function updateStepUi(spkItemId, stepState) {
+      const stepKey = String(stepState.step_key || '');
+      if (!stepKey) {
+        return;
+      }
+
+      const eligibleQty = toNumber(stepState.eligible_qty);
+      const queuedQty = toNumber(stepState.queued_qty_step);
+      const remainingTakeQty = toNumber(stepState.remaining_take_qty);
+      const remainingPrintQty = toNumber(stepState.remaining_print_qty);
+      const pctAmbil = toNumber(stepState.pct_ambil);
+      const pctCetak = toNumber(stepState.pct_cetak);
+      const stepIndex = toNumber(stepState.step_index);
+      const stepTotal = toNumber(stepState.step_total);
+      const satuan = String(stepState.satuan || '');
+      const cetakColor = pctCetak >= 100 ? 'bg-success' : (pctCetak >= 50 ? 'bg-warning' : 'bg-primary');
+
+      const keySelector = `[data-spk-item-id="${spkItemId}"][data-step-key="${stepKey}"]`;
+      updateSelectorText(`[data-field="eligible-qty"]${keySelector}`, numberFormatter.format(eligibleQty));
+      updateSelectorText(`[data-field="ambil-pct-text"]${keySelector}`, `Ambil: ${pctAmbil}%`);
+      updateSelectorText(
+        `[data-field="step-summary"]${keySelector}`,
+        `Step ${stepIndex}/${stepTotal} • Diambil: ${numberFormatter.format(queuedQty)} / ${numberFormatter.format(eligibleQty)} (Sisa ambil: ${numberFormatter.format(remainingTakeQty)})`
+      );
+      updateSelectorText(`[data-field="cetak-pct-text"]${keySelector}`, `Cetak: ${pctCetak}%`);
+      updateSelectorText(`[data-field="sisa-cetak"]${keySelector}`, `Sisa cetak: ${numberFormatter.format(remainingPrintQty)} ${satuan}`);
+
+      document.querySelectorAll(`[data-field="ambil-pct-bar"]${keySelector}`).forEach(function (bar) {
+        setProgressBar(bar, pctAmbil, 'bg-success');
+      });
+      document.querySelectorAll(`[data-field="cetak-pct-bar"]${keySelector}`).forEach(function (bar) {
+        setProgressBar(bar, pctCetak, cetakColor);
+      });
+
+      document.querySelectorAll(`[data-field="operator-cetak-row"]${keySelector}`).forEach(function (row) {
+        row.classList.toggle('item-selesai', remainingTakeQty <= 0);
+      });
+
+      document.querySelectorAll(`.modal-ambil-item-checkbox[data-spk-item-id="${spkItemId}"][data-step-key="${stepKey}"]`).forEach(function (cb) {
+        cb.dataset.sisaAmbil = String(remainingTakeQty);
+        cb.disabled = remainingTakeQty <= 0;
+        if (remainingTakeQty <= 0) {
+          cb.checked = false;
+        }
+      });
+
+      document.querySelectorAll(`.btn-open-ambil-modal[data-spk-item-id="${spkItemId}"][data-step-key="${stepKey}"]`).forEach(function (btn) {
+        btn.dataset.sisaAmbil = String(remainingTakeQty);
+        btn.disabled = remainingTakeQty <= 0;
+        btn.classList.toggle('btn-success', remainingTakeQty > 0);
+        btn.classList.toggle('btn-secondary', remainingTakeQty <= 0);
+        btn.classList.toggle('disabled', remainingTakeQty <= 0);
+        btn.title = remainingTakeQty <= 0 ? 'Sisa ambil habis' : '';
+      });
+    }
+
+    function patchFromItemState(spkItemId, payload) {
+      const steps = Array.isArray(payload.steps) ? payload.steps : [];
+      steps.forEach(function (stepState) {
+        updateStepUi(spkItemId, stepState);
+      });
+    }
+
+    async function fetchAndPatchItem(spkItemId) {
+      const urlTemplate = @json(route('pekerjaan.operator-cetak.item-live-state', ['spkItem' => '__ID__']));
+      const url = urlTemplate.replace('__ID__', String(spkItemId));
+      const response = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Gagal mengambil state item realtime.');
+      }
+      const data = await response.json();
+      patchFromItemState(spkItemId, data);
+    }
+
+    function scheduleRefreshItems(itemIds) {
+      itemIds.forEach(function (id) {
+        if (id) {
+          pendingRefreshItemIds.add(String(id));
+        }
+      });
+      if (refreshTimer) {
+        return;
+      }
+      refreshTimer = window.setTimeout(async function () {
+        const ids = Array.from(pendingRefreshItemIds);
+        pendingRefreshItemIds.clear();
+        refreshTimer = null;
+        for (const id of ids) {
+          try {
+            await fetchAndPatchItem(id);
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      }, 250);
+    }
+
+    async function refreshModalState() {
+      if (!modalAmbilPekerjaanEl) {
+        return;
+      }
+      const itemIds = Array.from(
+        new Set(
+          Array.from(modalAmbilPekerjaanEl.querySelectorAll('[data-field="operator-cetak-row"][data-spk-item-id]'))
+            .map(function (row) { return row.getAttribute('data-spk-item-id'); })
+            .filter(Boolean)
+        )
+      );
+      if (!itemIds.length) {
+        return;
+      }
+
+      const url = @json(route('pekerjaan.operator-cetak.modal-live-state')) + '?item_ids=' + encodeURIComponent(itemIds.join(','));
+      const response = await fetch(url, {
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'Accept': 'application/json'
+        }
+      });
+      if (!response.ok) {
+        throw new Error('Gagal refresh data modal ambil.');
+      }
+
+      const data = await response.json();
+      const items = data.items || {};
+      Object.keys(items).forEach(function (itemId) {
+        patchFromItemState(itemId, items[itemId] || {});
+      });
+    }
+
+    if (modalAmbilPekerjaanEl) {
+      modalAmbilPekerjaanEl.addEventListener('shown.bs.modal', function () {
+        refreshModalState().catch(function (error) {
+          console.error(error);
+        });
+      });
+    }
+
+    if (window.Echo && typeof window.Echo.channel === 'function') {
+      window.Echo.channel('manager-order')
+        .listen('.spk.item.updated', function (event) {
+          const itemId = event && event.spk_item_id ? String(event.spk_item_id) : '';
+          if (!itemId) {
+            return;
+          }
+          scheduleRefreshItems([itemId]);
+        });
+    }
   })();
 </script>
 
