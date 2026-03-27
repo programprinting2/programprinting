@@ -126,25 +126,58 @@
               $pekerjaanSayaByMesinMap = collect($pekerjaanSayaByMesin ?? [])
                   ->keyBy(fn ($g) => (int) ($g['mesin_id'] ?? 0));
 
-              $firstEnabledMesin = collect($assignedMesins ?? [])->first(function ($mesin) use ($pekerjaanSayaByMesinMap) {
-                  $group = $pekerjaanSayaByMesinMap->get((int) $mesin->id);
-                  return (int) ($group['count'] ?? 0) > 0;
-              });
-              $firstEnabledMesinId = $firstEnabledMesin ? (int) $firstEnabledMesin->id : null;
+              $allMesinCards = collect($assignedMesins ?? collect())
+                  ->map(function ($mesin) use ($pekerjaanSayaByMesinMap) {
+                      $mesinId = (int) $mesin->id;
+                      $group = $pekerjaanSayaByMesinMap->get($mesinId);
+                      $count = (int) ($group['count'] ?? 0);
+
+                      return (object) [
+                          'mesin' => $mesin,
+                          'mesin_id' => $mesinId,
+                          'mesin_nama' => (string) ($mesin->nama_mesin ?? ('Mesin #'.$mesinId)),
+                          'count' => $count,
+                          'has_items' => $count > 0,
+                      ];
+                  });
+
+              $sortedMesinCards = $allMesinCards
+                  ->sortBy(function ($x) {
+                      return ($x->has_items ? '0' : '1').'|'.strtolower($x->mesin_nama);
+                  })
+                  ->values();
+
+              $defaultShowAllMesins = true;
+
+              $firstEnabled = $sortedMesinCards->first(fn ($x) => $x->has_items);
+              $firstEnabledMesinId = $firstEnabled ? (int) $firstEnabled->mesin_id : null;
             @endphp
 
+            <div class="d-flex justify-content-end mb-2">
+              <div class="form-check form-switch">
+                <input class="form-check-input"
+                      type="checkbox"
+                      id="toggleShowAllMesinTabs"
+                      {{ $defaultShowAllMesins ? 'checked' : '' }}>
+                <label class="form-check-label small text-muted" for="toggleShowAllMesinTabs">
+                  Tampilkan semua mesin
+                </label>
+              </div>
+            </div>
+
             <div class="row g-3 mb-3" id="pekerjaanSayaMesinTabs" role="tablist">
-              @foreach(($assignedMesins ?? collect()) as $mesin)
+              @foreach($sortedMesinCards as $card)
                 @php
-                  $mesinId = (int) $mesin->id;
-                  $group = $pekerjaanSayaByMesinMap->get($mesinId);
-                  $count = (int) ($group['count'] ?? 0);
+                  $mesin = $card->mesin;
+                  $mesinId = (int) $card->mesin_id;
+                  $count = (int) $card->count;
                   $isDisabled = $count <= 0;
                   $isActive = !$isDisabled && $mesinId === $firstEnabledMesinId;
                   $slug = 'ps-mesin-'.$mesinId;
                 @endphp
 
-                <div class="col-md-3">
+                <div class="col-md-3 pekerjaan-saya-mesin-card"
+                    data-has-items="{{ $isDisabled ? '0' : '1' }}">
                   <button class="card tab-card w-100 text-start {{ $isActive ? 'active' : '' }} {{ $isDisabled ? 'disabled opacity-50 bg-light border-secondary' : '' }}"
                           id="tab-{{ $slug }}"
                           data-bs-toggle="{{ $isDisabled ? '' : 'tab' }}"
@@ -174,18 +207,23 @@
             </div>
             {{-- Content per mesin --}}
             <div class="tab-content" id="pekerjaanSayaMesinTabContent">
-              @foreach($pekerjaanSayaByMesin as $group)
+              @foreach($sortedMesinCards as $card)
                 @php
-                  $isFirst = $loop->first;
-                  $slug = 'ps-mesin-'.$group['mesin_id'];
-                  $rows = $group['items'] ?? collect();
+                  $mesinId = (int) $card->mesin_id;
+                  $group = $pekerjaanSayaByMesinMap->get($mesinId);
+                  $rows = collect($group['items'] ?? []);
+                  $isActive = $firstEnabledMesinId !== null && $mesinId === $firstEnabledMesinId;
+                  $slug = 'ps-mesin-'.$mesinId;
                 @endphp
-                <div class="tab-pane fade {{ $isFirst ? 'show active' : '' }}"
+
+                <div class="tab-pane fade {{ $isActive ? 'show active' : '' }}"
                     id="pane-{{ $slug }}"
                     role="tabpanel"
                     aria-labelledby="tab-{{ $slug }}">
+
                   <div class="table-responsive">
                     <table class="table table-sm align-middle">
+                      {{-- header tabel kamu tetap --}}
                       <thead class="table-light">
                         <tr>
                           <th>No SPK</th>
@@ -198,8 +236,10 @@
                           <th class="text-center" style="width:210px;">Action</th>
                         </tr>
                       </thead>
+
                       <tbody>
                         @forelse($rows as $row)
+                          {{-- isi row tabel kamu tetap sama --}}
                           @php
                             $spk = $row['spk'];
                             $item = $row['item'];
@@ -256,6 +296,7 @@
                                       data-sisa="{{ $sisa }}">
                                 <i class="fa fa-print"></i>
                               </button>
+
                               <form method="POST"
                                     action="{{ route('pekerjaan.operator-cetak.batal-ambil') }}"
                                     class="d-inline ms-1 form-batal-ambil">
@@ -3401,6 +3442,43 @@
     bindCardTabScope('#pekerjaanSayaMesinTabs');
     bindCardTabScope('#poolTipeTabs');
     bindCardTabScope('#modalAmbilTabs');
+  })();
+</script>
+
+<script>
+  (function () {
+    const toggle = document.getElementById('toggleShowAllMesinTabs');
+    const tabList = document.getElementById('pekerjaanSayaMesinTabs');
+    if (!toggle || !tabList) return;
+
+    function activateFirstEnabledTab() {
+      const active = tabList.querySelector('.tab-card.active:not(.disabled)');
+      if (active) return;
+
+      const firstEnabledBtn = tabList.querySelector('.tab-card:not(.disabled)[data-bs-toggle="tab"]');
+      if (firstEnabledBtn && window.bootstrap) {
+        bootstrap.Tab.getOrCreateInstance(firstEnabledBtn).show();
+      }
+    }
+
+    function applyFilter(showAll) {
+      tabList.querySelectorAll('.pekerjaan-saya-mesin-card').forEach(function (col) {
+        const hasItems = col.getAttribute('data-has-items') === '1';
+        if (showAll) {
+          col.classList.remove('d-none');
+        } else {
+          col.classList.toggle('d-none', !hasItems);
+        }
+      });
+
+      activateFirstEnabledTab();
+    }
+
+    applyFilter(toggle.checked);
+
+    toggle.addEventListener('change', function () {
+      applyFilter(toggle.checked);
+    });
   })();
 </script>
 

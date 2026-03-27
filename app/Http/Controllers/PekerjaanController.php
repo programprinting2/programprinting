@@ -286,7 +286,7 @@ class PekerjaanController extends Controller
         $spk = $this->spkService->getAllSpk($filters);
 
         $spk->load([
-            'pelanggan:id,nama,email',
+            // 'pelanggan:id,nama,email',
             'items.spk.pelanggan',
             'items:id,spk_id,produk_id,jumlah,nama_produk,satuan,panjang,lebar,file_pendukung',
             'items.spk:id,nomor_spk,pelanggan_id,tanggal_spk',
