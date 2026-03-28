@@ -290,22 +290,30 @@
                                 </button>
                             </td>
                             <td>
-                              {{ \Carbon\Carbon::parse($item->tanggal_spk)->locale('id')->translatedFormat('d F Y') }}
-                                @php
-                                    $spkDate = \Carbon\Carbon::parse($item->tanggal_spk);
-                                    $now = \Carbon\Carbon::now();
-                                    $diff = $spkDate->diff($now);
-                                @endphp
+                              @php
+                                $spkDate = \Carbon\Carbon::parse($item->tanggal_spk)
+                                    ->setTimeFrom($item->created_at)
+                                    ->timezone('Asia/Jakarta');
 
-                                @if($spkDate->isPast()) 
-                                    <br>
-                                    <small class="text-muted">
-                                        {{ $diff->days }} hari 
-                                        @if($diff->h > 0) 
-                                            {{ $diff->h }} jam
-                                        @endif
-                                    </small>
-                                @endif
+                                $now = now('Asia/Jakarta');
+
+                                $diffInHours = $spkDate->diffInHours($now);
+
+                                $days = intdiv($diffInHours, 24);
+                                $hours = $diffInHours % 24;
+                            @endphp
+
+                            {{ $spkDate->locale('id')->translatedFormat('d F Y') }}
+
+                            @if($spkDate->isPast())
+                                <br>
+                                <small class="text-muted">
+                                    {{ $days }} hari 
+                                    @if($hours > 0)
+                                        {{ $hours }} jam
+                                    @endif
+                                </small>
+                            @endif
                             </td>
                             <td>
                                 {{ $item->pelanggan->nama ?? '-' }}
