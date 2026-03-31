@@ -147,7 +147,7 @@
                   })
                   ->values();
 
-              $defaultShowAllMesins = true;
+              $defaultShowAllMesins = false;
 
               $firstEnabled = $sortedMesinCards->first(fn ($x) => $x->has_items);
               $firstEnabledMesinId = $firstEnabled ? (int) $firstEnabled->mesin_id : null;
@@ -1254,13 +1254,11 @@
     @endif
 
     @if($errors->any())
-      <script>
-        Swal.fire({
-          title: 'Gagal!',
-          html: `{!! implode('<br>', $errors->all()) !!}`,
-          icon: 'error'
-        });
-      </script>
+      Swal.fire({
+        title: 'Gagal!',
+        html: `{!! implode('<br>', $errors->all()) !!}`,
+        icon: 'error'
+      });
     @endif
   </script>
 

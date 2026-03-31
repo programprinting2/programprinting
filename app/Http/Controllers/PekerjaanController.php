@@ -335,9 +335,12 @@ class PekerjaanController extends Controller
             ->whereNull('deleted_at')
             ->groupBy('spk_item_id')
             ->pluck('total_cetak', 'spk_item_id');
+        
+        $userId = (int) (auth()->id() ?? 1);
         $printByItemAndMesin = SpkItemCetakLog::query()
             ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_cetak')
             ->whereIn('spk_item_id', $itemIds)
+            ->where('user_id', $userId)
             ->whereNull('deleted_at')
             ->groupBy('spk_item_id', 'mesin_id')
             ->get();
@@ -439,8 +442,20 @@ class PekerjaanController extends Controller
 
         $queueRowsSorted = $queueRows->sortBy('created_at')->values();
         $printedUsedByItem = [];
+        $printByItemAndMesinMap = [];
+        foreach ($printByItemAndMesin as $rowPrint) {
+            $itemId = (int) ($rowPrint->spk_item_id ?? 0);
+            $mesinId = (int) ($rowPrint->mesin_id ?? 0);
+            if ($itemId <= 0 || $mesinId <= 0) {
+                continue;
+            }
 
-        $queueRowsFiltered = $queueRowsSorted->filter(function ($q) use ($tipeNamaByMesinId, $printByItemAndStepType, &$printedUsedByItem) {
+            $key = $itemId.'|'.$mesinId;
+            $printByItemAndMesinMap[$key] = (int) ($printByItemAndMesinMap[$key] ?? 0)
+                + (int) ($rowPrint->total_cetak ?? 0);
+        }
+
+        $queueRowsFiltered = $queueRowsSorted->filter(function ($q) use ($printByItemAndMesinMap, &$printedUsedByItem) {
             $item = $q->spkItem;
             $spk  = $item?->spk;
 
@@ -454,22 +469,19 @@ class PekerjaanController extends Controller
 
             $itemId       = $item->id;
             $qtyDiambil   = (int) ($q->jumlah ?? 0);
-            $stepType = $tipeNamaByMesinId[(int) ($q->mesin_id ?? 0)] ?? '';
-            if ($stepType === '') {
-                return false;
-            }
-            $stepAggKey = $itemId.'|'.$stepType;
-            $totalCetakStep = (int) ($printByItemAndStepType[$stepAggKey] ?? 0);
+            $mesinId = (int) ($q->mesin_id ?? 0);
+            if ($mesinId <= 0) return false;
 
-            $allocKey = $stepAggKey;
+            $aggKey = $itemId.'|'.$mesinId; 
+            $totalCetakMesin = (int) ($printByItemAndMesinMap[$aggKey] ?? 0);
+
+            $allocKey = $aggKey;
             $alreadyAllocated = $printedUsedByItem[$allocKey] ?? 0;
-            $remainingForItem = max(0, $totalCetakStep - $alreadyAllocated);
+            $remainingForItem = max(0, $totalCetakMesin - $alreadyAllocated);
             $printedForQueue = min($qtyDiambil, $remainingForItem);
 
             $printedUsedByItem[$allocKey] = $alreadyAllocated + $printedForQueue;
-
             $q->computed_printed = $printedForQueue;
-
             return $printedForQueue < $qtyDiambil;
         })->values();
 
@@ -1119,15 +1131,6 @@ class PekerjaanController extends Controller
                     $mesinTypeByMesinId
                 );
                 $remainingTakeForTarget = (int) ($stepInfo['remaining'] ?? 0);
-
-                \Log::info('ambilQueue guard', [
-                    'spk_item_id' => $item->id,
-                    'mesin_id' => $mesinId,
-                    'target_mesin_type' => $targetMesinType,
-                    'ambil' => $ambil,
-                    'remaining_take_for_target' => $remainingTakeForTarget,
-                    'step_info' => $stepInfo,
-                ]);
 
                 if ($remainingTakeForTarget <= 0) {
                     throw ValidationException::withMessages([
