@@ -2815,6 +2815,13 @@
                      required>
             </div>
 
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" id="ambil_semua_checkbox">
+              <label class="form-check-label small">
+                Ambil Semua
+              </label>
+            </div>
+
             <div class="form-text">
               Masukkan jumlah item yang akan diambil untuk dicetak.
             </div>
@@ -3745,6 +3752,42 @@
         });
     }
   })();
+</script>
+
+<script>
+  const ambilModal = document.getElementById('ambilModal');
+
+  ambilModal.addEventListener('show.bs.modal', function () {
+    const checkbox = document.getElementById('ambil_semua_checkbox');
+    const inputJumlah = document.getElementById('ambil_jumlah');
+
+    if (checkbox) checkbox.checked = false;
+    if (inputJumlah) {
+      inputJumlah.value = '';
+      inputJumlah.removeAttribute('readonly');
+    }
+  });
+
+  const checkbox = document.getElementById('ambil_semua_checkbox');
+  const inputJumlah = document.getElementById('ambil_jumlah');
+  const sisaEl = document.getElementById('ambil_sisa');
+
+  if (checkbox) {
+    checkbox.addEventListener('change', function () {
+
+      const sisa = parseInt(sisaEl.innerText || 0);
+
+      if (this.checked) {
+        inputJumlah.value = sisa;
+        inputJumlah.setAttribute('readonly', true);
+      } else {
+        inputJumlah.removeAttribute('readonly');
+        inputJumlah.value = '';
+      }
+
+    });
+  }
+
 </script>
 
 @endpush
