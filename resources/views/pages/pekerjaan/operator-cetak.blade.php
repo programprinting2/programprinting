@@ -18,11 +18,6 @@
                   <h6 class="card-title mb-0">Data Pekerjaan Operator Cetak</h6>
                   <p class="text-muted mb-3">Daftar semua SPK yang perlu diproses oleh Operator Cetak.</p>
               </div>
-              <div>
-                  <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#modalGlobalCetakHistory">
-                      <i class="fa fa-history me-1"></i> History
-                  </button>
-              </div>
           </div>
           <div class="row g-3 mb-4" id="operatorTabs" role="tablist">
             {{-- TAB BARU: Pekerjaan Saya --}}
@@ -90,6 +85,28 @@
                       </span>
                     </div>
                     <small class="text-muted">Semua pekerjaan</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            {{-- TAB : History Cetak --}}
+            <div class="col-md-3">
+              <button class="card tab-card w-100 text-start"
+                      id="tab-history"
+                      data-bs-toggle="tab"
+                      data-bs-target="#tabHistory"
+                      type="button"
+                      role="tab">
+                <div class="card-body d-flex align-items-center gap-3">
+                  <div class="tab-icon bg-secondary-subtle text-secondary">
+                    <i class="fa fa-history"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex align-items-center justify-content-between">
+                      <h6 class="mb-0 fw-semibold">History</h6>
+                    </div>
+                    <small class="text-muted">Riwayat cetak semua log</small>
                   </div>
                 </div>
               </button>
@@ -708,6 +725,81 @@
               Tidak ada pool pekerjaan untuk role mesin Anda.
             </div>
           @endif
+        </div>
+
+        {{-- TAB CONTENT: History Cetak --}}
+        <div class="tab-pane fade"
+            id="tabHistory"
+            role="tabpanel"
+            aria-labelledby="tab-history">
+
+            <div class="d-flex align-items-center justify-content-between mb-3">
+              <h6 class="mb-0 fw-semibold">
+                <i class="fa fa-history me-1"></i> History Cetak Semua Log
+              </h6>
+            </div>
+
+            <div class="row g-2 align-items-end mb-3">
+            <!-- Filter radio -->
+            <div class="col-auto">
+              <label class="form-label mb-0 small">Filter:</label>
+              <div class="btn-group" role="group" id="filterHistoryBtns">
+                <input type="radio" class="btn-check" name="filterHistory" id="filterHariIni" value="hari_ini">
+                <label class="btn btn-outline-secondary btn-sm" for="filterHariIni">Hari ini</label>
+
+                <input type="radio" class="btn-check" name="filterHistory" id="filterKemarin" value="kemarin">
+                <label class="btn btn-outline-secondary btn-sm" for="filterKemarin">Kemarin</label>
+
+                <input type="radio" class="btn-check" name="filterHistory" id="filterBulanIni" value="bulan_ini" checked>
+                <label class="btn btn-outline-secondary btn-sm" for="filterBulanIni">Bulan ini</label>
+
+                <input type="radio" class="btn-check" name="filterHistory" id="filterRentang" value="rentang">
+                <label class="btn btn-outline-secondary btn-sm" for="filterRentang">Rentang</label>
+              </div>
+            </div>
+
+            <!-- Input Rentang -->
+            <div class="col-auto d-none" id="rentangDateGroup">
+              <label class="form-label mb-0 small">Dari</label>
+              <input type="date" id="historyDateFrom" class="form-control form-control-sm" name="date_from">
+            </div>
+            <div class="col-auto d-none" id="rentangDateToGroup">
+              <label class="form-label mb-0 small">Sampai</label>
+              <input type="date" id="historyDateTo" class="form-control form-control-sm" name="date_to">
+            </div>
+
+            <!-- Tombol Terapkan -->
+            <div class="col-auto">
+              <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilterHistory">
+                <i class="fa fa-filter me-1"></i> Terapkan
+              </button>
+            </div>
+          </div>
+          <div class="table-responsive">
+            <table class="table table-sm table-bordered align-middle mb-0">
+              <thead class="table-light">
+                <tr>
+                  <th style="width: 50px;">#</th>
+                  <th>Tanggal/Jam</th>
+                  <th>No. SPK</th>
+                  <th>Produk</th>
+                  <th class="text-end">Jumlah</th>
+                  <th>Operator</th>
+                  <th>Mesin</th>
+                  <th style="width: 100px;">Status</th>
+                  <th style="width: 140px;">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="globalHistoryBody">
+                <tr>
+                  <td colspan="9" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <nav aria-label="Pagination history" class="mt-3" id="globalHistoryPagination">
+            <!-- Pagination links diisi via JS -->
+          </nav>
         </div>
   </div>
 
@@ -1861,8 +1953,8 @@
       })();
 
       (function () {
-        const modalEl = document.getElementById('modalGlobalCetakHistory');
-        if (!modalEl) return;
+        const historyTabBtn = document.getElementById('tab-history');
+        if (!historyTabBtn) return;
 
         const tbody = document.getElementById('globalHistoryBody');
         const paginationEl = document.getElementById('globalHistoryPagination');
@@ -1981,9 +2073,10 @@
         }
 
         document.getElementById('btnApplyFilterHistory')?.addEventListener('click', () => loadGlobalHistory(1));
-        modalEl.addEventListener('shown.bs.modal', () => loadGlobalHistory(1));
-
-        modalEl.addEventListener('shown.bs.modal', toggleRentangInputs);
+        historyTabBtn.addEventListener('shown.bs.tab', function () {
+          toggleRentangInputs();
+          loadGlobalHistory(1); 
+        });
       })();
 
       document.addEventListener("click", function(e){
@@ -2976,82 +3069,6 @@
           </button>
         </div>
       </form>
-    </div>
-  </div>
-</div>
-
-<div class="modal fade" id="modalGlobalCetakHistory" tabindex="-1" aria-labelledby="modalGlobalCetakHistoryLabel" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-scrollable modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalGlobalCetakHistoryLabel">
-          <i class="fa fa-history me-1"></i> History Cetak Semua Log
-        </h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-      </div>
-      <div class="modal-body">
-        <div class="row g-2 align-items-end mb-3">
-          <!-- Filter radio -->
-          <div class="col-auto">
-            <label class="form-label mb-0 small">Filter:</label>
-            <div class="btn-group" role="group" id="filterHistoryBtns">
-              <input type="radio" class="btn-check" name="filterHistory" id="filterHariIni" value="hari_ini">
-              <label class="btn btn-outline-secondary btn-sm" for="filterHariIni">Hari ini</label>
-
-              <input type="radio" class="btn-check" name="filterHistory" id="filterKemarin" value="kemarin">
-              <label class="btn btn-outline-secondary btn-sm" for="filterKemarin">Kemarin</label>
-
-              <input type="radio" class="btn-check" name="filterHistory" id="filterBulanIni" value="bulan_ini" checked>
-              <label class="btn btn-outline-secondary btn-sm" for="filterBulanIni">Bulan ini</label>
-
-              <input type="radio" class="btn-check" name="filterHistory" id="filterRentang" value="rentang">
-              <label class="btn btn-outline-secondary btn-sm" for="filterRentang">Rentang</label>
-            </div>
-          </div>
-
-          <!-- Input Rentang -->
-          <div class="col-auto d-none" id="rentangDateGroup">
-            <label class="form-label mb-0 small">Dari</label>
-            <input type="date" id="historyDateFrom" class="form-control form-control-sm" name="date_from">
-          </div>
-          <div class="col-auto d-none" id="rentangDateToGroup">
-            <label class="form-label mb-0 small">Sampai</label>
-            <input type="date" id="historyDateTo" class="form-control form-control-sm" name="date_to">
-          </div>
-
-          <!-- Tombol Terapkan -->
-          <div class="col-auto">
-            <button type="button" class="btn btn-primary btn-sm" id="btnApplyFilterHistory">
-              <i class="fa fa-filter me-1"></i> Terapkan
-            </button>
-          </div>
-        </div>
-        <div class="table-responsive">
-          <table class="table table-sm table-bordered align-middle mb-0">
-            <thead class="table-light">
-              <tr>
-                <th style="width: 50px;">#</th>
-                <th>Tanggal/Jam</th>
-                <th>No. SPK</th>
-                <th>Produk</th>
-                <th class="text-end">Jumlah</th>
-                <th>Operator</th>
-                <th>Mesin</th>
-                <th style="width: 100px;">Status</th>
-                <th style="width: 140px;">Aksi</th>
-              </tr>
-            </thead>
-            <tbody id="globalHistoryBody">
-              <tr>
-                <td colspan="9" class="text-center text-muted py-4">Klik tombol Terapkan untuk memuat data.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <nav aria-label="Pagination history" class="mt-3" id="globalHistoryPagination">
-          <!-- Pagination links diisi via JS -->
-        </nav>
-      </div>
     </div>
   </div>
 </div>
