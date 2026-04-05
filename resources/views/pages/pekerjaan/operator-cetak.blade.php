@@ -644,11 +644,26 @@
                                           <td>{{ $spkItem->satuan }}</td>
 
                                           <td class="text-end">
-                                            <div class="small fw-semibold mb-1"
-                                                data-field="ambil-pct-text"
-                                                data-spk-item-id="{{ $spkItem->id }}"
-                                                data-step-key="{{ $stepKey }}"
-                                                data-scope="pool">Ambil: {{ $pctAmbil }}%</div>
+                                            <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap mb-1">
+                                              <span class="small fw-semibold"
+                                                  data-field="ambil-pct-text"
+                                                  data-spk-item-id="{{ $spkItem->id }}"
+                                                  data-step-key="{{ $stepKey }}"
+                                                  data-scope="pool">Ambil: {{ $pctAmbil }}%</span>
+                                              <button type="button"
+                                                      class="btn btn-link btn-sm p-0 text-info lh-1 btn-pool-step-info"
+                                                      title="Log ambil (step ini)"
+                                                      data-bs-toggle="modal"
+                                                      data-bs-target="#modalPoolStepActivity"
+                                                      data-spk-item-id="{{ $spkItem->id }}"
+                                                      data-step-index="{{ $stepIndex }}"
+                                                      data-nomor-spk="{{ $spkRow->nomor_spk }}"
+                                                      data-nama-item="{{ $spkItem->nama_produk }}"
+                                                      data-initial-tab="ambil"
+                                                      aria-label="Info log ambil">
+                                                <i class="fa fa-info-circle"></i>
+                                              </button>
+                                            </div>
                                             <div class="progress mb-2" style="height:6px;">
                                               <div class="progress-bar bg-success"
                                                   role="progressbar"
@@ -670,11 +685,26 @@
                                               (Sisa ambil: {{ number_format($sisaAmbil,0,',','.') }})
                                             </div>
 
-                                            <div class="small fw-semibold mb-1"
-                                                data-field="cetak-pct-text"
-                                                data-spk-item-id="{{ $spkItem->id }}"
-                                                data-step-key="{{ $stepKey }}"
-                                                data-scope="pool">Cetak: {{ $pctCetak }}%</div>
+                                            <div class="d-flex align-items-center justify-content-end gap-1 flex-wrap mb-1">
+                                              <span class="small fw-semibold"
+                                                  data-field="cetak-pct-text"
+                                                  data-spk-item-id="{{ $spkItem->id }}"
+                                                  data-step-key="{{ $stepKey }}"
+                                                  data-scope="pool">Cetak: {{ $pctCetak }}%</span>
+                                              <button type="button"
+                                                      class="btn btn-link btn-sm p-0 text-info lh-1 btn-pool-step-info"
+                                                      title="Log cetak (step ini)"
+                                                      data-bs-toggle="modal"
+                                                      data-bs-target="#modalPoolStepActivity"
+                                                      data-spk-item-id="{{ $spkItem->id }}"
+                                                      data-step-index="{{ $stepIndex }}"
+                                                      data-nomor-spk="{{ $spkRow->nomor_spk }}"
+                                                      data-nama-item="{{ $spkItem->nama_produk }}"
+                                                      data-initial-tab="cetak"
+                                                      aria-label="Info log cetak">
+                                                <i class="fa fa-info-circle"></i>
+                                              </button>
+                                            </div>
                                             <div class="progress" style="height:6px;">
                                               <div class="progress-bar {{ $pctCetak >= 100 ? 'bg-success' : ($pctCetak >= 50 ? 'bg-warning' : 'bg-primary') }}"
                                                   role="progressbar"
@@ -801,6 +831,76 @@
             <!-- Pagination links diisi via JS -->
           </nav>
         </div>
+  </div>
+
+  {{-- MODAL: Log Ambil / Cetak per step (Pool) --}}
+  <div class="modal fade" id="modalPoolStepActivity" tabindex="-1" aria-labelledby="modalPoolStepActivityLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modalPoolStepActivityTitle">Log step</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="nav nav-tabs" id="poolStepActivityTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active" id="pool-step-activity-tab-ambil" data-bs-toggle="tab"
+                      data-bs-target="#pool-step-activity-pane-ambil" type="button" role="tab"
+                      aria-controls="pool-step-activity-pane-ambil" aria-selected="true">Log ambil</button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link" id="pool-step-activity-tab-cetak" data-bs-toggle="tab"
+                      data-bs-target="#pool-step-activity-pane-cetak" type="button" role="tab"
+                      aria-controls="pool-step-activity-pane-cetak" aria-selected="false">Log cetak</button>
+            </li>
+          </ul>
+          <div class="tab-content pt-3" id="poolStepActivityTabContent">
+            <div class="tab-pane fade show active" id="pool-step-activity-pane-ambil" role="tabpanel"
+                 aria-labelledby="pool-step-activity-tab-ambil" tabindex="0">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:44px;">No</th>
+                      <th>Waktu</th>
+                      <th>Operator</th>
+                      <th>Mesin</th>
+                      <th class="text-end">Jumlah</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poolStepActivityQueueBody">
+                    <tr><td colspan="5" class="text-center text-muted py-3">Memuat…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="tab-pane fade" id="pool-step-activity-pane-cetak" role="tabpanel"
+                 aria-labelledby="pool-step-activity-tab-cetak" tabindex="0">
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th style="width:44px;">No</th>
+                      <th>Waktu</th>
+                      <th>Operator</th>
+                      <th>Mesin</th>
+                      <th class="text-end">Jumlah</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="poolStepActivityCetakBody">
+                    <tr><td colspan="6" class="text-center text-muted py-3">Memuat…</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   {{-- MODAL: Ambil Pekerjaan --}}
@@ -2076,6 +2176,184 @@
         historyTabBtn.addEventListener('shown.bs.tab', function () {
           toggleRentangInputs();
           loadGlobalHistory(1); 
+        });
+      })();
+
+      (function () {
+        const modalEl = document.getElementById('modalPoolStepActivity');
+        if (!modalEl) {
+          return;
+        }
+
+        const titleEl = document.getElementById('modalPoolStepActivityTitle');
+        const tbodyQueue = document.getElementById('poolStepActivityQueueBody');
+        const tbodyCetak = document.getElementById('poolStepActivityCetakBody');
+        const tabAmbilBtn = document.getElementById('pool-step-activity-tab-ambil');
+        const tabCetakBtn = document.getElementById('pool-step-activity-tab-cetak');
+
+        const stepActivityUrlTemplate = "{{ route('pekerjaan.operator-cetak.step-activity', ['spkItem' => '__ID__']) }}";
+
+        function escapeHtml(s) {
+          const div = document.createElement('div');
+          div.textContent = s == null ? '' : String(s);
+          return div.innerHTML;
+        }
+
+        function setLoadingRows() {
+          if (tbodyQueue) {
+            tbodyQueue.innerHTML = '<tr><td colspan="5" class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span> Memuat…</td></tr>';
+          }
+          if (tbodyCetak) {
+            tbodyCetak.innerHTML = '<tr><td colspan="6" class="text-center py-3"><span class="spinner-border spinner-border-sm me-1"></span> Memuat…</td></tr>';
+          }
+        }
+
+        function activateInitialTab(initialTab) {
+          if (!tabAmbilBtn || !tabCetakBtn || typeof bootstrap === 'undefined' || !bootstrap.Tab) {
+            return;
+          }
+          const target = initialTab === 'cetak' ? tabCetakBtn : tabAmbilBtn;
+          try {
+            const instance = bootstrap.Tab.getOrCreateInstance(target);
+            instance.show();
+          } catch (err) {
+            console.error(err);
+          }
+        }
+
+        modalEl.addEventListener('show.bs.modal', function (ev) {
+          const btn = ev.relatedTarget;
+          if (!btn || !btn.classList.contains('btn-pool-step-info')) {
+            return;
+          }
+
+          const spkItemId = btn.getAttribute('data-spk-item-id');
+          const stepIndex = btn.getAttribute('data-step-index');
+          const initialTab = (btn.getAttribute('data-initial-tab') || 'ambil').toLowerCase() === 'cetak' ? 'cetak' : 'ambil';
+          const nomorSpk = btn.getAttribute('data-nomor-spk') || '';
+          const namaItem = btn.getAttribute('data-nama-item') || '';
+
+          if (titleEl) {
+            titleEl.textContent = [nomorSpk, namaItem, stepIndex ? 'Step ' + stepIndex : '']
+              .filter(Boolean)
+              .join(' — ');
+          }
+
+          setLoadingRows();
+          activateInitialTab(initialTab);
+
+          if (!spkItemId || !stepIndex) {
+            if (tbodyQueue) {
+              tbodyQueue.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Data tidak lengkap.</td></tr>';
+            }
+            if (tbodyCetak) {
+              tbodyCetak.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Data tidak lengkap.</td></tr>';
+            }
+            return;
+          }
+
+          const url = stepActivityUrlTemplate.replace('__ID__', String(spkItemId)) + '?step_index=' + encodeURIComponent(stepIndex);
+
+          fetch(url, {
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            },
+            credentials: 'same-origin'
+          })
+            .then(async function (r) {
+              const raw = await r.text();
+              let data = null;
+              try {
+                data = raw ? JSON.parse(raw) : null;
+              } catch (e) {
+                data = null;
+              }
+              if (!r.ok) {
+                const msg = (data && data.message) ? data.message : (raw || 'Gagal memuat log.');
+                throw new Error(msg);
+              }
+              return data || {};
+            })
+            .then(function (data) {
+              if (titleEl) {
+                const parts = [];
+                if (data.nomor_spk) {
+                  parts.push(data.nomor_spk);
+                }
+                if (data.nama_produk) {
+                  parts.push(data.nama_produk);
+                }
+                const stepLabel = (data.step_index != null && data.step_total != null)
+                  ? 'Step ' + data.step_index + '/' + data.step_total
+                  : (data.step_index != null ? 'Step ' + data.step_index : '');
+                if (stepLabel) {
+                  parts.push(stepLabel);
+                }
+                if (data.step_name) {
+                  parts.push(data.step_name);
+                }
+                titleEl.textContent = parts.length ? parts.join(' — ') : 'Log step';
+              }
+
+              const queues = Array.isArray(data.queue_rows) ? data.queue_rows : [];
+              const logs = Array.isArray(data.cetak_logs) ? data.cetak_logs : [];
+
+              if (tbodyQueue) {
+                if (!queues.length) {
+                  tbodyQueue.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-3">Belum ada log ambil untuk step ini.</td></tr>';
+                } else {
+                  tbodyQueue.innerHTML = queues.map(function (row, i) {
+                    return '<tr>' +
+                      '<td class="text-center">' + (i + 1) + '</td>' +
+                      '<td>' + escapeHtml(row.tanggal_label || '') + '</td>' +
+                      '<td>' + escapeHtml(row.operator || '-') + '</td>' +
+                      '<td>' + escapeHtml(row.mesin || '-') + '</td>' +
+                      '<td class="text-end fw-semibold">' + escapeHtml(row.jumlah_formatted != null ? String(row.jumlah_formatted) : String(row.jumlah ?? 0)) + '</td>' +
+                      '</tr>';
+                  }).join('');
+                }
+              }
+
+              if (tbodyCetak) {
+                if (!logs.length) {
+                  tbodyCetak.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-3">Belum ada log cetak untuk step ini.</td></tr>';
+                } else {
+                  tbodyCetak.innerHTML = logs.map(function (row, i) {
+                    const isBatal = row.is_batalkan === true;
+                    const statusHtml = isBatal
+                      ? '<span class="badge bg-danger">Dibatalkan</span>'
+                      : '<span class="badge bg-success">Selesai</span>';
+                    const rowClass = isBatal ? ' table-secondary' : '';
+                    return '<tr class="' + rowClass.trim() + '">' +
+                      '<td class="text-center">' + (i + 1) + '</td>' +
+                      '<td>' + escapeHtml(row.tanggal_label || '') + '</td>' +
+                      '<td>' + escapeHtml(row.operator || '-') + '</td>' +
+                      '<td>' + escapeHtml(row.mesin || '-') + '</td>' +
+                      '<td class="text-end fw-semibold' + (isBatal ? ' text-danger text-decoration-line-through' : '') + '">' +
+                      escapeHtml(row.jumlah_formatted != null ? String(row.jumlah_formatted) : String(row.jumlah ?? 0)) +
+                      '</td>' +
+                      '<td>' + statusHtml + '</td>' +
+                      '</tr>';
+                  }).join('');
+                }
+              }
+            })
+            .catch(function (err) {
+              const msg = (err && err.message) ? err.message : 'Gagal memuat log.';
+              if (tbodyQueue) {
+                tbodyQueue.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">' + escapeHtml(msg) + '</td></tr>';
+              }
+              if (tbodyCetak) {
+                tbodyCetak.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">' + escapeHtml(msg) + '</td></tr>';
+              }
+            });
+        });
+
+        modalEl.addEventListener('hidden.bs.modal', function () {
+          if (titleEl) {
+            titleEl.textContent = 'Log step';
+          }
         });
       })();
 
@@ -3717,17 +3995,7 @@
       }, 250);
     }
 
-    async function refreshModalState() {
-      if (!modalAmbilPekerjaanEl) {
-        return;
-      }
-      const itemIds = Array.from(
-        new Set(
-          Array.from(modalAmbilPekerjaanEl.querySelectorAll('[data-field="operator-cetak-row"][data-spk-item-id]'))
-            .map(function (row) { return row.getAttribute('data-spk-item-id'); })
-            .filter(Boolean)
-        )
-      );
+    async function refreshLiveStateForItemIds(itemIds) {
       if (!itemIds.length) {
         return;
       }
@@ -3740,7 +4008,7 @@
         }
       });
       if (!response.ok) {
-        throw new Error('Gagal refresh data modal ambil.');
+        throw new Error('Gagal memuat progress realtime.');
       }
 
       const data = await response.json();
@@ -3750,9 +4018,39 @@
       });
     }
 
+    async function refreshModalState() {
+      if (!modalAmbilPekerjaanEl) {
+        return;
+      }
+      const itemIds = Array.from(
+        new Set(
+          Array.from(modalAmbilPekerjaanEl.querySelectorAll('[data-field="operator-cetak-row"][data-spk-item-id]'))
+            .map(function (row) { return row.getAttribute('data-spk-item-id'); })
+            .filter(Boolean)
+        )
+      );
+      await refreshLiveStateForItemIds(itemIds);
+    }
+
     if (modalAmbilPekerjaanEl) {
       modalAmbilPekerjaanEl.addEventListener('shown.bs.modal', function () {
         refreshModalState().catch(function (error) {
+          console.error(error);
+        });
+      });
+    }
+
+    const poolPekerjaanTabBtn = document.getElementById('tab-pool-pekerjaan');
+    if (poolPekerjaanTabBtn) {
+      poolPekerjaanTabBtn.addEventListener('shown.bs.tab', function () {
+        const itemIds = Array.from(
+          new Set(
+            Array.from(document.querySelectorAll('#tabPoolPekerjaan [data-field="operator-cetak-row"][data-scope="pool"][data-spk-item-id]'))
+              .map(function (row) { return row.getAttribute('data-spk-item-id'); })
+              .filter(Boolean)
+          )
+        );
+        refreshLiveStateForItemIds(itemIds).catch(function (error) {
           console.error(error);
         });
       });

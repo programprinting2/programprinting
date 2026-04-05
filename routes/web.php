@@ -244,6 +244,9 @@ Route::group(['prefix' => 'pekerjaan', 'middleware' => ['auth', 'single.session'
     
     Route::get('/operator-cetak/items/{spkItem}/progress', [PekerjaanController::class, 'getCetakProgress'])
         ->name('pekerjaan.operator-cetak.item-progress');
+
+    Route::get('/operator-cetak/items/{spkItem}/step-activity', [PekerjaanController::class, 'operatorCetakStepActivity'])
+        ->name('pekerjaan.operator-cetak.step-activity');
     
     Route::post('/operator-cetak/progress', [PekerjaanController::class, 'storeCetakProgress'])
         ->name('pekerjaan.operator-cetak.progress');

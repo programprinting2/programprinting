@@ -866,34 +866,49 @@ class PekerjaanController extends Controller
 
         $mesinId = $request->integer('mesin_id') ?: null;
         $this->assertMesinAssignedToCurrentUser((int) $mesinId);
+
         $userId  = (int) (auth()->id() ?? 1);
 
         $createdCount = 0;
 
         DB::transaction(function () use ($ids, $mesinId, $userId, &$createdCount) {
+            $items = SPKItem::query()
+                ->whereIn('id', $ids)
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            $queueSums = SpkItemCetakQueue::query()
+                ->selectRaw('spk_item_id, SUM(jumlah) as total')
+                ->whereIn('spk_item_id', $ids)
+                ->where('user_id', $userId)
+                ->where('mesin_id', $mesinId)
+                ->groupBy('spk_item_id')
+                ->pluck('total', 'spk_item_id');
+
+            $logSums = SpkItemCetakLog::query()
+                ->selectRaw('spk_item_id, SUM(jumlah) as total')
+                ->whereIn('spk_item_id', $ids)
+                ->where('user_id', $userId)
+                ->where('mesin_id', $mesinId)
+                ->whereNull('deleted_at')
+                ->groupBy('spk_item_id')
+                ->pluck('total', 'spk_item_id');
+
             foreach ($ids as $itemId) {
-                $item = SPKItem::lockForUpdate()->find($itemId);
+                $item = $items[$itemId] ?? null;
 
                 if (!$item) {
                     continue;
                 }
 
-                $qtyDiambil = (int) SpkItemCetakQueue::query()
-                    ->where('spk_item_id', $itemId)
-                    ->where('user_id', $userId)
-                    ->where('mesin_id', $mesinId)
-                    ->sum('jumlah');
+                $qtyDiambil = (int) ($queueSums[$itemId] ?? 0);
 
                 if ($qtyDiambil <= 0) {
                     continue;
                 }
 
-                $sudahCetak = (int) SpkItemCetakLog::query()
-                    ->where('spk_item_id', $itemId)
-                    ->where('user_id', $userId)
-                    ->where('mesin_id', $mesinId)
-                    ->whereNull('deleted_at')
-                    ->sum('jumlah');
+                $sudahCetak = (int) ($logSums[$itemId] ?? 0);
 
                 $sisa = $qtyDiambil - $sudahCetak;
 
@@ -1370,6 +1385,134 @@ class PekerjaanController extends Controller
         }
 
         return response()->json(['items' => $result]);
+    }
+
+    public function operatorCetakStepActivity(Request $request, SPKItem $spkItem): JsonResponse
+    {
+        $validated = $request->validate([
+            'step_index' => ['required', 'integer', 'min:1'],
+        ]);
+        $stepIndex = (int) $validated['step_index'];
+
+        $spkItem->loadMissing([
+            'produk:id,alur_produksi_json',
+            'spk:id,nomor_spk',
+        ]);
+
+        $alur = $spkItem->produk?->alur_produksi_json ?? [];
+        if (! is_array($alur) || $alur === []) {
+            return response()->json([
+                'message' => 'Item tidak memiliki alur produksi.',
+            ], 422);
+        }
+
+        if ($stepIndex > count($alur)) {
+            return response()->json([
+                'message' => 'Step tidak valid.',
+            ], 422);
+        }
+
+        $step = $alur[$stepIndex - 1] ?? null;
+        if (! is_array($step)) {
+            return response()->json([
+                'message' => 'Step tidak valid.',
+            ], 422);
+        }
+
+        $identity = $this->resolveStepIdentity($step);
+        $candidates = $identity['candidates'] ?? [];
+        $stepMesinId = (int) ($identity['step_id'] ?? 0);
+
+        $mesinIds = [];
+        if ($candidates !== []) {
+            $mesinIds = MasterMesin::query()
+                ->get(['id', 'tipe_mesin'])
+                ->filter(function ($m) use ($candidates) {
+                    $t = $this->normalizeMesinType($m->tipe_mesin ?? null);
+
+                    return $t !== '' && in_array($t, $candidates, true);
+                })
+                ->pluck('id')
+                ->map(fn ($id) => (int) $id)
+                ->values()
+                ->all();
+        } elseif ($stepMesinId > 0) {
+            $mesinIds = [$stepMesinId];
+        }
+
+        $tz = 'Asia/Jakarta';
+
+        if ($mesinIds === []) {
+            return response()->json([
+                'spk_item_id' => (int) $spkItem->id,
+                'nomor_spk' => (string) ($spkItem->spk->nomor_spk ?? ''),
+                'nama_produk' => (string) ($spkItem->nama_produk ?? ''),
+                'step_index' => $stepIndex,
+                'step_total' => count($alur),
+                'step_name' => (string) ($identity['step_name'] ?? ''),
+                'queue_rows' => [],
+                'cetak_logs' => [],
+            ]);
+        }
+
+        $queues = SpkItemCetakQueue::query()
+            ->where('spk_item_id', $spkItem->id)
+            ->whereIn('mesin_id', $mesinIds)
+            ->with(['user:id,name', 'mesin:id,nama_mesin'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (SpkItemCetakQueue $q) use ($tz) {
+                $t = $q->created_at
+                    ? $q->created_at->copy()->timezone($tz)
+                    : null;
+
+                return [
+                    'id' => $q->id,
+                    'jumlah' => (int) ($q->jumlah ?? 0),
+                    'jumlah_formatted' => number_format((int) ($q->jumlah ?? 0), 0, ',', '.'),
+                    'operator' => optional($q->user)->name ?? ('User #'.$q->user_id),
+                    'mesin' => optional($q->mesin)->nama_mesin ?? ('Mesin #'.$q->mesin_id),
+                    'tanggal_label' => $t ? $t->format('d/m/Y H:i') : '',
+                ];
+            })
+            ->values()
+            ->all();
+
+        $logs = SpkItemCetakLog::query()
+            ->withTrashed()
+            ->where('spk_item_id', $spkItem->id)
+            ->whereIn('mesin_id', $mesinIds)
+            ->with(['user:id,name', 'mesin:id,nama_mesin'])
+            ->orderByDesc('created_at')
+            ->get()
+            ->map(function (SpkItemCetakLog $l) use ($tz) {
+                $t = $l->created_at
+                    ? $l->created_at->copy()->timezone($tz)
+                    : null;
+
+                return [
+                    'id' => $l->id,
+                    'jumlah' => (int) ($l->jumlah ?? 0),
+                    'jumlah_formatted' => number_format((int) ($l->jumlah ?? 0), 0, ',', '.'),
+                    'operator' => optional($l->user)->name ?? ('User #'.$l->user_id),
+                    'mesin' => optional($l->mesin)->nama_mesin ?? ('Mesin #'.$l->mesin_id),
+                    'tanggal_label' => $t ? $t->format('d/m/Y H:i') : '',
+                    'is_batalkan' => $l->trashed(),
+                ];
+            })
+            ->values()
+            ->all();
+
+        return response()->json([
+            'spk_item_id' => (int) $spkItem->id,
+            'nomor_spk' => (string) ($spkItem->spk->nomor_spk ?? ''),
+            'nama_produk' => (string) ($spkItem->nama_produk ?? ''),
+            'step_index' => $stepIndex,
+            'step_total' => count($alur),
+            'step_name' => (string) ($identity['step_name'] ?? ''),
+            'queue_rows' => $queues,
+            'cetak_logs' => $logs,
+        ]);
     }
 
     private function normalizeMesinType(?string $mesinType): string
