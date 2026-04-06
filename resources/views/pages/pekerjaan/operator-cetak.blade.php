@@ -3324,12 +3324,11 @@
                 <div class="fw-semibold mb-2">Preview file desain</div>
                 <div id="cetak_preview_container" class="text-muted small">Tidak ada file.</div>
               </div>
-
-              <div class="border rounded p-3 mt-3">
-                <div class="fw-semibold mb-2">Riwayat progress</div>
-                <div id="cetak_riwayat_container" class="small text-muted">Belum ada riwayat.</div>
-              </div>
             </div>
+          </div>
+          <div class="border rounded p-3 mt-3">
+            <div class="fw-semibold mb-2">Riwayat progress</div>
+            <div id="cetak_riwayat_container" class="small text-muted">Belum ada riwayat.</div>
           </div>
         </div>
 
