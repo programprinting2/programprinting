@@ -22,6 +22,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Illuminate\Support\Facades\Log; 
 use Illuminate\Support\Facades\Cache;
@@ -200,7 +201,6 @@ class PekerjaanController extends Controller
 
     public function managerProduksi(Request $request): View
     {
-        // $filters = $request->only(['search', 'customer_id']);
         $filters = $request->only(['search', 'status']);
         $filters['exclude_status'] = 'selesai';
         $filters['sort_status'] = 'manager_approval_order';
@@ -230,14 +230,316 @@ class PekerjaanController extends Controller
             ? $selectedUser->mesins->pluck('id')->map(fn ($id) => (int) $id)->all()
             : [];
 
+        $activeSpk = $this->spkService->getAllSpk($filters, [
+            'pelanggan:id,nama',
+            'items:id,spk_id,produk_id,nama_produk,jumlah,satuan',
+            'items.produk:id,nama_produk,kode_produk,alur_produksi_json',
+            'items.produk.bahanBakus:id,nama_bahan,kode_bahan,satuan_utama_id,sub_satuan_id,metric_unit',
+            'items.produk.bahanBakus.satuanUtamaDetail:id,nama_detail_parameter',
+            'items.produk.bahanBakus.subSatuanDetail:id,nama_sub_detail_parameter',
+        ]);
+
+        $dashboardData = $this->buildManagerProduksiDashboardData($activeSpk, $users, $allMesin);
+
         return view('pages.pekerjaan.manager-produksi', compact(
             'spk',
             'users',
             'allMesin',
             'selectedUserId',
             'selectedUserMesinIds',
-            'activeTab'
+            'activeTab',
+            'dashboardData'
         ));
+    }
+
+    private function buildManagerProduksiDashboardData(Collection $activeSpk, Collection $users, Collection $allMesin): array
+    {
+        $mesinTypeById = $allMesin->mapWithKeys(function (MasterMesin $mesin): array {
+            return [(int) $mesin->id => $this->normalizeMesinType($mesin->tipe_mesin ?: $mesin->nama_mesin)];
+        });
+
+        $produksiByTipeMesin = [];
+        $bahanBakuAktifTotals = [];
+        $mesinBahanBakuAktif = [];
+
+        $operatorWorkloads = $users->mapWithKeys(function (User $user) use ($mesinTypeById): array {
+            $mesinList = $user->mesins
+                ->map(function (MasterMesin $mesin): array {
+                    return [
+                        'id' => (int) $mesin->id,
+                        'nama_mesin' => (string) ($mesin->nama_mesin ?? '-'),
+                        'tipe_mesin' => (string) ($mesin->tipe_mesin ?? '-'),
+                    ];
+                })
+                ->values()
+                ->all();
+
+            $machineTypes = $user->mesins
+                ->map(function (MasterMesin $mesin) use ($mesinTypeById): string {
+                    return (string) ($mesinTypeById[(int) $mesin->id] ?? '');
+                })
+                ->filter()
+                ->unique()
+                ->values()
+                ->all();
+
+            return [
+                (int) $user->id => [
+                    'id' => (int) $user->id,
+                    'name' => (string) $user->name,
+                    'email' => (string) ($user->email ?? ''),
+                    'mesin_list' => $mesinList,
+                    'machine_types' => $machineTypes,
+                    'items' => [],
+                    'spk_ids' => [],
+                ],
+            ];
+        })->all();
+
+        foreach ($activeSpk as $spkRow) {
+            foreach ($spkRow->items as $item) {
+                if (!$item->produk) {
+                    continue;
+                }
+
+                $workflowTargets = $this->extractWorkflowTargetsForItem($item, $mesinTypeById);
+                if (empty($workflowTargets)) {
+                    $workflowTargets = [[
+                        'type_key' => 'tanpa-tipe',
+                        'type_label' => 'Tanpa Tipe',
+                    ]];
+                }
+
+                foreach ($workflowTargets as $target) {
+                    $typeKey = (string) $target['type_key'];
+                    if (!isset($produksiByTipeMesin[$typeKey])) {
+                        $produksiByTipeMesin[$typeKey] = [
+                            'type_key' => $typeKey,
+                            'type_label' => (string) $target['type_label'],
+                            'items' => [],
+                            'spk_ids' => [],
+                        ];
+                    }
+
+                    $produksiByTipeMesin[$typeKey]['items'][] = $this->buildWorkItemPayload($spkRow, $item, $target['type_label']);
+                    $produksiByTipeMesin[$typeKey]['spk_ids'][(int) $spkRow->id] = true;
+                }
+
+                foreach ($operatorWorkloads as $operatorId => &$operatorPayload) {
+                    $matchedTargets = collect($workflowTargets)
+                        ->filter(function (array $target) use ($operatorPayload): bool {
+                            return in_array((string) $target['type_key'], $operatorPayload['machine_types'], true);
+                        })
+                        ->pluck('type_label')
+                        ->unique()
+                        ->values()
+                        ->all();
+
+                    if (empty($matchedTargets)) {
+                        continue;
+                    }
+
+                    $operatorPayload['items'][] = $this->buildWorkItemPayload($spkRow, $item, implode(', ', $matchedTargets));
+                    $operatorPayload['spk_ids'][(int) $spkRow->id] = true;
+                }
+                unset($operatorPayload);
+
+                foreach ($item->produk->bahanBakus as $bahan) {
+                    $bahanId = (int) $bahan->id;
+                    $needQty = (float) ($bahan->pivot->jumlah ?? 0) * (float) ($item->jumlah ?? 0);
+
+                    if (!isset($bahanBakuAktifTotals[$bahanId])) {
+                        $bahanBakuAktifTotals[$bahanId] = [
+                            'id' => $bahanId,
+                            'nama' => (string) ($bahan->nama_bahan ?? '-'),
+                            'kode' => (string) ($bahan->kode_bahan ?? ''),
+                            'total_kebutuhan' => 0.0,
+                            'details' => [],
+                        ];
+                    }
+
+                    $bahanBakuAktifTotals[$bahanId]['total_kebutuhan'] += $needQty;
+                    $bahanBakuAktifTotals[$bahanId]['details'][] = [
+                        'spk_nomor' => (string) ($spkRow->nomor_spk ?? '-'),
+                        'produk' => (string) ($item->produk->nama_produk ?? $item->nama_produk ?? '-'),
+                        'jumlah' => (float) ($item->jumlah ?? 0),
+                        'satuan_item' => (string) ($item->satuan ?? ''),
+                        'kebutuhan' => $needQty,
+                        'satuan_bahan' => (string) (
+                            $bahan->subSatuanDetail->nama_sub_detail_parameter
+                            ?? $bahan->satuanUtamaDetail->nama_detail_parameter
+                            ?? $bahan->metric_unit
+                            ?? ''
+                        ),
+                    ];
+
+                    foreach ($workflowTargets as $target) {
+                        $typeKey = (string) $target['type_key'];
+                        if (!isset($mesinBahanBakuAktif[$typeKey])) {
+                            $mesinBahanBakuAktif[$typeKey] = [
+                                'type_key' => $typeKey,
+                                'type_label' => (string) $target['type_label'],
+                                'bahan_groups' => [],
+                            ];
+                        }
+
+                        $satuanBahan = (string) (
+                            $bahan->subSatuanDetail->nama_sub_detail_parameter
+                            ?? $bahan->satuanUtamaDetail->nama_detail_parameter
+                            ?? $bahan->metric_unit
+                            ?? ''
+                        );
+
+                        if (!isset($mesinBahanBakuAktif[$typeKey]['bahan_groups'][$bahanId])) {
+                            $mesinBahanBakuAktif[$typeKey]['bahan_groups'][$bahanId] = [
+                                'id' => $bahanId,
+                                'nama' => (string) ($bahan->nama_bahan ?? '-'),
+                                'kode' => (string) ($bahan->kode_bahan ?? ''),
+                                'satuan_bahan' => $satuanBahan,
+                                'total_kebutuhan' => 0.0,
+                                'details' => [],
+                            ];
+                        }
+
+                        if (
+                            empty($mesinBahanBakuAktif[$typeKey]['bahan_groups'][$bahanId]['satuan_bahan'])
+                            && $satuanBahan !== ''
+                        ) {
+                            $mesinBahanBakuAktif[$typeKey]['bahan_groups'][$bahanId]['satuan_bahan'] = $satuanBahan;
+                        }
+
+                        $mesinBahanBakuAktif[$typeKey]['bahan_groups'][$bahanId]['total_kebutuhan'] += $needQty;
+                        $mesinBahanBakuAktif[$typeKey]['bahan_groups'][$bahanId]['details'][] = [
+                            'spk_nomor' => (string) ($spkRow->nomor_spk ?? '-'),
+                            'produk' => (string) ($item->produk->nama_produk ?? $item->nama_produk ?? '-'),
+                            'jumlah' => (float) ($item->jumlah ?? 0),
+                            'kebutuhan' => $needQty,
+                            'satuan_bahan' => $satuanBahan,
+                        ];
+                    }
+                }
+            }
+        }
+
+        $produksiByTipeMesin = collect($produksiByTipeMesin)
+            ->map(function (array $group): array {
+                $group['total_item'] = count($group['items']);
+                $group['total_spk'] = count($group['spk_ids']);
+                return $group;
+            })
+            ->sortBy('type_label')
+            ->values()
+            ->all();
+
+        $operatorWorkloads = collect($operatorWorkloads)
+            ->map(function (array $operator): array {
+                $operator['total_item'] = count($operator['items']);
+                $operator['total_spk'] = count($operator['spk_ids']);
+                unset($operator['machine_types'], $operator['spk_ids']);
+                return $operator;
+            })
+            ->sortBy('name')
+            ->values()
+            ->all();
+
+        $bahanBakuAktifTotals = collect($bahanBakuAktifTotals)
+            ->map(function (array $bahan): array {
+                $bahan['total_kebutuhan'] = round((float) $bahan['total_kebutuhan'], 2);
+                return $bahan;
+            })
+            ->sortBy('nama')
+            ->values()
+            ->all();
+
+        $mesinBahanBakuAktif = collect($mesinBahanBakuAktif)
+            ->map(function (array $group): array {
+                $group['bahan_groups'] = collect($group['bahan_groups'])
+                    ->map(function (array $bahan): array {
+                        $bahan['total_kebutuhan'] = round((float) $bahan['total_kebutuhan'], 2);
+                        return $bahan;
+                    })
+                    ->sortBy('nama')
+                    ->values()
+                    ->all();
+                return $group;
+            })
+            ->sortBy('type_label')
+            ->values()
+            ->all();
+
+        return [
+            'produksiByTipeMesin' => $produksiByTipeMesin,
+            'operatorWorkloads' => $operatorWorkloads,
+            'bahanBakuAktifTotals' => $bahanBakuAktifTotals,
+            'mesinBahanBakuAktif' => $mesinBahanBakuAktif,
+        ];
+    }
+
+    private function extractWorkflowTargetsForItem(SPKItem $item, Collection $mesinTypeById): array
+    {
+        $alur = $item->produk?->alur_produksi_json ?? [];
+        if (!is_array($alur) || empty($alur)) {
+            return [];
+        }
+
+        $targets = [];
+        foreach ($alur as $step) {
+            if (!is_array($step)) {
+                continue;
+            }
+
+            $identity = $this->resolveStepIdentity($step);
+            $stepId = (int) ($identity['step_id'] ?? 0);
+            $candidates = collect($identity['candidates'] ?? [])
+                ->map(fn ($value) => $this->normalizeMesinType((string) $value))
+                ->filter()
+                ->values()
+                ->all();
+
+            $mappedType = $stepId > 0
+                ? $this->normalizeMesinType((string) ($mesinTypeById[$stepId] ?? ''))
+                : '';
+
+            $fallbackFromStep = $this->normalizeMesinType(
+                (string) ($step['divisi_mesin'] ?? $step['keterangan_divisi'] ?? '')
+            );
+
+            $typeKey = $mappedType !== ''
+                ? $mappedType
+                : ($candidates[0] ?? $fallbackFromStep);
+
+            if ($typeKey === '') {
+                continue;
+            }
+
+            $typeLabel = trim((string) ($identity['step_name'] ?? ''));
+            if ($typeLabel === '') {
+                $typeLabel = trim((string) ($step['keterangan_divisi'] ?? ''));
+            }
+            if ($typeLabel === '') {
+                $typeLabel = strtoupper($typeKey);
+            }
+
+            $targets[$typeKey] = [
+                'type_key' => $typeKey,
+                'type_label' => $typeLabel,
+            ];
+        }
+
+        return array_values($targets);
+    }
+
+    private function buildWorkItemPayload(SPK $spkRow, SPKItem $item, string $mesinLabel): array
+    {
+        return [
+            'spk_nomor' => (string) ($spkRow->nomor_spk ?? '-'),
+            'pelanggan' => (string) ($spkRow->pelanggan->nama ?? '-'),
+            'status' => (string) ($spkRow->status ?? '-'),
+            'produk' => (string) ($item->produk->nama_produk ?? $item->nama_produk ?? '-'),
+            'jumlah' => (float) ($item->jumlah ?? 0),
+            'satuan' => (string) ($item->satuan ?? ''),
+            'mesin_label' => $mesinLabel !== '' ? $mesinLabel : '-',
+        ];
     }
 
     public function saveUserMesinRoles(Request $request): RedirectResponse

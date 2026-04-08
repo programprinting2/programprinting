@@ -19,6 +19,11 @@
       $selectedUserMesinIds = collect(old('mesin_ids', $selectedUserMesinIds ?? []))
         ->map(fn ($id) => (int) $id)
         ->all();
+      $dashboardData = $dashboardData ?? [];
+      $produksiByTipeMesin = $dashboardData['produksiByTipeMesin'] ?? [];
+      $operatorWorkloads = $dashboardData['operatorWorkloads'] ?? [];
+      $bahanBakuAktifTotals = $dashboardData['bahanBakuAktifTotals'] ?? [];
+      $mesinBahanBakuAktif = $dashboardData['mesinBahanBakuAktif'] ?? [];
     @endphp
 
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -45,6 +50,42 @@
                 data-target-pane="assignment-role-mesin-pane"
               >
                 Assignment Role Mesin
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link {{ $activeTab === 'produksi' ? 'active' : '' }}"
+                type="button"
+                data-target-pane="produksi-pane"
+              >
+                Produksi
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link {{ $activeTab === 'operator' ? 'active' : '' }}"
+                type="button"
+                data-target-pane="operator-pane"
+              >
+                Operator
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link {{ $activeTab === 'bahan-baku' ? 'active' : '' }}"
+                type="button"
+                data-target-pane="bahan-baku-pane"
+              >
+                Bahan baku
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button
+                class="nav-link {{ $activeTab === 'mesin-bahan-baku' ? 'active' : '' }}"
+                type="button"
+                data-target-pane="mesin-bahan-baku-pane"
+              >
+                Mesin - Bahan baku
               </button>
             </li>
           </ul>
@@ -464,6 +505,218 @@
           </div>
   </div>
 
+  <div id="produksi-pane" class="{{ $activeTab === 'produksi' ? '' : 'd-none' }}">
+    <hr class="my-4">
+    <h5 class="mb-3 fw-semibold">Produksi per tipe mesin</h5>
+    <div class="accordion" id="accordionProduksi">
+      @forelse($produksiByTipeMesin as $index => $group)
+        @php $collapseId = 'produksi-collapse-'.$index; @endphp
+        <div class="accordion-item mb-2 border">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}">
+              <span class="fw-semibold me-2">{{ $group['type_label'] ?? '-' }}</span>
+              <span class="badge bg-primary-subtle text-primary border me-1">{{ $group['total_item'] ?? 0 }} item</span>
+              <span class="badge bg-light text-dark border">{{ $group['total_spk'] ?? 0 }} SPK</span>
+            </button>
+          </h2>
+          <div id="{{ $collapseId }}" class="accordion-collapse collapse" data-bs-parent="#accordionProduksi">
+            <div class="accordion-body">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>SPK</th>
+                      <th>Pelanggan</th>
+                      <th>Produk</th>
+                      <th>Qty</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($group['items'] ?? [] as $itemRow)
+                      <tr>
+                        <td>{{ $itemRow['spk_nomor'] ?? '-' }}</td>
+                        <td>{{ $itemRow['pelanggan'] ?? '-' }}</td>
+                        <td>{{ $itemRow['produk'] ?? '-' }}</td>
+                        <td>{{ number_format((float) ($itemRow['jumlah'] ?? 0), 2, ',', '.') }} {{ $itemRow['satuan'] ?? '' }}</td>
+                        <td><span class="badge bg-light text-dark border">{{ $itemRow['status'] ?? '-' }}</span></td>
+                      </tr>
+                    @empty
+                      <tr><td colspan="5" class="text-center text-muted">Belum ada item aktif.</td></tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="text-muted">Belum ada data produksi aktif.</div>
+      @endforelse
+    </div>
+  </div>
+
+  <div id="operator-pane" class="{{ $activeTab === 'operator' ? '' : 'd-none' }}">
+    <hr class="my-4">
+    <h5 class="mb-3 fw-semibold">Pekerjaan per operator</h5>
+    <div class="accordion" id="accordionOperator">
+      @forelse($operatorWorkloads as $index => $operator)
+        @php $collapseId = 'operator-collapse-'.$index; @endphp
+        <div class="accordion-item mb-2 border">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}">
+              <span class="fw-semibold me-2">{{ $operator['name'] ?? '-' }}</span>
+              <span class="badge bg-primary-subtle text-primary border me-1">{{ $operator['total_item'] ?? 0 }} item</span>
+              <span class="badge bg-light text-dark border">{{ $operator['total_spk'] ?? 0 }} SPK</span>
+            </button>
+          </h2>
+          <div id="{{ $collapseId }}" class="accordion-collapse collapse" data-bs-parent="#accordionOperator">
+            <div class="accordion-body">
+              <div class="mb-2">
+                <small class="text-muted d-block mb-1">Mesin assignment:</small>
+                @if(empty($operator['mesin_list']))
+                  <span class="badge bg-light text-muted border">Belum ada mesin</span>
+                @else
+                  @foreach($operator['mesin_list'] as $m)
+                    <span class="badge bg-light text-dark border me-1">{{ $m['nama_mesin'] ?? '-' }}</span>
+                  @endforeach
+                @endif
+              </div>
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>SPK</th>
+                      <th>Produk</th>
+                      <th>Mesin/Tipe</th>
+                      <th>Qty</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($operator['items'] ?? [] as $itemRow)
+                      <tr>
+                        <td>{{ $itemRow['spk_nomor'] ?? '-' }}</td>
+                        <td>{{ $itemRow['produk'] ?? '-' }}</td>
+                        <td>{{ $itemRow['mesin_label'] ?? '-' }}</td>
+                        <td>{{ number_format((float) ($itemRow['jumlah'] ?? 0), 2, ',', '.') }} {{ $itemRow['satuan'] ?? '' }}</td>
+                      </tr>
+                    @empty
+                      <tr><td colspan="4" class="text-center text-muted">Belum ada pekerjaan aktif untuk operator ini.</td></tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="text-muted">Belum ada data operator.</div>
+      @endforelse
+    </div>
+  </div>
+
+  <div id="bahan-baku-pane" class="{{ $activeTab === 'bahan-baku' ? '' : 'd-none' }}">
+    <hr class="my-4">
+    <h5 class="mb-3 fw-semibold">Total bahan baku pekerjaan aktif</h5>
+    <div class="accordion" id="accordionBahanBaku">
+      @forelse($bahanBakuAktifTotals as $index => $bahan)
+        @php $collapseId = 'bahan-collapse-'.$index; @endphp
+        <div class="accordion-item mb-2 border">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}">
+              <span class="fw-semibold me-2">{{ $bahan['nama'] ?? '-' }}</span>
+              <span class="badge bg-light text-dark border me-1">{{ $bahan['kode'] ?: '-' }}</span>
+              <span class="badge bg-primary-subtle text-primary border">Total: {{ number_format((float) ($bahan['total_kebutuhan'] ?? 0), 2, ',', '.') }} {{$bahan['details'][0]['satuan_bahan']}}</span>
+            </button>
+          </h2>
+          <div id="{{ $collapseId }}" class="accordion-collapse collapse" data-bs-parent="#accordionBahanBaku">
+            <div class="accordion-body">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>SPK</th>
+                      <th>Produk</th>
+                      <th>Qty Item</th>
+                      <th>Kebutuhan Bahan</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($bahan['details'] ?? [] as $detail)
+                      <tr>
+                        <td>{{ $detail['spk_nomor'] ?? '-' }}</td>
+                        <td>{{ $detail['produk'] ?? '-' }}</td>
+                        <td>
+                          {{ number_format((float) ($detail['jumlah'] ?? 0), 2, ',', '.') }}
+                          {{ $detail['satuan_item'] ?? '' }}
+                        </td>
+                        <td>
+                          {{ number_format((float) ($detail['kebutuhan'] ?? 0), 2, ',', '.') }}
+                          {{ $detail['satuan_bahan'] ?? '' }}
+                        </td>
+                      </tr>
+                    @empty
+                      <tr><td colspan="4" class="text-center text-muted">Belum ada detail pemakaian.</td></tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="text-muted">Belum ada kebutuhan bahan baku dari pekerjaan aktif.</div>
+      @endforelse
+    </div>
+  </div>
+
+  <div id="mesin-bahan-baku-pane" class="{{ $activeTab === 'mesin-bahan-baku' ? '' : 'd-none' }}">
+    <hr class="my-4">
+    <h5 class="mb-3 fw-semibold">Mesin dan bahan baku yang sedang digunakan</h5>
+    <div class="accordion" id="accordionMesinBahan">
+      @forelse($mesinBahanBakuAktif as $index => $group)
+        @php $collapseId = 'mesin-bahan-collapse-'.$index; @endphp
+        <div class="accordion-item mb-2 border">
+          <h2 class="accordion-header">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#{{ $collapseId }}">
+              <span class="fw-semibold">{{ $group['type_label'] ?? '-' }}</span>
+            </button>
+          </h2>
+          <div id="{{ $collapseId }}" class="accordion-collapse collapse" data-bs-parent="#accordionMesinBahan">
+            <div class="accordion-body">
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Bahan baku</th>
+                      <th>Kode</th>
+                      <th>Total kebutuhan Bahan</th>
+                      <!-- <th>Detail</th> -->
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @forelse($group['bahan_groups'] ?? [] as $bahan)
+                      <tr>
+                        <td>{{ $bahan['nama'] ?? '-' }}</td>
+                        <td>{{ $bahan['kode'] ?: '-' }}</td>
+                        <td>{{ number_format((float) ($bahan['total_kebutuhan'] ?? 0), 2, ',', '.') }} {{ $bahan['satuan_bahan'] ?? '' }}</td>
+                        <!-- <td>{{ count($bahan['details'] ?? []) }} item</td> -->
+                      </tr>
+                    @empty
+                      <tr><td colspan="4" class="text-center text-muted">Belum ada bahan baku aktif untuk mesin ini.</td></tr>
+                    @endforelse
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      @empty
+        <div class="text-muted">Belum ada data relasi mesin dan bahan baku aktif.</div>
+      @endforelse
+    </div>
+  </div>
+
   <div id="assignment-role-mesin-pane" class="{{ $activeTab === 'assignment-role-mesin' ? '' : 'd-none' }}">
 
     <hr class="my-4">
@@ -615,21 +868,17 @@
     // Initialize Feather Icons
     feather.replace();
 
-    const paneDataPekerjaan = document.getElementById('data-pekerjaan-pane');
-    const paneAssignmentRole = document.getElementById('assignment-role-mesin-pane');
     const tabButtons = document.querySelectorAll('#managerProduksiTabs .nav-link');
+    const tabPanes = document.querySelectorAll('[id$="-pane"]');
     tabButtons.forEach((btn) => {
       btn.addEventListener('click', function () {
         tabButtons.forEach((b) => b.classList.remove('active'));
         this.classList.add('active');
 
         const targetPane = this.getAttribute('data-target-pane');
-        if (paneDataPekerjaan) {
-          paneDataPekerjaan.classList.toggle('d-none', targetPane !== 'data-pekerjaan-pane');
-        }
-        if (paneAssignmentRole) {
-          paneAssignmentRole.classList.toggle('d-none', targetPane !== 'assignment-role-mesin-pane');
-        }
+        tabPanes.forEach((pane) => {
+          pane.classList.toggle('d-none', pane.id !== targetPane);
+        });
       });
     });
 
@@ -641,7 +890,7 @@
     // Search form handling
     const searchForm = $('#searchForm');
     const loadingSpinner = $('#loadingSpinner');
-    const tableContainer = $('.table-responsive');
+    const tableContainer = $('#data-pekerjaan-pane .table-responsive');
 
     // Auto-submit form when dropdown changes
     $('select[name="customer_id"], select[name="status"], select[name="prioritas"]').on('change', function() {
