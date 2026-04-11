@@ -33,64 +33,145 @@
     </div>
           </div>
 
-          <ul class="nav nav-tabs mb-3" id="managerProduksiTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link {{ $activeTab === 'data-pekerjaan' ? 'active' : '' }}"
-                type="button"
-                data-target-pane="data-pekerjaan-pane"
-              >
-                Data Pekerjaan
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link {{ $activeTab === 'assignment-role-mesin' ? 'active' : '' }}"
-                type="button"
-                data-target-pane="assignment-role-mesin-pane"
-              >
-                Assignment Role Mesin
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link {{ $activeTab === 'produksi' ? 'active' : '' }}"
-                type="button"
-                data-target-pane="produksi-pane"
-              >
-                Produksi
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link {{ $activeTab === 'operator' ? 'active' : '' }}"
-                type="button"
-                data-target-pane="operator-pane"
-              >
-                Operator
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link {{ $activeTab === 'bahan-baku' ? 'active' : '' }}"
-                type="button"
-                data-target-pane="bahan-baku-pane"
-              >
-                Bahan baku
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link {{ $activeTab === 'mesin-bahan-baku' ? 'active' : '' }}"
-                type="button"
-                data-target-pane="mesin-bahan-baku-pane"
-              >
-                Mesin - Bahan baku
-              </button>
-            </li>
-          </ul>
+          @php
+            $tabBadgeSpk = (int) ($spk->total() ?? 0);
+            $tabBadgeUsers = ($users ?? collect())->count();
+            $tabBadgeProduksi = count($produksiByTipeMesin ?? []);
+            $tabBadgeOperator = count($operatorWorkloads ?? []);
+            $tabBadgeBahan = count($bahanBakuAktifTotals ?? []);
+            $tabBadgeMesinBahan = count($mesinBahanBakuAktif ?? []);
+          @endphp
 
-          <div id="data-pekerjaan-pane" class="{{ $activeTab === 'assignment-role-mesin' ? 'd-none' : '' }}">
+          <div class="row g-3 mb-4" id="managerProduksiTabs" role="tablist">
+            <div class="col-6 col-md-4 col-lg-2">
+              <button
+                type="button"
+                class="card tab-card w-100 text-start {{ $activeTab === 'data-pekerjaan' ? 'active' : '' }}"
+                data-target-pane="data-pekerjaan-pane"
+                role="tab"
+              >
+                <div class="card-body d-flex align-items-center gap-2 p-3">
+                  <div class="tab-icon bg-primary-subtle text-primary flex-shrink-0">
+                    <i class="fa fa-clipboard-list"></i>
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                      <h6 class="mb-0 fw-semibold text-truncate">Data Pekerjaan</h6>
+                      <span class="badge bg-primary rounded-pill px-2 flex-shrink-0">{{ $tabBadgeSpk }}</span>
+                    </div>
+                    <small class="text-muted d-block text-truncate">Daftar SPK</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <button
+                type="button"
+                class="card tab-card w-100 text-start {{ $activeTab === 'assignment-role-mesin' ? 'active' : '' }}"
+                data-target-pane="assignment-role-mesin-pane"
+                role="tab"
+              >
+                <div class="card-body d-flex align-items-center gap-2 p-3">
+                  <div class="tab-icon bg-secondary-subtle text-secondary flex-shrink-0">
+                    <i class="fa fa-user-cog"></i>
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                      <h6 class="mb-0 fw-semibold text-truncate">Role Mesin</h6>
+                      <span class="badge bg-secondary rounded-pill px-2 flex-shrink-0">{{ $tabBadgeUsers }}</span>
+                    </div>
+                    <small class="text-muted d-block text-truncate">User & mesin</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <button
+                type="button"
+                class="card tab-card w-100 text-start {{ $activeTab === 'produksi' ? 'active' : '' }}"
+                data-target-pane="produksi-pane"
+                role="tab"
+              >
+                <div class="card-body d-flex align-items-center gap-2 p-3">
+                  <div class="tab-icon bg-success-subtle text-success flex-shrink-0">
+                    <i class="fa fa-industry"></i>
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                      <h6 class="mb-0 fw-semibold text-truncate">Produksi</h6>
+                      <span class="badge bg-success rounded-pill px-2 flex-shrink-0">{{ $tabBadgeProduksi }}</span>
+                    </div>
+                    <small class="text-muted d-block text-truncate">Per tipe mesin</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <button
+                type="button"
+                class="card tab-card w-100 text-start {{ $activeTab === 'operator' ? 'active' : '' }}"
+                data-target-pane="operator-pane"
+                role="tab"
+              >
+                <div class="card-body d-flex align-items-center gap-2 p-3">
+                  <div class="tab-icon bg-warning-subtle text-warning flex-shrink-0">
+                    <i class="fa fa-users"></i>
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                      <h6 class="mb-0 fw-semibold text-truncate">Operator</h6>
+                      <span class="badge bg-warning text-dark rounded-pill px-2 flex-shrink-0">{{ $tabBadgeOperator }}</span>
+                    </div>
+                    <small class="text-muted d-block text-truncate">Per assignment</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <button
+                type="button"
+                class="card tab-card w-100 text-start {{ $activeTab === 'bahan-baku' ? 'active' : '' }}"
+                data-target-pane="bahan-baku-pane"
+                role="tab"
+              >
+                <div class="card-body d-flex align-items-center gap-2 p-3">
+                  <div class="tab-icon bg-info-subtle text-info flex-shrink-0">
+                    <i class="fa fa-boxes"></i>
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                      <h6 class="mb-0 fw-semibold text-truncate">Bahan baku</h6>
+                      <span class="badge bg-info rounded-pill px-2 flex-shrink-0">{{ $tabBadgeBahan }}</span>
+                    </div>
+                    <small class="text-muted d-block text-truncate">Total kebutuhan</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+            <div class="col-6 col-md-4 col-lg-2">
+              <button
+                type="button"
+                class="card tab-card w-100 text-start {{ $activeTab === 'mesin-bahan-baku' ? 'active' : '' }}"
+                data-target-pane="mesin-bahan-baku-pane"
+                role="tab"
+              >
+                <div class="card-body d-flex align-items-center gap-2 p-3">
+                  <div class="tab-icon bg-danger-subtle text-danger flex-shrink-0">
+                    <i class="fa fa-cogs"></i>
+                  </div>
+                  <div class="flex-grow-1 min-w-0">
+                    <div class="d-flex align-items-center justify-content-between gap-1">
+                      <h6 class="mb-0 fw-semibold text-truncate">Mesin–Bahan</h6>
+                      <span class="badge bg-danger rounded-pill px-2 flex-shrink-0">{{ $tabBadgeMesinBahan }}</span>
+                    </div>
+                    <small class="text-muted d-block text-truncate">Ringkasan</small>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div id="data-pekerjaan-pane" class="{{ $activeTab === 'data-pekerjaan' ? '' : 'd-none' }}">
 
           <!-- Divider -->
           <hr class="my-4">
@@ -864,11 +945,39 @@
 @endsection
 
 @push('custom-scripts')
+  <style>
+  .tab-card {
+    transition: all 0.25s ease;
+    border-radius: 14px;
+    background: #fff;
+  }
+
+  .tab-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  }
+
+  .tab-card.active {
+    border: 2px solid #0d6efd;
+    background: linear-gradient(145deg, #f8fbff, #eef5ff);
+  }
+
+  .tab-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+  }
+  </style>
+
   <script>
     // Initialize Feather Icons
     feather.replace();
 
-    const tabButtons = document.querySelectorAll('#managerProduksiTabs .nav-link');
+    const tabButtons = document.querySelectorAll('#managerProduksiTabs .tab-card');
     const tabPanes = document.querySelectorAll('[id$="-pane"]');
     tabButtons.forEach((btn) => {
       btn.addEventListener('click', function () {
