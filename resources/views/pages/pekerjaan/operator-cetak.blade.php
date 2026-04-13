@@ -722,7 +722,7 @@
                                                 data-spk-item-id="{{ $spkItem->id }}"
                                                 data-step-key="{{ $stepKey }}"
                                                 data-scope="pool">
-                                              Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                                              Sisa cetak: {{ number_format((int) ($spkItem->sisa_belum_cetak ?? 0), 0, ',', '.') }} {{ $spkItem->satuan }}
                                             </div>
                                           </td>
                                         </tr>
@@ -1280,7 +1280,7 @@
                                             data-spk-item-id="{{ $spkItem->id }}"
                                             data-step-key="{{ $stepKey }}"
                                             data-scope="modal">
-                                          Sisa cetak: {{ number_format($sisa,0,',','.') }} {{ $spkItem->satuan }}
+                                            Sisa cetak: {{ number_format((int) ($spkItem->sisa_belum_cetak ?? 0), 0, ',', '.') }} {{ $spkItem->satuan }}
                                         </div>
                                       </td>
 
@@ -3953,6 +3953,12 @@
       steps.forEach(function (stepState) {
         updateStepUi(spkItemId, stepState);
       });
+      const remainingGlobal = toNumber(payload.remaining_print_global);
+      const satuan = (steps[0] && steps[0].satuan) ? String(steps[0].satuan) : '';
+      updateSelectorText(
+        `[data-field="sisa-cetak"][data-spk-item-id="${spkItemId}"]`,
+        `Sisa cetak: ${numberFormatter.format(remainingGlobal)} ${satuan}`
+      );
     }
 
     async function fetchAndPatchItem(spkItemId) {

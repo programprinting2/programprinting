@@ -1417,9 +1417,13 @@ class PekerjaanController extends Controller
         $this->assertMesinAssignedToCurrentUser($mesinId);
         $ids = collect($request->input('spk_item_ids', []))
             ->map(fn ($v) => (int) $v)
+            ->filter(fn ($v) => $v > 0)
             ->unique()
             ->values();
-        $ambil = (int) $request->input('jumlah');
+        if ($ids->isEmpty()) {
+            return back()->withErrors(['spk_item_ids' => 'Item wajib dipilih.']);
+        }
+        $ambil  = (int) $request->input('jumlah');
         $userId = (int) (auth()->id() ?? 1);
         $targetMesinType = $this->normalizeMesinType(
             MasterMesin::query()->whereKey($mesinId)->value('tipe_mesin')
@@ -1429,94 +1433,89 @@ class PekerjaanController extends Controller
                 'mesin_id' => 'Mesin tidak valid atau tidak memiliki tipe mesin.',
             ]);
         }
-        $mesinTypeByMesinId = $this->getMesinTypeByMesinIdMap();
-
         $idList = $ids->all();
-
-        $printAgg = SpkItemCetakLog::query()
-            ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_cetak')
-            ->whereIn('spk_item_id', $idList)
-            ->whereNull('deleted_at')
-            ->groupBy('spk_item_id', 'mesin_id')
-            ->get();
-
-        $queueAgg = SpkItemCetakQueue::query()
-            ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_diambil')
-            ->whereIn('spk_item_id', $idList)
-            ->groupBy('spk_item_id', 'mesin_id')
-            ->get();
-
-        $printByItemId = [];
-        foreach ($printAgg as $row) {
-            $iid = (int) $row->spk_item_id;
-            $tipe = $mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '';
-            if ($tipe === '') {
-                continue;
-            }
-            $printByItemId[$iid][$tipe] = (int) ($printByItemId[$iid][$tipe] ?? 0) + (int) ($row->total_cetak ?? 0);
-        }
-
-        $queueByItemId = [];
-        foreach ($queueAgg as $row) {
-            $iid = (int) $row->spk_item_id;
-            $tipe = $mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '';
-            if ($tipe === '') {
-                continue;
-            }
-            $queueByItemId[$iid][$tipe] = (int) ($queueByItemId[$iid][$tipe] ?? 0) + (int) ($row->total_diambil ?? 0);
-        }
-
-        DB::transaction(function () use ($ids, $mesinId, $ambil, $userId, $targetMesinType, $printByItemId, $queueByItemId) {
+        DB::transaction(function () use ($idList, $mesinId, $ambil, $userId, $targetMesinType) {
             $items = SPKItem::query()
                 ->with('produk:id,alur_produksi_json')
-                ->whereIn('id', $ids->all())
+                ->whereIn('id', $idList)
                 ->lockForUpdate()
                 ->get()
                 ->keyBy('id');
+            $mesinTypeByMesinId = $this->getMesinTypeByMesinIdMap();
 
-            foreach ($ids as $spkItemId) {
-                $item = $items->get($spkItemId);
+            $printAgg = SpkItemCetakLog::query()
+                ->whereIn('spk_item_id', $idList)
+                ->whereNull('deleted_at')
+                ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_cetak')
+                ->groupBy('spk_item_id', 'mesin_id')
+                ->get();
+            $printByItemId = [];
+            foreach ($printAgg as $row) {
+                $iid = (int) $row->spk_item_id;
+                $tipe = (string) ($mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '');
+                if ($tipe === '') {
+                    continue;
+                }
+                $printByItemId[$iid][$tipe] = (int) ($printByItemId[$iid][$tipe] ?? 0) + (int) ($row->total_cetak ?? 0);
+            }
+
+            $queueAgg = SpkItemCetakQueue::query()
+                ->whereIn('spk_item_id', $idList)
+                ->selectRaw('spk_item_id, mesin_id, SUM(jumlah) as total_diambil')
+                ->groupBy('spk_item_id', 'mesin_id')
+                ->get();
+            $queueByItemId = [];
+            foreach ($queueAgg as $row) {
+                $iid = (int) $row->spk_item_id;
+                $tipe = (string) ($mesinTypeByMesinId[(int) ($row->mesin_id ?? 0)] ?? '');
+                if ($tipe === '') {
+                    continue;
+                }
+                $queueByItemId[$iid][$tipe] = (int) ($queueByItemId[$iid][$tipe] ?? 0) + (int) ($row->total_diambil ?? 0);
+            }
+
+            $now = now();
+            $insertRows = [];
+            foreach ($idList as $spkItemId) {
+                $item = $items->get((int) $spkItemId);
                 if (!$item || (int) ($item->jumlah ?? 0) <= 0) {
                     continue;
                 }
-
                 $stepInfo = $this->remainingTakeForStepFromWorkflow(
                     $item,
                     $mesinId,
                     $targetMesinType,
-                    $printByItemId[$spkItemId] ?? [],
-                    $queueByItemId[$spkItemId] ?? []
+                    $printByItemId[(int) $spkItemId] ?? [],
+                    $queueByItemId[(int) $spkItemId] ?? []
                 );
-
                 $remainingTakeForTarget = (int) ($stepInfo['remaining'] ?? 0);
-
                 if ($remainingTakeForTarget <= 0) {
                     throw ValidationException::withMessages([
                         'jumlah' => 'Step ini belum eligible untuk diambil atau sisa ambil sudah habis.',
                     ]);
                 }
-
                 if ($ambil > $remainingTakeForTarget) {
                     throw ValidationException::withMessages([
                         'jumlah' => "Jumlah melebihi sisa yang bisa diambil. Sisa yang tersedia: {$remainingTakeForTarget}.",
                     ]);
                 }
-
-                SpkItemCetakQueue::query()->create([
-                    'spk_item_id' => $item->id,
-                    'mesin_id' => $mesinId,
-                    'user_id' => $userId,
-                    'jumlah' => $ambil,
-                ]);
-
-                // Setelah create, agregat in-memory untuk item berikutnya di loop yang sama:
-                $t = $targetMesinType;
-                $queueByItemId[$spkItemId][$t] = (int) ($queueByItemId[$spkItemId][$t] ?? 0) + $ambil;
+                $insertRows[] = [
+                    'spk_item_id' => (int) $item->id,
+                    'mesin_id'    => (int) $mesinId,
+                    'user_id'     => (int) $userId,
+                    'jumlah'      => (int) $ambil,
+                    'created_at'  => $now,
+                    'updated_at'  => $now,
+                ];
+            
+                $queueByItemId[(int) $spkItemId][$targetMesinType] =
+                    (int) ($queueByItemId[(int) $spkItemId][$targetMesinType] ?? 0) + (int) $ambil;
+            }
+            if (!empty($insertRows)) {
+                SpkItemCetakQueue::query()->insert($insertRows);
             }
         });
-
         $this->broadcastRealtimeForItems($ids->all());
-
         return back()->with('success', 'Pekerjaan berhasil diambil dan jumlah ditambahkan ke antrian mesin.');
     }
 
@@ -2405,6 +2404,8 @@ class PekerjaanController extends Controller
         $eligibleQty = (int) ($item->jumlah ?? 0);
         $stepTotal = count($alur);
         $steps = [];
+        $totalPrintedGlobal = array_sum(array_map('intval', $printByStepType ?? []));
+        $remainingPrintGlobal = max(0, (int) ($item->jumlah ?? 0) - $totalPrintedGlobal);
 
         foreach ($alur as $index => $step) {
             if (!is_array($step)) {
@@ -2441,12 +2442,16 @@ class PekerjaanController extends Controller
                 'remaining_print_qty' => $remainingPrint,
                 'pct_ambil' => $pctAmbil,
                 'pct_cetak' => $pctCetak,
+                'remaining_print_global' => $remainingPrintGlobal,
                 'satuan' => (string) ($item->satuan ?? ''),
             ];
 
             $eligibleQty = $printedQty;
         }
 
-        return ['steps' => $steps];
+        return [
+            'remaining_print_global' => $remainingPrintGlobal,
+            'steps' => $steps,
+        ];
     }
 }
