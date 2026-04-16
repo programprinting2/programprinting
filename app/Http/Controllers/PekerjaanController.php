@@ -1704,7 +1704,8 @@ class PekerjaanController extends Controller
 
         return response()->json([
             'spk_item_id' => (int) $spkItem->id,
-            'steps' => $payload['steps'],
+            'remaining_print_global' => (int) ($payload['remaining_print_global'] ?? 0),
+            'steps' => $payload['steps'] ?? [],
         ]);
     }
 

@@ -3917,7 +3917,7 @@
         `Step ${stepIndex}/${stepTotal} • Diambil: ${numberFormatter.format(queuedQty)} / ${numberFormatter.format(eligibleQty)} (Sisa ambil: ${numberFormatter.format(remainingTakeQty)})`
       );
       updateSelectorText(`[data-field="cetak-pct-text"]${keySelector}`, `Cetak: ${pctCetak}%`);
-      updateSelectorText(`[data-field="sisa-cetak"]${keySelector}`, `Sisa cetak: ${numberFormatter.format(remainingPrintQty)} ${satuan}`);
+      // updateSelectorText(`[data-field="sisa-cetak"]${keySelector}`, `Sisa cetak: ${numberFormatter.format(remainingPrintQty)} ${satuan}`);
 
       document.querySelectorAll(`[data-field="ambil-pct-bar"]${keySelector}`).forEach(function (bar) {
         setProgressBar(bar, pctAmbil, 'bg-success');
@@ -3953,7 +3953,9 @@
       steps.forEach(function (stepState) {
         updateStepUi(spkItemId, stepState);
       });
-      const remainingGlobal = toNumber(payload.remaining_print_global);
+      const remainingGlobal = toNumber(
+        payload.remaining_print_global ?? (steps[0] && steps[0].remaining_print_global)
+      );
       const satuan = (steps[0] && steps[0].satuan) ? String(steps[0].satuan) : '';
       updateSelectorText(
         `[data-field="sisa-cetak"][data-spk-item-id="${spkItemId}"]`,
