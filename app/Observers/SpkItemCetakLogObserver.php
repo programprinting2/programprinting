@@ -38,8 +38,35 @@ class SpkItemCetakLogObserver
         }
 
         $spk = $item->spk;
+        $spk->loadMissing(['items.produk', 'items.cetakLogs']);
 
-        $itemWorkflow = $this->buildItemWorkflowProgress($item);
+        $allMesinIds = $spk->items
+            ->flatMap(fn (SPKItem $spkItem) => $spkItem->cetakLogs->pluck('mesin_id'))
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->unique()
+            ->values();
+
+        $mesinTypeByMesinId = $allMesinIds->isEmpty()
+            ? collect()
+            : \App\Models\MasterMesin::query()
+                ->whereIn('id', $allMesinIds)
+                ->get(['id', 'tipe_mesin'])
+                ->mapWithKeys(fn ($m) => [
+                    (int) $m->id => $this->normalizeMesinType($m->tipe_mesin ?? null),
+                ]);
+
+        $workflowByItemId = [];
+        foreach ($spk->items as $spkItem) {
+            $workflowByItemId[(int) $spkItem->id] = $this->buildItemWorkflowProgress($spkItem, $mesinTypeByMesinId);
+        }
+
+        $itemWorkflow = $workflowByItemId[(int) $item->id] ?? [
+            'active_progress_pct' => 0.0,
+            'active_remaining_qty' => 0,
+            'is_done' => false,
+            'steps' => [],
+        ];
 
         $progressPct = (float) ($itemWorkflow['active_progress_pct'] ?? 0.0);
         $remaining = (int) ($itemWorkflow['active_remaining_qty'] ?? 0);
@@ -59,14 +86,10 @@ class SpkItemCetakLogObserver
             isDone: $isDone,
         ));
 
-        $spk->loadMissing(['items.produk', 'items.cetakLogs']);
-
         $totalEligibleStepQty = 0.0;
         $weightedStepProgress = 0.0;
 
-        foreach ($spk->items as $spkItem) {
-            $wf = $this->buildItemWorkflowProgress($spkItem);
-
+        foreach ($workflowByItemId as $wf) {
             foreach (($wf['steps'] ?? []) as $step) {
                 $eligible = (float) ($step['eligible_qty'] ?? 0);
                 if ($eligible <= 0) {
@@ -95,10 +118,8 @@ class SpkItemCetakLogObserver
             statusPembayaran: $spk->status_pembayaran,
         ));
 
-        $allDone = $spk->items->every(function (SPKItem $it): bool {
-            $wf = $this->buildItemWorkflowProgress($it);
-            return (bool) ($wf['is_done'] ?? false);
-        });
+        $allDone = collect($workflowByItemId)
+            ->every(fn (array $wf): bool => (bool) ($wf['is_done'] ?? false));
 
         if ($allDone && $spk->status === 'manager_approval_order') {
             $spk->update([
@@ -118,7 +139,7 @@ class SpkItemCetakLogObserver
         return strtolower(trim((string) $value));
     }
 
-    private function buildItemWorkflowProgress(SPKItem $item): array
+    private function buildItemWorkflowProgress(SPKItem $item, \Illuminate\Support\Collection $mesinTypeByMesinId): array
     {
         $item->loadMissing(['produk:id,alur_produksi_json', 'cetakLogs:spk_item_id,mesin_id,jumlah,deleted_at']);
 
@@ -138,16 +159,6 @@ class SpkItemCetakLogObserver
         }
 
         $activeLogs = $item->cetakLogs->whereNull('deleted_at')->values();
-        $mesinIds = $activeLogs->pluck('mesin_id')
-            ->filter()
-            ->map(fn ($id) => (int) $id)
-            ->unique()
-            ->values();
-
-        $mesinTypeByMesinId = \App\Models\MasterMesin::query()
-            ->whereIn('id', $mesinIds)
-            ->get(['id', 'tipe_mesin'])
-            ->mapWithKeys(fn ($m) => [(int) $m->id => $this->normalizeMesinType($m->tipe_mesin ?? null)]);
 
         $printedByStepType = [];
         foreach ($activeLogs as $log) {
@@ -156,6 +167,7 @@ class SpkItemCetakLogObserver
             if ($stepType === '') {
                 continue;
             }
+
             $printedByStepType[$stepType] = (int) ($printedByStepType[$stepType] ?? 0) + (int) ($log->jumlah ?? 0);
         }
 

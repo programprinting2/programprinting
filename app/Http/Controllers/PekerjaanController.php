@@ -1046,24 +1046,28 @@ class PekerjaanController extends Controller
                 'pelanggan' => $spkItem->spk->pelanggan->nama ?? '-',
             ],
             'steps' => array_values($steps),
-            'logs' => $spkItem->cetakLogs()
+           'logs' => $spkItem->cetakLogs()
                 ->withTrashed()
+                ->with([
+                    'user:id,name',
+                    'mesin:id,nama_mesin',
+                ])
                 ->orderBy('created_at')
                 ->get()
                 ->values()
                 ->map(fn ($l) => [
                     'id' => $l->id,
                     'jumlah' => (int) $l->jumlah,
-                    'operator' => $l->user->name ?? ('User #'.$l->user_id),
-                    'mesin' => optional($l->mesin)->nama_mesin ?? ('Mesin #'.$l->mesin_id),
-                    'waktu' => optional($l->created_at)->format('H:i') ?? '',
-                    'tanggal' => optional($l->created_at)->format('d/m/Y') ?? '',
+                    'operator' => $l->user?->name ?? ('User #'.$l->user_id),
+                    'mesin' => $l->mesin?->nama_mesin ?? ('Mesin #'.$l->mesin_id),
+                    'waktu' => $l->created_at?->format('H:i') ?? '',
+                    'tanggal' => $l->created_at?->format('d/m/Y') ?? '',
                     'is_batalkan' => $l->trashed(),
                 ]),
         ]);
     }
 
-    public function storeCetakProgress(StoreSpkItemCetakProgressRequest $request): RedirectResponse
+    public function storeCetakProgress(StoreSpkItemCetakProgressRequest $request): RedirectResponse|JsonResponse
     {
         $spkItemId = (int) $request->input('spk_item_id');
         $jumlah = (int) $request->input('jumlah');
@@ -1150,6 +1154,13 @@ class PekerjaanController extends Controller
                 }
             });
         } catch (ValidationException $e) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal',
+                    'errors' => $e->errors(),
+                ], 422);
+            }
             return back()->withErrors($e->errors())->withInput();
         }
 
@@ -1168,6 +1179,13 @@ class PekerjaanController extends Controller
                 $keterangan,
                 'info'
             );
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Progress cetak berhasil ditambahkan.',
+            ]);
         }
 
         return back()->with('success', 'Progress cetak berhasil ditambahkan.');

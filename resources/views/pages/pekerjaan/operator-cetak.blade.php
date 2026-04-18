@@ -2859,14 +2859,47 @@
       }
 
       const form = document.getElementById("formCetakProgress");
-      const btn = document.getElementById('btn_simpan_progress');
+      const btn = document.getElementById("btn_simpan_progress");
 
-      if(!form || !btn) return;
-      form.addEventListener('submit', function(){
-        btn.disabled = true;
-        btn.querySelector('.btn-text').classList.add('d-none');
-        btn.querySelector('.btn-loading').classList.remove('d-none');
-      });
+      if (form && btn) {
+        form.addEventListener('submit', async function (e) {
+          e.preventDefault();
+
+          btn.disabled = true;
+          btn.querySelector('.btn-text')?.classList.add('d-none');
+          btn.querySelector('.btn-loading')?.classList.remove('d-none');
+
+          try {
+            const resp = await fetch(form.action, {
+              method: 'POST',
+              headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+              },
+              body: new FormData(form),
+            });
+
+            const data = await resp.json();
+
+            if (!resp.ok || !data.success) {
+              const msg = data?.message || 'Gagal menyimpan progress cetak.';
+              Swal.fire({ title: 'Gagal', text: msg, icon: 'error' });
+              return;
+            }
+
+            Swal.fire({ title: 'Berhasil', text: data.message, icon: 'success', timer: 1000, showConfirmButton: false });
+            window.location.reload();
+            
+          } catch (err) {
+            Swal.fire({ title: 'Error', text: 'Terjadi kesalahan jaringan.', icon: 'error' });
+          } finally {
+            btn.disabled = false;
+            btn.querySelector('.btn-text')?.classList.remove('d-none');
+            btn.querySelector('.btn-loading')?.classList.add('d-none');
+          }
+        });
+      }
     });
 
     document.addEventListener('click', function (e) {
