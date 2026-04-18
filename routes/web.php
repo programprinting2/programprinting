@@ -30,6 +30,7 @@ use App\Http\Controllers\GudangController;
 use App\Http\Controllers\RakController;
 use App\Http\Controllers\HutangController; 
 use App\Http\Controllers\PekerjaanController;
+use App\Http\Controllers\PembukuanController;
 
 
 Route::get('/', function () {
@@ -305,6 +306,16 @@ Route::group(['prefix' => 'kasir', 'middleware' => ['auth', 'single.session']], 
 
     Route::get('/spk/{spk}/payment', [KasirController::class, 'payment'])->name('kasir.spk.payment');
     Route::post('/spk/{spk}/payment', [KasirController::class, 'storePayment'])->name('kasir.spk.payment.store');
+});
+
+Route::group(['prefix' => 'pembukuan', 'middleware' => ['auth', 'single.session']], function () {
+    Route::get('/', [PembukuanController::class, 'index'])->name('pembukuan.index');
+    Route::get('/akun-perkiraan', [PembukuanController::class, 'akunPerkiraan'])->name('pembukuan.akun-perkiraan');
+    Route::get('/pencatatan-beban', [PembukuanController::class, 'pencatatanBeban'])->name('pembukuan.pencatatan-beban');
+    Route::get('/pencatatan-gaji', [PembukuanController::class, 'pencatatanGaji'])->name('pembukuan.pencatatan-gaji');
+    Route::get('/jurnal-umum', [PembukuanController::class, 'jurnalUmum'])->name('pembukuan.jurnal-umum');
+    Route::get('/histori-akun', [PembukuanController::class, 'historiAkun'])->name('pembukuan.histori-akun');
+    Route::get('/log-aktivitas-jurnal', [PembukuanController::class, 'logAktivitasJurnal'])->name('pembukuan.log-aktivitas-jurnal');
 });
 
 

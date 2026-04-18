@@ -82,6 +82,14 @@
         </a>
       </li>
 
+      <!-- Pembukuan -->
+      <li class="nav-item {{ active_class(['pembukuan/*', 'pembukuan']) }}">
+        <a class="nav-link" href="{{ route('pembukuan.index') }}" role="button">
+          <i class="link-icon" data-feather="book-open"></i>
+          <span class="link-title">Pembukuan</span>
+        </a>
+      </li>
+
       <!-- SPK -->
       <li class="nav-item {{ active_class(['spk/*', 'spk']) }}">
         <a class="nav-link" href="{{ url('/spk') }}" role="button">
